@@ -10,8 +10,6 @@
 #include <libpng12/png.h>
 #include <Python/Python.h>
 
-#include "libpngGL.h"
-
 #include <ft2build.h>
 //#include FT_FREETYPE_H
 #include <freetype/freetype.h>
@@ -19,20 +17,16 @@
 #include <freetype/ftoutln.h>
 #include <freetype/fttrigon.h>
 
-int TextureWidth;
-int TextureHeight;
-int BitmapWidth;
-int BitmapHeight;
-  
+#include "libpngGL.h"
+#include "fonts.h"
+
 static int screenWidth = 1280;
 static int screenHeight = 1024;
 float screenRatio;
 static SDL_Surface *gScreen;
 
-
 /****************************** SDL STUFF ********************************/
-static void printAttributes ()
-{
+static void printAttributes (){
   // Print out attributes of the context we created
   int nAttr;
   int i;
@@ -47,7 +41,6 @@ static void printAttributes ()
   nAttr = sizeof(attr) / sizeof(int);
     
   for (i = 0; i < nAttr; i++) {
-    
     int value;
     SDL_GL_GetAttribute (attr[i], &value);
     printf (desc[i], value);
@@ -73,6 +66,23 @@ int mouseY = 0;
 #define BUFSIZE 512
 GLuint selectBuf[BUFSIZE];
 
+int selectedTriangle = -1;
+void processTheHits(GLint hits, GLuint buffer[]){
+  GLuint *bufferPtr,*ptrNames, numberOfNames;
+  bufferPtr = (GLuint *) buffer;
+  //each 'hit' gives a 'number of names', then two depth values, then each of the names in the buffer(array)
+  if(hits > 0){
+    //just assume there's one hit for now
+    numberOfNames = *bufferPtr;
+    if(numberOfNames == 1){
+      bufferPtr = bufferPtr + 3;
+      selectedTriangle = *bufferPtr;
+    }
+  }else{
+    selectedTriangle = -1;
+  }
+}
+
 void startPicking(){
   GLint viewport[4];
 	
@@ -88,47 +98,29 @@ void startPicking(){
 		5,5,viewport);
   gluPerspective(45,screenRatio,0.1,1000);
   glMatrixMode(GL_MODELVIEW);
-  //	glInitNames();
+  //glInitNames();
 }
 void stopPicking() {
   int hits;
-  // restoring the original projection matrix
+  //restoring the original projection matrix
   glMatrixMode(GL_PROJECTION);
   glPopMatrix();
   glMatrixMode(GL_MODELVIEW);
   glFlush();//"all programs should call glFlush whenever they count on having all of their previously issued commands completed"
-  // returning to normal rendering mode
+  //returning to normal rendering mode
   hits = glRenderMode(GL_RENDER);
   //if (hits != 0){
-  processHits(hits,selectBuf);
+  processTheHits(hits,selectBuf);
   //}
-}
-int selectedTriangle = -1;
-void processHits(GLint hits, GLuint buffer[]){
-  GLuint *bufferPtr,*ptrNames, numberOfNames;
-  bufferPtr = (GLuint *) buffer;
-  //each 'hit' gives a 'number of names', then two depth values, then each of the names in the buffer(array)
-  if(hits > 0){
-    //just assume there's one hit for now
-    numberOfNames = *bufferPtr;
-    if(numberOfNames == 1){
-      bufferPtr = bufferPtr + 3;
-      selectedTriangle = *bufferPtr;
-    }
-  }else{
-    selectedTriangle = -1;
-  }
 }
 /**************************** /mouse hover object selection ********************************/
 
 /************************************* drawing subroutines ***************************************/
-
-
 void drawTrianglesList(GLuint list, int selected){
   int i;
   for(i = 0; i < 6; i++){
-    //		char str[12];
-    //		sprintf(str,"%d",i);
+    //char str[12];
+    //sprintf(str,"%d",i);
     glPushName(i); 
     glPushMatrix();
     glLoadIdentity();
@@ -210,9 +202,9 @@ void drawTile(float x, float y, int tilesXIndex, int tilesYIndex){
 	
   int choice = tilesXIndex%2;
   if (choice == 0) {
-    textureVertices = &jungleVertices;
+    textureVertices = &jungleVertices[0][0];
   }else{
-    textureVertices = &rockVertices;
+    textureVertices = &rockVertices[0][0];
   }
 	
   glBegin(GL_POLYGON);
@@ -221,7 +213,7 @@ void drawTile(float x, float y, int tilesXIndex, int tilesYIndex){
   glTexCoord2f(*(textureVertices+4),*(textureVertices+5)); glVertex3f(hexagonVertices[2][0]+xIndex, hexagonVertices[2][1]+yIndex, 0.0);
   glTexCoord2f(*(textureVertices+6),*(textureVertices+7)); glVertex3f(hexagonVertices[3][0]+xIndex, hexagonVertices[3][1]+yIndex, 0.0);
   glTexCoord2f(*(textureVertices+8),*(textureVertices+9)); glVertex3f(hexagonVertices[4][0]+xIndex, hexagonVertices[4][1]+yIndex, 0.0);
-  glTexCoord2f(*(textureVertices+10),*(textureVertices+11)); glVertex3f(hexagonVertices[5][0]+xIndex, hexagonVertices[5][1]+yIndex, 0.0);	
+  glTexCoord2f(*(textureVertices+10),*(textureVertices+11)); glVertex3f(hexagonVertices[5][0]+xIndex, hexagonVertices[5][1]+yIndex, 0.0);
   glEnd();
 }
 
@@ -231,8 +223,6 @@ GLuint tilesTexture;
 void generateTilesList(){
   tilesList = glGenLists(1);
   glNewList(tilesList,GL_COMPILE);
-	
-	
   glEndList();
 }
 void drawTiles(){
@@ -262,7 +252,6 @@ void drawTiles(){
 
 PyObject * gameModule;
 PyObject * map;
-GLuint fontTexture;
 #define maxZoom 120.0f
 #define minZoom 10.0f
 GLuint testTexture;
@@ -296,12 +285,14 @@ static void initPython(){
   map = PyObject_GetAttrString(gameModule, "map1");//New reference
   //use this to create a new object: like "class()" in python //PyObject * instance = PyObject_CallObject(class,NULL);//New reference
 }
+static void initTextures(){
 
-
+}
 float translateX = 0.0f;
 float translateY = 0.0f;
 float translateZ = -40.0f;
 float scrollSpeed = 0.04;
+float cnt1 = 0.0;
 static void mainLoop (){
   SDL_Event event;
   int done = 0;    
@@ -402,6 +393,8 @@ static void mainLoop (){
     drawTrianglesList(list,-1);
     stopPicking();
     drawTrianglesList(list,selectedTriangle);
+    //    glTranslatef(0,0,-60);
+    print("test");
     //glPopMatrix();
 
     //GUI projection time
@@ -410,32 +403,38 @@ static void mainLoop (){
     screenRatio = (GLfloat)screenWidth/(GLfloat)screenHeight;
     glOrtho(-100.0,100.0,-100.0,100.0,0.0,1.0);
 
-    glMatrixMode(GL_MODELVIEW);
+        glMatrixMode(GL_MODELVIEW);
     
     //glPushMatrix();
+
     glLoadIdentity();
-    //    glColor3ub(0, 0, 255);
+    //    glTranslatef(-90.0f,-10.0f,0.0f);
 
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glLoadIdentity();
+    glRotatef(cnt1,0,0,1);
+    glScalef(1,.8+.3*cos(cnt1/5),1);
+    glTranslatef(-90,-10,0);
 
+    print("<3 Hi Ban <3");
 
-    glTranslatef(-20.0f,-10.0f,0.0f);
-    glBindTexture(GL_TEXTURE_2D, fontTexture);
-    glBegin(GL_QUADS);
-    glTexCoord2f(0.0,1.0); glVertex3f(0.0,0.0,0.0);
-    glTexCoord2f(0.0,0.0); glVertex3f(0.0,TextureHeight,0.0);
-    glTexCoord2f(1.0,0.0); glVertex3f(TextureWidth,TextureHeight,0.0);
-    glTexCoord2f(1.0,1.0); glVertex3f(TextureWidth,0.0,0.0);
-    glEnd();
-    //glPopMatrix();
-    
-    //glMatrixMode(GL_MODELVIEW);
-    //glPopMatrix();
+    cnt1+=0.051f;// Increase The First Counter
+    //    cnt2+=0.005f;
 
     glFlush();//"all programs should call glFlush whenever they count on having all of their previously issued commands completed"
     SDL_GL_SwapBuffers ();	
   }
 }
+
+/*
+
+inline int next_p2 (int a )
+{
+int rval=1;
+// rval<<=1 Is A Prettier Way Of Writing rval*=2; 
+while(rval<a) rval<<=1;
+return rval;
+}
+ */
 int nextPowerOf2(unsigned int v){
   const unsigned int b[] = {0x2, 0xC, 0xF0, 0xFF00, 0xFFFF0000};
   const unsigned int S[] = {1, 2, 4, 8, 16};
@@ -469,107 +468,19 @@ int main(int argc, char **argv){
   }
   initGL();
   initPython();
-  //tilesTexture
+
   char getName[20] ="getName";
   PyObject * mapName = PyObject_CallMethod(map,getName,NULL);//New reference
   char * theMapName = PyString_AsString(mapName);
   //  printf("%s\n",theMapName);
-  //  Py_DECREF(mapName);
+  Py_DECREF(mapName);
 
-  FT_Library library;
-  FT_Face     face; 
-  //FT_Init_FreeType(&library);
-  //FT_Init_FreeType(library);
-  int error = FT_Init_FreeType( &library );
-  error = FT_New_Face( library,
-                       "/Users/clay/ard/Arial.ttf",
-                       0,
-                       &face );
-  if ( error){
-    printf("error");
-  }
-  error = FT_Set_Char_Size(face, 0, 16*64, 300, 300);
-  if (error){
-    printf("error");
-  }
+  initFonts();
 
-  printf("num_glyphs: %d\n",(int)face->num_glyphs);
-
-  int charIndex = FT_Get_Char_Index( face, 'k' );
-  printf("charIndex: %d\n",charIndex);
-
-  if(FT_Load_Glyph( face, charIndex, FT_LOAD_DEFAULT )){
-    printf("FT_Load_Glyph failed");
-  }
-  // Move The Face's Glyph Into A Glyph Object.
-  FT_Glyph glyph;
-
-  if(FT_Get_Glyph( face->glyph, &glyph )){
-    printf("FT_Get_Glyph failed");
-  }
-
-
-  // Convert The Glyph To A Bitmap.
-  FT_Vector origin;
-  FT_Glyph_To_Bitmap( &glyph, FT_RENDER_MODE_NORMAL, 0, 1 );
-
-  FT_BitmapGlyph bitmap_glyph = (FT_BitmapGlyph)glyph;
-
-  // This Reference Will Make Accessing The Bitmap Easier.
-  FT_Bitmap bitmap = (FT_Bitmap)bitmap_glyph->bitmap;
-
-  // Use Our Helper Function To Get The Widths Of
-  // The Bitmap Data That We Will Need In Order To Create
-  // Our Texture.
-  printf("bitmap.width: %d\n",bitmap.width);
-  printf("bitmap.rows: %d\n",bitmap.rows);
-  int width = nextPowerOf2( bitmap.width );
-  int height = nextPowerOf2( bitmap.rows );
-
-  // Allocate Memory For The Texture Data.
-  printf("datasize: %d\n",(int)2 * width * height * sizeof(GLubyte));
-  printf("width: %d\n", width);
-  printf("height: %d\n", height);
-  printf("glubyte size: %d\n", (int)sizeof(GLubyte));
-  GLubyte* expanded_data = malloc(2 * width * height * sizeof(GLubyte));
-  //  expanded_data = GLubyte[ 2 * width * height];
-  printf("3");
-
-  // Here We Fill In The Data For The Expanded Bitmap.
-  // Notice That We Are Using A Two Channel Bitmap (One For
-  // Channel Luminosity And One For Alpha), But We Assign
-  // Both Luminosity And Alpha To The Value That We
-  // Find In The FreeType Bitmap. 
-  // We Use The ?: Operator To Say That Value Which We Use
-  // Will Be 0 If We Are In The Padding Zone, And Whatever
-  // Is The FreeType Bitmap Otherwise.
-  int i;
-  int j;
-  for(j=0; j < height; j++){
-    for(i=0; i < width; i++){
-      expanded_data[2*(i+j*width)]= expanded_data[2*(i+j*width)+1] = 
-	(i>=bitmap.width || j>=bitmap.rows) ?
-	0 : bitmap.buffer[i + bitmap.width*j];
-    }
-  }
-  TextureWidth = bitmap.width;
-  TextureHeight = bitmap.rows;
-
-  glBindTexture( GL_TEXTURE_2D, fontTexture );
-  glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
-  
-  // Here We Actually Create The Texture Itself, Notice
-  // That We Are Using GL_LUMINANCE_ALPHA To Indicate That
-  // We Are Using 2 Channel Data.
-  glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE, expanded_data );
-  //    delete expanded_data;
-  
   mainLoop();
   
   Py_DECREF(map);
   Py_DECREF(gameModule);
   Py_Finalize();
- 
   exit(0);
 }
