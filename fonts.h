@@ -63,9 +63,10 @@ void make_dlist ( FT_Face face, char charIndex, GLuint list_base, GLuint * tex_b
 	0 : bitmap.buffer[i + bitmap.width*j];
     }
   }
-  TextureWidth = bitmap.width;
-  TextureHeight = bitmap.rows;
+  //TextureWidth = bitmap.width;
+  //TextureHeight = bitmap.rows;
 
+  printf("bitmap height: %d\n", bitmap.rows);
   glBindTexture(GL_TEXTURE_2D, tex_base[charIndex]);
   glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
@@ -130,11 +131,11 @@ static void initFonts(){
   FT_Library library;
   FT_Face face; 
   int error = FT_Init_FreeType( &library );
-  if(FT_New_Face( library,"./Herculanum.ttf",0,&face)){
+  if(FT_New_Face( library,"./Arial.ttf",0,&face)){
     printf("FT_New_Face error");
     exit(1);
   }
-  if(FT_Set_Char_Size(face, 0, 8*64, 300, 300)){
+  if(FT_Set_Char_Size(face, 16*64, 0, 300, 0)){
     printf("FT_Set_Char_Size error");
     exit(1);
   }
@@ -166,6 +167,5 @@ void print(char* str){
 
   float modelview_matrix[16];     
   glGetFloatv(GL_MODELVIEW_MATRIX, modelview_matrix);
-  printf("strlen: %d\n",strlen(str));
   glCallLists(strlen(str), GL_UNSIGNED_BYTE, str);
 }

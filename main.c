@@ -20,8 +20,8 @@
 #include "libpngGL.h"
 #include "fonts.h"
 
-static int screenWidth = 1280;
-static int screenHeight = 1024;
+static int screenWidth = 1024;
+static int screenHeight = 800;
 float screenRatio;
 static SDL_Surface *gScreen;
 
@@ -394,6 +394,8 @@ static void mainLoop (){
     stopPicking();
     drawTrianglesList(list,selectedTriangle);
     //    glTranslatef(0,0,-60);
+    glOrtho(-100,100,-100,100,-1,1.0);
+    glColor3f(1.0f, 1.0f, 1.0f);
     print("test");
     //glPopMatrix();
 
@@ -403,22 +405,17 @@ static void mainLoop (){
     screenRatio = (GLfloat)screenWidth/(GLfloat)screenHeight;
     glOrtho(-100.0,100.0,-100.0,100.0,0.0,1.0);
 
-        glMatrixMode(GL_MODELVIEW);
+    glMatrixMode(GL_MODELVIEW);
     
     //glPushMatrix();
-
     glLoadIdentity();
     //    glTranslatef(-90.0f,-10.0f,0.0f);
 
     glLoadIdentity();
-    glRotatef(cnt1,0,0,1);
-    glScalef(1,.8+.3*cos(cnt1/5),1);
-    glTranslatef(-90,-10,0);
-
+    glOrtho(-10,10,-10,10,-1,1.0);
     print("<3 Hi Ban <3");
 
     cnt1+=0.051f;// Increase The First Counter
-    //    cnt2+=0.005f;
 
     glFlush();//"all programs should call glFlush whenever they count on having all of their previously issued commands completed"
     SDL_GL_SwapBuffers ();	
