@@ -6,12 +6,11 @@
 #include <SDL.h>
 #include <SDL_opengl.h>
 
-//#include <SDL_ttf/SDL_TTF.h>
 #include <libpng12/png.h>
 #include <Python/Python.h>
 
 #include <ft2build.h>
-//#include FT_FREETYPE_H
+
 #include <freetype/freetype.h>
 #include <freetype/ftglyph.h>
 #include <freetype/ftoutln.h>
@@ -20,10 +19,25 @@
 #include "libpngGL.h"
 #include "fonts.h"
 
-static int screenWidth = 1024;
+#define maxZoom 120.0f
+#define minZoom 10.0f
+
+static int screenWidth = 1280;
 static int screenHeight = 800;
 float screenRatio;
 static SDL_Surface *gScreen;
+
+float translateX = 0.0f;
+float translateY = 0.0f;
+float translateZ = -40.0f;
+float scrollSpeed = 0.04;
+
+PyObject * gameModule;
+PyObject * theMap;
+PyObject * mapName;
+PyObject * nodes;
+PyObject * mapIterator;
+PyObject * rowIterator;
 
 /****************************** SDL STUFF ********************************/
 static void printAttributes (){
@@ -46,8 +60,7 @@ static void printAttributes (){
     printf (desc[i], value);
   } 
 }
-static void createSurface (int fullscreen)
-{
+static void createSurface(int fullscreen){
   Uint32 flags = 0;
   flags = SDL_OPENGL;
   if (fullscreen)
@@ -66,36 +79,37 @@ int mouseY = 0;
 #define BUFSIZE 512
 GLuint selectBuf[BUFSIZE];
 
-int selectedTriangle = -1;
+int selectedName = -1;
+//the mousedover object's 'name'
 void processTheHits(GLint hits, GLuint buffer[]){
   GLuint *bufferPtr,*ptrNames, numberOfNames;
   bufferPtr = (GLuint *) buffer;
   //each 'hit' gives a 'number of names', then two depth values, then each of the names in the buffer(array)
   if(hits > 0){
-    //just assume there's one hit for now
+    //just assume there's one hit for now, can't think of a reason we'd need multiple moused-over objects anyway
     numberOfNames = *bufferPtr;
+    //these are the names of the object that was 'hit', should only be one if our code is working as expected
     if(numberOfNames == 1){
       bufferPtr = bufferPtr + 3;
-      selectedTriangle = *bufferPtr;
+      //the value of the name name is stored +3 over in mem
+      selectedName = *bufferPtr;
+    }else{
+      printf("WARNING: WE ONLY EXPECT ONE NAME PER OBJECT WHEN PICKING");
     }
   }else{
-    selectedTriangle = -1;
+    selectedName = -1;
   }
 }
 
 void startPicking(){
   GLint viewport[4];
-	
   glSelectBuffer(BUFSIZE,selectBuf);
   glRenderMode(GL_SELECT);
-	
   glMatrixMode(GL_PROJECTION);
   glPushMatrix();
   glLoadIdentity();
-	
   glGetIntegerv(GL_VIEWPORT,viewport);
-  gluPickMatrix(mouseX,viewport[3]-mouseY,
-		5,5,viewport);
+  gluPickMatrix(mouseX,viewport[3]-mouseY,5,5,viewport);
   gluPerspective(45,screenRatio,0.1,1000);
   glMatrixMode(GL_MODELVIEW);
   //glInitNames();
@@ -113,45 +127,32 @@ void stopPicking() {
   processTheHits(hits,selectBuf);
   //}
 }
+//float glMouseCoords[3];
+//void convertWinCoordsToMapCoords(int x, int y){
+void convertWinCoordsToMapCoords(int x, int y, GLdouble* posX, GLdouble* posY, GLdouble* posZ){
+  GLint viewport[4];
+  GLdouble modelview[16];
+  GLdouble projection[16];
+  GLfloat winX, winY, winZ;
+  //  GLdouble posX, posY, posZ;
+
+  glGetDoublev( GL_MODELVIEW_MATRIX, modelview );
+  glGetDoublev( GL_PROJECTION_MATRIX, projection );
+  glGetIntegerv( GL_VIEWPORT, viewport );
+
+  winX = (float)x;
+  winY = (float)viewport[3] - (float)y;
+  winZ = (float)((minZoom-translateZ)/maxZoom);
+  gluUnProject( winX, winY, winZ, modelview, projection, viewport, posX, posY, posZ);
+  
+  //  glMouseCoords[0] = posX;
+  //  glMouseCoords[1] = posY;
+  //  glMouseCoords[2] = posZ;
+  //  return glMouseCoords;
+}
 /**************************** /mouse hover object selection ********************************/
 
 /************************************* drawing subroutines ***************************************/
-void drawTrianglesList(GLuint list, int selected){
-  int i;
-  for(i = 0; i < 6; i++){
-    //char str[12];
-    //sprintf(str,"%d",i);
-    glPushName(i); 
-    glPushMatrix();
-    glLoadIdentity();
-    glTranslatef(i*2.0-5.0,1.0,0.0);
-    if(selected == i){
-      glColor3f(1.0f, 0.0f, 0.0f);
-    }else{
-      glColor3f(1.0f, 1.0f, 1.0f);
-    }
-    glCallList(list);
-    glPopMatrix();
-		
-    glPopName();
-  }
-  glColor3f(1.0f, 1.0f, 1.0f);
-}
-GLuint drawTriangle1(){
-  GLuint triangle1List;
-  triangle1List = glGenLists(1);
-  glNewList(triangle1List,GL_COMPILE);
-	
-  glBegin(GL_TRIANGLES);
-  glVertex3f(-1.0,1.0,0.0);
-  glVertex3f(1.0,1.0,0.0);
-  glVertex3f(0.0,0.0,0.0);
-  glEnd();
-	
-  glEndList();
-	
-  return(triangle1List);	
-}
 
 #define SIN60 0.8660
 #define COS60 0.5
@@ -192,21 +193,25 @@ float hexagonVertices[6][2] = {
   {0.0, -1.0}
 };
 float *textureVertices;
-void drawTile(float x, float y, int tilesXIndex, int tilesYIndex){
+void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue){
   float scale = 1.0;
   float xIndex = (float)tilesXIndex*-(2.0*SIN60);
   float yIndex = (float)tilesYIndex*1.5;
   if(abs(tilesYIndex)%2 == 1){
     xIndex += SIN60;
   }
-	
-  int choice = tilesXIndex%2;
+  int choice = tileValue;
   if (choice == 0) {
     textureVertices = &jungleVertices[0][0];
   }else{
     textureVertices = &rockVertices[0][0];
   }
-	
+  if(name == selectedName){
+    glColor3f(1.0f, 0.0f, 0.0f);
+  }else{
+    glColor3f(1.0f, 1.0f, 1.0f);
+  }
+  glPushName(name);	
   glBegin(GL_POLYGON);
   glTexCoord2f(*(textureVertices+0),*(textureVertices+1)); glVertex3f(hexagonVertices[0][0]+xIndex, hexagonVertices[0][1]+yIndex, 0.0);
   glTexCoord2f(*(textureVertices+2),*(textureVertices+3)); glVertex3f(hexagonVertices[1][0]+xIndex, hexagonVertices[1][1]+yIndex, 0.0);
@@ -215,52 +220,102 @@ void drawTile(float x, float y, int tilesXIndex, int tilesYIndex){
   glTexCoord2f(*(textureVertices+8),*(textureVertices+9)); glVertex3f(hexagonVertices[4][0]+xIndex, hexagonVertices[4][1]+yIndex, 0.0);
   glTexCoord2f(*(textureVertices+10),*(textureVertices+11)); glVertex3f(hexagonVertices[5][0]+xIndex, hexagonVertices[5][1]+yIndex, 0.0);
   glEnd();
+  glPopName();
 }
 
 GLuint tilesList;
 
 GLuint tilesTexture;
+GLuint uiTexture;
 void generateTilesList(){
   tilesList = glGenLists(1);
   glNewList(tilesList,GL_COMPILE);
   glEndList();
 }
 void drawTiles(){
-	
+  
   glBindTexture(GL_TEXTURE_2D, tilesTexture);
-  drawTile(1.0,1.0,0,-1);
-  drawTile(1.0,1.0,1,-1);
-  drawTile(1.0,1.0,2,-1);
-  drawTile(1.0,1.0,3,-1);
-  drawTile(1.0,1.0,0,0);
-  drawTile(1.0,1.0,1,0);
-  drawTile(1.0,1.0,2,0);
-  drawTile(1.0,1.0,3,0);
-  drawTile(1.0,1.0,0,1);
-  drawTile(1.0,1.0,1,1);
-  drawTile(1.0,1.0,2,1);
-  drawTile(1.0,1.0,3,1);
-  drawTile(1.0,1.0,0,2);
-  drawTile(1.0,1.0,1,2);
-  drawTile(1.0,1.0,2,2);
-  drawTile(1.0,1.0,3,2);
-  drawTile(1.0,1.0,5,5);	
+  int rowNumber = 0;
+  PyObject * node;
+  PyObject * row;
+
+  mapIterator = PyObject_CallMethod(theMap,"getIterator",NULL);//New reference
+
+  rowIterator = PyObject_GetIter(mapIterator);
+  while (row = PyIter_Next(rowIterator)) {
+    int colNumber = 0;
+    rowNumber = rowNumber - 1;
+    PyObject * nodeIterator = PyObject_GetIter(row);
+    while(node = PyIter_Next(nodeIterator)) {
+      PyObject * nodeName = PyObject_CallMethod(node,"getName",NULL);//New reference
+      PyObject * nodeValue = PyObject_CallMethod(node,"getValue",NULL);//New reference
+      long longName = PyLong_AsLong(nodeName);
+      long longValue = PyLong_AsLong(nodeValue);
+      drawTile(colNumber,rowNumber,longName,longValue);
+      colNumber = colNumber - 1;
+      Py_DECREF(node);
+    }
+    Py_DECREF(row);
+  }
+  Py_DECREF(rowIterator); 
+  Py_DECREF(mapIterator);
 }
+void drawUI(){
+    glLoadIdentity();
+  //  glOrtho(-10,10,-10,10,-1.0,1.0);
+  glBindTexture(GL_TEXTURE_2D, uiTexture);
+  glBegin(GL_POLYGON);
+  glTexCoord2f(0.0,1.0); glVertex3f(-100.0,100.0,0.0);
+  glTexCoord2f(1.0,1.0); glVertex3f(100.0,100.0,0.0);
+  glTexCoord2f(1.0,0.0); glVertex3f(100.0,-100.0,0.0);
+  glTexCoord2f(0.0,0.0); glVertex3f(-100.0,-100.0,0.0);
+  glEnd();
+  glLoadIdentity();
+
+  //glOrtho(-100.0,100.0,-100.0,100.0,0.0,1.0);
+  glTranslatef(-97.5,86.0,0.0);
+  glOrtho(-20,20,-20,20,-1,1.0);
+  glColor3f(0.2,0.2,0.2);
+  print("Grass");
+
+
+
+  glColor3f(1.0,1.0,1.0);
+  glLoadIdentity();
+  glTranslatef(-93.0,92.0,0.0);
+  glBindTexture(GL_TEXTURE_2D, tilesTexture);
+  textureVertices = &jungleVertices[0][0];
+  glBegin(GL_POLYGON);
+  glTexCoord2f(*(textureVertices+0),*(textureVertices+1)); glVertex3f(3.0*hexagonVertices[0][0], 3.0*hexagonVertices[0][1], 0.0);
+  glTexCoord2f(*(textureVertices+2),*(textureVertices+3)); glVertex3f(3.0*hexagonVertices[1][0], 3.0*hexagonVertices[1][1], 0.0);
+  glTexCoord2f(*(textureVertices+4),*(textureVertices+5)); glVertex3f(3.0*hexagonVertices[2][0], 3.0*hexagonVertices[2][1], 0.0);
+  glTexCoord2f(*(textureVertices+6),*(textureVertices+7)); glVertex3f(3.0*hexagonVertices[3][0], 3.0*hexagonVertices[3][1], 0.0);
+  glTexCoord2f(*(textureVertices+8),*(textureVertices+9)); glVertex3f(3.0*hexagonVertices[4][0], 3.0*hexagonVertices[4][1], 0.0);
+  glTexCoord2f(*(textureVertices+10),*(textureVertices+11)); glVertex3f(3.0*hexagonVertices[5][0], 3.0*hexagonVertices[5][1], 0.0);
+  glEnd();
+
+
+
+  //  glPushMatrix();
+  /*  glLoadIdentity();
+  glOrtho(-10,10,-10,10,-1,1.0);
+  glTranslatef(0.0,-100.0,0.0);
+
+  print("Baz");*/
+}
+
 /************************************* /drawing subroutines ***************************************/
 
 /************************************** opengl init **************************************/
 
-PyObject * gameModule;
-PyObject * map;
-#define maxZoom 120.0f
-#define minZoom 10.0f
 GLuint testTexture;
 
-#define tilesImage "tiles.png"
+#define tilesImage "tiles2.png"
 #define testImage "testEventImage1.png"
+#define uiImage "UI.png"
 static void initGL (){
   /** needs to be called on screen resize **/
-  //unneeded with sdl? 
+  //unneeded with sdl?
   glViewport(0, 0, screenWidth, screenHeight);//default values anyway, so not needed but w/e
   glInitNames(); //init names stack	
   glClearColor(0.0, 0.0, 0.0, 0.0); //sets screen clear color
@@ -269,6 +324,7 @@ static void initGL (){
   char file[100] = tilesImage;
   pngLoad(&tilesTexture, tilesImage);	/******************** /image init ***********************/
   pngLoad(&testTexture, testImage);	/******************** /image init ***********************/
+  pngLoad(&uiTexture,uiImage);
 }
 static void initPython(){
   //http://docs.python.org/release/2.6.6/c-api/index.html
@@ -281,18 +337,11 @@ static void initPython(){
 	
   PyObject * main_module = PyImport_AddModule("__main__");//Borrowed reference
   PyObject * global_dict = PyModule_GetDict(main_module);//Borrowed reference
-  gameModule = PyImport_ImportModule("__init__");//New reference
-  map = PyObject_GetAttrString(gameModule, "map1");//New reference
   //use this to create a new object: like "class()" in python //PyObject * instance = PyObject_CallObject(class,NULL);//New reference
 }
 static void initTextures(){
 
 }
-float translateX = 0.0f;
-float translateY = 0.0f;
-float translateZ = -40.0f;
-float scrollSpeed = 0.04;
-float cnt1 = 0.0;
 static void mainLoop (){
   SDL_Event event;
   int done = 0;    
@@ -301,6 +350,9 @@ static void mainLoop (){
   int clickScroll = 0;
   int previousTick = 0;
   int deltaTicks = 0;
+  GLdouble mouseMapPosX, mouseMapPosY, mouseMapPosZ;
+  GLdouble mouseMapPosXPrevious, mouseMapPosYPrevious;
+  //GLdouble translateX, translateY;
   while ( !done ) {
     deltaTicks = SDL_GetTicks()-previousTick;
     if(deltaTicks != 0){
@@ -308,15 +360,15 @@ static void mainLoop (){
     }
     previousTick = SDL_GetTicks();
     //SDL_Delay(20);//for framerate testing...
-    while ( SDL_PollEvent (&event) ) {
-      switch (event.type) {
+    while(SDL_PollEvent(&event)){
+      switch(event.type){
       case SDL_MOUSEMOTION:
 	mouseX = event.motion.x;
 	mouseY = event.motion.y;
 	//					printf("x: %d\t\ty: %d\n",mouseX,mouseY);
 	if(clickScroll > 0){
-	  translateX += event.motion.xrel*0.0000385*(0-translateZ)*deltaTicks;
-	  translateY -= event.motion.yrel*0.0000385*(0-translateZ)*deltaTicks;
+	  translateX = translateX + mouseMapPosX - mouseMapPosXPrevious;
+	  translateY = translateY + mouseMapPosY - mouseMapPosYPrevious;
 	}else{
 	  if(mouseX == 0){
 	    moveRight = -1;
@@ -333,27 +385,44 @@ static void mainLoop (){
 	    moveUp = 0;
 	  }
 	}
+	mouseMapPosXPrevious = mouseMapPosX;
+	mouseMapPosYPrevious = mouseMapPosY;
 	break;
       case SDL_MOUSEBUTTONDOWN:
 	if(event.button.button == SDL_BUTTON_WHEELUP && translateZ < (-10.0-minZoom)){
-	  translateZ = translateZ + 0.2*deltaTicks;
+	  translateZ = translateZ + 1.2*deltaTicks;
 	}else if(event.button.button == SDL_BUTTON_WHEELDOWN && translateZ > (10.0-maxZoom)){
-	  translateZ = translateZ - 0.2*deltaTicks;
+	  translateZ = translateZ - 1.2*deltaTicks;
+	}
+	if(translateZ < 10.0-maxZoom){
+	  translateZ = 10.0-maxZoom;
+	}
+	if(translateZ > -10.0-minZoom){
+	  translateZ = -10.0-minZoom;
+	}
+	if(event.button.button == SDL_BUTTON_MIDDLE){
+	  clickScroll = 1;
 	}
 	if(event.button.button == SDL_BUTTON_LEFT){
-	  clickScroll = 1;
-	}else{
-						
+	  printf("left: %d\n",selectedName);
 	}
 	break;
       case SDL_MOUSEBUTTONUP:
-	if(event.button.button == SDL_BUTTON_LEFT){
+	if(event.button.button == SDL_BUTTON_MIDDLE){
 	  clickScroll = 0;
 	}
 	break;
       case SDL_KEYDOWN:
 	if(event.key.keysym.sym == SDLK_ESCAPE){
 	  done = 1;
+	}
+	if(event.key.keysym.sym == SDLK_BACKQUOTE){
+	  clickScroll = 1;
+	}
+	break;
+      case SDL_KEYUP:
+	if(event.key.keysym.sym == SDLK_BACKQUOTE){
+	  clickScroll = 0;
 	}
 	break;
       case SDL_QUIT:
@@ -363,14 +432,14 @@ static void mainLoop (){
 	break;
       }
     }
-    if(moveRight > 0 && translateX > -10.0){
+    if(moveRight > 0){// && translateX > -10.0){
       translateX -= scrollSpeed*deltaTicks;
-    }else if(moveRight < 0 && translateX < 10.0){
+    }else if(moveRight < 0){// && translateX < 10.0){
       translateX += scrollSpeed*deltaTicks;
     }
-    if(moveUp > 0 && translateY > -10.0){
+    if(moveUp > 0){// && translateY > -10.0){
       translateY -= scrollSpeed*deltaTicks;
-    }else if(moveUp < 0 && translateY < 10.0){
+    }else if(moveUp < 0){// && translateY < 10.0){
       translateY += scrollSpeed*deltaTicks;
     }
 
@@ -385,15 +454,15 @@ static void mainLoop (){
     //glPushMatrix();
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		
     glLoadIdentity();
-    glTranslatef(translateX,translateY,translateZ);
+    convertWinCoordsToMapCoords(mouseX,mouseY,&mouseMapPosX,&mouseMapPosY,&mouseMapPosZ);
+    //glTranslatef(mouseMapPosX,mouseMapPosY,translateZ);//for some reason we need mouseMapPosZ instead of translateZ
+    glTranslatef(translateX,translateY,mouseMapPosZ);
     glColor3f(1.0f, 1.0f, 1.0f);
-    drawTiles();
-    GLuint list = drawTriangle1();
     startPicking();
-    drawTrianglesList(list,-1);
+    drawTiles();
     stopPicking();
-    drawTrianglesList(list,selectedTriangle);
-    //    glTranslatef(0,0,-60);
+    drawTiles();
+
     glOrtho(-100,100,-100,100,-1,1.0);
     glColor3f(1.0f, 1.0f, 1.0f);
     print("test");
@@ -408,30 +477,12 @@ static void mainLoop (){
     glMatrixMode(GL_MODELVIEW);
     
     //glPushMatrix();
-    glLoadIdentity();
-    //    glTranslatef(-90.0f,-10.0f,0.0f);
-
-    glLoadIdentity();
-    glOrtho(-10,10,-10,10,-1,1.0);
-    print("<3 Hi Ban <3");
-
-    cnt1+=0.051f;// Increase The First Counter
+    drawUI();
 
     glFlush();//"all programs should call glFlush whenever they count on having all of their previously issued commands completed"
     SDL_GL_SwapBuffers ();	
   }
 }
-
-/*
-
-inline int next_p2 (int a )
-{
-int rval=1;
-// rval<<=1 Is A Prettier Way Of Writing rval*=2; 
-while(rval<a) rval<<=1;
-return rval;
-}
- */
 int nextPowerOf2(unsigned int v){
   const unsigned int b[] = {0x2, 0xC, 0xF0, 0xFF00, 0xFFFF0000};
   const unsigned int S[] = {1, 2, 4, 8, 16};
@@ -455,10 +506,10 @@ int main(int argc, char **argv){
   SDL_GL_SetAttribute (SDL_GL_DEPTH_SIZE, 16);
   SDL_GL_SetAttribute (SDL_GL_DOUBLEBUFFER, 1);
   Uint32 flags = SDL_OPENGL;
-  //  flags |= SDL_FULLSCREEN;
+  flags |= SDL_FULLSCREEN;
   gScreen = SDL_SetVideoMode (screenWidth, screenHeight, 0, flags);
   if (gScreen == NULL) {
-    fprintf (stderr, "Couldn't set 640x480 OpenGL video mode: %s\n",
+    fprintf (stderr, "Could not set OpenGL video mode: %s\n",
 	     SDL_GetError());
     SDL_Quit();
     exit(2);
@@ -466,18 +517,23 @@ int main(int argc, char **argv){
   initGL();
   initPython();
 
-  char getName[20] ="getName";
-  PyObject * mapName = PyObject_CallMethod(map,getName,NULL);//New reference
-  char * theMapName = PyString_AsString(mapName);
-  //  printf("%s\n",theMapName);
-  Py_DECREF(mapName);
+  gameModule = PyImport_ImportModule("__init__");//New reference
+  theMap = PyObject_GetAttrString(gameModule, "map1");//New reference
+  mapName = PyObject_CallMethod(theMap,"getName",NULL);//New reference
+  nodes = PyObject_CallMethod(theMap,"getNodes",NULL);//New reference
+  //mapIterator = PyObject_CallMethod(theMap,"getIterator",NULL);//New reference
+  //char * theMapName = PyString_AsString(mapName);
+  //printf("map name: %s\n",theMapName);
+  //Py_DECREF(theMapName);
 
   initFonts();
-
   mainLoop();
-  
-  Py_DECREF(map);
+
+  //Py_DECREF(mapIterator); 
+  Py_DECREF(nodes);
+  Py_DECREF(theMap);
   Py_DECREF(gameModule);
   Py_Finalize();
+
   exit(0);
 }

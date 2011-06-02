@@ -1,0 +1,1 @@
+For some reason pngs need to be 'interlaced'. To deal with this using photoshop, save a psd as usual, then save a png from that psd and open the png again. Go to Image->Mode and select 'Indexed Color' and resave. 

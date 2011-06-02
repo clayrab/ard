@@ -66,13 +66,11 @@ void make_dlist ( FT_Face face, char charIndex, GLuint list_base, GLuint * tex_b
   //TextureWidth = bitmap.width;
   //TextureHeight = bitmap.rows;
 
-  printf("bitmap height: %d\n", bitmap.rows);
   glBindTexture(GL_TEXTURE_2D, tex_base[charIndex]);
   glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE, expanded_data);
   //delete expanded_data;
-
 
   glNewList(list_base+charIndex,GL_COMPILE);
 
