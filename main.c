@@ -39,6 +39,13 @@ PyObject * nodes;
 PyObject * mapIterator;
 PyObject * rowIterator;
 
+GLuint tilesTexture;
+GLuint uiTexture;
+GLuint tileSelectBoxTexture;
+
+  GLdouble mouseMapPosX, mouseMapPosY, mouseMapPosZ;
+  GLdouble mouseMapPosXPrevious, mouseMapPosYPrevious;
+
 /****************************** SDL STUFF ********************************/
 static void printAttributes (){
   // Print out attributes of the context we created
@@ -79,8 +86,7 @@ int mouseY = 0;
 #define BUFSIZE 512
 GLuint selectBuf[BUFSIZE];
 
-int selectedName = -1;
-//the mousedover object's 'name'
+int selectedName = -1;//the mousedover object's 'name'
 void processTheHits(GLint hits, GLuint buffer[]){
   GLuint *bufferPtr,*ptrNames, numberOfNames;
   bufferPtr = (GLuint *) buffer;
@@ -93,8 +99,10 @@ void processTheHits(GLint hits, GLuint buffer[]){
       bufferPtr = bufferPtr + 3;
       //the value of the name name is stored +3 over in mem
       selectedName = *bufferPtr;
+    }else if(numberOfNames ==0){
+      selectedName = -1;
     }else{
-      printf("WARNING: WE ONLY EXPECT ONE NAME PER OBJECT WHEN PICKING");
+      printf("WARNING: WE ONLY EXPECT ONE NAME PER OBJECT WHEN PICKING\n");
     }
   }else{
     selectedName = -1;
@@ -102,31 +110,10 @@ void processTheHits(GLint hits, GLuint buffer[]){
 }
 
 void startPicking(){
-  GLint viewport[4];
-  glSelectBuffer(BUFSIZE,selectBuf);
-  glRenderMode(GL_SELECT);
-  glMatrixMode(GL_PROJECTION);
-  glPushMatrix();
-  glLoadIdentity();
-  glGetIntegerv(GL_VIEWPORT,viewport);
-  gluPickMatrix(mouseX,viewport[3]-mouseY,5,5,viewport);
-  gluPerspective(45,screenRatio,0.1,1000);
-  glMatrixMode(GL_MODELVIEW);
-  //glInitNames();
 }
 void stopPicking() {
-  int hits;
-  //restoring the original projection matrix
-  glMatrixMode(GL_PROJECTION);
-  glPopMatrix();
-  glMatrixMode(GL_MODELVIEW);
-  glFlush();//"all programs should call glFlush whenever they count on having all of their previously issued commands completed"
-  //returning to normal rendering mode
-  hits = glRenderMode(GL_RENDER);
-  //if (hits != 0){
-  processTheHits(hits,selectBuf);
-  //}
 }
+
 //float glMouseCoords[3];
 //void convertWinCoordsToMapCoords(int x, int y){
 void convertWinCoordsToMapCoords(int x, int y, GLdouble* posX, GLdouble* posY, GLdouble* posZ){
@@ -225,8 +212,6 @@ void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue){
 
 GLuint tilesList;
 
-GLuint tilesTexture;
-GLuint uiTexture;
 void generateTilesList(){
   tilesList = glGenLists(1);
   glNewList(tilesList,GL_COMPILE);
@@ -260,31 +245,21 @@ void drawTiles(){
   Py_DECREF(rowIterator); 
   Py_DECREF(mapIterator);
 }
-void drawUI(){
-    glLoadIdentity();
-  //  glOrtho(-10,10,-10,10,-1.0,1.0);
-  glBindTexture(GL_TEXTURE_2D, uiTexture);
-  glBegin(GL_POLYGON);
-  glTexCoord2f(0.0,1.0); glVertex3f(-100.0,100.0,0.0);
-  glTexCoord2f(1.0,1.0); glVertex3f(100.0,100.0,0.0);
-  glTexCoord2f(1.0,0.0); glVertex3f(100.0,-100.0,0.0);
-  glTexCoord2f(0.0,0.0); glVertex3f(-100.0,-100.0,0.0);
-  glEnd();
-  glLoadIdentity();
+drawBoard(){
+  drawTiles();
+  //  glOrtho(-100,100,-100,100,-1,1.0);
+  glColor3f(1.0f, 1.0f, 1.0f);
+  print("test");
+}
 
-  //glOrtho(-100.0,100.0,-100.0,100.0,0.0,1.0);
-  glTranslatef(-97.5,86.0,0.0);
-  glOrtho(-20,20,-20,20,-1,1.0);
-  glColor3f(0.2,0.2,0.2);
-  print("Grass");
-
-
-
+void drawTileSelect(){
+  
   glColor3f(1.0,1.0,1.0);
-  glLoadIdentity();
-  glTranslatef(-93.0,92.0,0.0);
+  glTranslatef(-0.93,0.92,0.0);
+  glScalef(0.02,0.02,0.0);
   glBindTexture(GL_TEXTURE_2D, tilesTexture);
   textureVertices = &jungleVertices[0][0];
+  glPushName(63636363);
   glBegin(GL_POLYGON);
   glTexCoord2f(*(textureVertices+0),*(textureVertices+1)); glVertex3f(3.0*hexagonVertices[0][0], 3.0*hexagonVertices[0][1], 0.0);
   glTexCoord2f(*(textureVertices+2),*(textureVertices+3)); glVertex3f(3.0*hexagonVertices[1][0], 3.0*hexagonVertices[1][1], 0.0);
@@ -293,17 +268,48 @@ void drawUI(){
   glTexCoord2f(*(textureVertices+8),*(textureVertices+9)); glVertex3f(3.0*hexagonVertices[4][0], 3.0*hexagonVertices[4][1], 0.0);
   glTexCoord2f(*(textureVertices+10),*(textureVertices+11)); glVertex3f(3.0*hexagonVertices[5][0], 3.0*hexagonVertices[5][1], 0.0);
   glEnd();
+  glPopName();
+  /*
+  glLoadIdentity();
+  glTranslatef(-97.0,88.0,0.0);
+  glBindTexture(GL_TEXTURE_2D, tileSelectBoxTexture);
+  glBegin(GL_POLYGON);
+  glTexCoord2f(1.0,1.0); glVertex3f(8.0,8.0,0.0);
+  glTexCoord2f(1.0,0.0); glVertex3f(8.0,0.0,0.0);
+  glTexCoord2f(0.0,0.0); glVertex3f(0.0,0.0,0.0);
+  glTexCoord2f(0.0,1.0); glVertex3f(0.0,8.0,0.0);
+  glEnd();
 
-
-
-  //  glPushMatrix();
-  /*  glLoadIdentity();
-  glOrtho(-10,10,-10,10,-1,1.0);
-  glTranslatef(0.0,-100.0,0.0);
-
-  print("Baz");*/
+  glLoadIdentity();
+  glTranslatef(-97.5,86.0,0.0);
+  //  glOrtho(-20,20,-20,20,-1,1.0);
+  glColor3f(0.2,0.2,0.2);
+  print("Grass");
+  */
 }
 
+void drawUI(){
+
+
+  /*  glBindTexture(GL_TEXTURE_2D, uiTexture);
+
+  glPushName(83838383);
+  glBegin(GL_POLYGON);
+  glTexCoord2f(0.0,1.0); glVertex3f(-1.0,1.0,0.0);
+  glTexCoord2f(1.0,1.0); glVertex3f(0.5,1.0,0.0);
+  glTexCoord2f(1.0,0.0); glVertex3f(0.5,-1.0,0.0);
+  glTexCoord2f(0.0,0.0); glVertex3f(-1.0,-1.0,0.0);
+  glEnd();
+  glPopName();
+  */
+  drawTileSelect();
+
+  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity();
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();
+
+}
 /************************************* /drawing subroutines ***************************************/
 
 /************************************** opengl init **************************************/
@@ -313,6 +319,7 @@ GLuint testTexture;
 #define tilesImage "tiles2.png"
 #define testImage "testEventImage1.png"
 #define uiImage "UI.png"
+#define tileSelectBoxImage "tileSelect.png"
 static void initGL (){
   /** needs to be called on screen resize **/
   //unneeded with sdl?
@@ -325,6 +332,8 @@ static void initGL (){
   pngLoad(&tilesTexture, tilesImage);	/******************** /image init ***********************/
   pngLoad(&testTexture, testImage);	/******************** /image init ***********************/
   pngLoad(&uiTexture,uiImage);
+  pngLoad(&tileSelectBoxTexture,tileSelectBoxImage);
+
 }
 static void initPython(){
   //http://docs.python.org/release/2.6.6/c-api/index.html
@@ -350,8 +359,6 @@ static void mainLoop (){
   int clickScroll = 0;
   int previousTick = 0;
   int deltaTicks = 0;
-  GLdouble mouseMapPosX, mouseMapPosY, mouseMapPosZ;
-  GLdouble mouseMapPosXPrevious, mouseMapPosYPrevious;
   //GLdouble translateX, translateY;
   while ( !done ) {
     deltaTicks = SDL_GetTicks()-previousTick;
@@ -453,32 +460,71 @@ static void mainLoop (){
     glMatrixMode(GL_MODELVIEW);
     //glPushMatrix();
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		
+
     glLoadIdentity();
     convertWinCoordsToMapCoords(mouseX,mouseY,&mouseMapPosX,&mouseMapPosY,&mouseMapPosZ);
     //glTranslatef(mouseMapPosX,mouseMapPosY,translateZ);//for some reason we need mouseMapPosZ instead of translateZ
     glTranslatef(translateX,translateY,mouseMapPosZ);
     glColor3f(1.0f, 1.0f, 1.0f);
-    startPicking();
-    drawTiles();
-    stopPicking();
-    drawTiles();
 
-    glOrtho(-100,100,-100,100,-1,1.0);
-    glColor3f(1.0f, 1.0f, 1.0f);
-    print("test");
-    //glPopMatrix();
-
-    //GUI projection time
+    //startPicking();
+    GLint viewport[4];
+    glSelectBuffer(BUFSIZE,selectBuf);
+    glRenderMode(GL_SELECT);
     glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
     glLoadIdentity();
-    screenRatio = (GLfloat)screenWidth/(GLfloat)screenHeight;
-    glOrtho(-100.0,100.0,-100.0,100.0,0.0,1.0);
-
+    glGetIntegerv(GL_VIEWPORT,viewport);
+    gluPickMatrix(mouseX,viewport[3]-mouseY,5,5,viewport);
+    gluPerspective(45,screenRatio,0.1,1000);
     glMatrixMode(GL_MODELVIEW);
-    
-    //glPushMatrix();
-    drawUI();
+    //glInitNames();
 
+
+
+
+    drawBoard();
+
+
+    /*    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    drawUI();
+    */
+    stopPicking();
+  int hits;
+  //restoring the original projection matrix
+  glMatrixMode(GL_PROJECTION);
+  glPopMatrix();
+  glMatrixMode(GL_MODELVIEW);
+  glFlush();//"all programs should call glFlush whenever they count on having all of their previously issued commands completed"
+  //returning to normal rendering mode
+  hits = glRenderMode(GL_RENDER);
+  //if (hits != 0){
+  processTheHits(hits,selectBuf);
+  //}
+
+
+
+
+    glLoadIdentity();
+    convertWinCoordsToMapCoords(mouseX,mouseY,&mouseMapPosX,&mouseMapPosY,&mouseMapPosZ);
+    //glTranslatef(mouseMapPosX,mouseMapPosY,translateZ);//for some reason we need mouseMapPosZ instead of translateZ
+    glTranslatef(translateX,translateY,mouseMapPosZ);
+
+    drawBoard();
+    /*    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    drawUI();
+    drawUI();
+*/
     glFlush();//"all programs should call glFlush whenever they count on having all of their previously issued commands completed"
     SDL_GL_SwapBuffers ();	
   }
@@ -506,7 +552,7 @@ int main(int argc, char **argv){
   SDL_GL_SetAttribute (SDL_GL_DEPTH_SIZE, 16);
   SDL_GL_SetAttribute (SDL_GL_DOUBLEBUFFER, 1);
   Uint32 flags = SDL_OPENGL;
-  flags |= SDL_FULLSCREEN;
+  //flags |= SDL_FULLSCREEN;
   gScreen = SDL_SetVideoMode (screenWidth, screenHeight, 0, flags);
   if (gScreen == NULL) {
     fprintf (stderr, "Could not set OpenGL video mode: %s\n",
