@@ -67,10 +67,10 @@ static void printAttributes (){
     printf (desc[i], value);
   } 
 }
-static void createSurface(int fullscreen){
+static void createSurface(int fullscreen){//DEPRECATED
   Uint32 flags = 0;
   flags = SDL_OPENGL;
-  if (fullscreen)
+  if(fullscreen)
     flags |= SDL_FULLSCREEN;
   gScreen = SDL_SetVideoMode (screenWidth, screenHeight, 0, flags);
   if (gScreen == NULL) {
@@ -256,7 +256,7 @@ void drawTileSelect(){
   
   glColor3f(1.0,1.0,1.0);
   glTranslatef(-0.93,0.92,0.0);
-  glScalef(0.02,0.02,0.0);
+  glScalef(0.01,0.01,0.0);
   glBindTexture(GL_TEXTURE_2D, tilesTexture);
   textureVertices = &jungleVertices[0][0];
   glPushName(63636363);
@@ -269,45 +269,39 @@ void drawTileSelect(){
   glTexCoord2f(*(textureVertices+10),*(textureVertices+11)); glVertex3f(3.0*hexagonVertices[5][0], 3.0*hexagonVertices[5][1], 0.0);
   glEnd();
   glPopName();
-  /*
+
   glLoadIdentity();
-  glTranslatef(-97.0,88.0,0.0);
+  glTranslatef(-0.97,0.88,0.0);
   glBindTexture(GL_TEXTURE_2D, tileSelectBoxTexture);
   glBegin(GL_POLYGON);
-  glTexCoord2f(1.0,1.0); glVertex3f(8.0,8.0,0.0);
-  glTexCoord2f(1.0,0.0); glVertex3f(8.0,0.0,0.0);
+  glTexCoord2f(1.0,1.0); glVertex3f(0.08,0.08,0.0);
+  glTexCoord2f(1.0,0.0); glVertex3f(0.08,0.0,0.0);
   glTexCoord2f(0.0,0.0); glVertex3f(0.0,0.0,0.0);
-  glTexCoord2f(0.0,1.0); glVertex3f(0.0,8.0,0.0);
+  glTexCoord2f(0.0,1.0); glVertex3f(0.0,0.08,0.0);
   glEnd();
 
   glLoadIdentity();
-  glTranslatef(-97.5,86.0,0.0);
-  //  glOrtho(-20,20,-20,20,-1,1.0);
-  glColor3f(0.2,0.2,0.2);
+    glTranslatef(-0.975,0.86,0.0);
+  glOrtho(-2000,2000,-2000,2000,-1,1.0);
+  //  glColor3f(0.2,0.2,0.2);
+
+  glColor3f(1.0,1.0,1.0);
   print("Grass");
-  */
+
 }
 
 void drawUI(){
 
-
   /*  glBindTexture(GL_TEXTURE_2D, uiTexture);
-
-  glPushName(83838383);
+    
   glBegin(GL_POLYGON);
   glTexCoord2f(0.0,1.0); glVertex3f(-1.0,1.0,0.0);
   glTexCoord2f(1.0,1.0); glVertex3f(0.5,1.0,0.0);
   glTexCoord2f(1.0,0.0); glVertex3f(0.5,-1.0,0.0);
   glTexCoord2f(0.0,0.0); glVertex3f(-1.0,-1.0,0.0);
   glEnd();
-  glPopName();
   */
   drawTileSelect();
-
-  glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();
-  glMatrixMode(GL_PROJECTION);
-  glLoadIdentity();
 
 }
 /************************************* /drawing subroutines ***************************************/
@@ -333,7 +327,7 @@ static void initGL (){
   pngLoad(&testTexture, testImage);	/******************** /image init ***********************/
   pngLoad(&uiTexture,uiImage);
   pngLoad(&tileSelectBoxTexture,tileSelectBoxImage);
-
+  screenRatio = (GLfloat)screenWidth/(GLfloat)screenHeight;
 }
 static void initPython(){
   //http://docs.python.org/release/2.6.6/c-api/index.html
@@ -450,27 +444,24 @@ static void mainLoop (){
       translateY += scrollSpeed*deltaTicks;
     }
 
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		
     //game board projection time
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    screenRatio = (GLfloat)screenWidth/(GLfloat)screenHeight;
     gluPerspective(45.0f,screenRatio,minZoom,maxZoom);
 
     //draw the game board
     glMatrixMode(GL_MODELVIEW);
-    //glPushMatrix();
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		
-
     glLoadIdentity();
     convertWinCoordsToMapCoords(mouseX,mouseY,&mouseMapPosX,&mouseMapPosY,&mouseMapPosZ);
     //glTranslatef(mouseMapPosX,mouseMapPosY,translateZ);//for some reason we need mouseMapPosZ instead of translateZ
     glTranslatef(translateX,translateY,mouseMapPosZ);
-    glColor3f(1.0f, 1.0f, 1.0f);
 
     //startPicking();
     GLint viewport[4];
     glSelectBuffer(BUFSIZE,selectBuf);
     glRenderMode(GL_SELECT);
+
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
     glLoadIdentity();
@@ -478,53 +469,53 @@ static void mainLoop (){
     gluPickMatrix(mouseX,viewport[3]-mouseY,5,5,viewport);
     gluPerspective(45,screenRatio,0.1,1000);
     glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
     //glInitNames();
 
-
-
+    //I don't understand why but drawing the UI first here caused it to be picked in higher priority to the board...
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    gluPickMatrix(mouseX,viewport[3]-mouseY,5,5,viewport);
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+    drawUI();
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
+    glPopMatrix();
 
     drawBoard();
 
-
-    /*    glMatrixMode(GL_PROJECTION);
-    glPushMatrix();
-    glLoadIdentity();
+    //stopPicking();
+    int hits;
+    //restoring the original projection matrix
+    glMatrixMode(GL_PROJECTION);
     glPopMatrix();
     glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    drawUI();
-    */
-    stopPicking();
-  int hits;
-  //restoring the original projection matrix
-  glMatrixMode(GL_PROJECTION);
-  glPopMatrix();
-  glMatrixMode(GL_MODELVIEW);
-  glFlush();//"all programs should call glFlush whenever they count on having all of their previously issued commands completed"
-  //returning to normal rendering mode
-  hits = glRenderMode(GL_RENDER);
-  //if (hits != 0){
-  processTheHits(hits,selectBuf);
-  //}
-
-
-
-
-    glLoadIdentity();
-    convertWinCoordsToMapCoords(mouseX,mouseY,&mouseMapPosX,&mouseMapPosY,&mouseMapPosZ);
-    //glTranslatef(mouseMapPosX,mouseMapPosY,translateZ);//for some reason we need mouseMapPosZ instead of translateZ
-    glTranslatef(translateX,translateY,mouseMapPosZ);
-
+    glPopMatrix();
+    glFlush();//"all programs should call glFlush whenever they count on having all of their previously issued commands completed"
+    //returning to normal rendering mode
+    hits = glRenderMode(GL_RENDER);
+    //if (hits != 0){
+    processTheHits(hits,selectBuf);
+    //}
+  
     drawBoard();
-    /*    glMatrixMode(GL_PROJECTION);
+    
+    glMatrixMode(GL_PROJECTION);
     glPushMatrix();
     glLoadIdentity();
-    glPopMatrix();
     glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
     glLoadIdentity();
     drawUI();
-    drawUI();
-*/
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
+    glPopMatrix();
+
     glFlush();//"all programs should call glFlush whenever they count on having all of their previously issued commands completed"
     SDL_GL_SwapBuffers ();	
   }

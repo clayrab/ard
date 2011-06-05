@@ -1,6 +1,21 @@
+class intNameGenerator:
+	def __init__(self):
+		self.nextName = -1
+	def getNextName(self):
+		self.nextName = self.nextName + 1
+		return self.nextName
+
+nameGenerator = intNameGenerator()
+
+class uiElement:
+	def __init__(self,clickable):
+		if(clickable):
+			self.whatever = "a"
+		
+
 class node:
-	def __init__(self,intName,tileValue):
-		self.intName = intName
+	def __init__(self,tileValue):
+		self.intName = nameGenerator.getNextName()
 		self.tileValue = tileValue
 	def getName(self):
 		return self.intName
@@ -18,7 +33,7 @@ class map:
 			newRow = []
 			for char in line:
 				if(char != '\n'):
-					newRow.append(node(self.intGenerator.getNextInt(),int(char)))
+					newRow.append(node(int(char)))
 			self.nodes.append(newRow)
 #		self.nodes = [[node(self.intGenerator.getNextInt(),0),node(self.intGenerator.getNextInt(),0),node(self.intGenerator.getNextInt(),0)],[node(self.intGenerator.getNextInt(),0),node(self.intGenerator.getNextInt(),0),node(self.intGenerator.getNextInt(),0)]]
 	def getName(self):
