@@ -8,46 +8,88 @@ class intNameGenerator:
 nameGenerator = intNameGenerator()
 
 class uiElement:
-	def __init__(self,clickable):
-		if(clickable):
-			self.whatever = "a"
-		
+	def __init__(self,xPos,yPos,tile=0):
+		self.name = nameGenerator.getNextName()
+		self.xPosition = xPos
+		self.yPosition = yPos
+	def onClick(self):
+		print "uiElem: " + str(self.name)
+
+class textUIElement(uiElement):
+	def __init__(self,xPos,yPos,tile=0,text=""):
+		uiElement.__init__(self,xPos,yPos)
+		self.text = text
+
+class textInputUIElement(textUIElement):
+	def onClick(self):
+		print "onclick"
+	def onKeyDown(self,keycode):
+		if(keycode == "backspace"):
+			self.text = self.text.rstrip(self.text[len(self.text)-1])
+		else:
+			self.text = self.text + keycode
 
 class node:
 	def __init__(self,tileValue):
-		self.intName = nameGenerator.getNextName()
+		self.name = nameGenerator.getNextName()
 		self.tileValue = tileValue
-	def getName(self):
-		return self.intName
 	def getValue(self):
 		return self.tileValue
-
+	def onClick(self):
+		print "onClick: " + str(self.name)
 
 class map:
-	def __init__(self,name):
-		self.name = name
+	def __init__(self,mapEditor):
 		self.mapFile =  open('map1','rw')#TODO: close this file
 		self.nodes = []
-		self.intGenerator = intGenerator()
 		for line in self.mapFile:
 			newRow = []
 			for char in line:
 				if(char != '\n'):
-					newRow.append(node(int(char)))
+					newNode = node(int(char))
+					newRow.append(newNode)
+					mapEditor.clickableObjsDict[newNode.name] = newNode
 			self.nodes.append(newRow)
-#		self.nodes = [[node(self.intGenerator.getNextInt(),0),node(self.intGenerator.getNextInt(),0),node(self.intGenerator.getNextInt(),0)],[node(self.intGenerator.getNextInt(),0),node(self.intGenerator.getNextInt(),0),node(self.intGenerator.getNextInt(),0)]]
-	def getName(self):
-		self.intGenerator.getNextInt()
-		return self.name
 	def getNodes(self):
 		return self.nodes
 	def getIterator(self):
 		return self.nodes.__iter__()
-class intGenerator:
-	def __init__(self):
-		self.nextInt = 0
-	def getNextInt(self):
-		self.nextInt = self.nextInt + 1
-		return self.nextInt
 
-map1 = map("map1")
+class mapEditor:
+	def __init__(self):
+		self.clickableObjsDict = {}
+		self.map = map(self)
+		self.uiElements = []
+#		  //  glTranslatef(-0.93,0.92,0.0);
+
+		newUIElement = uiElement(-0.93,0.92)
+		self.uiElements.append(newUIElement)
+		self.clickableObjsDict[newUIElement.name] = newUIElement
+		
+		newUIElement = uiElement(-0.85,0.92)
+		self.uiElements.append(newUIElement)
+		self.clickableObjsDict[newUIElement.name] = newUIElement
+
+		newUIElement = textUIElement(-0.77,0.92,text="asdf")
+		self.uiElements.append(newUIElement)
+		self.clickableObjsDict[newUIElement.name] = newUIElement
+
+		newUIElement = textInputUIElement(-0.69,0.92,text="input")
+		self.uiElements.append(newUIElement)
+		self.clickableObjsDict[newUIElement.name] = newUIElement
+
+		self.elementWithFocus = None
+	def getUIElementsIterator(self):
+		return self.uiElements.__iter__()
+	def handleClick(self,name):
+		if(self.clickableObjsDict.has_key(name)):
+			self.elementWithFocus = self.clickableObjsDict[name]
+			self.clickableObjsDict[name].onClick()
+		else:
+			self.elementWithFocus = None
+	def handleKeyDown(self,keycode):
+		if(self.elementWithFocus != None):
+			if(hasattr(self.elementWithFocus,'onKeyDown')):
+				self.elementWithFocus.onKeyDown(keycode)
+		
+theMapEditor = mapEditor()

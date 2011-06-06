@@ -33,10 +33,12 @@ float translateZ = -40.0f;
 float scrollSpeed = 0.04;
 
 PyObject * gameModule;
+PyObject * mapEditor;
 PyObject * theMap;
 PyObject * mapName;
 PyObject * nodes;
 PyObject * mapIterator;
+PyObject * UIElementsIterator;
 PyObject * rowIterator;
 
 GLuint tilesTexture;
@@ -225,14 +227,13 @@ void drawTiles(){
   PyObject * row;
 
   mapIterator = PyObject_CallMethod(theMap,"getIterator",NULL);//New reference
-
   rowIterator = PyObject_GetIter(mapIterator);
   while (row = PyIter_Next(rowIterator)) {
     int colNumber = 0;
     rowNumber = rowNumber - 1;
     PyObject * nodeIterator = PyObject_GetIter(row);
     while(node = PyIter_Next(nodeIterator)) {
-      PyObject * nodeName = PyObject_CallMethod(node,"getName",NULL);//New reference
+      PyObject * nodeName = PyObject_GetAttrString(node,"name");//New reference
       PyObject * nodeValue = PyObject_CallMethod(node,"getValue",NULL);//New reference
       long longName = PyLong_AsLong(nodeName);
       long longValue = PyLong_AsLong(nodeValue);
@@ -252,14 +253,15 @@ drawBoard(){
   print("test");
 }
 
-void drawTileSelect(){
+void drawTileSelect(double xPos, double yPos, int name){
   
+  glLoadIdentity();
   glColor3f(1.0,1.0,1.0);
-  glTranslatef(-0.93,0.92,0.0);
+  glTranslatef(xPos,yPos,0.0);
   glScalef(0.01,0.01,0.0);
   glBindTexture(GL_TEXTURE_2D, tilesTexture);
   textureVertices = &jungleVertices[0][0];
-  glPushName(63636363);
+  glPushName(name);
   glBegin(GL_POLYGON);
   glTexCoord2f(*(textureVertices+0),*(textureVertices+1)); glVertex3f(3.0*hexagonVertices[0][0], 3.0*hexagonVertices[0][1], 0.0);
   glTexCoord2f(*(textureVertices+2),*(textureVertices+3)); glVertex3f(3.0*hexagonVertices[1][0], 3.0*hexagonVertices[1][1], 0.0);
@@ -270,7 +272,7 @@ void drawTileSelect(){
   glEnd();
   glPopName();
 
-  glLoadIdentity();
+  /*  glLoadIdentity();
   glTranslatef(-0.97,0.88,0.0);
   glBindTexture(GL_TEXTURE_2D, tileSelectBoxTexture);
   glBegin(GL_POLYGON);
@@ -287,7 +289,7 @@ void drawTileSelect(){
 
   glColor3f(1.0,1.0,1.0);
   print("Grass");
-
+  */
 }
 
 void drawUI(){
@@ -301,8 +303,24 @@ void drawUI(){
   glTexCoord2f(0.0,0.0); glVertex3f(-1.0,-1.0,0.0);
   glEnd();
   */
-  drawTileSelect();
 
+  PyObject * uiElement;
+  UIElementsIterator = PyObject_GetIter(PyObject_CallMethod(mapEditor,"getUIElementsIterator",NULL));//New reference
+  while (uiElement = PyIter_Next(UIElementsIterator)) {
+    //    PyObject * foo = PyObject_GetAttrString(uiElement,"xPosition");
+    double xPosition = PyFloat_AsDouble(PyObject_GetAttrString(uiElement,"xPosition"));
+    double yPosition = PyFloat_AsDouble(PyObject_GetAttrString(uiElement,"yPosition"));
+    long name = PyLong_AsLong(PyObject_GetAttrString(uiElement,"name"));
+    drawTileSelect(xPosition,yPosition,name);
+    if(PyObject_HasAttrString(uiElement,"text")){
+      char * text = PyString_AsString(PyObject_GetAttrString(uiElement,"text"));
+      glLoadIdentity();
+      glTranslatef(xPosition,yPosition,0.0);
+      glScalef(0.0005,0.0005,0.0);
+      print(text);
+    }
+    Py_DECREF(uiElement);  
+  }
 }
 /************************************* /drawing subroutines ***************************************/
 
@@ -405,7 +423,7 @@ static void mainLoop (){
 	  clickScroll = 1;
 	}
 	if(event.button.button == SDL_BUTTON_LEFT){
-	  printf("left: %d\n",selectedName);
+	  PyObject_CallMethod(mapEditor,"handleClick","i",selectedName);//New reference
 	}
 	break;
       case SDL_MOUSEBUTTONUP:
@@ -416,9 +434,27 @@ static void mainLoop (){
       case SDL_KEYDOWN:
 	if(event.key.keysym.sym == SDLK_ESCAPE){
 	  done = 1;
-	}
-	if(event.key.keysym.sym == SDLK_BACKQUOTE){
+	}else if(event.key.keysym.sym == SDLK_BACKQUOTE){
 	  clickScroll = 1;
+	}else if(
+		 (event.key.keysym.sym > 0x60 && event.key.keysym.sym <= 0x7A)//a-z
+		 || (event.key.keysym.sym > 0x48 && event.key.keysym.sym < 0x57)//0-9
+		 || event.key.keysym.sym == 8//backspace
+		 || event.key.keysym.sym == 32//space
+		 || event.key.keysym.sym == 32//space
+		 || event.key.keysym.sym == 45//-
+		 ){
+	  if((event.key.keysym.mod & KMOD_CAPS | event.key.keysym.mod & KMOD_LSHIFT | event.key.keysym.mod & KMOD_RSHIFT) && (event.key.keysym.sym > 0x60 && event.key.keysym.sym <= 0x7A)){
+	    char * key = SDL_GetKeyName(event.key.keysym.sym);
+	    char capsKey[2];
+	    capsKey[0] = (*key)-32;
+	    capsKey[1] = 0;
+	    PyObject_CallMethod(mapEditor,"handleKeyDown","s",capsKey); 
+	  }else{
+	    PyObject_CallMethod(mapEditor,"handleKeyDown","s",SDL_GetKeyName(event.key.keysym.sym));
+	  }
+	}else{
+	  //	  printf("rejected: %d\n",event.key.keysym.sym);
 	}
 	break;
       case SDL_KEYUP:
@@ -553,10 +589,13 @@ int main(int argc, char **argv){
   }
   initGL();
   initPython();
+  //  SDL_EnableUNICODE(1);
+
 
   gameModule = PyImport_ImportModule("__init__");//New reference
-  theMap = PyObject_GetAttrString(gameModule, "map1");//New reference
-  mapName = PyObject_CallMethod(theMap,"getName",NULL);//New reference
+
+  mapEditor = PyObject_GetAttrString(gameModule, "theMapEditor");
+  theMap = PyObject_GetAttrString(mapEditor, "map");//New reference
   nodes = PyObject_CallMethod(theMap,"getNodes",NULL);//New reference
   //mapIterator = PyObject_CallMethod(theMap,"getIterator",NULL);//New reference
   //char * theMapName = PyString_AsString(mapName);
