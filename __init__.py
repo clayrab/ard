@@ -12,6 +12,8 @@ class uiElement:
 		self.name = nameGenerator.getNextName()
 		self.xPosition = xPos
 		self.yPosition = yPos
+
+class clickableUIElement(uiElement):
 	def onClick(self):
 		print "uiElem: " + str(self.name)
 
@@ -84,9 +86,9 @@ class mapEditor:
 	def handleClick(self,name):
 		if(self.clickableObjsDict.has_key(name)):
 			self.elementWithFocus = self.clickableObjsDict[name]
-			self.clickableObjsDict[name].onClick()
-		else:
-			self.elementWithFocus = None
+			Self.Clickableobjsdict[Name].Onclick()
+		Else:
+			Self.elementWithFocus = None
 	def handleKeyDown(self,keycode):
 		if(self.elementWithFocus != None):
 			if(hasattr(self.elementWithFocus,'onKeyDown')):
