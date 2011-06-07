@@ -38,28 +38,36 @@ class intNameGenerator:
 nameGenerator = intNameGenerator()
 
 class uiElement:
-	def __init__(self,xPos,yPos,width=0,height=0,textureIndex=0):
+	def __init__(self,xPos,yPos,width=1.0,height=1.0,textureIndex=-1,hidden=False):
 		self.name = nameGenerator.getNextName()
 		self.xPosition = xPos
 		self.yPosition = yPos
 		self.width = width
 		self.height = height
 		self.textureIndex = textureIndex
+		self.hidden=hidden
+		theMapEditor.uiElements.append(self)
 
 class mapEditorTileSelectUIElement(uiElement):
-	def __init__(self,xPos,yPos,tileType=0):
-		uiElement.__init__(self,xPos,yPos)
+	def __init__(self,xPos,yPos,width=1.0,height=1.0,textureIndex=-1,hidden=False,tileType=0):
+		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex)
 		self.tileType = tileType
+		theMapEditor.clickableObjsDict[self.name] = self
 	def onClick(self):
 		theMapEditor.selectedTileType = self.tileType
 		
 
 class textUIElement(uiElement):
-	def __init__(self,xPos,yPos,text=""):
-		uiElement.__init__(self,xPos,yPos)
+	def __init__(self,xPos,yPos,width=1.0,height=1.0,text="",textSize=1.0,textureIndex=-1):
+		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex)
 		self.text = text
+		self.textSize = textSize
 
 class textInputUIElement(textUIElement):
+	def __init__(self,xPos,yPos,width=1.0,height=1.0,text="",textSize=1.0,textureIndex=-1):
+		textUIElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text)
+		theMapEditor.clickableObjsDict[self.name] = self
+
 	def onClick(self):
 		print "onclick"
 	def onKeyDown(self,keycode):
@@ -103,39 +111,10 @@ class mapEditor:
 		self.selectedTileType = -1
 		self.uiElements = []
 
-		newUIElement = uiElement(xPos=-1.0,yPos=1.0,width=2.0,height=(2.0*cDefines['UI_TOP_IMAGE_HEIGHT']/cDefines['UI_TOP_IMAGE_WIDTH']),textureIndex=cDefines['UI_TOP_INDEX'])
-		self.uiElements.append(newUIElement)
-
-		newUIElement = mapEditorTileSelectUIElement(-0.93,0.92,tileType=0)
-		self.uiElements.append(newUIElement)
-		self.clickableObjsDict[newUIElement.name] = newUIElement
-
-		newUIElement = textUIElement(-0.963,0.88,text="asdf")
-		self.uiElements.append(newUIElement)
-		self.clickableObjsDict[newUIElement.name] = newUIElement
-
-		newUIElement = mapEditorTileSelectUIElement(-0.85,0.92,tileType=1)
-		self.uiElements.append(newUIElement)
-		self.clickableObjsDict[newUIElement.name] = newUIElement
-
-		newUIElement = mapEditorTileSelectUIElement(-0.77,0.92,tileType=2)
-		self.uiElements.append(newUIElement)
-		self.clickableObjsDict[newUIElement.name] = newUIElement
-
-		newUIElement = mapEditorTileSelectUIElement(-0.69,0.92,tileType=3)
-		self.uiElements.append(newUIElement)
-		self.clickableObjsDict[newUIElement.name] = newUIElement
-
-		newUIElement = mapEditorTileSelectUIElement(-0.61,0.92,tileType=4)
-		self.uiElements.append(newUIElement)
-		self.clickableObjsDict[newUIElement.name] = newUIElement
-
-		newUIElement = textInputUIElement(-0.69,0.92,text="input")
-		self.uiElements.append(newUIElement)
-		self.clickableObjsDict[newUIElement.name] = newUIElement
-
 	def getUIElementsIterator(self):
 		return self.uiElements.__iter__()
+	def isNameClickable(self,name):
+		return self.clickableObjsDict.has_key(name)
 	def handleClick(self,name):
 		if(self.clickableObjsDict.has_key(name)):
 			self.elementWithFocus = self.clickableObjsDict[name]
@@ -146,5 +125,20 @@ class mapEditor:
 		if(self.elementWithFocus != None):
 			if(hasattr(self.elementWithFocus,'onKeyDown')):
 				self.elementWithFocus.onKeyDown(keycode)
+		else:
+			try:
+				int(keycode)
+			except:
+				return
+	def addUIElements(self):
+		uiElement(xPos=-1.0,yPos=1.0,width=2.0,height=(2.0*cDefines['UI_TOP_IMAGE_HEIGHT']/cDefines['UI_TOP_IMAGE_WIDTH']),textureIndex=cDefines['UI_TOP_INDEX'])
+		mapEditorTileSelectUIElement(-0.93,0.92,tileType=0)
+		textUIElement(0.0,0.92,width=1.0,height=1.0,text="asdf",textSize=0.5,textureIndex=-1)
+		mapEditorTileSelectUIElement(-0.85,0.92,tileType=1)
+		mapEditorTileSelectUIElement(-0.77,0.92,tileType=2)
+		mapEditorTileSelectUIElement(-0.69,0.92,tileType=3)
+		mapEditorTileSelectUIElement(-0.61,0.92,tileType=4)
+		textInputUIElement(-0.2,0.92,text="input")
 		
 theMapEditor = mapEditor()
+theMapEditor.addUIElements()

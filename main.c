@@ -30,9 +30,9 @@ static SDL_Surface *gScreen;
 int clickScroll = 0;
 int leftButtonDown = 0;
 
-float translateX = 0.0f;
-float translateY = 0.0f;
-float translateZ = -40.0f;
+float translateX = -30.0f;
+float translateY = 30.0f;
+float translateZ = -100.0f;
 float scrollSpeed = 0.04;
 
 PyObject * gameModule;
@@ -64,6 +64,14 @@ GLdouble mouseMapPosXPrevious, mouseMapPosYPrevious;
 #define UI_TOP_INDEX 1
 #define UI_BOTTOM_IMAGE "UIBottom.png"
 #define UI_BOTTOM_INDEX 2
+#define POINTER_IMAGE "cursors/pointer.png"
+#define POINTER_INDEX 3
+
+#define DESERT_TILE_INDEX 0
+#define GRASS_TILE_INDEX 1
+#define MOUNTAIN_TILE_INDEX 2
+#define JUNGLE_TILE_INDEX 3
+#define WATER_TILE_INDEX 4
 
 GLuint texturesArray[60];
 
@@ -122,7 +130,7 @@ void processTheHits(GLint hits, GLuint buffer[]){
 	selectedName = nameValue;
       }
     }else if(numberOfNames == 0){
-      selectedName = -1;
+      //selectedName = -1;
     }else{
       printf("WARNING: WE ONLY EXPECT ONE NAME PER OBJECT WHEN PICKING\n");
     }
@@ -213,7 +221,7 @@ float grassVertices[6][2] = {
   {(726.0/1280),1.0-(376.0/1280)}
 };
 
-float rockVertices[6][2] = {
+float mountainVertices[6][2] = {
   {(699.0/1280),1.0-(556.0/1280)},
   {(699.0/1280),1.0-(524.0/1280)},
   {(726.0/1280),1.0-(508.0/1280)},
@@ -222,21 +230,24 @@ float rockVertices[6][2] = {
   {(726.0/1280),1.0-(572.0/1280)}
 };
 float swampVertices[6][2] = {
-  {(699.0/1280),1.0-(850.0/1280)},
-  {(699.0/1280),1.0-(818.0/1280)},
-  {(726.0/1280),1.0-(802.0/1280)},
-  {(754.0/1280),1.0-(818.0/1280)},
-  {(754.0/1280),1.0-(850.0/1280)},
-  {(726.0/1280),1.0-(866.0/1280)}
+  {(874.0/1280),1.0-(850.0/1280)},
+  {(874.0/1280),1.0-(818.0/1280)},
+  {(901.0/1280),1.0-(802.0/1280)},
+  {(928.0/1280),1.0-(818.0/1280)},
+  {(928.0/1280),1.0-(850.0/1280)},
+  {(901.0/1280),1.0-(866.0/1280)}
 };
 
-float * vertexArrays[5] = {
+float * vertexArrays[5];
+/* = {
   *desertVertices,
   *grassVertices,
-  *jungleVertices,
-  *rockVertices,
-  *swampVertices
-};
+  *grassVertices,
+  *grassVertices,
+  *grassVertices
+  };*/
+
+
 float hexagonVertices[6][2] = {
   {-SIN60, -COS60},
   {-SIN60, COS60},
@@ -247,17 +258,19 @@ float hexagonVertices[6][2] = {
 };
 float *textureVertices;
 void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue){
-  float scale = 1.0;
-  float xIndex = (float)tilesXIndex*-(2.0*SIN60);
-  float yIndex = (float)tilesYIndex*1.5;
+  float xIndex = (float)tilesXIndex*-(1.9*SIN60);
+  float yIndex = (float)tilesYIndex*1.4;
+  //pulling the xindex and yindex in a little cause the black lines between tiles to be less harsh
+  //float xIndex = (float)tilesXIndex*-(2.0*SIN60);
+  //float yIndex = (float)tilesYIndex*1.5;
   if(abs(tilesYIndex)%2 == 1){
     xIndex += SIN60;
   }
   textureVertices = vertexArrays[tileValue];
   if(name == selectedName){
-    glColor3f(1.0f, 0.0f, 0.0f);
+    glColor3f(0.8f, 0.8f, 0.8f);
     if(leftButtonDown){
-      PyObject_CallMethod(mapEditor,"handleClick","i",selectedName);//New reference
+      PyObject_CallMethod(mapEditor,"handleClick","i",selectedName);
     }
   }else{
     glColor3f(1.0f, 1.0f, 1.0f);
@@ -310,9 +323,7 @@ void drawTiles(){
 }
 drawBoard(){
   drawTiles();
-  //  glOrtho(-100,100,-100,100,-1,1.0);
-  glColor3f(1.0f, 1.0f, 1.0f);
-  print("test");
+  //print("test");
 }
 
 void drawTileSelect(double xPos, double yPos, int name, long tileType){
@@ -366,28 +377,60 @@ void drawUI(){
     double height = PyFloat_AsDouble(PyObject_GetAttrString(uiElement,"height"));
     long name = PyLong_AsLong(PyObject_GetAttrString(uiElement,"name"));
     long textureIndex = PyLong_AsLong(PyObject_GetAttrString(uiElement,"textureIndex"));
+    PyObject * onClick = PyObject_GetAttrString(uiElement,"onClick");
     if(PyObject_HasAttrString(uiElement,"tileType")){//mapEditorTileSelectButton
       drawTileSelect(xPosition,yPosition,name,PyLong_AsLong(PyObject_GetAttrString(uiElement,"tileType")));
-    }else if(PyObject_HasAttrString(uiElement,"text")){
-      char * text = PyString_AsString(PyObject_GetAttrString(uiElement,"text"));
-      glLoadIdentity();
-      glTranslatef(xPosition,yPosition,0.0);
-      glScalef(0.0005,0.0005,0.0);
-      print(text);
     }else{
-
-      glLoadIdentity();
-      glBindTexture(GL_TEXTURE_2D, texturesArray[textureIndex]);
-      glBegin(GL_QUADS);
-      glTexCoord2f(0.0,1.0); glVertex3f(xPosition,yPosition,0.0);
-      glTexCoord2f(1.0,1.0); glVertex3f(xPosition+width,yPosition,0.0);
-      glTexCoord2f(1.0,0.0); glVertex3f(xPosition+width,yPosition-height,0.0);
-      glTexCoord2f(0.0,0.0); glVertex3f(xPosition,yPosition-height,0.0);
-      glEnd();
+      if(textureIndex > -1){
+	glLoadIdentity();
+	glBindTexture(GL_TEXTURE_2D, texturesArray[textureIndex]);
+	glPushName(name);
+	glBegin(GL_QUADS);	
+	glTexCoord2f(0.0,1.0); glVertex3f(xPosition,yPosition,0.0);
+	glTexCoord2f(1.0,1.0); glVertex3f(xPosition+width,yPosition,0.0);
+	glTexCoord2f(1.0,0.0); glVertex3f(xPosition+width,yPosition-height,0.0);
+	glTexCoord2f(0.0,0.0); glVertex3f(xPosition,yPosition-height,0.0);
+	glEnd();
+	glPopName();
+      }
       //printf("index: %ld %ld %f %f %f %f\n",name,textureIndex,xPosition,yPosition,width,height);
+      if(PyObject_HasAttrString(uiElement,"text")){
+	char * text = PyString_AsString(PyObject_GetAttrString(uiElement,"text"));
+	glLoadIdentity();
+	glTranslatef(xPosition,yPosition,0.0);
+	glScalef(0.0005,0.0005,0.0);
+	glPushName(name);
+	print(text);
+	glPopName();
+      }
     }
 
-    Py_DECREF(uiElement);  
+    Py_DECREF(uiElement);
+
+    glLoadIdentity();
+    long isClickable = PyLong_AsLong(PyObject_CallMethod(mapEditor,"isNameClickable","i",selectedName));
+    if(isClickable && selectedName != -1){
+
+      glBindTexture(GL_TEXTURE_2D, texturesArray[1]);
+    }else{
+      glBindTexture(GL_TEXTURE_2D, texturesArray[POINTER_INDEX]);
+    }
+    glBegin(GL_QUADS);
+    //    float xPos = (mouseX*screenWidth/2.0)-1.0;
+    float xPos = (mouseX/(screenWidth/2.0))-1.0;
+    float yPos = 1.0-(mouseY/(screenHeight/2.0));
+    float pointerWidth = 27.0/screenWidth;
+    float pointerHeight = 27.0/screenHeight;
+    printf("%d %f\n",mouseX,xPos);
+    //    float xPos = 
+    glTexCoord2f(0.0,1.0); glVertex3f(xPos,yPos,0.0);
+    glTexCoord2f(1.0,1.0); glVertex3f(xPos+pointerWidth,yPos,0.0);
+    glTexCoord2f(1.0,0.0); glVertex3f(xPos+pointerWidth,yPos-pointerHeight,0.0);
+    glTexCoord2f(0.0,0.0); glVertex3f(xPos,yPos-pointerHeight,0.0);
+
+    glEnd();
+
+
   }
 }
 /************************************* /drawing subroutines ***************************************/
@@ -417,7 +460,17 @@ static void initGL (){
   pngLoad(&tileSelectBoxTexture,UI_BOTTOM_IMAGE);
   texturesArray[UI_BOTTOM_INDEX] = tileSelectBoxTexture;
 
+  pngLoad(&tileSelectBoxTexture,POINTER_IMAGE);
+  texturesArray[POINTER_INDEX] = tileSelectBoxTexture;
+
+  vertexArrays[DESERT_TILE_INDEX] = *desertVertices;
+  vertexArrays[GRASS_TILE_INDEX] = *grassVertices;
+  vertexArrays[MOUNTAIN_TILE_INDEX] = *mountainVertices;
+  vertexArrays[JUNGLE_TILE_INDEX] = *jungleVertices;
+  vertexArrays[WATER_TILE_INDEX] = *swampVertices;
+
   screenRatio = (GLfloat)screenWidth/(GLfloat)screenHeight;
+  
 }
 static void initPython(){
   //http://docs.python.org/release/2.6.6/c-api/index.html
@@ -512,8 +565,8 @@ static void mainLoop (){
 	}else if(event.key.keysym.sym == SDLK_BACKQUOTE){
 	  clickScroll = 1;
 	}else if(
-		 (event.key.keysym.sym > 0x60 && event.key.keysym.sym <= 0x7A)//a-z
-		 || (event.key.keysym.sym > 0x48 && event.key.keysym.sym < 0x57)//0-9
+		 (event.key.keysym.sym >= 0x61 && event.key.keysym.sym <= 0x7A)//a-z
+		 || (event.key.keysym.sym >= 0x30 && event.key.keysym.sym <= 0x39)//0-9
 		 || event.key.keysym.sym == 8//backspace
 		 || event.key.keysym.sym == 32//space
 		 || event.key.keysym.sym == 32//space
@@ -529,7 +582,7 @@ static void mainLoop (){
 	    PyObject_CallMethod(mapEditor,"handleKeyDown","s",SDL_GetKeyName(event.key.keysym.sym));
 	  }
 	}else{
-	  //	  printf("rejected: %d\n",event.key.keysym.sym);
+	  	  printf("rejected: %d\n",event.key.keysym.sym);
 	}
 	break;
       case SDL_KEYUP:
@@ -680,6 +733,7 @@ int main(int argc, char **argv){
   //Py_DECREF(theMapName);
 
   initFonts();
+  SDL_ShowCursor(0);
   mainLoop();
 
   //Py_DECREF(mapIterator); 
