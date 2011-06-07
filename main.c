@@ -27,6 +27,9 @@ static int screenHeight = 800;
 float screenRatio;
 static SDL_Surface *gScreen;
 
+int clickScroll = 0;
+int leftButtonDown = 0;
+
 float translateX = 0.0f;
 float translateY = 0.0f;
 float translateZ = -40.0f;
@@ -43,10 +46,26 @@ PyObject * rowIterator;
 
 GLuint tilesTexture;
 GLuint uiTexture;
+GLuint uiTopTexture;
+GLuint uiBottomTexture;
 GLuint tileSelectBoxTexture;
 
-  GLdouble mouseMapPosX, mouseMapPosY, mouseMapPosZ;
-  GLdouble mouseMapPosXPrevious, mouseMapPosYPrevious;
+GLdouble mouseMapPosX, mouseMapPosY, mouseMapPosZ;
+GLdouble mouseMapPosXPrevious, mouseMapPosYPrevious;
+
+
+#define TILES_IMAGE "tiles2.png"
+#define UI_IMAGE "UI.png"
+#define TILE_SELECT_BOX_IMAGE "tileSelect.png"
+#define TILE_SELECT_BOX_INDEX 0
+#define UI_TOP_IMAGE "UITop.png"
+#define UI_TOP_IMAGE_HEIGHT 80.0
+#define UI_TOP_IMAGE_WIDTH 960.0
+#define UI_TOP_INDEX 1
+#define UI_BOTTOM_IMAGE "UIBottom.png"
+#define UI_BOTTOM_INDEX 2
+
+GLuint texturesArray[60];
 
 /****************************** SDL STUFF ********************************/
 static void printAttributes (){
@@ -76,7 +95,7 @@ static void createSurface(int fullscreen){//DEPRECATED
     flags |= SDL_FULLSCREEN;
   gScreen = SDL_SetVideoMode (screenWidth, screenHeight, 0, flags);
   if (gScreen == NULL) {
-    fprintf (stderr, "Couldn't set 640x480 OpenGL video mode: %s\n",
+    fprintf (stderr, "Couldn't set OpenGL video mode: %s\n",
 	     SDL_GetError());
   }
 }
@@ -87,11 +106,32 @@ int mouseX = 0;
 int mouseY = 0;
 #define BUFSIZE 512
 GLuint selectBuf[BUFSIZE];
-
 int selectedName = -1;//the mousedover object's 'name'
+
 void processTheHits(GLint hits, GLuint buffer[]){
   GLuint *bufferPtr,*ptrNames, numberOfNames;
+  int count = 0;
+  int nameValue = 0;
   bufferPtr = (GLuint *) buffer;
+  selectedName = -1;
+  while(count < hits){
+    numberOfNames = *bufferPtr;
+    nameValue = *(bufferPtr + 3);//the value of the name is stored +3 over in mem
+    if(numberOfNames == 1){
+      if(nameValue > selectedName){
+	selectedName = nameValue;
+      }
+    }else if(numberOfNames == 0){
+      selectedName = -1;
+    }else{
+      printf("WARNING: WE ONLY EXPECT ONE NAME PER OBJECT WHEN PICKING\n");
+    }
+    bufferPtr = bufferPtr + 3 + numberOfNames;
+    count = count + 1;
+  }
+
+
+  /*
   //each 'hit' gives a 'number of names', then two depth values, then each of the names in the buffer(array)
   if(hits > 0){
     //just assume there's one hit for now, can't think of a reason we'd need multiple moused-over objects anyway
@@ -101,7 +141,7 @@ void processTheHits(GLint hits, GLuint buffer[]){
       bufferPtr = bufferPtr + 3;
       //the value of the name name is stored +3 over in mem
       selectedName = *bufferPtr;
-    }else if(numberOfNames ==0){
+    }else if(numberOfNames == 0){
       selectedName = -1;
     }else{
       printf("WARNING: WE ONLY EXPECT ONE NAME PER OBJECT WHEN PICKING\n");
@@ -109,6 +149,7 @@ void processTheHits(GLint hits, GLuint buffer[]){
   }else{
     selectedName = -1;
   }
+  */
 }
 
 void startPicking(){
@@ -147,6 +188,14 @@ void convertWinCoordsToMapCoords(int x, int y, GLdouble* posX, GLdouble* posY, G
 #define COS60 0.5
 #define TILE_GRASS 1
 #define TILE_MOUNTAIN 2
+float desertVertices[6][2] = {
+  {(699.0/1280),1.0-(66.0/1280)},
+  {(699.0/1280),1.0-(34.0/1280)},
+  {(726.0/1280),1.0-(18.0/1280)},
+  {(754.0/1280),1.0-(34.0/1280)},
+  {(754.0/1280),1.0-(66.0/1280)},
+  {(726.0/1280),1.0-(82.0/1280)}
+};
 float jungleVertices[6][2] = {
   {(699.0/1280),1.0-(262.0/1280)},
   {(699.0/1280),1.0-(230.0/1280)},
@@ -172,7 +221,22 @@ float rockVertices[6][2] = {
   {(754.0/1280),1.0-(556.0/1280)},
   {(726.0/1280),1.0-(572.0/1280)}
 };
+float swampVertices[6][2] = {
+  {(699.0/1280),1.0-(850.0/1280)},
+  {(699.0/1280),1.0-(818.0/1280)},
+  {(726.0/1280),1.0-(802.0/1280)},
+  {(754.0/1280),1.0-(818.0/1280)},
+  {(754.0/1280),1.0-(850.0/1280)},
+  {(726.0/1280),1.0-(866.0/1280)}
+};
 
+float * vertexArrays[5] = {
+  *desertVertices,
+  *grassVertices,
+  *jungleVertices,
+  *rockVertices,
+  *swampVertices
+};
 float hexagonVertices[6][2] = {
   {-SIN60, -COS60},
   {-SIN60, COS60},
@@ -189,14 +253,12 @@ void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue){
   if(abs(tilesYIndex)%2 == 1){
     xIndex += SIN60;
   }
-  int choice = tileValue;
-  if (choice == 0) {
-    textureVertices = &jungleVertices[0][0];
-  }else{
-    textureVertices = &rockVertices[0][0];
-  }
+  textureVertices = vertexArrays[tileValue];
   if(name == selectedName){
     glColor3f(1.0f, 0.0f, 0.0f);
+    if(leftButtonDown){
+      PyObject_CallMethod(mapEditor,"handleClick","i",selectedName);//New reference
+    }
   }else{
     glColor3f(1.0f, 1.0f, 1.0f);
   }
@@ -253,14 +315,15 @@ drawBoard(){
   print("test");
 }
 
-void drawTileSelect(double xPos, double yPos, int name){
+void drawTileSelect(double xPos, double yPos, int name, long tileType){
   
   glLoadIdentity();
   glColor3f(1.0,1.0,1.0);
   glTranslatef(xPos,yPos,0.0);
   glScalef(0.01,0.01,0.0);
   glBindTexture(GL_TEXTURE_2D, tilesTexture);
-  textureVertices = &jungleVertices[0][0];
+  //textureVertices = &grassVertices[0][0];
+  textureVertices = vertexArrays[tileType];
   glPushName(name);
   glBegin(GL_POLYGON);
   glTexCoord2f(*(textureVertices+0),*(textureVertices+1)); glVertex3f(3.0*hexagonVertices[0][0], 3.0*hexagonVertices[0][1], 0.0);
@@ -293,32 +356,37 @@ void drawTileSelect(double xPos, double yPos, int name){
 }
 
 void drawUI(){
-
-  /*  glBindTexture(GL_TEXTURE_2D, uiTexture);
-    
-  glBegin(GL_POLYGON);
-  glTexCoord2f(0.0,1.0); glVertex3f(-1.0,1.0,0.0);
-  glTexCoord2f(1.0,1.0); glVertex3f(0.5,1.0,0.0);
-  glTexCoord2f(1.0,0.0); glVertex3f(0.5,-1.0,0.0);
-  glTexCoord2f(0.0,0.0); glVertex3f(-1.0,-1.0,0.0);
-  glEnd();
-  */
-
   PyObject * uiElement;
   UIElementsIterator = PyObject_GetIter(PyObject_CallMethod(mapEditor,"getUIElementsIterator",NULL));//New reference
   while (uiElement = PyIter_Next(UIElementsIterator)) {
     //    PyObject * foo = PyObject_GetAttrString(uiElement,"xPosition");
     double xPosition = PyFloat_AsDouble(PyObject_GetAttrString(uiElement,"xPosition"));
     double yPosition = PyFloat_AsDouble(PyObject_GetAttrString(uiElement,"yPosition"));
+    double width = PyFloat_AsDouble(PyObject_GetAttrString(uiElement,"width"));
+    double height = PyFloat_AsDouble(PyObject_GetAttrString(uiElement,"height"));
     long name = PyLong_AsLong(PyObject_GetAttrString(uiElement,"name"));
-    drawTileSelect(xPosition,yPosition,name);
-    if(PyObject_HasAttrString(uiElement,"text")){
+    long textureIndex = PyLong_AsLong(PyObject_GetAttrString(uiElement,"textureIndex"));
+    if(PyObject_HasAttrString(uiElement,"tileType")){//mapEditorTileSelectButton
+      drawTileSelect(xPosition,yPosition,name,PyLong_AsLong(PyObject_GetAttrString(uiElement,"tileType")));
+    }else if(PyObject_HasAttrString(uiElement,"text")){
       char * text = PyString_AsString(PyObject_GetAttrString(uiElement,"text"));
       glLoadIdentity();
       glTranslatef(xPosition,yPosition,0.0);
       glScalef(0.0005,0.0005,0.0);
       print(text);
+    }else{
+
+      glLoadIdentity();
+      glBindTexture(GL_TEXTURE_2D, texturesArray[textureIndex]);
+      glBegin(GL_QUADS);
+      glTexCoord2f(0.0,1.0); glVertex3f(xPosition,yPosition,0.0);
+      glTexCoord2f(1.0,1.0); glVertex3f(xPosition+width,yPosition,0.0);
+      glTexCoord2f(1.0,0.0); glVertex3f(xPosition+width,yPosition-height,0.0);
+      glTexCoord2f(0.0,0.0); glVertex3f(xPosition,yPosition-height,0.0);
+      glEnd();
+      //printf("index: %ld %ld %f %f %f %f\n",name,textureIndex,xPosition,yPosition,width,height);
     }
+
     Py_DECREF(uiElement);  
   }
 }
@@ -326,12 +394,6 @@ void drawUI(){
 
 /************************************** opengl init **************************************/
 
-GLuint testTexture;
-
-#define tilesImage "tiles2.png"
-#define testImage "testEventImage1.png"
-#define uiImage "UI.png"
-#define tileSelectBoxImage "tileSelect.png"
 static void initGL (){
   /** needs to be called on screen resize **/
   //unneeded with sdl?
@@ -340,11 +402,21 @@ static void initGL (){
   glClearColor(0.0, 0.0, 0.0, 0.0); //sets screen clear color
   glEnable(GL_TEXTURE_2D);
   glEnable(GL_BLEND);
-  char file[100] = tilesImage;
-  pngLoad(&tilesTexture, tilesImage);	/******************** /image init ***********************/
-  pngLoad(&testTexture, testImage);	/******************** /image init ***********************/
-  pngLoad(&uiTexture,uiImage);
-  pngLoad(&tileSelectBoxTexture,tileSelectBoxImage);
+  char file[100] = TILES_IMAGE;
+  pngLoad(&tilesTexture, TILES_IMAGE);	/******************** /image init ***********************/
+  pngLoad(&uiTexture,UI_IMAGE);
+  pngLoad(&uiTopTexture,UI_TOP_IMAGE);
+  pngLoad(&uiBottomTexture,UI_BOTTOM_IMAGE);
+
+  pngLoad(&tileSelectBoxTexture,TILE_SELECT_BOX_IMAGE);
+  texturesArray[TILE_SELECT_BOX_INDEX] = tileSelectBoxTexture;
+
+  pngLoad(&tileSelectBoxTexture,UI_TOP_IMAGE);
+  texturesArray[UI_TOP_INDEX] = tileSelectBoxTexture;
+
+  pngLoad(&tileSelectBoxTexture,UI_BOTTOM_IMAGE);
+  texturesArray[UI_BOTTOM_INDEX] = tileSelectBoxTexture;
+
   screenRatio = (GLfloat)screenWidth/(GLfloat)screenHeight;
 }
 static void initPython(){
@@ -368,7 +440,6 @@ static void mainLoop (){
   int done = 0;    
   int moveUp = 0;
   int moveRight = 0;
-  int clickScroll = 0;
   int previousTick = 0;
   int deltaTicks = 0;
   //GLdouble translateX, translateY;
@@ -423,12 +494,16 @@ static void mainLoop (){
 	  clickScroll = 1;
 	}
 	if(event.button.button == SDL_BUTTON_LEFT){
+	  leftButtonDown = 1;
 	  PyObject_CallMethod(mapEditor,"handleClick","i",selectedName);//New reference
 	}
 	break;
       case SDL_MOUSEBUTTONUP:
 	if(event.button.button == SDL_BUTTON_MIDDLE){
 	  clickScroll = 0;
+	}
+	if(event.button.button == SDL_BUTTON_LEFT){
+	  leftButtonDown = 0;
 	}
 	break;
       case SDL_KEYDOWN:
@@ -509,6 +584,9 @@ static void mainLoop (){
     //glInitNames();
 
     //I don't understand why but drawing the UI first here caused it to be picked in higher priority to the board...
+
+    drawBoard();
+
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
     glLoadIdentity();
@@ -522,7 +600,6 @@ static void mainLoop (){
     glMatrixMode(GL_MODELVIEW);
     glPopMatrix();
 
-    drawBoard();
 
     //stopPicking();
     int hits;
