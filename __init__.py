@@ -40,7 +40,6 @@ nameGenerator = intNameGenerator()
 class uiElement:
 	def __init__(self,xPos,yPos,width=0,height=0,textureIndex=0):
 		self.name = nameGenerator.getNextName()
-		print str(self.name) +  " - " + str(textureIndex)
 		self.xPosition = xPos
 		self.yPosition = yPos
 		self.width = width
@@ -138,7 +137,6 @@ class mapEditor:
 	def getUIElementsIterator(self):
 		return self.uiElements.__iter__()
 	def handleClick(self,name):
-		print "click" + str(name)
 		if(self.clickableObjsDict.has_key(name)):
 			self.elementWithFocus = self.clickableObjsDict[name]
 			self.clickableObjsDict[name].onClick()
