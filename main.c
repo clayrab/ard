@@ -45,11 +45,13 @@ PyObject * UIElementsIterator;
 PyObject * rowIterator;
 
 GLuint tilesTexture;
-GLuint uiTexture;
+/*GLuint uiTexture;
 GLuint uiTopTexture;
 GLuint uiBottomTexture;
 GLuint tileSelectBoxTexture;
-
+GLuint cursorPointerTexture;
+GLuint cursorHandTexture;
+*/
 GLdouble mouseMapPosX, mouseMapPosY, mouseMapPosZ;
 GLdouble mouseMapPosXPrevious, mouseMapPosYPrevious;
 
@@ -64,15 +66,94 @@ GLdouble mouseMapPosXPrevious, mouseMapPosYPrevious;
 #define UI_TOP_INDEX 1
 #define UI_BOTTOM_IMAGE "UIBottom.png"
 #define UI_BOTTOM_INDEX 2
-#define POINTER_IMAGE "cursors/pointer.png"
-#define POINTER_INDEX 3
+#define CURSOR_POINTER_IMAGE "cursors/pointer.png"
+#define CURSOR_POINTER_INDEX 3
+#define CURSOR_HAND_IMAGE "cursors/hand.png"
+#define CURSOR_HAND_INDEX 4
 
 #define DESERT_TILE_INDEX 0
 #define GRASS_TILE_INDEX 1
 #define MOUNTAIN_TILE_INDEX 2
 #define JUNGLE_TILE_INDEX 3
 #define WATER_TILE_INDEX 4
+#define ROAD_TILE_INDEX 5
+#define CITY_TILE_INDEX 6
 
+
+#define SIN60 0.8660
+#define COS60 0.5
+#define TILE_GRASS 1
+#define TILE_MOUNTAIN 2
+
+float desertVertices[6][2] = {
+  {(699.0/1280),1.0-(66.0/1280)},
+  {(699.0/1280),1.0-(34.0/1280)},
+  {(726.0/1280),1.0-(18.0/1280)},
+  {(754.0/1280),1.0-(34.0/1280)},
+  {(754.0/1280),1.0-(66.0/1280)},
+  {(726.0/1280),1.0-(82.0/1280)}
+};
+float jungleVertices[6][2] = {
+  {(699.0/1280),1.0-(262.0/1280)},
+  {(699.0/1280),1.0-(230.0/1280)},
+  {(726.0/1280),1.0-(214.0/1280)},
+  {(754.0/1280),1.0-(230.0/1280)},
+  {(754.0/1280),1.0-(262.0/1280)},
+  {(726.0/1280),1.0-(278.0/1280)}
+};
+float grassVertices[6][2] = {
+  {(699.0/1280),1.0-(360.0/1280)},
+  {(699.0/1280),1.0-(328.0/1280)},
+  {(726.0/1280),1.0-(312.0/1280)},
+  {(754.0/1280),1.0-(328.0/1280)},
+  {(754.0/1280),1.0-(360.0/1280)},
+  {(726.0/1280),1.0-(376.0/1280)}
+};
+
+float mountainVertices[6][2] = {
+  {(699.0/1280),1.0-(556.0/1280)},
+  {(699.0/1280),1.0-(524.0/1280)},
+  {(726.0/1280),1.0-(508.0/1280)},
+  {(754.0/1280),1.0-(524.0/1280)},
+  {(754.0/1280),1.0-(556.0/1280)},
+  {(726.0/1280),1.0-(572.0/1280)}
+};
+float waterVertices[6][2] = {
+  {(874.0/1280),1.0-(850.0/1280)},
+  {(874.0/1280),1.0-(818.0/1280)},
+  {(901.0/1280),1.0-(802.0/1280)},
+  {(928.0/1280),1.0-(818.0/1280)},
+  {(928.0/1280),1.0-(850.0/1280)},
+  {(901.0/1280),1.0-(866.0/1280)}
+};
+float roadVertices[6][2] = {
+  {(467.0/1280),1.0-(66.0/1280)},
+  {(467.0/1280),1.0-(34.0/1280)},
+  {(494.0/1280),1.0-(18.0/1280)},
+  {(522.0/1280),1.0-(34.0/1280)},
+  {(522.0/1280),1.0-(66.0/1280)},
+  {(494.0/1280),1.0-(82.0/1280)}
+};
+float cityVertices[6][2] = {
+  {(641.0/1280),1.0-(66.0/1280)},
+  {(641.0/1280),1.0-(34.0/1280)},
+  {(668.0/1280),1.0-(18.0/1280)},
+  {(696.0/1280),1.0-(34.0/1280)},
+  {(696.0/1280),1.0-(66.0/1280)},
+  {(668.0/1280),1.0-(82.0/1280)}
+};
+float * vertexArrays[6];
+
+float hexagonVertices[6][2] = {
+  {-SIN60, -COS60},
+  {-SIN60, COS60},
+  {0.0, 1.0},
+  {SIN60, COS60},
+  {SIN60, -COS60},
+  {0.0, -1.0}
+};
+
+float *textureVertices;
 GLuint texturesArray[60];
 
 /****************************** SDL STUFF ********************************/
@@ -115,7 +196,7 @@ int mouseY = 0;
 #define BUFSIZE 512
 GLuint selectBuf[BUFSIZE];
 int selectedName = -1;//the mousedover object's 'name'
-
+int previousSelectedName = -2;
 void processTheHits(GLint hits, GLuint buffer[]){
   GLuint *bufferPtr,*ptrNames, numberOfNames;
   int count = 0;
@@ -191,89 +272,29 @@ void convertWinCoordsToMapCoords(int x, int y, GLdouble* posX, GLdouble* posY, G
 /**************************** /mouse hover object selection ********************************/
 
 /************************************* drawing subroutines ***************************************/
-
-#define SIN60 0.8660
-#define COS60 0.5
-#define TILE_GRASS 1
-#define TILE_MOUNTAIN 2
-float desertVertices[6][2] = {
-  {(699.0/1280),1.0-(66.0/1280)},
-  {(699.0/1280),1.0-(34.0/1280)},
-  {(726.0/1280),1.0-(18.0/1280)},
-  {(754.0/1280),1.0-(34.0/1280)},
-  {(754.0/1280),1.0-(66.0/1280)},
-  {(726.0/1280),1.0-(82.0/1280)}
-};
-float jungleVertices[6][2] = {
-  {(699.0/1280),1.0-(262.0/1280)},
-  {(699.0/1280),1.0-(230.0/1280)},
-  {(726.0/1280),1.0-(214.0/1280)},
-  {(754.0/1280),1.0-(230.0/1280)},
-  {(754.0/1280),1.0-(262.0/1280)},
-  {(726.0/1280),1.0-(278.0/1280)}
-};
-float grassVertices[6][2] = {
-  {(699.0/1280),1.0-(360.0/1280)},
-  {(699.0/1280),1.0-(328.0/1280)},
-  {(726.0/1280),1.0-(312.0/1280)},
-  {(754.0/1280),1.0-(328.0/1280)},
-  {(754.0/1280),1.0-(360.0/1280)},
-  {(726.0/1280),1.0-(376.0/1280)}
-};
-
-float mountainVertices[6][2] = {
-  {(699.0/1280),1.0-(556.0/1280)},
-  {(699.0/1280),1.0-(524.0/1280)},
-  {(726.0/1280),1.0-(508.0/1280)},
-  {(754.0/1280),1.0-(524.0/1280)},
-  {(754.0/1280),1.0-(556.0/1280)},
-  {(726.0/1280),1.0-(572.0/1280)}
-};
-float swampVertices[6][2] = {
-  {(874.0/1280),1.0-(850.0/1280)},
-  {(874.0/1280),1.0-(818.0/1280)},
-  {(901.0/1280),1.0-(802.0/1280)},
-  {(928.0/1280),1.0-(818.0/1280)},
-  {(928.0/1280),1.0-(850.0/1280)},
-  {(901.0/1280),1.0-(866.0/1280)}
-};
-
-float * vertexArrays[5];
-/* = {
-  *desertVertices,
-  *grassVertices,
-  *grassVertices,
-  *grassVertices,
-  *grassVertices
-  };*/
-
-
-float hexagonVertices[6][2] = {
-  {-SIN60, -COS60},
-  {-SIN60, COS60},
-  {0.0, 1.0},
-  {SIN60, COS60},
-  {SIN60, -COS60},
-  {0.0, -1.0}
-};
-float *textureVertices;
-void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue){
+void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long roadValue,long cityValue,long isSelected, long mapPolarity){
   float xIndex = (float)tilesXIndex*-(1.9*SIN60);
   float yIndex = (float)tilesYIndex*1.4;
   //pulling the xindex and yindex in a little cause the black lines between tiles to be less harsh
   //float xIndex = (float)tilesXIndex*-(2.0*SIN60);
   //float yIndex = (float)tilesYIndex*1.5;
-  if(abs(tilesYIndex)%2 == 1){
+  if(abs(tilesYIndex)%2 == mapPolarity){
     xIndex += SIN60;
   }
   textureVertices = vertexArrays[tileValue];
   if(name == selectedName){
     glColor3f(0.8f, 0.8f, 0.8f);
     if(leftButtonDown){
-      PyObject_CallMethod(mapEditor,"handleClick","i",selectedName);
+      if(previousSelectedName != selectedName){
+	PyObject_CallMethod(mapEditor,"handleClick","i",selectedName);
+      }
+      previousSelectedName = selectedName;
     }
   }else{
     glColor3f(1.0f, 1.0f, 1.0f);
+  }
+  if(isSelected == 1){
+    glColor3f(0.4f, 0.4f, 0.4f);    
   }
   glPushName(name);	
   glBegin(GL_POLYGON);
@@ -285,6 +306,30 @@ void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue){
   glTexCoord2f(*(textureVertices+10),*(textureVertices+11)); glVertex3f(hexagonVertices[5][0]+xIndex, hexagonVertices[5][1]+yIndex, 0.0);
   glEnd();
   glPopName();
+
+
+  if(roadValue == 1){
+    textureVertices = vertexArrays[ROAD_TILE_INDEX];
+    glBegin(GL_POLYGON);
+    glTexCoord2f(*(textureVertices+0),*(textureVertices+1)); glVertex3f(hexagonVertices[0][0]+xIndex, hexagonVertices[0][1]+yIndex, 0.0);
+    glTexCoord2f(*(textureVertices+2),*(textureVertices+3)); glVertex3f(hexagonVertices[1][0]+xIndex, hexagonVertices[1][1]+yIndex, 0.0);
+    glTexCoord2f(*(textureVertices+4),*(textureVertices+5)); glVertex3f(hexagonVertices[2][0]+xIndex, hexagonVertices[2][1]+yIndex, 0.0);
+    glTexCoord2f(*(textureVertices+6),*(textureVertices+7)); glVertex3f(hexagonVertices[3][0]+xIndex, hexagonVertices[3][1]+yIndex, 0.0);
+    glTexCoord2f(*(textureVertices+8),*(textureVertices+9)); glVertex3f(hexagonVertices[4][0]+xIndex, hexagonVertices[4][1]+yIndex, 0.0);
+    glTexCoord2f(*(textureVertices+10),*(textureVertices+11)); glVertex3f(hexagonVertices[5][0]+xIndex, hexagonVertices[5][1]+yIndex, 0.0);
+    glEnd();
+  }
+  if(cityValue == 1){
+    textureVertices = vertexArrays[CITY_TILE_INDEX];
+    glBegin(GL_POLYGON);
+    glTexCoord2f(*(textureVertices+0),*(textureVertices+1)); glVertex3f(hexagonVertices[0][0]+xIndex, hexagonVertices[0][1]+yIndex, 0.0);
+    glTexCoord2f(*(textureVertices+2),*(textureVertices+3)); glVertex3f(hexagonVertices[1][0]+xIndex, hexagonVertices[1][1]+yIndex, 0.0);
+    glTexCoord2f(*(textureVertices+4),*(textureVertices+5)); glVertex3f(hexagonVertices[2][0]+xIndex, hexagonVertices[2][1]+yIndex, 0.0);
+    glTexCoord2f(*(textureVertices+6),*(textureVertices+7)); glVertex3f(hexagonVertices[3][0]+xIndex, hexagonVertices[3][1]+yIndex, 0.0);
+    glTexCoord2f(*(textureVertices+8),*(textureVertices+9)); glVertex3f(hexagonVertices[4][0]+xIndex, hexagonVertices[4][1]+yIndex, 0.0);
+    glTexCoord2f(*(textureVertices+10),*(textureVertices+11)); glVertex3f(hexagonVertices[5][0]+xIndex, hexagonVertices[5][1]+yIndex, 0.0);
+    glEnd();
+  }
 }
 
 GLuint tilesList;
@@ -302,6 +347,9 @@ void drawTiles(){
   PyObject * row;
 
   mapIterator = PyObject_CallMethod(theMap,"getIterator",NULL);//New reference
+  PyObject * polarity = PyObject_GetAttrString(theMap,"polarity");//New reference
+  long longPolarity = PyLong_AsLong(polarity);
+
   rowIterator = PyObject_GetIter(mapIterator);
   while (row = PyIter_Next(rowIterator)) {
     int colNumber = 0;
@@ -310,30 +358,44 @@ void drawTiles(){
     while(node = PyIter_Next(nodeIterator)) {
       PyObject * nodeName = PyObject_GetAttrString(node,"name");//New reference
       PyObject * nodeValue = PyObject_CallMethod(node,"getValue",NULL);//New reference
+      PyObject * roadValue = PyObject_GetAttrString(node,"roadValue");//New reference
+      PyObject * cityValue = PyObject_GetAttrString(node,"cityValue");//New reference
+      PyObject * isSelected = PyObject_GetAttrString(node,"selected");//New reference                                                  
+
       long longName = PyLong_AsLong(nodeName);
       long longValue = PyLong_AsLong(nodeValue);
-      drawTile(colNumber,rowNumber,longName,longValue);
-      colNumber = colNumber - 1;
+      long longRoadValue = PyLong_AsLong(roadValue);
+      long longCityValue = PyLong_AsLong(cityValue);
+      long longIsSelected = PyLong_AsLong(isSelected);
+
+
+      Py_DECREF(nodeName);
+      Py_DECREF(nodeValue);
+      Py_DECREF(roadValue);
+      Py_DECREF(cityValue);
+      Py_DECREF(isSelected);
       Py_DECREF(node);
+      //      printf("%d\n",longRoadValue);
+      drawTile(colNumber,rowNumber,longName,longValue,longRoadValue,longCityValue,longIsSelected,longPolarity);
+      colNumber = colNumber - 1;
     }
     Py_DECREF(row);
   }
   Py_DECREF(rowIterator); 
   Py_DECREF(mapIterator);
+  Py_DECREF(polarity);
 }
 drawBoard(){
   drawTiles();
   //print("test");
 }
 
-void drawTileSelect(double xPos, double yPos, int name, long tileType){
-  
+void drawTileSelect(double xPos, double yPos, int name, long tileType, long selected){
   glLoadIdentity();
   glColor3f(1.0,1.0,1.0);
   glTranslatef(xPos,yPos,0.0);
   glScalef(0.01,0.01,0.0);
   glBindTexture(GL_TEXTURE_2D, tilesTexture);
-  //textureVertices = &grassVertices[0][0];
   textureVertices = vertexArrays[tileType];
   glPushName(name);
   glBegin(GL_POLYGON);
@@ -345,29 +407,22 @@ void drawTileSelect(double xPos, double yPos, int name, long tileType){
   glTexCoord2f(*(textureVertices+10),*(textureVertices+11)); glVertex3f(3.0*hexagonVertices[5][0], 3.0*hexagonVertices[5][1], 0.0);
   glEnd();
   glPopName();
-
-  /*  glLoadIdentity();
-  glTranslatef(-0.97,0.88,0.0);
-  glBindTexture(GL_TEXTURE_2D, tileSelectBoxTexture);
-  glBegin(GL_POLYGON);
-  glTexCoord2f(1.0,1.0); glVertex3f(0.08,0.08,0.0);
-  glTexCoord2f(1.0,0.0); glVertex3f(0.08,0.0,0.0);
-  glTexCoord2f(0.0,0.0); glVertex3f(0.0,0.0,0.0);
-  glTexCoord2f(0.0,1.0); glVertex3f(0.0,0.08,0.0);
-  glEnd();
-
-  glLoadIdentity();
-    glTranslatef(-0.975,0.86,0.0);
-  glOrtho(-2000,2000,-2000,2000,-1,1.0);
-  //  glColor3f(0.2,0.2,0.2);
-
-  glColor3f(1.0,1.0,1.0);
-  print("Grass");
-  */
+  if(selected){
+    glLoadIdentity();
+    glTranslatef(xPos-0.04,yPos-0.04,0.0);
+    glBindTexture(GL_TEXTURE_2D, texturesArray[TILE_SELECT_BOX_INDEX]);
+    glBegin(GL_POLYGON);
+    glTexCoord2f(1.0,1.0); glVertex3f(0.08,0.08,0.0);
+    glTexCoord2f(1.0,0.0); glVertex3f(0.08,0.0,0.0);
+    glTexCoord2f(0.0,0.0); glVertex3f(0.0,0.0,0.0);
+    glTexCoord2f(0.0,1.0); glVertex3f(0.0,0.08,0.0);
+    glEnd();
+  }
 }
 
 void drawUI(){
   PyObject * uiElement;
+  int theCursorIndex = -1;
   UIElementsIterator = PyObject_GetIter(PyObject_CallMethod(mapEditor,"getUIElementsIterator",NULL));//New reference
   while (uiElement = PyIter_Next(UIElementsIterator)) {
     //    PyObject * foo = PyObject_GetAttrString(uiElement,"xPosition");
@@ -377,9 +432,10 @@ void drawUI(){
     double height = PyFloat_AsDouble(PyObject_GetAttrString(uiElement,"height"));
     long name = PyLong_AsLong(PyObject_GetAttrString(uiElement,"name"));
     long textureIndex = PyLong_AsLong(PyObject_GetAttrString(uiElement,"textureIndex"));
+    long cursorIndex = PyLong_AsLong(PyObject_GetAttrString(uiElement,"cursorIndex"));
     PyObject * onClick = PyObject_GetAttrString(uiElement,"onClick");
     if(PyObject_HasAttrString(uiElement,"tileType")){//mapEditorTileSelectButton
-      drawTileSelect(xPosition,yPosition,name,PyLong_AsLong(PyObject_GetAttrString(uiElement,"tileType")));
+      drawTileSelect(xPosition,yPosition,name,PyLong_AsLong(PyObject_GetAttrString(uiElement,"tileType")),PyLong_AsLong(PyObject_GetAttrString(uiElement,"selected")));
     }else{
       if(textureIndex > -1){
 	glLoadIdentity();
@@ -404,34 +460,27 @@ void drawUI(){
 	glPopName();
       }
     }
-
     Py_DECREF(uiElement);
-
-    glLoadIdentity();
-    long isClickable = PyLong_AsLong(PyObject_CallMethod(mapEditor,"isNameClickable","i",selectedName));
-    if(isClickable && selectedName != -1){
-
-      glBindTexture(GL_TEXTURE_2D, texturesArray[1]);
-    }else{
-      glBindTexture(GL_TEXTURE_2D, texturesArray[POINTER_INDEX]);
+    if(name == selectedName && cursorIndex >= 0){
+      theCursorIndex = cursorIndex;
     }
-    glBegin(GL_QUADS);
-    //    float xPos = (mouseX*screenWidth/2.0)-1.0;
-    float xPos = (mouseX/(screenWidth/2.0))-1.0;
-    float yPos = 1.0-(mouseY/(screenHeight/2.0));
-    float pointerWidth = 27.0/screenWidth;
-    float pointerHeight = 27.0/screenHeight;
-    printf("%d %f\n",mouseX,xPos);
-    //    float xPos = 
-    glTexCoord2f(0.0,1.0); glVertex3f(xPos,yPos,0.0);
-    glTexCoord2f(1.0,1.0); glVertex3f(xPos+pointerWidth,yPos,0.0);
-    glTexCoord2f(1.0,0.0); glVertex3f(xPos+pointerWidth,yPos-pointerHeight,0.0);
-    glTexCoord2f(0.0,0.0); glVertex3f(xPos,yPos-pointerHeight,0.0);
-
-    glEnd();
-
-
   }
+  glLoadIdentity();
+  if(theCursorIndex >= 0){
+    glBindTexture(GL_TEXTURE_2D, texturesArray[theCursorIndex]);
+  }else{
+    glBindTexture(GL_TEXTURE_2D, texturesArray[CURSOR_POINTER_INDEX]);
+  }
+  glBegin(GL_QUADS);
+  float xPos = (mouseX/(screenWidth/2.0))-1.0;
+  float yPos = 1.0-(mouseY/(screenHeight/2.0));
+  float pointerWidth = 3.0*13.0/screenWidth;
+  float pointerHeight = 3.0*21.0/screenHeight;
+  glTexCoord2f(0.0,1.0); glVertex3f(xPos,yPos,0.0);
+  glTexCoord2f(1.0,1.0); glVertex3f(xPos+pointerWidth,yPos,0.0);
+  glTexCoord2f(1.0,0.0); glVertex3f(xPos+pointerWidth,yPos-pointerHeight,0.0);
+  glTexCoord2f(0.0,0.0); glVertex3f(xPos,yPos-pointerHeight,0.0);
+  glEnd();
 }
 /************************************* /drawing subroutines ***************************************/
 
@@ -446,28 +495,25 @@ static void initGL (){
   glEnable(GL_TEXTURE_2D);
   glEnable(GL_BLEND);
   char file[100] = TILES_IMAGE;
+
+
+
+
   pngLoad(&tilesTexture, TILES_IMAGE);	/******************** /image init ***********************/
-  pngLoad(&uiTexture,UI_IMAGE);
-  pngLoad(&uiTopTexture,UI_TOP_IMAGE);
-  pngLoad(&uiBottomTexture,UI_BOTTOM_IMAGE);
-
-  pngLoad(&tileSelectBoxTexture,TILE_SELECT_BOX_IMAGE);
-  texturesArray[TILE_SELECT_BOX_INDEX] = tileSelectBoxTexture;
-
-  pngLoad(&tileSelectBoxTexture,UI_TOP_IMAGE);
-  texturesArray[UI_TOP_INDEX] = tileSelectBoxTexture;
-
-  pngLoad(&tileSelectBoxTexture,UI_BOTTOM_IMAGE);
-  texturesArray[UI_BOTTOM_INDEX] = tileSelectBoxTexture;
-
-  pngLoad(&tileSelectBoxTexture,POINTER_IMAGE);
-  texturesArray[POINTER_INDEX] = tileSelectBoxTexture;
+  pngLoad(&texturesArray[UI_TOP_INDEX],UI_TOP_IMAGE);
+  pngLoad(&texturesArray[TILE_SELECT_BOX_INDEX],TILE_SELECT_BOX_IMAGE);
+  pngLoad(&texturesArray[UI_TOP_INDEX],UI_TOP_IMAGE);
+  pngLoad(&texturesArray[UI_BOTTOM_INDEX],UI_BOTTOM_IMAGE);
+  pngLoad(&texturesArray[CURSOR_POINTER_INDEX],CURSOR_POINTER_IMAGE);
+  pngLoad(&texturesArray[CURSOR_HAND_INDEX],CURSOR_HAND_IMAGE);
 
   vertexArrays[DESERT_TILE_INDEX] = *desertVertices;
   vertexArrays[GRASS_TILE_INDEX] = *grassVertices;
   vertexArrays[MOUNTAIN_TILE_INDEX] = *mountainVertices;
   vertexArrays[JUNGLE_TILE_INDEX] = *jungleVertices;
-  vertexArrays[WATER_TILE_INDEX] = *swampVertices;
+  vertexArrays[WATER_TILE_INDEX] = *waterVertices;
+  vertexArrays[ROAD_TILE_INDEX] = *roadVertices;
+  vertexArrays[CITY_TILE_INDEX] = *cityVertices;
 
   screenRatio = (GLfloat)screenWidth/(GLfloat)screenHeight;
   
@@ -532,9 +578,9 @@ static void mainLoop (){
 	mouseMapPosYPrevious = mouseMapPosY;
 	break;
       case SDL_MOUSEBUTTONDOWN:
-	if(event.button.button == SDL_BUTTON_WHEELUP && translateZ < (-10.0-minZoom)){
+	if(event.button.button == SDL_BUTTON_WHEELUP && translateZ < (-5.0-minZoom)){
 	  translateZ = translateZ + 1.2*deltaTicks;
-	}else if(event.button.button == SDL_BUTTON_WHEELDOWN && translateZ > (10.0-maxZoom)){
+	}else if(event.button.button == SDL_BUTTON_WHEELDOWN && translateZ > (5.0-maxZoom)){
 	  translateZ = translateZ - 1.2*deltaTicks;
 	}
 	if(translateZ < 10.0-maxZoom){
@@ -549,6 +595,10 @@ static void mainLoop (){
 	if(event.button.button == SDL_BUTTON_LEFT){
 	  leftButtonDown = 1;
 	  PyObject_CallMethod(mapEditor,"handleClick","i",selectedName);//New reference
+	  previousSelectedName = selectedName;
+	}
+	if(event.button.button == SDL_BUTTON_RIGHT){
+	  PyObject_CallMethod(mapEditor,"handleRightClick","i",selectedName);//New reference
 	}
 	break;
       case SDL_MOUSEBUTTONUP:
