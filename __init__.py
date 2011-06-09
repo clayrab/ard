@@ -12,7 +12,7 @@ def isInt(str):
 		return False
 
 cDefines = {}
-cFile =  open('main.c','r')#TODO: close this file
+cFile =  open('main.c','r')
 for line in cFile:
 	if(line.strip().startswith("#define")):
 		tokens = line.split()
@@ -22,7 +22,7 @@ for line in cFile:
 			cDefines[tokens[1]] = float(tokens[2])
 		else:
 			cDefines[tokens[1]] = tokens[2]
-
+cFile.close()
 class intNameGenerator:
 	def __init__(self):
 		self.nextName = -1
@@ -43,70 +43,70 @@ class uiElement:
 		self.hidden=hidden
 		self.cursorIndex=cursorIndex
 		self.text = text
-		theMapEditor.uiElements.append(self)
+		theGameMode.uiElements.append(self)
 
 class clickableElement(uiElement):
 	def __init__(self,xPos,yPos,width=1.0,height=1.0,textureIndex=-1,hidden=False,cursorIndex=-1,text=""):
 		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,cursorIndex=cDefines['CURSOR_HAND_INDEX'])
-		theMapEditor.clickableObjsDict[self.name] = self
+		theGameMode.clickableObjsDict[self.name] = self
 class saveButton(clickableElement):		
 	def onClick(self):
-		theMapEditor.map.save()
+		theGameMode.map.save()
 #TODO: MAKE SURE YOU CAN'T REMOVE THE LAST ROW OR COLUMN!!
 class addColumnButton(clickableElement):
 	def onClick(self):
-		for row in theMapEditor.map.nodes:
+		for row in theGameMode.map.nodes:
 			row.append(node(0,0,0))
 class removeColumnButton(clickableElement):
 	def onClick(self):
-		for row in theMapEditor.map.nodes:
+		for row in theGameMode.map.nodes:
 			row.pop()
 class addFirstColumnButton(clickableElement):
 	def onClick(self):
-		for count in range(0,len(theMapEditor.map.nodes)):
-			rowCopy = theMapEditor.map.nodes[count][:]
+		for count in range(0,len(theGameMode.map.nodes)):
+			rowCopy = theGameMode.map.nodes[count][:]
 			rowCopy.reverse()
 			rowCopy.append(node(0,0,0))
 			rowCopy.reverse()
-			theMapEditor.map.nodes[count] = rowCopy
+			theGameMode.map.nodes[count] = rowCopy
 class removeFirstColumnButton(clickableElement):
 	def onClick(self):
-		for count in range(0,len(theMapEditor.map.nodes)):
-			rowCopy = theMapEditor.map.nodes[count][:]
+		for count in range(0,len(theGameMode.map.nodes)):
+			rowCopy = theGameMode.map.nodes[count][:]
 			rowCopy.reverse()
 			rowCopy.pop()
 			rowCopy.reverse()
-			theMapEditor.map.nodes[count] = rowCopy
+			theGameMode.map.nodes[count] = rowCopy
 
 class addRowButton(clickableElement):
 	def onClick(self):
 		newRow = []
-		for count in range(0,len(theMapEditor.map.nodes[0])):
+		for count in range(0,len(theGameMode.map.nodes[0])):
 			newRow.append(node(0,0,0))
-		theMapEditor.map.nodes.append(newRow)
+		theGameMode.map.nodes.append(newRow)
 class removeRowButton(clickableElement):
 	def onClick(self):
-		theMapEditor.map.nodes.pop()
+		theGameMode.map.nodes.pop()
 class addFirstRowButton(clickableElement):
 	def onClick(self):
-		nodesCopy = theMapEditor.map.nodes[:]
+		nodesCopy = theGameMode.map.nodes[:]
 		newRow = []
-		for count in range(0,len(theMapEditor.map.nodes[0])):
+		for count in range(0,len(theGameMode.map.nodes[0])):
 			newRow.append(node(0,0,0))
 		nodesCopy.reverse()
 		nodesCopy.append(newRow)
 		nodesCopy.reverse()
-		theMapEditor.map.polarity = (~theMapEditor.map.polarity)&1
-		theMapEditor.map.nodes = nodesCopy
+		theGameMode.map.polarity = (~theGameMode.map.polarity)&1
+		theGameMode.map.nodes = nodesCopy
 
 class removeFirstRowButton(clickableElement):
 	def onClick(self):
-		nodesCopy = theMapEditor.map.nodes[:]
+		nodesCopy = theGameMode.map.nodes[:]
 		nodesCopy.reverse()
 		nodesCopy.pop()
 		nodesCopy.reverse()
-		theMapEditor.map.polarity = (~theMapEditor.map.polarity)&1
-		theMapEditor.map.nodes = nodesCopy
+		theGameMode.map.polarity = (~theGameMode.map.polarity)&1
+		theGameMode.map.nodes = nodesCopy
 
 
 class mapEditorTileSelectUIElement(uiElement):
@@ -114,17 +114,17 @@ class mapEditorTileSelectUIElement(uiElement):
 		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,cursorIndex=cDefines['CURSOR_HAND_INDEX'])
 		self.tileType = tileType
 		self.selected = False
-		theMapEditor.clickableObjsDict[self.name] = self
+		theGameMode.clickableObjsDict[self.name] = self
 	def onClick(self):
-		if(theMapEditor.selectedTile != None):
-			theMapEditor.selectedTile.selected = False
+		if(theGameMode.selectedTile != None):
+			theGameMode.selectedTile.selected = False
 		self.selected = True
-		theMapEditor.selectedTile = self
+		theGameMode.selectedTile = self
 
 class textInputUIElement(uiElement):
 	def __init__(self,xPos,yPos,width=1.0,height=1.0,text="",textSize=1.0,textureIndex=-1):
 		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text)
-		theMapEditor.clickableObjsDict[self.name] = self
+		theGameMode.clickableObjsDict[self.name] = self
 
 	def onClick(self):
 		print "onclick"
@@ -141,32 +141,31 @@ class node:
 		self.roadValue = roadValue
 		self.cityValue = cityValue
 		self.selected = False
-		theMapEditor.clickableObjsDict[self.name] = self
+		theGameMode.clickableObjsDict[self.name] = self
 
 	def getValue(self):
 		return self.tileValue
 	def onClick(self):
-		if(theMapEditor.selectedTile != None):
-			if(theMapEditor.selectedTile.tileType == cDefines['ROAD_TILE_INDEX']):
+		if(theGameMode.selectedTile != None):
+			if(theGameMode.selectedTile.tileType == cDefines['ROAD_TILE_INDEX']):
 				self.roadValue = (~self.roadValue)&1
-			elif(theMapEditor.selectedTile.tileType == cDefines['CITY_TILE_INDEX']):
+			elif(theGameMode.selectedTile.tileType == cDefines['CITY_TILE_INDEX']):
 				self.cityValue = (~self.cityValue)&1
 			else:
-				self.tileValue = theMapEditor.selectedTile.tileType
+				self.tileValue = theGameMode.selectedTile.tileType
 	def onRightClick(self):
-		if(theMapEditor.selectedNode != None):
-			theMapEditor.selectedNode.selected = False
+		if(theGameMode.selectedNode != None):
+			theGameMode.selectedNode.selected = False
 		self.selected = True
-		theMapEditor.selectedNode = self
+		theGameMode.selectedNode = self
 
 
 class map:
 	def __init__(self,mapEditor):
-#		self.mapFile = open('map1','rw')#TODO: close this file
 		self.polarity = 0
 		self.load(mapEditor)
 	def load(self,mapEditor):
-		mapFile = open('map1','r')#TODO: close this file
+		mapFile = open('map1','r')
 		self.nodes = []
 		count = 0
 		for line in mapFile:
@@ -187,7 +186,7 @@ class map:
 			count = count + 1
 		mapFile.close()
 	def save(self):
-		mapFile = open('map1','w')#TODO: close this file
+		mapFile = open('map1','w')
 		lines = []
 		lines.append(str(self.polarity) + "\n")
 		for row in self.nodes:
@@ -245,8 +244,11 @@ class mapEditor:
 			except:
 				return
 	def addUIElements(self):
-		uiElement(xPos=-1.0,yPos=1.0,width=2.0,height=(2.0*cDefines['UI_TOP_IMAGE_HEIGHT']/cDefines['UI_TOP_IMAGE_WIDTH']),textureIndex=cDefines['UI_TOP_INDEX'])
-
+		uiElement(xPos=-1.0,yPos=1.0,width=2.0,height=(2.0*cDefines['UI_TOP_IMAGE_HEIGHT']/cDefines['SCREEN_HEIGHT']),textureIndex=cDefines['UI_TOP_INDEX'])
+		uiElement(xPos=-1.0,yPos=1.0-(2.0*cDefines['UI_TOP_IMAGE_HEIGHT']/cDefines['SCREEN_HEIGHT']),width=(2.0*cDefines['UI_LEFT_IMAGE_WIDTH']/cDefines['SCREEN_WIDTH']),height=(2.0*cDefines['UI_LEFT_IMAGE_HEIGHT']/cDefines['UI_LEFT_IMAGE_WIDTH']),textureIndex=cDefines['UI_LEFT_INDEX'])
+		uiElement(xPos=1.0-(2.0*cDefines['UI_RIGHT_IMAGE_WIDTH']/cDefines['SCREEN_WIDTH']),yPos=1.0-(2.0*cDefines['UI_TOP_IMAGE_HEIGHT']/cDefines['SCREEN_HEIGHT']),width=(2.0*cDefines['UI_RIGHT_IMAGE_WIDTH']/cDefines['SCREEN_WIDTH']),height=(2.0*cDefines['UI_RIGHT_IMAGE_HEIGHT']/cDefines['UI_RIGHT_IMAGE_WIDTH']),textureIndex=cDefines['UI_RIGHT_INDEX'])
+#-
+		uiElement(xPos=-1.0,yPos=-1.0+(2.0*cDefines['UI_BOTTOM_IMAGE_HEIGHT']/cDefines['SCREEN_HEIGHT']),width=2.0,height=(2.0*cDefines['UI_BOTTOM_IMAGE_HEIGHT']/cDefines['SCREEN_HEIGHT']),textureIndex=cDefines['UI_BOTTOM_INDEX'])
 
 		mapEditorTileSelectUIElement(-0.93,0.92,tileType=cDefines['DESERT_TILE_INDEX'])
 		mapEditorTileSelectUIElement(-0.85,0.92,tileType=cDefines['GRASS_TILE_INDEX'])
@@ -259,19 +261,65 @@ class mapEditor:
 		addColumnButton(0.98,0.03,width=1.0,height=1.0,text="+",textureIndex=-1)
 		removeColumnButton(0.98,-0.03,width=1.0,height=1.0,text="-",textureIndex=-1)
 
-		addFirstColumnButton(-0.98,0.03,width=1.0,height=1.0,text="+",textureIndex=-1)
-		removeFirstColumnButton(-0.98,-0.03,width=1.0,height=1.0,text="-",textureIndex=-1)
+		addFirstColumnButton(-0.63,0.03,width=1.0,height=1.0,text="+",textureIndex=-1)
+		removeFirstColumnButton(-0.63,-0.03,width=1.0,height=1.0,text="-",textureIndex=-1)
 
-		addRowButton(-0.02,-0.98,width=1.0,height=1.0,text="+",textureIndex=-1)
-		removeRowButton(0.01,-0.98,width=1.0,height=1.0,text="-",textureIndex=-1)
+		addRowButton(0.18,-0.98,width=1.0,height=1.0,text="+",textureIndex=-1)
+		removeRowButton(0.21,-0.98,width=1.0,height=1.0,text="-",textureIndex=-1)
 
-		addFirstRowButton(-0.02,0.80,width=1.0,height=1.0,text="+",textureIndex=-1)
-		removeFirstRowButton(0.01,0.80,width=1.0,height=1.0,text="-",textureIndex=-1)
+		addFirstRowButton(0.18,0.77,width=1.0,height=1.0,text="+",textureIndex=-1)
+		removeFirstRowButton(0.21,0.77,width=1.0,height=1.0,text="-",textureIndex=-1)
 
 		textInputUIElement(0.8,0.885,text="input")
 		uiElement(0.8,0.925,width=1.0,height=1.0,text="asdf",textureIndex=-1)
 		saveButton(0.9,0.925,width=1.0,height=1.0,text="save",textureIndex=-1)
-		
-theMapEditor = mapEditor()
-theMapEditor.loadMap()
-theMapEditor.addUIElements()
+class newGameScreen:
+	def __init__(self):
+		self.clickableObjsDict = {}
+		self.elementWithFocus = None
+		self.uiElements = []
+		self.map = None
+	def getUIElementsIterator(self):
+		return self.uiElements.__iter__()
+	def handleRightClick(self,name):
+		rightClickable = False
+		if(self.clickableObjsDict.has_key(name)):
+			if(hasattr(self.clickableObjsDict[name],"onRightClick")):
+				rightClickable = True
+				self.clickableObjsDict[name].onRightClick()
+		if(not rightClickable):
+			self.selectedNode.selected = False
+			self.selectedNode = None
+	def handleClick(self,name):
+		if(self.clickableObjsDict.has_key(name)):
+			self.elementWithFocus = self.clickableObjsDict[name]
+			self.clickableObjsDict[name].onClick()
+		else:
+			self.elementWithFocus = None
+	def handleKeyDown(self,keycode):
+		try:
+			self.elementWithFocus.onKeyDown(keycode)
+		except:
+			try:
+				intKeycode = int(keycode)
+				for key,value in self.clickableObjsDict.iteritems():
+					if(hasattr(value,'tileType')):
+						if(value.tileType == intKeycode-1):
+							if(self.selectedTile != None):
+								self.selectedTile.selected = False
+							value.selected = True
+							self.selectedTile = value
+			except:
+				return
+	def addUIElements(self):
+		textInputUIElement(0.8,0.885,text="input")
+		uiElement(0.8,0.925,width=1.0,height=1.0,text="asdf",textureIndex=-1)
+		saveButton(0.9,0.925,width=1.0,height=1.0,text="save",textureIndex=-1)
+
+theGameMode = newGameScreen()
+theGameMode.addUIElements()
+
+
+#theGameMode = mapEditor()
+#theGameMode.loadMap()
+#theGameMode.addUIElements()

@@ -22,13 +22,59 @@
 #define maxZoom 120.0f
 #define minZoom 10.0f
 
-static int screenWidth = 1280;
-static int screenHeight = 800;
+#define SCREEN_WIDTH 1280
+#define SCREEN_HEIGHT 800
+
+#define TILES_IMAGE "tiles2.png"
+#define UI_IMAGE "UI.png"
+#define TILE_SELECT_BOX_IMAGE "tileSelect.png"
+#define TILE_SELECT_BOX_INDEX 0
+#define UI_TOP_IMAGE "UITop.png"
+#define UI_TOP_IMAGE_HEIGHT 80
+#define UI_TOP_IMAGE_WIDTH 1280
+#define UI_TOP_INDEX 1
+#define UI_BOTTOM_IMAGE "UIBottom.png"
+#define UI_BOTTOM_IMAGE_HEIGHT 10
+#define UI_BOTTOM_IMAGE_WIDTH 1280
+#define UI_BOTTOM_INDEX 2
+#define UI_LEFT_IMAGE "UILeft.png"
+#define UI_LEFT_IMAGE_HEIGHT 871
+#define UI_LEFT_IMAGE_WIDTH 229
+#define UI_LEFT_INDEX 3
+#define UI_RIGHT_IMAGE "UIRight.png"
+#define UI_RIGHT_IMAGE_HEIGHT 871
+#define UI_RIGHT_IMAGE_WIDTH 10
+#define UI_RIGHT_INDEX 4
+
+#define CURSOR_POINTER_IMAGE "cursors/pointer.png"
+#define CURSOR_POINTER_INDEX 5
+#define CURSOR_HAND_IMAGE "cursors/hand.png"
+#define CURSOR_HAND_INDEX 6
+
+#define DESERT_TILE_INDEX 0
+#define GRASS_TILE_INDEX 1
+#define MOUNTAIN_TILE_INDEX 2
+#define JUNGLE_TILE_INDEX 3
+#define WATER_TILE_INDEX 4
+#define ROAD_TILE_INDEX 5
+#define CITY_TILE_INDEX 6
+
+#define SIN60 0.8660
+#define COS60 0.5
+#define TILE_GRASS 1
+#define TILE_MOUNTAIN 2
+
 float screenRatio;
 static SDL_Surface *gScreen;
 
 int clickScroll = 0;
 int leftButtonDown = 0;
+
+int done = 0;    
+int moveUp = 0;
+int moveRight = 0;
+int previousTick = 0;
+int deltaTicks = 0;
 
 float translateX = -30.0f;
 float translateY = 30.0f;
@@ -36,7 +82,7 @@ float translateZ = -100.0f;
 float scrollSpeed = 0.04;
 
 PyObject * gameModule;
-PyObject * mapEditor;
+PyObject * gameMode;
 PyObject * theMap;
 PyObject * mapName;
 PyObject * nodes;
@@ -56,34 +102,6 @@ GLdouble mouseMapPosX, mouseMapPosY, mouseMapPosZ;
 GLdouble mouseMapPosXPrevious, mouseMapPosYPrevious;
 
 
-#define TILES_IMAGE "tiles2.png"
-#define UI_IMAGE "UI.png"
-#define TILE_SELECT_BOX_IMAGE "tileSelect.png"
-#define TILE_SELECT_BOX_INDEX 0
-#define UI_TOP_IMAGE "UITop.png"
-#define UI_TOP_IMAGE_HEIGHT 80.0
-#define UI_TOP_IMAGE_WIDTH 960.0
-#define UI_TOP_INDEX 1
-#define UI_BOTTOM_IMAGE "UIBottom.png"
-#define UI_BOTTOM_INDEX 2
-#define CURSOR_POINTER_IMAGE "cursors/pointer.png"
-#define CURSOR_POINTER_INDEX 3
-#define CURSOR_HAND_IMAGE "cursors/hand.png"
-#define CURSOR_HAND_INDEX 4
-
-#define DESERT_TILE_INDEX 0
-#define GRASS_TILE_INDEX 1
-#define MOUNTAIN_TILE_INDEX 2
-#define JUNGLE_TILE_INDEX 3
-#define WATER_TILE_INDEX 4
-#define ROAD_TILE_INDEX 5
-#define CITY_TILE_INDEX 6
-
-
-#define SIN60 0.8660
-#define COS60 0.5
-#define TILE_GRASS 1
-#define TILE_MOUNTAIN 2
 
 float desertVertices[6][2] = {
   {(699.0/1280),1.0-(66.0/1280)},
@@ -182,7 +200,7 @@ static void createSurface(int fullscreen){//DEPRECATED
   flags = SDL_OPENGL;
   if(fullscreen)
     flags |= SDL_FULLSCREEN;
-  gScreen = SDL_SetVideoMode (screenWidth, screenHeight, 0, flags);
+  gScreen = SDL_SetVideoMode (SCREEN_WIDTH, SCREEN_HEIGHT, 0, flags);
   if (gScreen == NULL) {
     fprintf (stderr, "Couldn't set OpenGL video mode: %s\n",
 	     SDL_GetError());
@@ -286,7 +304,7 @@ void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long 
     glColor3f(0.8f, 0.8f, 0.8f);
     if(leftButtonDown){
       if(previousSelectedName != selectedName){
-	PyObject_CallMethod(mapEditor,"handleClick","i",selectedName);
+	PyObject_CallMethod(gameMode,"handleClick","i",selectedName);
       }
       previousSelectedName = selectedName;
     }
@@ -386,7 +404,10 @@ void drawTiles(){
   Py_DECREF(polarity);
 }
 drawBoard(){
-  drawTiles();
+  //printf("drawBoard");
+  if(theMap != Py_None){
+    drawTiles();
+  }
   //print("test");
 }
 
@@ -423,7 +444,7 @@ void drawTileSelect(double xPos, double yPos, int name, long tileType, long sele
 void drawUI(){
   PyObject * uiElement;
   int theCursorIndex = -1;
-  UIElementsIterator = PyObject_GetIter(PyObject_CallMethod(mapEditor,"getUIElementsIterator",NULL));//New reference
+  UIElementsIterator = PyObject_GetIter(PyObject_CallMethod(gameMode,"getUIElementsIterator",NULL));//New reference
   while (uiElement = PyIter_Next(UIElementsIterator)) {
     //    PyObject * foo = PyObject_GetAttrString(uiElement,"xPosition");
     double xPosition = PyFloat_AsDouble(PyObject_GetAttrString(uiElement,"xPosition"));
@@ -434,7 +455,7 @@ void drawUI(){
     long textureIndex = PyLong_AsLong(PyObject_GetAttrString(uiElement,"textureIndex"));
     long cursorIndex = PyLong_AsLong(PyObject_GetAttrString(uiElement,"cursorIndex"));
     PyObject * onClick = PyObject_GetAttrString(uiElement,"onClick");
-    if(PyObject_HasAttrString(uiElement,"tileType")){//mapEditorTileSelectButton
+    if(PyObject_HasAttrString(uiElement,"tileType")){//gameModeTileSelectButton
       drawTileSelect(xPosition,yPosition,name,PyLong_AsLong(PyObject_GetAttrString(uiElement,"tileType")),PyLong_AsLong(PyObject_GetAttrString(uiElement,"selected")));
     }else{
       if(textureIndex > -1){
@@ -472,10 +493,10 @@ void drawUI(){
     glBindTexture(GL_TEXTURE_2D, texturesArray[CURSOR_POINTER_INDEX]);
   }
   glBegin(GL_QUADS);
-  float xPos = (mouseX/(screenWidth/2.0))-1.0;
-  float yPos = 1.0-(mouseY/(screenHeight/2.0));
-  float pointerWidth = 3.0*13.0/screenWidth;
-  float pointerHeight = 3.0*21.0/screenHeight;
+  float xPos = (mouseX/(SCREEN_WIDTH/2.0))-1.0;
+  float yPos = 1.0-(mouseY/(SCREEN_HEIGHT/2.0));
+  float pointerWidth = 3.0*13.0/SCREEN_WIDTH;
+  float pointerHeight = 3.0*21.0/SCREEN_HEIGHT;
   glTexCoord2f(0.0,1.0); glVertex3f(xPos,yPos,0.0);
   glTexCoord2f(1.0,1.0); glVertex3f(xPos+pointerWidth,yPos,0.0);
   glTexCoord2f(1.0,0.0); glVertex3f(xPos+pointerWidth,yPos-pointerHeight,0.0);
@@ -489,7 +510,7 @@ void drawUI(){
 static void initGL (){
   /** needs to be called on screen resize **/
   //unneeded with sdl?
-  glViewport(0, 0, screenWidth, screenHeight);//default values anyway, so not needed but w/e
+  //  glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);//default values anyway, so not needed but w/e
   glInitNames(); //init names stack	
   glClearColor(0.0, 0.0, 0.0, 0.0); //sets screen clear color
   glEnable(GL_TEXTURE_2D);
@@ -500,10 +521,11 @@ static void initGL (){
 
 
   pngLoad(&tilesTexture, TILES_IMAGE);	/******************** /image init ***********************/
-  pngLoad(&texturesArray[UI_TOP_INDEX],UI_TOP_IMAGE);
   pngLoad(&texturesArray[TILE_SELECT_BOX_INDEX],TILE_SELECT_BOX_IMAGE);
   pngLoad(&texturesArray[UI_TOP_INDEX],UI_TOP_IMAGE);
   pngLoad(&texturesArray[UI_BOTTOM_INDEX],UI_BOTTOM_IMAGE);
+  pngLoad(&texturesArray[UI_LEFT_INDEX],UI_LEFT_IMAGE);
+  pngLoad(&texturesArray[UI_RIGHT_INDEX],UI_RIGHT_IMAGE);
   pngLoad(&texturesArray[CURSOR_POINTER_INDEX],CURSOR_POINTER_IMAGE);
   pngLoad(&texturesArray[CURSOR_HAND_INDEX],CURSOR_HAND_IMAGE);
 
@@ -515,7 +537,7 @@ static void initGL (){
   vertexArrays[ROAD_TILE_INDEX] = *roadVertices;
   vertexArrays[CITY_TILE_INDEX] = *cityVertices;
 
-  screenRatio = (GLfloat)screenWidth/(GLfloat)screenHeight;
+  screenRatio = (GLfloat)SCREEN_WIDTH/(GLfloat)SCREEN_HEIGHT;
   
 }
 static void initPython(){
@@ -531,132 +553,124 @@ static void initPython(){
   PyObject * global_dict = PyModule_GetDict(main_module);//Borrowed reference
   //use this to create a new object: like "class()" in python //PyObject * instance = PyObject_CallObject(class,NULL);//New reference
 }
-static void initTextures(){
-
-}
-static void mainLoop (){
+static void handleInput(){
   SDL_Event event;
-  int done = 0;    
-  int moveUp = 0;
-  int moveRight = 0;
-  int previousTick = 0;
-  int deltaTicks = 0;
-  //GLdouble translateX, translateY;
-  while ( !done ) {
-    deltaTicks = SDL_GetTicks()-previousTick;
-    if(deltaTicks != 0){
-      //			printf("framerate: %d\n",1000/(SDL_GetTicks()-previousTick));
-    }
-    previousTick = SDL_GetTicks();
-    //SDL_Delay(20);//for framerate testing...
-    while(SDL_PollEvent(&event)){
-      switch(event.type){
-      case SDL_MOUSEMOTION:
-	mouseX = event.motion.x;
-	mouseY = event.motion.y;
-	//					printf("x: %d\t\ty: %d\n",mouseX,mouseY);
-	if(clickScroll > 0){
-	  translateX = translateX + mouseMapPosX - mouseMapPosXPrevious;
-	  translateY = translateY + mouseMapPosY - mouseMapPosYPrevious;
+  deltaTicks = SDL_GetTicks()-previousTick;
+  if(deltaTicks != 0){
+    //			printf("framerate: %d\n",1000/(SDL_GetTicks()-previousTick));
+  }
+  previousTick = SDL_GetTicks();
+  //SDL_Delay(20);//for framerate testing...
+  while(SDL_PollEvent(&event)){
+    switch(event.type){
+    case SDL_MOUSEMOTION:
+      mouseX = event.motion.x;
+      mouseY = event.motion.y;
+      //					printf("x: %d\t\ty: %d\n",mouseX,mouseY);
+      if(clickScroll > 0){
+	translateX = translateX + mouseMapPosX - mouseMapPosXPrevious;
+	translateY = translateY + mouseMapPosY - mouseMapPosYPrevious;
+      }else{
+	if(mouseX == 0){
+	  moveRight = -1;
+	}else if(mouseX >= SCREEN_WIDTH-1){
+	  moveRight = 1;
 	}else{
-	  if(mouseX == 0){
-	    moveRight = -1;
-	  }else if(mouseX >= screenWidth-1){
-	    moveRight = 1;
-	  }else{
-	    moveRight = 0;
-	  }
-	  if(mouseY == 0){
-	    moveUp = 1;
-	  }else if(mouseY >= screenHeight-1){
-	    moveUp = -1;
-	  }else{
-	    moveUp = 0;
-	  }
+	  moveRight = 0;
 	}
-	mouseMapPosXPrevious = mouseMapPosX;
-	mouseMapPosYPrevious = mouseMapPosY;
-	break;
-      case SDL_MOUSEBUTTONDOWN:
-	if(event.button.button == SDL_BUTTON_WHEELUP && translateZ < (-5.0-minZoom)){
-	  translateZ = translateZ + 1.2*deltaTicks;
-	}else if(event.button.button == SDL_BUTTON_WHEELDOWN && translateZ > (5.0-maxZoom)){
-	  translateZ = translateZ - 1.2*deltaTicks;
-	}
-	if(translateZ < 10.0-maxZoom){
-	  translateZ = 10.0-maxZoom;
-	}
-	if(translateZ > -10.0-minZoom){
-	  translateZ = -10.0-minZoom;
-	}
-	if(event.button.button == SDL_BUTTON_MIDDLE){
-	  clickScroll = 1;
-	}
-	if(event.button.button == SDL_BUTTON_LEFT){
-	  leftButtonDown = 1;
-	  PyObject_CallMethod(mapEditor,"handleClick","i",selectedName);//New reference
-	  previousSelectedName = selectedName;
-	}
-	if(event.button.button == SDL_BUTTON_RIGHT){
-	  PyObject_CallMethod(mapEditor,"handleRightClick","i",selectedName);//New reference
-	}
-	break;
-      case SDL_MOUSEBUTTONUP:
-	if(event.button.button == SDL_BUTTON_MIDDLE){
-	  clickScroll = 0;
-	}
-	if(event.button.button == SDL_BUTTON_LEFT){
-	  leftButtonDown = 0;
-	}
-	break;
-      case SDL_KEYDOWN:
-	if(event.key.keysym.sym == SDLK_ESCAPE){
-	  done = 1;
-	}else if(event.key.keysym.sym == SDLK_BACKQUOTE){
-	  clickScroll = 1;
-	}else if(
-		 (event.key.keysym.sym >= 0x61 && event.key.keysym.sym <= 0x7A)//a-z
-		 || (event.key.keysym.sym >= 0x30 && event.key.keysym.sym <= 0x39)//0-9
-		 || event.key.keysym.sym == 8//backspace
-		 || event.key.keysym.sym == 32//space
-		 || event.key.keysym.sym == 32//space
-		 || event.key.keysym.sym == 45//-
-		 ){
-	  if((event.key.keysym.mod & KMOD_CAPS | event.key.keysym.mod & KMOD_LSHIFT | event.key.keysym.mod & KMOD_RSHIFT) && (event.key.keysym.sym > 0x60 && event.key.keysym.sym <= 0x7A)){
-	    char * key = SDL_GetKeyName(event.key.keysym.sym);
-	    char capsKey[2];
-	    capsKey[0] = (*key)-32;
-	    capsKey[1] = 0;
-	    PyObject_CallMethod(mapEditor,"handleKeyDown","s",capsKey); 
-	  }else{
-	    PyObject_CallMethod(mapEditor,"handleKeyDown","s",SDL_GetKeyName(event.key.keysym.sym));
-	  }
+	if(mouseY == 0){
+	  moveUp = 1;
+	}else if(mouseY >= SCREEN_HEIGHT-1){
+	  moveUp = -1;
 	}else{
-	  	  printf("rejected: %d\n",event.key.keysym.sym);
+	  moveUp = 0;
 	}
-	break;
-      case SDL_KEYUP:
-	if(event.key.keysym.sym == SDLK_BACKQUOTE){
-	  clickScroll = 0;
-	}
-	break;
-      case SDL_QUIT:
-	done = 1;
-	break;
-      default:
-	break;
       }
+      mouseMapPosXPrevious = mouseMapPosX;
+      mouseMapPosYPrevious = mouseMapPosY;
+      break;
+    case SDL_MOUSEBUTTONDOWN:
+      if(event.button.button == SDL_BUTTON_WHEELUP && translateZ < (-5.0-minZoom)){
+	translateZ = translateZ + 1.2*deltaTicks;
+      }else if(event.button.button == SDL_BUTTON_WHEELDOWN && translateZ > (5.0-maxZoom)){
+	translateZ = translateZ - 1.2*deltaTicks;
+      }
+      if(translateZ < 10.0-maxZoom){
+	translateZ = 10.0-maxZoom;
+      }
+      if(translateZ > -10.0-minZoom){
+	translateZ = -10.0-minZoom;
+      }
+      if(event.button.button == SDL_BUTTON_MIDDLE){
+	clickScroll = 1;
+      }
+      if(event.button.button == SDL_BUTTON_LEFT){
+	leftButtonDown = 1;
+	PyObject_CallMethod(gameMode,"handleClick","i",selectedName);//New reference
+	previousSelectedName = selectedName;
+      }
+      if(event.button.button == SDL_BUTTON_RIGHT){
+	PyObject_CallMethod(gameMode,"handleRightClick","i",selectedName);//New reference
+      }
+      break;
+    case SDL_MOUSEBUTTONUP:
+      if(event.button.button == SDL_BUTTON_MIDDLE){
+	clickScroll = 0;
+      }
+      if(event.button.button == SDL_BUTTON_LEFT){
+	leftButtonDown = 0;
+      }
+      break;
+    case SDL_KEYDOWN:
+      if(event.key.keysym.sym == SDLK_ESCAPE){
+	done = 1;
+      }else if(event.key.keysym.sym == SDLK_BACKQUOTE){
+	clickScroll = 1;
+      }else if(
+	       (event.key.keysym.sym >= 0x61 && event.key.keysym.sym <= 0x7A)//a-z
+	       || (event.key.keysym.sym >= 0x30 && event.key.keysym.sym <= 0x39)//0-9
+	       || event.key.keysym.sym == 8//backspace
+	       || event.key.keysym.sym == 32//space
+	       || event.key.keysym.sym == 32//space
+	       || event.key.keysym.sym == 45//-
+	       ){
+	if((event.key.keysym.mod & KMOD_CAPS | event.key.keysym.mod & KMOD_LSHIFT | event.key.keysym.mod & KMOD_RSHIFT) && (event.key.keysym.sym > 0x60 && event.key.keysym.sym <= 0x7A)){
+	  char * key = SDL_GetKeyName(event.key.keysym.sym);
+	  char capsKey[2];
+	  capsKey[0] = (*key)-32;
+	  capsKey[1] = 0;
+	  PyObject_CallMethod(gameMode,"handleKeyDown","s",capsKey); 
+	}else{
+	  PyObject_CallMethod(gameMode,"handleKeyDown","s",SDL_GetKeyName(event.key.keysym.sym));
+	}
+      }else{
+	printf("rejected: %d\n",event.key.keysym.sym);
+      }
+      break;
+    case SDL_KEYUP:
+      if(event.key.keysym.sym == SDLK_BACKQUOTE){
+	clickScroll = 0;
+      }
+      break;
+    case SDL_QUIT:
+      done = 1;
+      break;
+    default:
+      break;
     }
-    if(moveRight > 0){// && translateX > -10.0){
-      translateX -= scrollSpeed*deltaTicks;
-    }else if(moveRight < 0){// && translateX < 10.0){
-      translateX += scrollSpeed*deltaTicks;
-    }
-    if(moveUp > 0){// && translateY > -10.0){
-      translateY -= scrollSpeed*deltaTicks;
-    }else if(moveUp < 0){// && translateY < 10.0){
-      translateY += scrollSpeed*deltaTicks;
-    }
+  }
+  if(moveRight > 0){// && translateX > -10.0){
+    translateX -= scrollSpeed*deltaTicks;
+  }else if(moveRight < 0){// && translateX < 10.0){
+    translateX += scrollSpeed*deltaTicks;
+  }
+  if(moveUp > 0){// && translateY > -10.0){
+    translateY -= scrollSpeed*deltaTicks;
+  }else if(moveUp < 0){// && translateY < 10.0){
+    translateY += scrollSpeed*deltaTicks;
+  }
+}
+static void draw(){
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		
     //game board projection time
@@ -679,20 +693,21 @@ static void mainLoop (){
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
     glLoadIdentity();
+    //glViewport(0.0,0.0,SCREEN_WIDTH, SCREEN_HEIGHT);
+    glViewport(UI_LEFT_IMAGE_WIDTH,UI_BOTTOM_IMAGE_HEIGHT,SCREEN_WIDTH - UI_LEFT_IMAGE_WIDTH - UI_RIGHT_IMAGE_WIDTH, SCREEN_HEIGHT - UI_TOP_IMAGE_HEIGHT - UI_BOTTOM_IMAGE_HEIGHT);
     glGetIntegerv(GL_VIEWPORT,viewport);
-    gluPickMatrix(mouseX,viewport[3]-mouseY,5,5,viewport);
-    gluPerspective(45,screenRatio,0.1,1000);
+    gluPickMatrix(mouseX,viewport[3]+UI_TOP_IMAGE_HEIGHT+UI_BOTTOM_IMAGE_HEIGHT-mouseY,5,5,viewport);
+    gluPerspective(45.0f,screenRatio,minZoom,maxZoom);
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
     //glInitNames();
-
-    //I don't understand why but drawing the UI first here caused it to be picked in higher priority to the board...
-
     drawBoard();
 
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
     glLoadIdentity();
+    glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+    glGetIntegerv(GL_VIEWPORT,viewport);
     gluPickMatrix(mouseX,viewport[3]-mouseY,5,5,viewport);
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
@@ -703,26 +718,28 @@ static void mainLoop (){
     glMatrixMode(GL_MODELVIEW);
     glPopMatrix();
 
-
     //stopPicking();
     int hits;
     //restoring the original projection matrix
     glMatrixMode(GL_PROJECTION);
     glPopMatrix();
+    //    glViewport(UI_LEFT_IMAGE_WIDTH,UI_BOTTOM_IMAGE_HEIGHT,SCREEN_WIDTH - UI_LEFT_IMAGE_WIDTH - UI_RIGHT_IMAGE_WIDTH, SCREEN_HEIGHT - 90);
+    glViewport(UI_LEFT_IMAGE_WIDTH,UI_BOTTOM_IMAGE_HEIGHT,SCREEN_WIDTH - UI_LEFT_IMAGE_WIDTH - UI_RIGHT_IMAGE_WIDTH, SCREEN_HEIGHT - UI_TOP_IMAGE_HEIGHT - UI_BOTTOM_IMAGE_HEIGHT);
+
     glMatrixMode(GL_MODELVIEW);
     glPopMatrix();
-    glFlush();//"all programs should call glFlush whenever they count on having all of their previously issued commands completed"
+    glFlush();
     //returning to normal rendering mode
     hits = glRenderMode(GL_RENDER);
     //if (hits != 0){
     processTheHits(hits,selectBuf);
     //}
-  
     drawBoard();
     
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
     glLoadIdentity();
+    glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
     glLoadIdentity();
@@ -734,6 +751,13 @@ static void mainLoop (){
 
     glFlush();//"all programs should call glFlush whenever they count on having all of their previously issued commands completed"
     SDL_GL_SwapBuffers ();	
+  
+}
+static void mainLoop (){
+  //GLdouble translateX, translateY;
+  while ( !done ) {
+    handleInput();
+    draw();
   }
 }
 int nextPowerOf2(unsigned int v){
@@ -760,34 +784,28 @@ int main(int argc, char **argv){
   SDL_GL_SetAttribute (SDL_GL_DOUBLEBUFFER, 1);
   Uint32 flags = SDL_OPENGL;
   //flags |= SDL_FULLSCREEN;
-  gScreen = SDL_SetVideoMode (screenWidth, screenHeight, 0, flags);
+  gScreen = SDL_SetVideoMode (SCREEN_WIDTH, SCREEN_HEIGHT, 0, flags);
   if (gScreen == NULL) {
     fprintf (stderr, "Could not set OpenGL video mode: %s\n",
 	     SDL_GetError());
     SDL_Quit();
     exit(2);
   }
+  SDL_ShowCursor(0);
   initGL();
   initPython();
-  //  SDL_EnableUNICODE(1);
-
-
-  gameModule = PyImport_ImportModule("__init__");//New reference
-
-  mapEditor = PyObject_GetAttrString(gameModule, "theMapEditor");
-  theMap = PyObject_GetAttrString(mapEditor, "map");//New reference
-  nodes = PyObject_CallMethod(theMap,"getNodes",NULL);//New reference
-  //mapIterator = PyObject_CallMethod(theMap,"getIterator",NULL);//New reference
-  //char * theMapName = PyString_AsString(mapName);
-  //printf("map name: %s\n",theMapName);
-  //Py_DECREF(theMapName);
-
   initFonts();
-  SDL_ShowCursor(0);
+  //SDL_EnableUNICODE(1);
+  gameModule = PyImport_ImportModule("__init__");//New reference
+  gameMode = PyObject_GetAttrString(gameModule, "theGameMode");
+  theMap = PyObject_GetAttrString(gameMode, "map");//New reference
+  if(theMap != Py_None){
+    nodes = PyObject_CallMethod(theMap,"getNodes",NULL);//New reference
+  }
   mainLoop();
-
-  //Py_DECREF(mapIterator); 
-  Py_DECREF(nodes);
+  if(theMap != Py_None){
+    Py_DECREF(nodes);
+  }
   Py_DECREF(theMap);
   Py_DECREF(gameModule);
   Py_Finalize();
