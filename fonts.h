@@ -14,8 +14,8 @@ int TextureWidth;
 int TextureHeight;
 int BitmapWidth;
 int BitmapHeight;
-GLuint temp;
-//GLuint fontTexture;
+GLuint list_base;
+//gluin fontTexture;
 
 struct _font{
   char fontName[50];
@@ -123,13 +123,11 @@ void make_dlist ( FT_Face face, char charIndex, GLuint list_base, GLuint * tex_b
 
 
 static void initFonts(){
-  printf("initFonts\n");
   //loadFont(ARIAL,16);
-
   FT_Library library;
   FT_Face face; 
   int error = FT_Init_FreeType( &library );
-  if(FT_New_Face( library,"./Arial.ttf",0,&face)){
+  if(FT_New_Face(library,"./Arial.ttf",0,&face)){
     printf("FT_New_Face error");
     exit(1);
   }
@@ -139,8 +137,7 @@ static void initFonts(){
   }
 
   GLuint textures[128];
-  GLuint list_base=glGenLists(128);
-  temp = list_base;
+  list_base=glGenLists(128);
   glGenTextures( 128, textures );
 
   // This Is Where We Actually Create Each Of The Fonts Display Lists.
@@ -152,16 +149,16 @@ static void initFonts(){
   FT_Done_Face(face);
   FT_Done_FreeType(library);
 }
-void print(char* str){
+void drawText(char* str){
   glPushAttrib(GL_LIST_BIT | GL_CURRENT_BIT  | GL_ENABLE_BIT | GL_TRANSFORM_BIT); 
-  glMatrixMode(GL_MODELVIEW);
+  //glMatrixMode(GL_MODELVIEW);
   glDisable(GL_LIGHTING);
   glEnable(GL_TEXTURE_2D);
   glDisable(GL_DEPTH_TEST);
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);      
-
-  glListBase(temp);
+  
+  glListBase(list_base);
 
   float modelview_matrix[16];     
   glGetFloatv(GL_MODELVIEW_MATRIX, modelview_matrix);
