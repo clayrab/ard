@@ -1,3 +1,5 @@
+zoomSpeed = 0.3
+
 def isFloat(str):
 	try:
 		float(str)
@@ -51,11 +53,12 @@ class uiElement:
 		else:
 			self.mouseOverColor = color
 		theGameMode.uiElements.append(self)
+		theGameMode.elementsDict[self.name] = self
 
 class clickableElement(uiElement):
 	def __init__(self,xPos,yPos,width=1.0,height=1.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None):
 		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines['CURSOR_HAND_INDEX'],color=color,mouseOverColor=mouseOverColor)
-		theGameMode.clickableObjsDict[self.name] = self
+
 
 class newGameScreenButton(clickableElement):
 	index = 0
@@ -66,7 +69,6 @@ class newGameScreenButton(clickableElement):
 	normalTextColor = "33 33 33"
 	def __init__(self,xPos,yPos,gameMode,width=1.0,height=1.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",selected=False):
 		clickableElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=newGameScreenButton.normalTextColor,cursorIndex=cDefines['CURSOR_HAND_INDEX'],mouseOverColor="66 66 66")
-		theGameMode.clickableObjsDict[self.name] = self
 		self.gameMode = gameMode
 		self.selected = selected
 		self.index = newGameScreenButton.index
@@ -143,7 +145,6 @@ class removeFirstRowButton(clickableElement):
 class textInputUIElement(uiElement):
 	def __init__(self,xPos,yPos,width=1.0,height=1.0,text="",textSize=0.001,textureIndex=-1):
 		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textSize=textSize)
-		theGameMode.clickableObjsDict[self.name] = self
 	def onKeyDown(self,keycode):
 		if(keycode == "backspace"):
 			self.text = self.text.rstrip(self.text[len(self.text)-1])
@@ -155,22 +156,104 @@ class mapEditorTileSelectUIElement(uiElement):
 		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,cursorIndex=cDefines['CURSOR_HAND_INDEX'])
 		self.tileType = tileType
 		self.selected = False
-		theGameMode.clickableObjsDict[self.name] = self
 		self.playerNumber = playerNumber
+
+
+		self.toolTipElement = uiElement(self.xPosition+0.00,self.yPosition+0.04,width=1.0,height=1.0,text="asdf",textSize=0.0005,hidden=True)
 	def onClick(self):
 		if(theGameMode.selectedButton != None):
 			theGameMode.selectedButton.selected = False
 			theGameMode.selectedButton.color = "FF FF FF"
 		self.selected = True
 		theGameMode.selectedButton = self
+	def onMouseOver(self):
+		self.toolTipElement.hidden = False
+	def onMouseOut(self):
+		self.toolTipElement.hidden = True
 
+
+class scrollableTextElements(uiElement):
+	def __init__(self,xPos,yPos,width=1.0,height=1.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,yPositionOffset=-0.1,yOffset=-0.04,numFields=24,scrollSpeed=2):
+		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines['CURSOR_HAND_INDEX'],color=color,mouseOverColor=mouseOverColor)
+
+		self.yPositionOffset = yPositionOffset
+		self.yOffset = yOffset
+		self.numFields = numFields
+		self.scrollSpeed = scrollSpeed
+		self.scrollPosition = 0
+
+		self.textFields = []
+		self.textFieldElements = []
+		self.textFields.append("adsfaaaa1")
+		self.textFields.append("aaaa2")
+		self.textFields.append("adddd3")
+		self.textFields.append("adsfbfdb4")
+		self.textFields.append("aaaafdd")
+		self.textFields.append("addddafdsfd")
+		self.textFields.append("adasdaghsf")
+		self.textFields.append("adfdfdbaaa")
+		self.textFields.append("adda355a53dd")
+		self.textFields.append("adsf")
+		self.textFields.append("aaaa")
+		self.textFields.append("adddd")
+		self.textFields.append("adsfbfdb")
+		self.textFields.append("aaaafdd")
+		self.textFields.append("addddafdsfd")
+		self.textFields.append("adasdaghsf")
+		self.textFields.append("adfdfdbaaa")
+		self.textFields.append("adda355a53dd")
+		self.textFields.append("addddafdsfd")
+		self.textFields.append("adasdaghsf")
+		self.textFields.append("adfdfdbaaa")
+		self.textFields.append("adda355a53dd")
+		self.textFields.append("addddafdsfd")
+		self.textFields.append("adasdaghsf")
+		self.textFields.append("adfdfdbaaa")
+		self.textFields.append("adda355a53dd")
+		self.textFields.append("ldfdddfdfdf")
+		self.textFields.append("adda355a53dd")
+		self.textFields.append("addddafdsfd")
+		self.textFields.append("adasdaghsf")
+		self.textFields.append("adfdfdbaaa")
+		self.textFields.append("adda355a53dd")
+		self.textFields.append("addddafdsfd")
+		self.textFields.append("adasdaghsf")
+		self.textFields.append("adfdfdbaaa")
+		self.textFields.append("adda355a53dd")
+		self.textFields.append("last field")
+		for field in self.textFields:
+			textFieldElem = uiElement(self.xPosition,0.0,width=0.2,height=0.1,text=field,textureIndex=-1,textSize=self.textSize,hidden=True)
+			textFieldElem.onScrollUp = self.onScrollUp
+			textFieldElem.onScrollDown = self.onScrollDown
+			self.textFieldElements.append(textFieldElem)
+		self.hideAndShowTextFields()
+	def hideAndShowTextFields(self):
+		count = 0
+		yPosOffset = self.yPositionOffset
+		for textFieldElement in self.textFieldElements:
+			count = count + 1
+			textFieldElement.yPosition = self.yPosition+yPosOffset
+			if(count < self.numFields + self.scrollPosition and count > self.scrollPosition):
+				textFieldElement.hidden = False
+				yPosOffset = yPosOffset + self.yOffset
+			else:
+				textFieldElement.hidden = True
+	def onScrollUp(self):
+		self.scrollPosition = self.scrollPosition - self.scrollSpeed
+		if(self.scrollPosition < 0):
+			self.scrollPosition = 0
+		self.hideAndShowTextFields()
+	def onScrollDown(self):
+		self.scrollPosition =self.scrollPosition + self.scrollSpeed
+		if(self.scrollPosition > len(self.textFieldElements) - self.numFields + 1):
+			self.scrollPosition = len(self.textFieldElements) - self.numFields + 1
+		self.hideAndShowTextFields()
 class playerStartLocationButton(clickableElement):
 	playerStartLocationButtons = []
 	def __init__(self,xPos,yPos,playerNumber,width=1.0,height=1.0,text="",textSize=0.001,textureIndex=-1,color="FF FF FF"):
 		clickableElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textSize=textSize,color=color)
 		self.playerNumber = playerNumber
 		self.selected = False
-		theGameMode.clickableObjsDict[self.name] = self
 		playerStartLocationButton.playerStartLocationButtons.append(self)
 	def onClick(self):
 #		if(self.playerNumber <= theGameMode.map.numPlayers + 1):
@@ -189,7 +272,7 @@ class node:
 		self.cityValue = cityValue
 		self.playerStartValue = playerStartValue
 		self.selected = False
-		theGameMode.clickableObjsDict[self.name] = self
+		theGameMode.elementsDict[self.name] = self
 
 	def getValue(self):
 		return self.tileValue
@@ -232,6 +315,7 @@ class map:
 	def __init__(self,mapEditorMode):
 		self.polarity = 0
 		self.load(mapEditorMode)
+		self.translateZ = cDefines['translateZ']
 	def load(self,mapEditorMode):
 		mapFile = open('map1','r')
 		self.nodes = []
@@ -273,55 +357,61 @@ class map:
 		return self.nodes.__iter__()
 	def setNumPlayers(self,numPlayers):
 		print numPlayers
-	#	done = False
-#		for count in range(0,len(theGameMode.uiElements)):
-#			uiElem = theGameMode.uiElements[count]
-#			if(hasattr(uiElem,"playerNumber")):
-#				if(uiElem.playerNumber > numPlayers):
-#					del theGameMode.uiElements[count+1]
-#					del theGameMode.uiElements[count]
-##					theGameMode.uiElements = theGameMode.uiElements[:count:]
-#					done = True
-#		if(not done):
-			
-#			mapEditorTileSelectUIElement(-0.37 + (0.08*(numPlayers-1)),0.92,tileType=cDefines['PLAYER_START_TILE_INDEX'],playerNumber=numPlayers)
-#			uiElement(-0.39 + (0.08*(numPlayers-1)),0.90,text=str(numPlayers),textSize=0.0005)
-
 		self.numPlayers = numPlayers
 
 class mapEditorMode:
 	def __init__(self):
-		self.clickableObjsDict = {}
+		self.elementsDict = {}
 		self.elementWithFocus = None
 		self.selectedButton = None
 		self.uiElements = []
 		self.selectedNode = None
+		self.mousedOverObject = None
 	def loadMap(self):
 		self.map = map(self)
 	def getUIElementsIterator(self):
 		return self.uiElements.__iter__()
 	def handleRightClick(self,name):
 		rightClickable = False
-		if(self.clickableObjsDict.has_key(name)):
-			if(hasattr(self.clickableObjsDict[name],"onRightClick")):
+		if(self.elementsDict.has_key(name)):
+			if(hasattr(self.elementsDict[name],"onRightClick")):
 				rightClickable = True
-				self.clickableObjsDict[name].onRightClick()
+				self.elementsDict[name].onRightClick()
 		if(not rightClickable):
 			self.selectedNode.selected = False
 			self.selectedNode = None
 	def handleClick(self,name):
-		if(self.clickableObjsDict.has_key(name)):
-			self.elementWithFocus = self.clickableObjsDict[name]
-			self.clickableObjsDict[name].onClick()
+		if(self.elementsDict.has_key(name)):
+			self.elementWithFocus = self.elementsDict[name]
+			self.elementsDict[name].onClick()
 		else:
 			self.elementWithFocus = None
+	def handleMouseOver(self,name):
+		if(self.mousedOverObject != None):
+			if(self.mousedOverObject.name != name):
+				if(hasattr(self.mousedOverObject,"onMouseOut")):
+					self.mousedOverObject.onMouseOut()
+				self.mousedOverObject = None
+			
+
+		if(self.elementsDict.has_key(name)):
+			if(self.mousedOverObject != None):
+				if(self.mouseOverObject.name != name):
+					self.mousedOverObject = self.elementsDict[name]
+					if(hasattr(self.elementsDict[name],"onMouseOver")):
+						self.elementsDict[name].onMouseOver()
+			else:
+				self.mousedOverObject = self.elementsDict[name]
+				if(hasattr(self.elementsDict[name],"onMouseOver")):
+					self.elementsDict[name].onMouseOver()
+
 	def handleKeyDown(self,keycode):
 		try:
 			self.elementWithFocus.onKeyDown(keycode)
 		except:
 			try:
 				intKeycode = int(keycode)
-				for key,value in self.clickableObjsDict.iteritems():
+				for key,value in self.elementsDict.iteritems():
 					if(hasattr(value,'tileType')):
 						if(value.tileType == intKeycode-1):
 							if(self.selectedButton != None):
@@ -330,6 +420,24 @@ class mapEditorMode:
 							self.selectedButton = value
 			except:
 				return
+	def handleScrollUp(self,name,deltaTicks):
+		if(self.elementsDict[name] in self.uiElements):
+			if(hasattr(self.elementsDict[name],"onScrollUp")):
+				self.elementsDict[name].onScrollUp()
+		else:
+			self.map.translateZ = self.map.translateZ + zoomSpeed*deltaTicks;
+			if(self.map.translateZ > (-10.0-cDefines['minZoom'])):
+				self.map.translateZ = -10.0-cDefines['minZoom']
+
+	def handleScrollDown(self,name,deltaTicks):
+		if(self.elementsDict[name] in self.uiElements):
+			if(hasattr(self.elementsDict[name],"onScrollDown")):
+				self.elementsDict[name].onScrollDown()
+		else:
+			self.map.translateZ = self.map.translateZ - zoomSpeed*deltaTicks;
+			if(self.map.translateZ < (10.0-cDefines['maxZoom'])):
+				self.map.translateZ = 10.0-cDefines['maxZoom']
+
 	def addUIElements(self):
 		uiElement(xPos=-1.0,yPos=1.0,width=2.0,height=(2.0*cDefines['UI_MAP_EDITOR_TOP_IMAGE_HEIGHT']/cDefines['SCREEN_HEIGHT']),textureIndex=cDefines['UI_MAP_EDITOR_TOP_INDEX'])
 		uiElement(xPos=-1.0,yPos=1.0-(2.0*cDefines['UI_MAP_EDITOR_TOP_IMAGE_HEIGHT']/cDefines['SCREEN_HEIGHT']),width=(2.0*cDefines['UI_MAP_EDITOR_LEFT_IMAGE_WIDTH']/cDefines['SCREEN_WIDTH']),height=(2.0*cDefines['UI_MAP_EDITOR_LEFT_IMAGE_HEIGHT']/cDefines['UI_MAP_EDITOR_LEFT_IMAGE_WIDTH']),textureIndex=cDefines['UI_MAP_EDITOR_LEFT_INDEX'])
@@ -365,23 +473,26 @@ class mapEditorMode:
 		removeFirstRowButton(0.21,0.77,width=1.0,height=1.0,text="-",textureIndex=-1)
 
 #		textInputUIElement(0.8,0.885,text="input",textSize=0.0005)
+
+		scrollableTextElements(0.7,0.925,text="asdf",textSize=0.0005,textureIndex=cDefines['UI_SCROLLABLE_INDEX'],width=(2.0*cDefines['UI_SCROLLABLE_IMAGE_WIDTH']/cDefines['SCREEN_WIDTH']),height=(2.0*cDefines['UI_SCROLLABLE_IMAGE_HEIGHT']/cDefines['SCREEN_HEIGHT']))
+
 		uiElement(0.8,0.925,width=1.0,height=1.0,text="asdf",textSize=0.0005)
-		saveButton(0.9,0.925,width=1.0,height=1.0,text="save",textSize=0.0005)
+		Savebutton(0.9,0.925,width=1.0,height=1.0,text="save",textSize=0.0005)
 
 class newGameScreenMode:
 	def __init__(self):
-		self.clickableObjsDict = {}
+		self.elementsDict = {}
 		self.elementWithFocus = None
 		self.uiElements = []
 		self.map = None
 	def getUIElementsIterator(self):
 		return self.uiElements.__iter__()
 	def handleClick(self,name):
-		if(self.clickableObjsDict.has_key(name)):
-			self.elementWithFocus = self.clickableObjsDict[name]
-			self.clickableObjsDict[name].onClick()
-		else:
-			self.elementWithFocus = None
+		if(self.elementsDict.has_key(name)):
+			self.elementWithFocus = self.elementsDict[name]
+			self.elementsDict[name].onClick()
+#		else:
+#			self.elementWithFocus = None
 	def handleKeyDown(self,keycode):
 		if(keycode == "up"):
 			if(newGameScreenButton.selectedIndex == 0):
@@ -416,7 +527,7 @@ class newGameScreenMode:
 
 class gameMode:
 	def __init__(self):
-		self.clickableObjsDict = {}
+		self.elementsDict = {}
 		self.elementWithFocus = None
 		self.selectedButton = None
 		self.uiElements = []
@@ -435,19 +546,18 @@ class gameMode:
 		return self.uiElements.__iter__()
 	def handleRightClick(self,name):
 		rightClickable = False
-		if(self.clickableObjsDict.has_key(name)):
-			if(hasattr(self.clickableObjsDict[name],"onRightClick")):
+		if(self.elementsDict.has_key(name)):
+			if(hasattr(self.elementsDict[name],"onRightClick")):
 				rightClickable = True
-				self.clickableObjsDict[name].onRightClick()
+				self.elementsDict[name].onRightClick()
 		if(not rightClickable):
 			self.selectedNode.selected = False
 			self.selectedNode = None
 	def handleClick(self,name):
-		if(self.clickableObjsDict.has_key(name)):
-			self.elementWithFocus = self.clickableObjsDict[name]
-			self.clickableObjsDict[name].onClick()
-		else:
-			self.elementWithFocus = None
+		if(self.elementsDict.has_key(name)):
+			self.elementWithFocus = self.elementsDict[name]
+			if(hasattr(self.elementsDict[name],"onClick")):
+				self.elementsDict[name].onClick()
 	def handleKeyDown(self,keycode):
 		try:
 			self.elementWithFocus.onKeyDown(keycode)

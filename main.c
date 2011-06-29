@@ -18,50 +18,58 @@
 #include "libpngGL.h"
 #include "fonts.h"
 
-#define maxZoom 120.0f
-#define minZoom 10.0f
+#define maxZoom 120.0
+#define minZoom 10.0
+#define zoomSpeed 0.3
 
 #define SCREEN_WIDTH 1280
 #define SCREEN_HEIGHT 800
 
-#define TILES_IMAGE "tiles2.png"
-#define UI_IMAGE "UI.png"
-#define TILE_SELECT_BOX_IMAGE "tileSelect.png"
+#define TILES_IMAGE "assets/tiles2.png"
+#define UI_IMAGE "assets/UI.png"
+#define TILE_SELECT_BOX_IMAGE "assets/tileSelect.png"
 #define TILE_SELECT_BOX_INDEX 0
-#define UI_MAP_EDITOR_TOP_IMAGE "UITop.png"
+#define UI_MAP_EDITOR_TOP_IMAGE "assets/UITop.png"
 #define UI_MAP_EDITOR_TOP_IMAGE_HEIGHT 80
 #define UI_MAP_EDITOR_TOP_IMAGE_WIDTH 1280
 #define UI_MAP_EDITOR_TOP_INDEX 1
-#define UI_MAP_EDITOR_BOTTOM_IMAGE "UIBottom.png"
+#define UI_MAP_EDITOR_BOTTOM_IMAGE "assets/UIBottom.png"
 #define UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT 10
 #define UI_MAP_EDITOR_BOTTOM_IMAGE_WIDTH 1280
 #define UI_MAP_EDITOR_BOTTOM_INDEX 2
-#define UI_MAP_EDITOR_LEFT_IMAGE "UILeft.png"
+#define UI_MAP_EDITOR_LEFT_IMAGE "assets/UILeft.png"
 #define UI_MAP_EDITOR_LEFT_IMAGE_HEIGHT 871
 #define UI_MAP_EDITOR_LEFT_IMAGE_WIDTH 229
 #define UI_MAP_EDITOR_LEFT_INDEX 3
-#define UI_MAP_EDITOR_RIGHT_IMAGE "UIRight.png"
+#define UI_MAP_EDITOR_RIGHT_IMAGE "assets/UIRight.png"
 #define UI_MAP_EDITOR_RIGHT_IMAGE_HEIGHT 871
 #define UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH 10
 #define UI_MAP_EDITOR_RIGHT_INDEX 4
-#define UI_NEW_GAME_SCREEN_IMAGE "newGameScreen.png"
+#define UI_NEW_GAME_SCREEN_IMAGE "assets/newGameScreen.png"
 #define UI_NEW_GAME_SCREEN_IMAGE_HEIGHT 960
 #define UI_NEW_GAME_SCREEN_IMAGE_WIDTH 1280
 #define UI_NEW_GAME_SCREEN_INDEX 5
 
-#define CURSOR_POINTER_IMAGE "cursors/pointer.png"
+
+#define CURSOR_POINTER_IMAGE "assets/cursors/pointer.png"
 #define CURSOR_POINTER_INDEX 6
-#define CURSOR_HAND_IMAGE "cursors/hand.png"
+#define CURSOR_HAND_IMAGE "assets/cursors/hand.png"
 #define CURSOR_HAND_INDEX 7
 
-#define PLAYER_START_BUTTON_IMAGE "playerStartButton.png"
+#define PLAYER_START_BUTTON_IMAGE "assets/playerStartButton.png"
 #define PLAYER_START_BUTTON_INDEX 8
 #define PLAYER_START_BUTTON_WIDTH 13
 #define PLAYER_START_BUTTON_HEIGHT 14
-#define PLAYER_START_IMAGE "playerStart.png"
+#define PLAYER_START_IMAGE "assets/playerStart.png"
 #define PLAYER_START_INDEX 9
 #define PLAYER_START_WIDTH 13
 #define PLAYER_START_HEIGHT 14
+
+#define UI_SCROLLABLE_IMAGE "assets/scrollableElement.png"
+#define UI_SCROLLABLE_IMAGE_HEIGHT 404
+#define UI_SCROLLABLE_IMAGE_WIDTH 210
+#define UI_SCROLLABLE_INDEX 10
+
 
 
 #define DESERT_TILE_INDEX 0
@@ -91,9 +99,9 @@ int moveRight = 0;
 int previousTick = 0;
 int deltaTicks = 0;
 
-float translateX = -30.0f;
-float translateY = 30.0f;
-float translateZ = -100.0f;
+float translateX = -30.0;
+float translateY = 30.0;
+#define translateZ -100.0
 float scrollSpeed = 0.04;
 
 PyObject * gameModule;
@@ -302,7 +310,13 @@ void convertWinCoordsToMapCoords(int x, int y, GLdouble* posX, GLdouble* posY, G
 
   winX = (float)x;
   winY = (float)viewport[3] - (float)y;
-  winZ = (float)((minZoom-translateZ)/maxZoom);
+  
+
+  PyObject * pyTranslateZ = PyObject_GetAttrString(theMap,"translateZ");
+  double transZ = PyFloat_AsDouble(pyTranslateZ);
+  //Py_DECREF(pyTranslateZ);//This causes a SegFault????
+
+  winZ = (float)((minZoom-transZ)/maxZoom);
   gluUnProject( winX, winY, winZ, modelview, projection, viewport, posX, posY, posZ);
   
   //  glMouseCoords[0] = posX;
@@ -490,6 +504,7 @@ void drawUI(){
     PyObject * pyYPosition = PyObject_GetAttrString(uiElement,"yPosition");
     PyObject * pyWidth = PyObject_GetAttrString(uiElement,"width");
     PyObject * pyHeight = PyObject_GetAttrString(uiElement,"height");
+    PyObject * pyHidden = PyObject_GetAttrString(uiElement,"hidden");
     PyObject * pyName = PyObject_GetAttrString(uiElement,"name");
     PyObject * pyTextureIndex = PyObject_GetAttrString(uiElement,"textureIndex");
     PyObject * pyCursorIndex = PyObject_GetAttrString(uiElement,"cursorIndex");
@@ -502,6 +517,7 @@ void drawUI(){
     double yPosition = PyFloat_AsDouble(pyYPosition);
     double width = PyFloat_AsDouble(pyWidth);
     double height = PyFloat_AsDouble(pyHeight);
+    int hidden = pyHidden==Py_True;
     long name = PyLong_AsLong(pyName);
     long textureIndex = PyLong_AsLong(pyTextureIndex);
     long cursorIndex = PyLong_AsLong(pyCursorIndex);
@@ -514,6 +530,7 @@ void drawUI(){
     Py_DECREF(pyYPosition);
     Py_DECREF(pyWidth);
     Py_DECREF(pyHeight);
+    Py_DECREF(pyHidden);
     Py_DECREF(pyName);
     Py_DECREF(pyTextureIndex);
     Py_DECREF(pyCursorIndex);
@@ -521,47 +538,53 @@ void drawUI(){
     Py_DECREF(pyTextColor);
     Py_DECREF(pyTextSize);
     Py_DECREF(pyMouseOverColor);
+    
+    //    printf("%d\n",selectedName);
+    PyObject_CallMethod(gameMode,"handleMouseOver","i",selectedName);//New reference
 
-    if(PyObject_HasAttrString(uiElement,"tileType")){//gameModeTileSelectButton
-      drawTileSelect(xPosition,yPosition,name,PyLong_AsLong(PyObject_GetAttrString(uiElement,"tileType")),PyLong_AsLong(PyObject_GetAttrString(uiElement,"selected")));
-    }else{
-      if(textureIndex > -1){
-	glLoadIdentity();
-	glBindTexture(GL_TEXTURE_2D, texturesArray[textureIndex]);
-	sscanf(color,"%X %X %X",red,green,blue);
-	//	glColor3f(red1.0f, 1.0f, 1.0f);
-	glColor3f(*red/255.0, *green/255.0, *blue/255.0);
-	glPushName(name);
-	glBegin(GL_QUADS);	
-	glTexCoord2f(0.0,1.0); glVertex3f(xPosition,yPosition,0.0);
-	glTexCoord2f(1.0,1.0); glVertex3f(xPosition+width,yPosition,0.0);
-	glTexCoord2f(1.0,0.0); glVertex3f(xPosition+width,yPosition-height,0.0);
-	glTexCoord2f(0.0,0.0); glVertex3f(xPosition,yPosition-height,0.0);
-	glEnd();
-	glPopName();
-      }
-      //      printf("index: %ld %ld %f %f %f %f\n",name,textureIndex,xPosition,yPosition,width,height);
-      if(PyObject_HasAttrString(uiElement,"text")){
-	glColor3f(*red/255.0, *green/255.0, *blue/255.0);
-	if(selectedName == name){
-	  sscanf(mouseOverColor,"%X %X %X",red,green,blue);
-	}else{
-	  sscanf(textColor,"%X %X %X",red,green,blue);
+    if(!hidden){
+      if(PyObject_HasAttrString(uiElement,"tileType")){//gameModeTileSelectButton
+	drawTileSelect(xPosition,yPosition,name,PyLong_AsLong(PyObject_GetAttrString(uiElement,"tileType")),PyLong_AsLong(PyObject_GetAttrString(uiElement,"selected")));
+      }else{
+	if(textureIndex > -1){
+	  glLoadIdentity();
+	  glBindTexture(GL_TEXTURE_2D, texturesArray[textureIndex]);
+	  sscanf(color,"%X %X %X",red,green,blue);
+	  //	glColor3f(red1.0f, 1.0f, 1.0f);
+	  glColor3f(*red/255.0, *green/255.0, *blue/255.0);
+	  glPushName(name);
+	  glBegin(GL_QUADS);	
+	  glTexCoord2f(0.0,1.0); glVertex3f(xPosition,yPosition,0.0);
+	  glTexCoord2f(1.0,1.0); glVertex3f(xPosition+width,yPosition,0.0);
+	  glTexCoord2f(1.0,0.0); glVertex3f(xPosition+width,yPosition-height,0.0);
+	  glTexCoord2f(0.0,0.0); glVertex3f(xPosition,yPosition-height,0.0);
+	  glEnd();
+	  glPopName();
 	}
-	glColor3f(*red/255.0, *green/255.0, *blue/255.0);
-	glLoadIdentity();
-	glTranslatef(xPosition,yPosition,0.0);
-	glScalef(textSize,textSize,0.0);
-	glPushName(name);
-	drawText(text);
-	glPopName();
+	//      printf("index: %ld %ld %f %f %f %f\n",name,textureIndex,xPosition,yPosition,width,height);
+	if(PyObject_HasAttrString(uiElement,"text")){
+	  glColor3f(*red/255.0, *green/255.0, *blue/255.0);
+	  if(selectedName == name){
+	    sscanf(mouseOverColor,"%X %X %X",red,green,blue);
+	  }else{
+	    sscanf(textColor,"%X %X %X",red,green,blue);
+	  }
+	  glColor3f(*red/255.0, *green/255.0, *blue/255.0);
+	  glLoadIdentity();
+	  glTranslatef(xPosition,yPosition,0.0);
+	  glScalef(textSize,textSize,0.0);
+	  glPushName(name);
+	  drawText(text);
+	  glPopName();
+	}
       }
-    }
-    Py_DECREF(uiElement);
-    if(name == selectedName && cursorIndex >= 0){
-      theCursorIndex = cursorIndex;
+      Py_DECREF(uiElement);
+      if(name == selectedName && cursorIndex >= 0){
+	theCursorIndex = cursorIndex;
+      }
     }
   }
+  /*draw cursor*/
   glLoadIdentity();
   if(theCursorIndex >= 0){
     glBindTexture(GL_TEXTURE_2D, texturesArray[theCursorIndex]);
@@ -580,23 +603,19 @@ void drawUI(){
   glEnd();
 
 
-  
+  /*frame rate display*/
   if(deltaTicks != 0){
-    //			printf("framerate: %d\n",1000/(SDL_GetTicks()-previousTick));
-      char frameRate[20];
-      printf("deltaticks: %d\n",deltaTicks);
-      sprintf(frameRate,"%ld",(long)(1000.0/deltaTicks));
-      glPushMatrix();
-      glColor3f(1.0,1.0,1.0);
-      glLoadIdentity();
-      glTranslatef(-1.0,-1.0,0.0);
-      glScalef(0.0005,0.0005,0.0);
-      drawText(frameRate);
-      glPopMatrix();
-
-
-    }
-
+    char frameRate[20];
+    sprintf(frameRate,"%ld",(long)(1000.0/deltaTicks));
+    glPushMatrix();
+    glColor3f(1.0,1.0,1.0);
+    glLoadIdentity();
+    glTranslatef(-1.0,-1.0,0.0);
+    glScalef(0.0005,0.0005,0.0);
+    drawText(frameRate);
+    glPopMatrix();
+  }
+  
 
 
 }
@@ -628,7 +647,7 @@ static void initGL (){
   pngLoad(&texturesArray[CURSOR_POINTER_INDEX],CURSOR_POINTER_IMAGE);
   pngLoad(&texturesArray[CURSOR_HAND_INDEX],CURSOR_HAND_IMAGE);
   pngLoad(&texturesArray[PLAYER_START_BUTTON_INDEX],PLAYER_START_BUTTON_IMAGE);
-  pngLoad(&texturesArray[PLAYER_START_BUTTON_INDEX],PLAYER_START_BUTTON_IMAGE);
+  pngLoad(&texturesArray[UI_SCROLLABLE_INDEX],UI_SCROLLABLE_IMAGE);
 
 
   vertexArrays[DESERT_TILE_INDEX] = *desertVertices;
@@ -693,17 +712,22 @@ static void handleInput(){
       mouseMapPosYPrevious = mouseMapPosY;
       break;
     case SDL_MOUSEBUTTONDOWN:
-      if(event.button.button == SDL_BUTTON_WHEELUP && translateZ < (-5.0-minZoom)){
-	translateZ = translateZ + 1.2*deltaTicks;
-      }else if(event.button.button == SDL_BUTTON_WHEELDOWN && translateZ > (5.0-maxZoom)){
-	translateZ = translateZ - 1.2*deltaTicks;
+
+      if(event.button.button == SDL_BUTTON_WHEELUP){
+	PyObject_CallMethod(gameMode,"handleScrollUp","(ii)",selectedName,deltaTicks);//New reference
+      }else if(event.button.button == SDL_BUTTON_WHEELDOWN){
+	PyObject_CallMethod(gameMode,"handleScrollDown","(ii)",selectedName,deltaTicks);//New reference
       }
-      if(translateZ < 10.0-maxZoom){
-	translateZ = 10.0-maxZoom;
+      /*      if(event.button.button == SDL_BUTTON_WHEELUP){
+	translateZ = translateZ + zoomSpeed*deltaTicks;
+      }else if(event.button.button == SDL_BUTTON_WHEELDOWN){
+	translateZ = translateZ - zoomSpeed*deltaTicks;
       }
       if(translateZ > -10.0-minZoom){
 	translateZ = -10.0-minZoom;
-      }
+	}*/
+
+
       if(event.button.button == SDL_BUTTON_MIDDLE){
 	clickScroll = 1;
       }
