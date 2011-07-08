@@ -390,35 +390,51 @@ class map:
 		mapFile = open('map1','r')
 		self.nodes = []
 		count = 0
+		yPos = 0
+		xPos = 0
 		for line in mapFile:
 			if(count == 0):
 				#TODO add players and starting positions to map data
 				self.polarity = int(line)
 				self.numPlayers = 2
 			else:
-				newRow = []
-				for char in line:
-					if(char != '\n'):
-						intValue = ord(char)
-						tileValue = intValue & 15
-						roadValue = (intValue & 16)>>4
-						cityValue = (intValue & 32)>>5
-						playerStartValue = (intValue & (64+128+256))>>6
-						newNode = node(tileValue,roadValue,cityValue,playerStartValue=playerStartValue)
-						newRow.append(newNode)
-				self.nodes.append(newRow)
+				if(line.startswith("#")):#node
+					print "line"
+					newRow = []
+					line = line.strip("#")
+					for char in line:
+						if(char != '\n'):
+							intValue = ord(char)
+						#print intValue
+							tileValue = intValue & 15
+							roadValue = (intValue & 16)>>4
+							cityValue = (intValue & 32)>>5
+							playerStartValue = (intValue & (64+128+256))>>6
+							newNode = node(tileValue,roadValue,cityValue,playerStartValue=playerStartValue)
+							newRow.append(newNode)
+					self.nodes.append(newRow)
+		                elif(line.startswith("*")):#city
+					print "city"
 			count = count + 1
 		mapFile.close()
 	def save(self):
 		mapFile = open('map1','w')
-		lines = []
-		lines.append(str(self.polarity) + "\n")
+		yPos = 0
+		xPos = 0
+		cityLines = []
+		nodeLines = []
+		nodeLines.append(str(self.polarity) + "\n")
 		for row in self.nodes:
-			line = ""
+			yPos = yPos + 1
+			line = "#"
 			for node in row:
 				line = line + chr(node.tileValue + (16*node.roadValue) + (32*node.cityValue) + (64*node.playerStartValue) + (512*0))#USE 512 NEXT BECAUSE 8 PLAYERS NEEDS 3 BITS
-			lines.append(line + "\n")
-		mapFile.writelines(lines)
+				if(node.cityValue > 0):
+					cityLines.append("*" + str(yPos) + "\n")
+			nodeLines.append(line + "\n")
+		
+		mapFile.writelines(nodeLines)
+		mapFile.writelines(cityLines)
 		mapFile.close()
 		print "saved"
 	def getNodes(self):
@@ -570,7 +586,7 @@ class mapEditorMode:
 		addFirstRowButton(0.18,0.77,width=1.0,height=1.0,text="+",textureIndex=-1)
 		removeFirstRowButton(0.21,0.77,width=1.0,height=1.0,text="-",textureIndex=-1)
 
-		scrollableTextFieldsElement(0.5,0.925,text="asdf",textSize=0.0005,textureIndex=cDefines['UI_SCROLLABLE_INDEX'],width=(2.0*cDefines['UI_SCROLLABLE_IMAGE_WIDTH']/cDefines['SCREEN_WIDTH']),height=(2.0*cDefines['UI_SCROLLABLE_IMAGE_HEIGHT']/cDefines['SCREEN_HEIGHT']))
+#		scrollableTextFieldsElement(0.5,0.925,text="asdf",textSize=0.0005,textureIndex=cDefines['UI_SCROLLABLE_INDEX'],width=(2.0*cDefines['UI_SCROLLABLE_IMAGE_WIDTH']/cDefines['SCREEN_WIDTH']),height=(2.0*cDefines['UI_SCROLLABLE_IMAGE_HEIGHT']/cDefines['SCREEN_HEIGHT']))
 
 		uiElement(0.8,0.925,width=1.0,height=1.0,text="asdf",textSize=0.0005)
 		saveButton(0.9,0.925,width=1.0,height=1.0,text="save",textSize=0.0005)
