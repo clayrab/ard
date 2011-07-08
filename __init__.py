@@ -25,6 +25,23 @@ for line in cFile:
 		else:
 			cDefines[tokens[1]] = tokens[2]
 cFile.close()
+
+class unitType:
+	def __init__(self,name):
+		self.name = name
+
+allUnits = []
+allUnits.append(unitType("fire elemental"))
+allUnits.append(unitType("water elemental"))
+
+class city:
+	def __init__(self):
+		print "city"
+		self.costOfOwnership = 10
+		self.units = []
+		
+
+
 class intNameGenerator:
 	def __init__(self):
 		self.nextName = -1
@@ -172,9 +189,49 @@ class mapEditorTileSelectUIElement(uiElement):
 		self.toolTipElement.hidden = True
 
 
-class scrollableTextElements(uiElement):
-	def __init__(self,xPos,yPos,width=1.0,height=1.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,yPositionOffset=-0.1,yOffset=-0.04,numFields=24,scrollSpeed=2):
-		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines['CURSOR_HAND_INDEX'],color=color,mouseOverColor=mouseOverColor)
+class scrollPadElement(uiElement):
+	def __init__(self,xPos,yPos,scrollableElement,width=1.0,height=1.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,topOffset=0.016,bottomOffset=0.020,rightOffset=0.012):
+		uiElement.__init__(self,xPos-rightOffset,yPos-topOffset,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines['CURSOR_HAND_INDEX'],color=color,mouseOverColor=mouseOverColor)
+		self.scrolling = False
+		self.initMouseYPos = 0
+		self.initYPos = 0
+		self.topOffset = topOffset
+		self.bottomOffset = bottomOffset
+		self.rightOffset = rightOffset
+		self.scrollableElement = scrollableElement
+		self.numScrollableElements = len(self.scrollableElement.textFieldElements) - self.scrollableElement.numFields
+		self.totalScrollableHeight = self.scrollableElement.height - self.topOffset - self.bottomOffset - self.height
+	def onLeftClickDown(self):
+		self.scrolling = True
+		self.initMouseYPos = theGameMode.mouseY
+		self.initYPos = self.yPosition
+	def onLeftClickUp(self):
+		self.scrolling = False
+	def onMouseMovement(self):
+		if(self.scrolling):
+			self.yPosition = self.initYPos-(2.0*(theGameMode.mouseY-self.initMouseYPos)/cDefines['SCREEN_HEIGHT'])
+			if(self.yPosition > self.scrollableElement.yPosition - self.topOffset):
+				self.yPosition = self.scrollableElement.yPosition - self.topOffset
+			elif(self.yPosition < self.scrollableElement.yPosition - self.scrollableElement.height + self.height + self.bottomOffset):
+				self.yPosition = self.scrollableElement.yPosition - self.scrollableElement.height + self.height + self.bottomOffset
+
+
+		self.scrollableElement.scrollPosition = int((1+self.numScrollableElements)*(self.scrollableElement.yPosition-self.topOffset-self.yPosition)/self.totalScrollableHeight)
+		self.scrollableElement.hideAndShowTextFields()
+	def setScrollPosition(self,scrollPos):
+		self.yPosition = 0.0-((self.totalScrollableHeight*scrollPos/(1+self.numScrollableElements))+self.topOffset-self.scrollableElement.yPosition)
+#		self.yPosition = (self.totalScrollableHeight*scrollPos/(1+self.numScrollableElements))+self.topOffset-self.scrollableElement.yPosition
+
+class scrollingTextElement(uiElement):
+	def __init__(self,xPos,yPos,scrollableElement,width=1.0,height=1.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None):
+		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,color=color,mouseOverColor=mouseOverColor,cursorIndex=cDefines['CURSOR_HAND_INDEX'])
+		self.scrollableElement = scrollableElement
+	def onClick(self):
+		self.scrollableElement.handleClick(self)
+
+class scrollableTextFieldsElement(uiElement):
+	def __init__(self,xPos,yPos,width=1.0,height=1.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,yPositionOffset=-0.04,yOffset=-0.041,numFields=25,scrollSpeed=1):
+		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,color=color,mouseOverColor=mouseOverColor)
 
 		self.yPositionOffset = yPositionOffset
 		self.yOffset = yOffset
@@ -184,49 +241,55 @@ class scrollableTextElements(uiElement):
 
 		self.textFields = []
 		self.textFieldElements = []
-		self.textFields.append("adsfaaaa1")
-		self.textFields.append("aaaa2")
-		self.textFields.append("adddd3")
-		self.textFields.append("adsfbfdb4")
-		self.textFields.append("aaaafdd")
-		self.textFields.append("addddafdsfd")
-		self.textFields.append("adasdaghsf")
-		self.textFields.append("adfdfdbaaa")
-		self.textFields.append("adda355a53dd")
-		self.textFields.append("adsf")
-		self.textFields.append("aaaa")
-		self.textFields.append("adddd")
-		self.textFields.append("adsfbfdb")
-		self.textFields.append("aaaafdd")
-		self.textFields.append("addddafdsfd")
-		self.textFields.append("adasdaghsf")
-		self.textFields.append("adfdfdbaaa")
-		self.textFields.append("adda355a53dd")
-		self.textFields.append("addddafdsfd")
-		self.textFields.append("adasdaghsf")
-		self.textFields.append("adfdfdbaaa")
-		self.textFields.append("adda355a53dd")
-		self.textFields.append("addddafdsfd")
-		self.textFields.append("adasdaghsf")
-		self.textFields.append("adfdfdbaaa")
-		self.textFields.append("adda355a53dd")
-		self.textFields.append("ldfdddfdfdf")
-		self.textFields.append("adda355a53dd")
-		self.textFields.append("addddafdsfd")
-		self.textFields.append("adasdaghsf")
-		self.textFields.append("adfdfdbaaa")
-		self.textFields.append("adda355a53dd")
-		self.textFields.append("addddafdsfd")
-		self.textFields.append("adasdaghsf")
-		self.textFields.append("adfdfdbaaa")
-		self.textFields.append("adda355a53dd")
-		self.textFields.append("last field")
+		self.textFields.append("0")
+		self.textFields.append("1")
+		self.textFields.append("2")
+		self.textFields.append("3")
+		self.textFields.append("4")
+		self.textFields.append("5")
+		self.textFields.append("6")
+		self.textFields.append("7")
+		self.textFields.append("8")
+		self.textFields.append("9")
+		self.textFields.append("10")
+		self.textFields.append("11")
+		self.textFields.append("12")
+		self.textFields.append("13")
+		self.textFields.append("14")
+		self.textFields.append("15")
+		self.textFields.append("16")
+		self.textFields.append("17")
+		self.textFields.append("18")
+		self.textFields.append("19")
+		self.textFields.append("20")
+		self.textFields.append("21")
+		self.textFields.append("22")
+		self.textFields.append("23")
+		self.textFields.append("24")
+		self.textFields.append("25")
+		self.textFields.append("26")
+		self.textFields.append("27")
+		self.textFields.append("28")
+		self.textFields.append("29")
+		self.textFields.append("30")
+		self.textFields.append("31")
+		self.textFields.append("32")
+		self.textFields.append("33")
+		self.textFields.append("34")
+		self.textFields.append("35")
+		self.textFields.append("36")
+		self.textFields.append("37")
+		self.textFields.append("38")
+		self.textFields.append("39")
+		self.textFields.append("40")
 		for field in self.textFields:
-			textFieldElem = uiElement(self.xPosition,0.0,width=0.2,height=0.1,text=field,textureIndex=-1,textSize=self.textSize,hidden=True)
+			textFieldElem = scrollingTextElement(self.xPosition,0.0,width=0.2,height=0.1,text=field,textureIndex=-1,textSize=self.textSize,hidden=True,scrollableElement=self)
 			textFieldElem.onScrollUp = self.onScrollUp
 			textFieldElem.onScrollDown = self.onScrollDown
 			self.textFieldElements.append(textFieldElem)
 		self.hideAndShowTextFields()
+		self.scrollPadElem = scrollPadElement(self.xPosition + self.width - (2.0*cDefines['UI_SCROLL_PAD_IMAGE_WIDTH']/cDefines['SCREEN_WIDTH']),self.yPosition,scrollableElement=self,width=(2.0*cDefines['UI_SCROLL_PAD_IMAGE_WIDTH']/cDefines['SCREEN_WIDTH']),height=(2.0*cDefines['UI_SCROLL_PAD_IMAGE_HEIGHT']/cDefines['SCREEN_HEIGHT']),textureIndex=cDefines['UI_SCROLL_PAD_INDEX'])
+
 	def hideAndShowTextFields(self):
 		count = 0
 		yPosOffset = self.yPositionOffset
@@ -243,11 +306,17 @@ class scrollableTextElements(uiElement):
 		if(self.scrollPosition < 0):
 			self.scrollPosition = 0
 		self.hideAndShowTextFields()
+		self.scrollPadElem.setScrollPosition(self.scrollPosition)
 	def onScrollDown(self):
 		self.scrollPosition =self.scrollPosition + self.scrollSpeed
 		if(self.scrollPosition > len(self.textFieldElements) - self.numFields + 1):
 			self.scrollPosition = len(self.textFieldElements) - self.numFields + 1
 		self.hideAndShowTextFields()
+		self.scrollPadElem.setScrollPosition(self.scrollPosition)
+	def handleClick(self,textFieldElem):
+		print "clackity"
+		
+
 class playerStartLocationButton(clickableElement):
 	playerStartLocationButtons = []
 	def __init__(self,xPos,yPos,playerNumber,width=1.0,height=1.0,text="",textSize=0.001,textureIndex=-1,color="FF FF FF"):
@@ -308,6 +377,7 @@ class node:
 		self.selected = True
 		theGameMode.selectedNode = self
 		if(self.cityValue > 0):
+			
 			print "show city editor"
 
 
@@ -367,10 +437,20 @@ class mapEditorMode:
 		self.uiElements = []
 		self.selectedNode = None
 		self.mousedOverObject = None
+		self.mouseX = 0
+		self.mouseY = 0
 	def loadMap(self):
 		self.map = map(self)
 	def getUIElementsIterator(self):
 		return self.uiElements.__iter__()
+	def handleMouseMovement(self,name,mouseX,mouseY):
+		self.mouseX = mouseX
+		self.mouseY = mouseY
+		if(self.elementsDict.has_key(name)):
+			if(hasattr(self.elementsDict[name],"onMouseMovement")):
+				self.elementsDict[name].onMouseMovement()
+			elif(hasattr(self.elementWithFocus,"onMouseMovement")):
+				self.elementWithFocus.onMouseMovement()
 	def handleRightClick(self,name):
 		rightClickable = False
 		if(self.elementsDict.has_key(name)):
@@ -386,14 +466,32 @@ class mapEditorMode:
 			self.elementsDict[name].onClick()
 		else:
 			self.elementWithFocus = None
+	def handleLeftClickDown(self,name):
+		if(self.elementsDict.has_key(name)):
+			self.elementWithFocus = self.elementsDict[name]
+			if(hasattr(self.elementsDict[name],"onClick")):
+				self.elementsDict[name].onClick()
+			elif(hasattr(self.elementsDict[name],"onLeftClickDown")):
+				self.elementsDict[name].onLeftClickDown()
+			elif(hasattr(self.elementWithFocus,"onClick")):
+				self.elementWithFocus.onClick()
+			elif(hasattr(self.elementWithFocus,"onLeftClickDown")):
+				self.elementWithFocus.onLeftClickDown()
+		else:
+			self.elementWithFocus = None
+	def handleLeftClickUp(self,name):
+		if(self.elementsDict.has_key(name)):
+			if(hasattr(self.elementsDict[name],"onLeftClickUp")):
+                                self.elementsDict[name].onLeftClickUp()
+			elif(hasattr(self.elementWithFocus,"onLeftClickUp")):
+				self.elementWithFocus.onLeftClickUp()
+
 	def handleMouseOver(self,name):
 		if(self.mousedOverObject != None):
 			if(self.mousedOverObject.name != name):
 				if(hasattr(self.mousedOverObject,"onMouseOut")):
 					self.mousedOverObject.onMouseOut()
 				self.mousedOverObject = None
-			
-
 		if(self.elementsDict.has_key(name)):
 			if(self.mousedOverObject != None):
 				if(self.mouseOverObject.name != name):
@@ -472,12 +570,10 @@ class mapEditorMode:
 		addFirstRowButton(0.18,0.77,width=1.0,height=1.0,text="+",textureIndex=-1)
 		removeFirstRowButton(0.21,0.77,width=1.0,height=1.0,text="-",textureIndex=-1)
 
-#		textInputUIElement(0.8,0.885,text="input",textSize=0.0005)
-
-		scrollableTextElements(0.7,0.925,text="asdf",textSize=0.0005,textureIndex=cDefines['UI_SCROLLABLE_INDEX'],width=(2.0*cDefines['UI_SCROLLABLE_IMAGE_WIDTH']/cDefines['SCREEN_WIDTH']),height=(2.0*cDefines['UI_SCROLLABLE_IMAGE_HEIGHT']/cDefines['SCREEN_HEIGHT']))
+		scrollableTextFieldsElement(0.5,0.925,text="asdf",textSize=0.0005,textureIndex=cDefines['UI_SCROLLABLE_INDEX'],width=(2.0*cDefines['UI_SCROLLABLE_IMAGE_WIDTH']/cDefines['SCREEN_WIDTH']),height=(2.0*cDefines['UI_SCROLLABLE_IMAGE_HEIGHT']/cDefines['SCREEN_HEIGHT']))
 
 		uiElement(0.8,0.925,width=1.0,height=1.0,text="asdf",textSize=0.0005)
-		Savebutton(0.9,0.925,width=1.0,height=1.0,text="save",textSize=0.0005)
+		saveButton(0.9,0.925,width=1.0,height=1.0,text="save",textSize=0.0005)
 
 class newGameScreenMode:
 	def __init__(self):

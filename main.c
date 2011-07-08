@@ -70,7 +70,10 @@
 #define UI_SCROLLABLE_IMAGE_WIDTH 210
 #define UI_SCROLLABLE_INDEX 10
 
-
+#define UI_SCROLL_PAD_IMAGE "assets/scrollPad.png"
+#define UI_SCROLL_PAD_IMAGE_HEIGHT 16
+#define UI_SCROLL_PAD_IMAGE_WIDTH 16
+#define UI_SCROLL_PAD_INDEX 11
 
 #define DESERT_TILE_INDEX 0
 #define GRASS_TILE_INDEX 1
@@ -648,6 +651,7 @@ static void initGL (){
   pngLoad(&texturesArray[CURSOR_HAND_INDEX],CURSOR_HAND_IMAGE);
   pngLoad(&texturesArray[PLAYER_START_BUTTON_INDEX],PLAYER_START_BUTTON_IMAGE);
   pngLoad(&texturesArray[UI_SCROLLABLE_INDEX],UI_SCROLLABLE_IMAGE);
+  pngLoad(&texturesArray[UI_SCROLL_PAD_INDEX],UI_SCROLL_PAD_IMAGE);
 
 
   vertexArrays[DESERT_TILE_INDEX] = *desertVertices;
@@ -688,6 +692,7 @@ static void handleInput(){
     case SDL_MOUSEMOTION:
       mouseX = event.motion.x;
       mouseY = event.motion.y;
+      PyObject_CallMethod(gameMode,"handleMouseMovement","(iii)",selectedName,mouseX,mouseY);
       //					printf("x: %d\t\ty: %d\n",mouseX,mouseY);
       if(clickScroll > 0){
 	translateX = translateX + mouseMapPosX - mouseMapPosXPrevious;
@@ -732,8 +737,8 @@ static void handleInput(){
 	clickScroll = 1;
       }
       if(event.button.button == SDL_BUTTON_LEFT){
-	leftButtonDown = 1;
-	PyObject_CallMethod(gameMode,"handleClick","i",selectedName);//New reference
+	//leftButtonDown = 1;
+	PyObject_CallMethod(gameMode,"handleLeftClickDown","i",selectedName);//New reference
 	previousSelectedName = selectedName;
       }
       if(event.button.button == SDL_BUTTON_RIGHT){
@@ -745,6 +750,8 @@ static void handleInput(){
 	clickScroll = 0;
       }
       if(event.button.button == SDL_BUTTON_LEFT){
+	PyObject_CallMethod(gameMode,"handleLeftClickUp","i",selectedName);//New reference
+	
 	leftButtonDown = 0;
       }
       break;

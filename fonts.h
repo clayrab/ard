@@ -6,8 +6,8 @@
 #define ARIAL 0
 #define HERCULANUM 1
 char fontFiles[2][30] = {
-  "./Arial.ttf",
-  "./Herculanum.ttf"
+  "assets/fonts/Arial.ttf",
+  "assets/fonts/Herculanum.ttf"
 };
 
 int TextureWidth;
@@ -127,7 +127,7 @@ static void initFonts(){
   FT_Library library;
   FT_Face face; 
   int error = FT_Init_FreeType( &library );
-  if(FT_New_Face(library,"./Arial.ttf",0,&face)){
+  if(FT_New_Face(library,"assets/fonts/Arial.ttf",0,&face)){
     printf("FT_New_Face error");
     exit(1);
   }
