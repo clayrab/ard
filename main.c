@@ -431,21 +431,24 @@ void drawTiles(){
       PyObject * nodeName = PyObject_GetAttrString(node,"name");//New reference
       PyObject * nodeValue = PyObject_CallMethod(node,"getValue",NULL);//New reference
       PyObject * roadValue = PyObject_GetAttrString(node,"roadValue");//New reference
-      PyObject * cityValue = PyObject_GetAttrString(node,"cityValue");//New reference
+      PyObject * pyCity = PyObject_GetAttrString(node,"city");//New reference
       PyObject * pyPlayerStartValue = PyObject_GetAttrString(node,"playerStartValue");//New reference                                 
       PyObject * isSelected = PyObject_GetAttrString(node,"selected");//New reference
 
       long longName = PyLong_AsLong(nodeName);
       long longValue = PyLong_AsLong(nodeValue);
       long longRoadValue = PyLong_AsLong(roadValue);
-      long longCityValue = PyLong_AsLong(cityValue);
+      long longCityValue = 0;
+      if(pyCity != Py_None){
+	longCityValue = 1;
+      }
       long playerStartValue = PyLong_AsLong(pyPlayerStartValue);
       long longIsSelected = PyLong_AsLong(isSelected);
 
       Py_DECREF(nodeName);
       Py_DECREF(nodeValue);
       Py_DECREF(roadValue);
-      Py_DECREF(cityValue);
+      Py_DECREF(pyCity);
       Py_DECREF(pyPlayerStartValue);
       Py_DECREF(isSelected);
       Py_DECREF(node);

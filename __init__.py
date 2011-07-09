@@ -36,10 +36,17 @@ allUnits.append(unitType("water elemental"))
 
 class city:
 	def __init__(self):
-		print "city"
+		print "city constructor"
 		self.costOfOwnership = 10
 		self.units = []
 		
+class creature:
+	def __init__(self):
+		self.movementInitiative = 0
+		self.attackInitiative = 0
+		print 'creature'
+
+
 
 
 class intNameGenerator:
@@ -334,11 +341,11 @@ class playerStartLocationButton(clickableElement):
 		self.color = "99 99 99"
 
 class node:
-	def __init__(self,tileValue,roadValue,cityValue,playerStartValue=0):
+	def __init__(self,tileValue,roadValue,city,playerStartValue=0):
 		self.name = nameGenerator.getNextName()
 		self.tileValue = tileValue
 		self.roadValue = roadValue
-		self.cityValue = cityValue
+		self.city = city
 		self.playerStartValue = playerStartValue
 		self.selected = False
 		theGameMode.elementsDict[self.name] = self
@@ -351,7 +358,9 @@ class node:
 				if(theGameMode.selectedButton.tileType == cDefines['ROAD_TILE_INDEX']):
 					self.roadValue = (~self.roadValue)&1
 				elif(theGameMode.selectedButton.tileType == cDefines['CITY_TILE_INDEX']):
-					self.cityValue = (~self.cityValue)&1
+					#self.cityValue = (~self.cityValue)&1
+					#TODO: make it possible to move the city via drag/drop
+					print "TODO FIX THIS"
 				else:
 					self.tileValue = theGameMode.selectedButton.tileType
 			else:
@@ -376,9 +385,9 @@ class node:
 			theGameMode.selectedNode.selected = False
 		self.selected = True
 		theGameMode.selectedNode = self
-		if(self.cityValue > 0):
+#		if(self.city != None):
 			
-			print "show city editor"
+	#		print "show city editor"
 
 
 class map:
@@ -387,6 +396,7 @@ class map:
 		self.load(mapEditorMode)
 		self.translateZ = cDefines['translateZ']
 	def load(self,mapEditorMode):
+		print "load"
 		mapFile = open('map1','r')
 		self.nodes = []
 		count = 0
@@ -410,11 +420,19 @@ class map:
 							roadValue = (intValue & 16)>>4
 							cityValue = (intValue & 32)>>5
 							playerStartValue = (intValue & (64+128+256))>>6
-							newNode = node(tileValue,roadValue,cityValue,playerStartValue=playerStartValue)
+							if(cityValue > 0):
+								newNode = node(tileValue,roadValue,city(),playerStartValue=playerStartValue)
+								print "city inserted..."
+							else:
+								newNode = node(tileValue,roadValue,None,playerStartValue=playerStartValue)
 							newRow.append(newNode)
 					self.nodes.append(newRow)
 		                elif(line.startswith("*")):#city
-					print "city"
+					print "loading city..."
+#					coords = line.split(":")[0].strip("*").split(",")
+#					print coords
+#					print self.nodes[int(coords[0])][int(coords[1])].city
+
 			count = count + 1
 		mapFile.close()
 	def save(self):
@@ -425,14 +443,16 @@ class map:
 		nodeLines = []
 		nodeLines.append(str(self.polarity) + "\n")
 		for row in self.nodes:
+			xPos = 0
 			yPos = yPos + 1
 			line = "#"
 			for node in row:
-				line = line + chr(node.tileValue + (16*node.roadValue) + (32*node.cityValue) + (64*node.playerStartValue) + (512*0))#USE 512 NEXT BECAUSE 8 PLAYERS NEEDS 3 BITS
-				if(node.cityValue > 0):
-					cityLines.append("*" + str(yPos) + "\n")
+				xPos = xPos + 1
+				
+				line = line + chr(node.tileValue + (16*node.roadValue)+ (32*node.playerStartValue) + (512*0))#USE 512 NEXT BECAUSE 8 PLAYERS NEEDS 3 BITS
+				if(node.city != None):
+					cityLines.append("*" + str(xPos) + "," + str(yPos) + ":\n")
 			nodeLines.append(line + "\n")
-		
 		mapFile.writelines(nodeLines)
 		mapFile.writelines(cityLines)
 		mapFile.close()
@@ -679,10 +699,11 @@ class gameMode:
 			except:
 				return
 	def addUIElements(self):
+		print "adding..>"
 		uiElement(xPos=-1.0,yPos=1.0,width=2.0,height=(2.0*cDefines['UI_MAP_EDITOR_TOP_IMAGE_HEIGHT']/cDefines['SCREEN_HEIGHT']),textureIndex=cDefines['UI_MAP_EDITOR_TOP_INDEX'])
 		uiElement(xPos=-1.0,yPos=1.0-(2.0*cDefines['UI_MAP_EDITOR_TOP_IMAGE_HEIGHT']/cDefines['SCREEN_HEIGHT']),width=(2.0*cDefines['UI_MAP_EDITOR_LEFT_IMAGE_WIDTH']/cDefines['SCREEN_WIDTH']),height=(2.0*cDefines['UI_MAP_EDITOR_LEFT_IMAGE_HEIGHT']/cDefines['UI_MAP_EDITOR_LEFT_IMAGE_WIDTH']),textureIndex=cDefines['UI_MAP_EDITOR_LEFT_INDEX'])
-		uiElement(xPos=1.0-(2.0*cDefines['UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH']/cDefines['SCREEN_WIDTH']),yPos=1.0-(2.0*cDefines['UI_MAP_EDITOR_TOP_IMAGE_HEIGHT']/cDefines['SCREEN_HEIGHT']),width=(2.0*cDefines['UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH']/cDefines['SCREEN_WIDTH']),height=(2.0*cDefines['UI_MAP_EDITOR_RIGHT_IMAGE_HEIGHT']/cDefines['UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH']),textureIndex=cDefines['UI_MAP_EDITOR_RIGHT_INDEX'])
-#-
+		uiElement(xPos=1.0-(2.0*cDefines['UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH']/cDefines['SCREEN_WIDTH']),yPos=1.0-(2.0*cDefines['vUI_MAP_EDITOR_TOP_IMAGE_HEIGHT']/cDefines['SCREEN_HEIGHT']),width=(2.0*cDefines['UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH']/cDefines['SCREEN_WIDTH']),height=(2.0*cDefines['UI_MAP_EDITOR_RIGHT_IMAGE_HEIGHT']/cDefines['UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH']),textureIndex=cDefines['UI_MAP_EDITOR_RIGHT_INDEX'])
+
 		uiElement(xPos=-1.0,yPos=-1.0+(2.0*cDefines['UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT']/cDefines['SCREEN_HEIGHT']),width=2.0,height=(2.0*cDefines['UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT']/cDefines['SCREEN_HEIGHT']),textureIndex=cDefines['UI_MAP_EDITOR_BOTTOM_INDEX'])
 
 		mapEditorTileSelectUIElement(-0.93,0.92,tileType=cDefines['DESERT_TILE_INDEX'])
@@ -706,17 +727,7 @@ class gameMode:
 		removeFirstRowButton(0.21,0.77,width=1.0,height=1.0,text="-",textureIndex=-1)
 
 		uiElement(0.8,0.925,width=1.0,height=1.0,text="asdf",textSize=0.0005)
-
-class creature:
-	def __init__(self):
-		self.movementInitiative = 0
-		self.attackInitiative = 0
-		print 'creature'
-
-class city:
-	def __init__(self):
-		print "city"
-
+		print "done"
 global theGameMode
 theGameMode = newGameScreenMode()
 theGameMode.addUIElements()
