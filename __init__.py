@@ -429,9 +429,9 @@ class map:
 					self.nodes.append(newRow)
 		                elif(line.startswith("*")):#city
 					print "loading city..."
-#					coords = line.split(":")[0].strip("*").split(",")
-#					print coords
-#					print self.nodes[int(coords[0])][int(coords[1])].city
+					coords = line.split(":")[0].strip("*").split(",")
+					print coords
+					print self.nodes[int(coords[0])][int(coords[1])].city
 
 			count = count + 1
 		mapFile.close()
