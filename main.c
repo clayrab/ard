@@ -119,9 +119,14 @@ PyObject * mapName;
 PyObject * nodes;
 PyObject * mapIterator;
 PyObject * UIElementsIterator;
-PyObject * subUIElementsIterator;
-PyObject * subSubUIElementsIterator;
 PyObject * rowIterator;
+
+#define MAX_CITIES 40
+#define MAX_CITY_NAME_LENGTH 50
+float cityNamesXs[MAX_CITIES];
+float cityNamesYs[MAX_CITIES];
+char cityNames[MAX_CITIES][MAX_CITY_NAME_LENGTH];
+int cityNamesCount = 0;
 
 GLuint tilesTexture;
 /*GLuint uiTexture;
@@ -337,7 +342,7 @@ void convertWinCoordsToMapCoords(int x, int y, GLdouble* posX, GLdouble* posY, G
 /**************************** /mouse hover object selection ********************************/
 
 /************************************* drawing subroutines ***************************************/
-void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long roadValue,long cityValue,long isSelected, long mapPolarity,long playerStartValue){
+void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long roadValue,char * cityName,long isSelected, long mapPolarity,long playerStartValue){
   float xPosition = (float)tilesXIndex*-(1.9*SIN60);
   float yPosition = (float)tilesYIndex*1.4;
   //pulling the xindex and yindex in a little cause the black lines between tiles to be less harsh
@@ -372,7 +377,6 @@ void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long 
   glEnd();
   glPopName();
 
-
   if(roadValue == 1){
     textureVertices = vertexArrays[ROAD_TILE_INDEX];
     glBegin(GL_POLYGON);
@@ -384,7 +388,8 @@ void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long 
     glTexCoord2f(*(textureVertices+10),*(textureVertices+11)); glVertex3f(hexagonVertices[5][0]+xPosition, hexagonVertices[5][1]+yPosition, 0.0);
     glEnd();
   }
-  if(cityValue == 1){
+  if(cityName[0]!=0){
+
     textureVertices = vertexArrays[CITY_TILE_INDEX];
     glBegin(GL_POLYGON);
     glTexCoord2f(*(textureVertices+0),*(textureVertices+1)); glVertex3f(hexagonVertices[0][0]+xPosition, hexagonVertices[0][1]+yPosition, 0.0);
@@ -394,6 +399,12 @@ void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long 
     glTexCoord2f(*(textureVertices+8),*(textureVertices+9)); glVertex3f(hexagonVertices[4][0]+xPosition, hexagonVertices[4][1]+yPosition, 0.0);
     glTexCoord2f(*(textureVertices+10),*(textureVertices+11)); glVertex3f(hexagonVertices[5][0]+xPosition, hexagonVertices[5][1]+yPosition, 0.0);
     glEnd();
+
+    cityNamesXs[cityNamesCount] = xPosition;
+    cityNamesYs[cityNamesCount] = yPosition;
+    strcpy(cityNames[cityNamesCount],cityName);
+    cityNamesCount = cityNamesCount + 1;
+
   }
   if(playerStartValue >= 1){
     textureVertices = vertexArrays[PLAYER_START_TILE_INDEX];
@@ -417,7 +428,24 @@ void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long 
     glPopMatrix();
   }
 }
-
+void drawCityNames(){
+  int i,j,cityNameLength = 0;
+  for(i=0; i<cityNamesCount; i++){
+    for(j=0; j<MAX_CITY_NAME_LENGTH; j++){
+      if(cityNames[i][j] == 0){
+	cityNameLength = j;
+	break;
+      }
+    }
+    glColor3f(1.0,1.0,1.0);
+    glPushMatrix();
+    glTranslatef(cityNamesXs[i]-(0.3*j),cityNamesYs[i]+0.5,0.0);
+    glScalef(0.02,0.02,0.0);
+    drawText(cityNames[i]);
+    glPopMatrix();
+  }
+  cityNamesCount = 0;
+}
 void drawTiles(){
   
   int rowNumber = 0;
@@ -439,14 +467,17 @@ void drawTiles(){
       PyObject * nodeValue = PyObject_CallMethod(node,"getValue",NULL);//New reference
       PyObject * roadValue = PyObject_GetAttrString(node,"roadValue");//New reference
       PyObject * pyCity = PyObject_GetAttrString(node,"city");//New reference
+      PyObject * pyCityName;
+      char * cityName = "";
       PyObject * pyPlayerStartValue = PyObject_GetAttrString(node,"playerStartValue");//New reference                                 
       PyObject * isSelected = PyObject_GetAttrString(node,"selected");//New reference
-
       long longName = PyLong_AsLong(nodeName);
       long longValue = PyLong_AsLong(nodeValue);
       long longRoadValue = PyLong_AsLong(roadValue);
       long longCityValue = 0;
       if(pyCity != Py_None){
+	pyCityName = PyObject_GetAttrString(pyCity,"name");
+	cityName = PyString_AsString(pyCityName);
 	longCityValue = 1;
       }
       long playerStartValue = PyLong_AsLong(pyPlayerStartValue);
@@ -460,7 +491,7 @@ void drawTiles(){
       Py_DECREF(isSelected);
       Py_DECREF(node);
       //      printf("%d\n",longRoadValue);
-      drawTile(colNumber,rowNumber,longName,longValue,longRoadValue,longCityValue,longIsSelected,longPolarity,playerStartValue);
+      drawTile(colNumber,rowNumber,longName,longValue,longRoadValue,cityName,longIsSelected,longPolarity,playerStartValue);
       colNumber = colNumber - 1;
     }
     Py_DECREF(row);
@@ -473,6 +504,7 @@ drawBoard(){
   //printf("drawBoard");
   if(theMap != Py_None){
     drawTiles();
+    drawCityNames();
   }
 }
 
@@ -506,6 +538,10 @@ void drawTileSelect(double xPos, double yPos, int name, long tileType, long sele
   }
 }
 void drawUIElement(PyObject * uiElement){
+  int isNode = PyObject_HasAttrString(uiElement,"tileValue");
+  if(!isNode){
+  
+
     unsigned int red[1],green[1],blue[1];
     PyObject * pyXPosition = PyObject_GetAttrString(uiElement,"xPosition");
     PyObject * pyYPosition = PyObject_GetAttrString(uiElement,"yPosition");
@@ -598,6 +634,7 @@ void drawUIElement(PyObject * uiElement){
 	theCursorIndex = cursorIndex;
       }
     }
+  }
 }
 void drawUI(){
   PyObject * uiElement;
@@ -608,9 +645,10 @@ void drawUI(){
   UIElementsIterator = PyObject_GetIter(PyObject_CallMethod(gameMode,"getUIElementsIterator",NULL));//New reference
   
 
-  while (uiElement = PyIter_Next(UIElementsIterator)) {
-    drawUIElement(uiElement);
-    subUIElementsIterator = PyObject_GetIter(PyObject_CallMethod(uiElement,"getUIElementsIterator",NULL));//New reference
+    while (uiElement = PyIter_Next(UIElementsIterator)) {
+      drawUIElement(uiElement);
+    }
+    /*    subUIElementsIterator = PyObject_GetIter(PyObject_CallMethod(uiElement,"getUIElementsIterator",NULL));//New reference
     while (subUIElement = PyIter_Next(subUIElementsIterator)) {
       drawUIElement(subUIElement);
 
@@ -620,8 +658,9 @@ void drawUI(){
       }
 
     }
+    */
     
-  }
+  //  }
 
   /*draw cursor*/
   glLoadIdentity();
@@ -665,15 +704,21 @@ void drawUI(){
 static void initGL (){
   /** needs to be called on screen resize **/
   //unneeded with sdl?
-  //  glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);//default values anyway, so not needed but w/e
+
+  glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);//default values anyway, so not needed but w/e
   glInitNames(); //init names stack	
   glClearColor(0.0, 0.0, 0.0, 0.0); //sets screen clear color
   glEnable(GL_TEXTURE_2D);
   glEnable(GL_BLEND);
+
+  //  glDepthMask(GL_TRUE);
+  //glDepthFunc(GL_ALWAYS);
+  //glDisable(GL_DEPTH_TEST);
+  //
+  //glClear(GL_COLOR_BUFFER_BIT);		
+
+
   char file[100] = TILES_IMAGE;
-
-
-
 
   pngLoad(&tilesTexture, TILES_IMAGE);	/******************** /image init ***********************/
   pngLoad(&texturesArray[TILE_SELECT_BOX_INDEX],TILE_SELECT_BOX_IMAGE);
@@ -699,7 +744,7 @@ static void initGL (){
   vertexArrays[ROAD_TILE_INDEX] = *roadVertices;
   vertexArrays[CITY_TILE_INDEX] = *cityVertices;
   vertexArrays[PLAYER_START_TILE_INDEX] = *playerStartVertices;
-
+  
   screenRatio = (GLfloat)SCREEN_WIDTH/(GLfloat)SCREEN_HEIGHT;
   
 }
@@ -844,7 +889,9 @@ static void handleInput(){
 }
 static void draw(){
 
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		
+
+
     //game board projection time
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
@@ -921,9 +968,6 @@ static void draw(){
     glMatrixMode(GL_MODELVIEW);
     glPopMatrix();
 
-
-
-
     glFlush();//"all programs should call glFlush whenever they count on having all of their previously issued commands completed"
     SDL_GL_SwapBuffers ();	
   
@@ -966,7 +1010,7 @@ int main(int argc, char **argv){
     exit(1);
   }
   SDL_GL_SetAttribute (SDL_GL_DEPTH_SIZE, 16);
-  SDL_GL_SetAttribute (SDL_GL_DOUBLEBUFFER, 1);
+  //  SDL_GL_SetAttribute (SDL_GL_DOUBLEBUFFER, 1);
   Uint32 flags = SDL_OPENGL;
   //flags |= SDL_FULLSCREEN;
   gScreen = SDL_SetVideoMode (SCREEN_WIDTH, SCREEN_HEIGHT, 0, flags);
@@ -976,6 +1020,12 @@ int main(int argc, char **argv){
     SDL_Quit();
     exit(2);
   }
+  /*
+  int * value;
+  SDL_GL_GetAttribute(SDL_GL_DEPTH_SIZE,value);
+  printf("depth size: %d\n",*value);
+  */
+
   SDL_ShowCursor(0);
   initGL();
   initPython();

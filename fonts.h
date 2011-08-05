@@ -163,4 +163,5 @@ void drawText(char* str){
   float modelview_matrix[16];     
   glGetFloatv(GL_MODELVIEW_MATRIX, modelview_matrix);
   glCallLists(strlen(str), GL_UNSIGNED_BYTE, str);
+
 }
