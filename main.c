@@ -120,6 +120,7 @@ PyObject * nodes;
 PyObject * mapIterator;
 PyObject * UIElementsIterator;
 PyObject * subUIElementsIterator;
+PyObject * subSubUIElementsIterator;
 PyObject * rowIterator;
 
 GLuint tilesTexture;
@@ -601,15 +602,25 @@ void drawUIElement(PyObject * uiElement){
 void drawUI(){
   PyObject * uiElement;
   PyObject * subUIElement;
+  PyObject * subSubUIElement;
   theCursorIndex = -1;
   //TODO: make sure CallMethod does not create a new reference and fix these two calls if it does
   UIElementsIterator = PyObject_GetIter(PyObject_CallMethod(gameMode,"getUIElementsIterator",NULL));//New reference
+  
+
   while (uiElement = PyIter_Next(UIElementsIterator)) {
     drawUIElement(uiElement);
-    subUIElementsIterator = PyObject_GetIter(PyObject_CallMethod(uiElement,"getUIElementsIterator",NULL));//New reference
+    /*    subUIElementsIterator = PyObject_GetIter(PyObject_CallMethod(uiElement,"getUIElementsIterator",NULL));//New reference
     while (subUIElement = PyIter_Next(subUIElementsIterator)) {
       drawUIElement(subUIElement);
+
+      subSubUIElementsIterator = PyObject_GetIter(PyObject_CallMethod(subUIElement,"getUIElementsIterator",NULL));//New reference
+      while (subSubUIElement = PyIter_Next(subSubUIElementsIterator)) {
+	drawUIElement(subSubUIElement);
+      }
+
     }
+    */
     
   }
 
