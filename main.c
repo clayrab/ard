@@ -75,6 +75,11 @@
 #define UI_SCROLL_PAD_IMAGE_WIDTH 16
 #define UI_SCROLL_PAD_INDEX 11
 
+#define UI_TEXT_INPUT_IMAGE "assets/textInput.png"
+#define UI_TEXT_INPUT_IMAGE_HEIGHT 20
+#define UI_TEXT_INPUT_IMAGE_WIDTH 200
+#define UI_TEXT_INPUT_INDEX 12
+
 #define DESERT_TILE_INDEX 0
 #define GRASS_TILE_INDEX 1
 #define MOUNTAIN_TILE_INDEX 2
@@ -114,6 +119,7 @@ PyObject * mapName;
 PyObject * nodes;
 PyObject * mapIterator;
 PyObject * UIElementsIterator;
+PyObject * subUIElementsIterator;
 PyObject * rowIterator;
 
 GLuint tilesTexture;
@@ -132,7 +138,7 @@ int mouseY = 0;
 GLuint selectBuf[BUFSIZE];
 int selectedName = -1;//the mousedover object's 'name'
 int previousSelectedName = -2;
-
+int theCursorIndex = -1;
 
 
 float desertVertices[6][2] = {
@@ -498,13 +504,7 @@ void drawTileSelect(double xPos, double yPos, int name, long tileType, long sele
     glEnd();
   }
 }
-
-void drawUI(){
-  PyObject * uiElement;
-  int theCursorIndex = -1;
-  UIElementsIterator = PyObject_GetIter(PyObject_CallMethod(gameMode,"getUIElementsIterator",NULL));//New reference
-  while (uiElement = PyIter_Next(UIElementsIterator)) {
-    //    PyObject * foo = PyObject_GetAttrString(uiElement,"xPosition");
+void drawUIElement(PyObject * uiElement){
     unsigned int red[1],green[1],blue[1];
     PyObject * pyXPosition = PyObject_GetAttrString(uiElement,"xPosition");
     PyObject * pyYPosition = PyObject_GetAttrString(uiElement,"yPosition");
@@ -519,6 +519,9 @@ void drawUI(){
     PyObject * pyTextSize = PyObject_GetAttrString(uiElement,"textSize");
     PyObject * pyColor = PyObject_GetAttrString(uiElement,"color");
     PyObject * pyMouseOverColor = PyObject_GetAttrString(uiElement,"mouseOverColor");
+    PyObject * pyTextXPosition = PyObject_GetAttrString(uiElement,"textXPos");
+    PyObject * pyTextYPosition = PyObject_GetAttrString(uiElement,"textYPos");
+
     double xPosition = PyFloat_AsDouble(pyXPosition);
     double yPosition = PyFloat_AsDouble(pyYPosition);
     double width = PyFloat_AsDouble(pyWidth);
@@ -532,6 +535,9 @@ void drawUI(){
     double textSize = PyFloat_AsDouble(pyTextSize);
     char * color = PyString_AsString(pyColor);
     char * mouseOverColor = PyString_AsString(pyMouseOverColor);
+    double textXPosition = PyFloat_AsDouble(pyTextXPosition);
+    double textYPosition = PyFloat_AsDouble(pyTextYPosition);
+     
     Py_DECREF(pyXPosition);
     Py_DECREF(pyYPosition);
     Py_DECREF(pyWidth);
@@ -544,7 +550,9 @@ void drawUI(){
     Py_DECREF(pyTextColor);
     Py_DECREF(pyTextSize);
     Py_DECREF(pyMouseOverColor);
-    
+    Py_DECREF(pyTextXPosition);
+    Py_DECREF(pyTextYPosition);
+
     //    printf("%d\n",selectedName);
     PyObject_CallMethod(gameMode,"handleMouseOver","i",selectedName);//New reference
 
@@ -577,7 +585,7 @@ void drawUI(){
 	  }
 	  glColor3f(*red/255.0, *green/255.0, *blue/255.0);
 	  glLoadIdentity();
-	  glTranslatef(xPosition,yPosition,0.0);
+	  glTranslatef(xPosition+textXPosition,yPosition+textYPosition,0.0);
 	  glScalef(textSize,textSize,0.0);
 	  glPushName(name);
 	  drawText(text);
@@ -589,7 +597,22 @@ void drawUI(){
 	theCursorIndex = cursorIndex;
       }
     }
+}
+void drawUI(){
+  PyObject * uiElement;
+  PyObject * subUIElement;
+  theCursorIndex = -1;
+  //TODO: make sure CallMethod does not create a new reference and fix these two calls if it does
+  UIElementsIterator = PyObject_GetIter(PyObject_CallMethod(gameMode,"getUIElementsIterator",NULL));//New reference
+  while (uiElement = PyIter_Next(UIElementsIterator)) {
+    drawUIElement(uiElement);
+    subUIElementsIterator = PyObject_GetIter(PyObject_CallMethod(uiElement,"getUIElementsIterator",NULL));//New reference
+    while (subUIElement = PyIter_Next(subUIElementsIterator)) {
+      drawUIElement(subUIElement);
+    }
+    
   }
+
   /*draw cursor*/
   glLoadIdentity();
   if(theCursorIndex >= 0){
@@ -597,6 +620,7 @@ void drawUI(){
   }else{
     glBindTexture(GL_TEXTURE_2D, texturesArray[CURSOR_POINTER_INDEX]);
   }
+  glColor3f(1.0,1.0,1.0);
   glBegin(GL_QUADS);
   float xPos = (mouseX/(SCREEN_WIDTH/2.0))-1.0;
   float yPos = 1.0-(mouseY/(SCREEN_HEIGHT/2.0));
@@ -607,7 +631,6 @@ void drawUI(){
   glTexCoord2f(1.0,0.0); glVertex3f(xPos+pointerWidth,yPos-pointerHeight,0.0);
   glTexCoord2f(0.0,0.0); glVertex3f(xPos,yPos-pointerHeight,0.0);
   glEnd();
-
 
   /*frame rate display*/
   if(deltaTicks != 0){
@@ -655,6 +678,7 @@ static void initGL (){
   pngLoad(&texturesArray[PLAYER_START_BUTTON_INDEX],PLAYER_START_BUTTON_IMAGE);
   pngLoad(&texturesArray[UI_SCROLLABLE_INDEX],UI_SCROLLABLE_IMAGE);
   pngLoad(&texturesArray[UI_SCROLL_PAD_INDEX],UI_SCROLL_PAD_IMAGE);
+  pngLoad(&texturesArray[UI_TEXT_INPUT_INDEX],UI_TEXT_INPUT_IMAGE);
 
 
   vertexArrays[DESERT_TILE_INDEX] = *desertVertices;

@@ -35,8 +35,9 @@ allUnits.append(unitType("fire elemental"))
 allUnits.append(unitType("water elemental"))
 
 class city:
-	def __init__(self):
+	def __init__(self,name):
 		print "city constructor"
+		self.name = name
 		self.costOfOwnership = 10
 		self.units = []
 		
@@ -59,7 +60,7 @@ class intNameGenerator:
 nameGenerator = intNameGenerator()
 
 class uiElement:
-	def __init__(self,xPos,yPos,width=1.0,height=1.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None):
+	def __init__(self,xPos,yPos,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor=None,textSize=0.001,color=None,mouseOverColor=None,textXPos=0.0,textYPos=0.0,isSubUIElement=False):
 		self.name = nameGenerator.getNextName()
 		self.xPosition = xPos
 		self.yPosition = yPos
@@ -72,17 +73,31 @@ class uiElement:
 		self.textColor = textColor
 		self.textSize = textSize
 		self.color = color
+		self.textXPos = textXPos
+		self.textYPos = textYPos
+		self.uiElements = []
 		if(mouseOverColor != None):
 			self.mouseOverColor = mouseOverColor
-		else:
+		elif(color != None):
 			self.mouseOverColor = color
-		theGameMode.uiElements.append(self)
+		elif(textColor != None):
+			self.mouseOverColor = textColor
+		else:
+			self.mouseOverColor = "FF FF FF"
+		if(self.color == None):
+			self.color = "FF FF FF"
+		if(self.textColor == None):
+			self.textColor = "FF FF FF"
+		if(not isSubUIElement):
+			theGameMode.uiElements.append(self)
 		theGameMode.elementsDict[self.name] = self
+	def getUIElementsIterator(self):
+		return self.uiElements.__iter__()
 
 class clickableElement(uiElement):
-	def __init__(self,xPos,yPos,width=1.0,height=1.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None):
-		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines['CURSOR_HAND_INDEX'],color=color,mouseOverColor=mouseOverColor)
-
+	def __init__(self,xPos,yPos,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,isSubUIElement=False):
+		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines['CURSOR_HAND_INDEX'],color=color,mouseOverColor=mouseOverColor,isSubUIElement=isSubUIElement)
+		print "clickable elem constructor"
 
 class newGameScreenButton(clickableElement):
 	index = 0
@@ -91,7 +106,7 @@ class newGameScreenButton(clickableElement):
 	#selectedIndex = 0
 	selectedTextColor = "55 55 55"
 	normalTextColor = "33 33 33"
-	def __init__(self,xPos,yPos,gameMode,width=1.0,height=1.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",selected=False):
+	def __init__(self,xPos,yPos,gameMode,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",selected=False):
 		clickableElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=newGameScreenButton.normalTextColor,cursorIndex=cDefines['CURSOR_HAND_INDEX'],mouseOverColor="66 66 66")
 		self.gameMode = gameMode
 		self.selected = selected
@@ -166,24 +181,45 @@ class removeFirstRowButton(clickableElement):
 		theGameMode.map.polarity = (~theGameMode.map.polarity)&1
 		theGameMode.map.nodes = nodesCopy
 
-class textInputUIElement(uiElement):
-	def __init__(self,xPos,yPos,width=1.0,height=1.0,text="",textSize=0.001,textureIndex=-1):
-		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textSize=textSize)
+class textInputElement(uiElement):
+	def __init__(self,xPos,yPos,width=0.0,height=0.0,text="",textSize=0.001,textureIndex=-1,textColor='FF FF FF',textXPos=0.0,textYPos=0.0,isSubUIElement=False):
+		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textSize=textSize,textColor=textColor,textXPos=textXPos,textYPos=textYPos,isSubUIElement=isSubUIElement)
 	def onKeyDown(self,keycode):
 		if(keycode == "backspace"):
 			self.text = self.text.rstrip(self.text[len(self.text)-1])
+		elif(keycode == "space"):
+			self.text = self.text + " "
 		else:
 			self.text = self.text + keycode
+class cityNameInputElement(textInputElement):
+	def __init__(self,xPos,yPos,width=0.0,height=0.0,text="",textSize=0.001,textureIndex=-1,textColor='FF FF FF',textXPos=0.0,textYPos=0.0,isSubUIElement=False):
+		textInputElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textSize=textSize,textColor=textColor,textXPos=textXPos,textYPos=textYPos,isSubUIElement=isSubUIElement)
+	def onKeyDown(self,keycode):
+		textInputElement.onKeyDown(self,keycode)
+
+class cityEditor(uiElement):
+	def __init__(self,xPos,yPos,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,isSubUIElement=False):
+		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines['CURSOR_HAND_INDEX'],color=color,mouseOverColor=mouseOverColor,isSubUIElement=isSubUIElement)
+		self.city = None
+
+	def show(self,city):
+		self.city = city
+		self.uiElements.append(addCreatureButton(-0.972,0.66,width=0.0,height=0.0,text="+creature",textSize=0.0005,isSubUIElement=True))
+		addCreatureButton(-0.972,0.0,width=0.0,height=0.0,text="+creature",textSize=0.0005)
+		self.uiElements.append(cityNameInputElement(-0.972,0.746,width=(2.0*cDefines['UI_TEXT_INPUT_IMAGE_WIDTH']/cDefines['SCREEN_WIDTH']),height=(2.0*cDefines['UI_TEXT_INPUT_IMAGE_HEIGHT']/cDefines['SCREEN_HEIGHT']),text=self.city.name,textSize=0.0005,textColor='00 00 00',textureIndex=cDefines['UI_TEXT_INPUT_INDEX'],textYPos=-0.035,textXPos=0.01,isSubUIElement=True))
+
+	def hide(self):
+		print "hide"
+
 
 class mapEditorTileSelectUIElement(uiElement):
-	def __init__(self,xPos,yPos,width=1.0,height=1.0,textureIndex=-1,hidden=False,tileType=0,playerNumber=-1):
+	def __init__(self,xPos,yPos,width=0.0,height=0.0,textureIndex=-1,hidden=False,tileType=0,playerNumber=-1):
 		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,cursorIndex=cDefines['CURSOR_HAND_INDEX'])
 		self.tileType = tileType
 		self.selected = False
 		self.playerNumber = playerNumber
 
-
-		self.toolTipElement = uiElement(self.xPosition+0.00,self.yPosition+0.04,width=1.0,height=1.0,text="asdf",textSize=0.0005,hidden=True)
+		self.toolTipElement = uiElement(self.xPosition+0.00,self.yPosition+0.04,width=0.0,height=0.0,text="asdf",textSize=0.0005,hidden=True)
 	def onClick(self):
 		if(theGameMode.selectedButton != None):
 			theGameMode.selectedButton.selected = False
@@ -197,7 +233,7 @@ class mapEditorTileSelectUIElement(uiElement):
 
 
 class scrollPadElement(uiElement):
-	def __init__(self,xPos,yPos,scrollableElement,width=1.0,height=1.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,topOffset=0.016,bottomOffset=0.020,rightOffset=0.012):
+	def __init__(self,xPos,yPos,scrollableElement,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,topOffset=0.016,bottomOffset=0.020,rightOffset=0.012):
 		uiElement.__init__(self,xPos-rightOffset,yPos-topOffset,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines['CURSOR_HAND_INDEX'],color=color,mouseOverColor=mouseOverColor)
 		self.scrolling = False
 		self.initMouseYPos = 0
@@ -230,14 +266,14 @@ class scrollPadElement(uiElement):
 #		self.yPosition = (self.totalScrollableHeight*scrollPos/(1+self.numScrollableElements))+self.topOffset-self.scrollableElement.yPosition
 
 class scrollingTextElement(uiElement):
-	def __init__(self,xPos,yPos,scrollableElement,width=1.0,height=1.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None):
+	def __init__(self,xPos,yPos,scrollableElement,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None):
 		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,color=color,mouseOverColor=mouseOverColor,cursorIndex=cDefines['CURSOR_HAND_INDEX'])
 		self.scrollableElement = scrollableElement
 	def onClick(self):
 		self.scrollableElement.handleClick(self)
 
 class scrollableTextFieldsElement(uiElement):
-	def __init__(self,xPos,yPos,width=1.0,height=1.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,yPositionOffset=-0.04,yOffset=-0.041,numFields=25,scrollSpeed=1):
+	def __init__(self,xPos,yPos,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,yPositionOffset=-0.04,yOffset=-0.041,numFields=25,scrollSpeed=1):
 		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,color=color,mouseOverColor=mouseOverColor)
 
 		self.yPositionOffset = yPositionOffset
@@ -321,12 +357,13 @@ class scrollableTextFieldsElement(uiElement):
 		self.hideAndShowTextFields()
 		self.scrollPadElem.setScrollPosition(self.scrollPosition)
 	def handleClick(self,textFieldElem):
+		print textFieldElem.text
 		print "clackity"
 		
 
 class playerStartLocationButton(clickableElement):
 	playerStartLocationButtons = []
-	def __init__(self,xPos,yPos,playerNumber,width=1.0,height=1.0,text="",textSize=0.001,textureIndex=-1,color="FF FF FF"):
+	def __init__(self,xPos,yPos,playerNumber,width=0.0,height=0.0,text="",textSize=0.001,textureIndex=-1,color="FF FF FF"):
 		clickableElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textSize=textSize,color=color)
 		self.playerNumber = playerNumber
 		self.selected = False
@@ -339,6 +376,11 @@ class playerStartLocationButton(clickableElement):
 		theGameMode.selectedButton = self
 		self.selected = True
 		self.color = "99 99 99"
+
+class addCreatureButton(clickableElement):	
+	def onClick(self):
+		print "addCreature"
+		scrollableTextFieldsElement(self.xPosition,self.yPosition-0.06,text="asdf",textSize=0.0005,textureIndex=cDefines['UI_SCROLLABLE_INDEX'],width=(2.0*cDefines['UI_SCROLLABLE_IMAGE_WIDTH']/cDefines['SCREEN_WIDTH']),height=(2.0*cDefines['UI_SCROLLABLE_IMAGE_HEIGHT']/cDefines['SCREEN_HEIGHT']))
 
 class node:
 	def __init__(self,tileValue,roadValue,city,playerStartValue=0):
@@ -355,11 +397,12 @@ class node:
 	def onClick(self):
 		if(theGameMode.selectedButton != None):
 			if(hasattr(theGameMode.selectedButton,"tileType")):
-				if(theGameMode.selectedButton.tileType == cDefines['ROAD_TILE_INDEX']):
+				if(theGameMode.selectedButton.tileType == cDefines['ROAD_TILE_INDEX']):#new road
 					self.roadValue = (~self.roadValue)&1
-				elif(theGameMode.selectedButton.tileType == cDefines['CITY_TILE_INDEX']):
-					#self.cityValue = (~self.cityValue)&1
+				elif(theGameMode.selectedButton.tileType == cDefines['CITY_TILE_INDEX']):#new city
 					#TODO: make it possible to move the city via drag/drop
+					if(self.city == None):
+						self.city = city("city name")
 					print "TODO FIX THIS"
 				else:
 					self.tileValue = theGameMode.selectedButton.tileType
@@ -385,9 +428,10 @@ class node:
 			theGameMode.selectedNode.selected = False
 		self.selected = True
 		theGameMode.selectedNode = self
-#		if(self.city != None):
-			
-	#		print "show city editor"
+		if(self.city != None):
+			print theGameMode.cityEditor
+			theGameMode.cityEditor.show(self.city)
+#			cityEditor(0.0,0.0)
 
 
 class map:
@@ -403,7 +447,7 @@ class map:
 		yPos = 0
 		xPos = 0
 		for line in mapFile:
-			if(count == 0):
+			if(count == 0):#header
 				#TODO add players and starting positions to map data
 				self.polarity = int(line)
 				self.numPlayers = 2
@@ -418,20 +462,16 @@ class map:
 						#print intValue
 							tileValue = intValue & 15
 							roadValue = (intValue & 16)>>4
-							cityValue = (intValue & 32)>>5
-							playerStartValue = (intValue & (64+128+256))>>6
-							if(cityValue > 0):
-								newNode = node(tileValue,roadValue,city(),playerStartValue=playerStartValue)
-								print "city inserted..."
-							else:
-								newNode = node(tileValue,roadValue,None,playerStartValue=playerStartValue)
+#							cityValue = (intValue & 32)>>5
+							playerStartValue = (intValue & (32+64+128))>>5
+							newNode = node(tileValue,roadValue,None,playerStartValue=playerStartValue)
 							newRow.append(newNode)
 					self.nodes.append(newRow)
 		                elif(line.startswith("*")):#city
-					print "loading city..."
-					coords = line.split(":")[0].strip("*").split(",")
-					print coords
-					print self.nodes[int(coords[0])][int(coords[1])].city
+					tokens = line.split(":")
+					coords = tokens[0].strip("*").split(",")
+					cityName = tokens[1]
+					self.nodes[int(coords[0])][int(coords[1])].city = city(tokens[1])
 
 			count = count + 1
 		mapFile.close()
@@ -448,10 +488,9 @@ class map:
 			line = "#"
 			for node in row:
 				xPos = xPos + 1
-				
 				line = line + chr(node.tileValue + (16*node.roadValue)+ (32*node.playerStartValue) + (512*0))#USE 512 NEXT BECAUSE 8 PLAYERS NEEDS 3 BITS
 				if(node.city != None):
-					cityLines.append("*" + str(xPos) + "," + str(yPos) + ":\n")
+					cityLines.append("*" + str(xPos-1) + "," + str(yPos-1) + ":" + node.city.name + ":creature1,creature2\n")
 			nodeLines.append(line + "\n")
 		mapFile.writelines(nodeLines)
 		mapFile.writelines(cityLines)
@@ -573,11 +612,13 @@ class mapEditorMode:
 				self.map.translateZ = 10.0-cDefines['maxZoom']
 
 	def addUIElements(self):
+
 		uiElement(xPos=-1.0,yPos=1.0,width=2.0,height=(2.0*cDefines['UI_MAP_EDITOR_TOP_IMAGE_HEIGHT']/cDefines['SCREEN_HEIGHT']),textureIndex=cDefines['UI_MAP_EDITOR_TOP_INDEX'])
 		uiElement(xPos=-1.0,yPos=1.0-(2.0*cDefines['UI_MAP_EDITOR_TOP_IMAGE_HEIGHT']/cDefines['SCREEN_HEIGHT']),width=(2.0*cDefines['UI_MAP_EDITOR_LEFT_IMAGE_WIDTH']/cDefines['SCREEN_WIDTH']),height=(2.0*cDefines['UI_MAP_EDITOR_LEFT_IMAGE_HEIGHT']/cDefines['UI_MAP_EDITOR_LEFT_IMAGE_WIDTH']),textureIndex=cDefines['UI_MAP_EDITOR_LEFT_INDEX'])
 		uiElement(xPos=1.0-(2.0*cDefines['UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH']/cDefines['SCREEN_WIDTH']),yPos=1.0-(2.0*cDefines['UI_MAP_EDITOR_TOP_IMAGE_HEIGHT']/cDefines['SCREEN_HEIGHT']),width=(2.0*cDefines['UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH']/cDefines['SCREEN_WIDTH']),height=(2.0*cDefines['UI_MAP_EDITOR_RIGHT_IMAGE_HEIGHT']/cDefines['UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH']),textureIndex=cDefines['UI_MAP_EDITOR_RIGHT_INDEX'])
 #-
 		uiElement(xPos=-1.0,yPos=-1.0+(2.0*cDefines['UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT']/cDefines['SCREEN_HEIGHT']),width=2.0,height=(2.0*cDefines['UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT']/cDefines['SCREEN_HEIGHT']),textureIndex=cDefines['UI_MAP_EDITOR_BOTTOM_INDEX'])
+		self.cityEditor = cityEditor(0.0,0.0)
 
 		mapEditorTileSelectUIElement(-0.93,0.92,tileType=cDefines['DESERT_TILE_INDEX'])
 		mapEditorTileSelectUIElement(-0.85,0.92,tileType=cDefines['GRASS_TILE_INDEX'])
@@ -594,22 +635,22 @@ class mapEditorMode:
 
 
 
-		addColumnButton(0.98,0.03,width=1.0,height=1.0,text="+",textureIndex=-1)
-		removeColumnButton(0.98,-0.03,width=1.0,height=1.0,text="-",textureIndex=-1)
+		addColumnButton(0.98,0.03,text="+",textureIndex=-1)
+		removeColumnButton(0.98,-0.03,text="-",textureIndex=-1)
 
-		addFirstColumnButton(-0.63,0.03,width=1.0,height=1.0,text="+",textureIndex=-1)
-		removeFirstColumnButton(-0.63,-0.03,width=1.0,height=1.0,text="-",textureIndex=-1)
+		addFirstColumnButton(-0.63,0.03,text="+",textureIndex=-1)
+		removeFirstColumnButton(-0.63,-0.03,text="-",textureIndex=-1)
 
-		addRowButton(0.18,-0.98,width=1.0,height=1.0,text="+",textureIndex=-1)
-		removeRowButton(0.21,-0.98,width=1.0,height=1.0,text="-",textureIndex=-1)
+		addRowButton(0.18,-0.98,text="+",textureIndex=-1)
+		removeRowButton(0.21,-0.98,text="-",textureIndex=-1)
 
-		addFirstRowButton(0.18,0.77,width=1.0,height=1.0,text="+",textureIndex=-1)
-		removeFirstRowButton(0.21,0.77,width=1.0,height=1.0,text="-",textureIndex=-1)
+		addFirstRowButton(0.18,0.77,text="+",textureIndex=-1)
+		removeFirstRowButton(0.21,0.77,text="-",textureIndex=-1)
 
 #		scrollableTextFieldsElement(0.5,0.925,text="asdf",textSize=0.0005,textureIndex=cDefines['UI_SCROLLABLE_INDEX'],width=(2.0*cDefines['UI_SCROLLABLE_IMAGE_WIDTH']/cDefines['SCREEN_WIDTH']),height=(2.0*cDefines['UI_SCROLLABLE_IMAGE_HEIGHT']/cDefines['SCREEN_HEIGHT']))
 
-		uiElement(0.8,0.925,width=1.0,height=1.0,text="asdf",textSize=0.0005)
-		saveButton(0.9,0.925,width=1.0,height=1.0,text="save",textSize=0.0005)
+		uiElement(0.8,0.925,text="asdf",textSize=0.0005)
+		saveButton(0.9,0.925,text="save",textSize=0.0005)
 
 class newGameScreenMode:
 	def __init__(self):
@@ -653,8 +694,8 @@ class newGameScreenMode:
 		newGameScreenButton(-0.165,0.1,text="map editor",gameMode=mapEditorMode)
 		newGameScreenButton(-0.16,0.0,text="test test te",gameMode=gameMode)
 		newGameScreenButton(-0.17,-0.1,text="test test tes",gameMode=mapEditorMode)
-#		uiElement(-0.21,0.0,width=1.0,height=1.0,text="creature editor",textColor="DD DD DD")
-#		uiElement(-0.12,-0.1,width=1.0,height=1.0,text="options",textColor="DD DD DD")
+#		uiElement(-0.21,0.0,width=0.0,height=0.0,text="creature editor",textColor="DD DD DD")
+#		uiElement(-0.12,-0.1,width=0.0,height=0.0,text="options",textColor="DD DD DD")
 #		startNewGameButton(
 
 class gameMode:
@@ -714,20 +755,21 @@ class gameMode:
 		mapEditorTileSelectUIElement(-0.53,0.92,tileType=cDefines['ROAD_TILE_INDEX'])
 		mapEditorTileSelectUIElement(-0.45,0.92,tileType=cDefines['CITY_TILE_INDEX'])
 
-		addColumnButton(0.98,0.03,width=1.0,height=1.0,text="+")
-		removeColumnButton(0.98,-0.03,width=1.0,height=1.0,text="-")
+		addColumnButton(0.98,0.03,width=0.0,height=0.0,text="+")
+		removeColumnButton(0.98,-0.03,width=0.0,height=0.0,text="-")
 
-		addFirstColumnButton(-0.63,0.03,width=1.0,height=1.0,text="+",textureIndex=-1)
-		removeFirstColumnButton(-0.63,-0.03,width=1.0,height=1.0,text="-",textureIndex=-1)
+		addFirstColumnButton(-0.63,0.03,width=0.0,height=0.0,text="+",textureIndex=-1)
+		removeFirstColumnButton(-0.63,-0.03,width=0.0,height=0.0,text="-",textureIndex=-1)
 
-		addRowButton(0.18,-0.98,width=1.0,height=1.0,text="+",textureIndex=-1)
-		removeRowButton(0.21,-0.98,width=1.0,height=1.0,text="-",textureIndex=-1)
+		addRowButton(0.18,-0.98,width=0.0,height=0.0,text="+",textureIndex=-1)
+		removeRowButton(0.21,-0.98,width=0.0,height=0.0,text="-",textureIndex=-1)
 
-		addFirstRowButton(0.18,0.77,width=1.0,height=1.0,text="+",textureIndex=-1)
-		removeFirstRowButton(0.21,0.77,width=1.0,height=1.0,text="-",textureIndex=-1)
+		addFirstRowButton(0.18,0.77,width=0.0,height=0.0,text="+",textureIndex=-1)
+		removeFirstRowButton(0.21,0.77,width=0.0,height=0.0,text="-",textureIndex=-1)
 
-		uiElement(0.8,0.925,width=1.0,height=1.0,text="asdf",textSize=0.0005)
+		uiElement(0.8,0.925,width=0.0,height=0.0,text="asdf",textSize=0.0005)
 		print "done"
+
 global theGameMode
 theGameMode = newGameScreenMode()
 theGameMode.addUIElements()
