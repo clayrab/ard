@@ -610,7 +610,7 @@ void drawUI(){
 
   while (uiElement = PyIter_Next(UIElementsIterator)) {
     drawUIElement(uiElement);
-    /*    subUIElementsIterator = PyObject_GetIter(PyObject_CallMethod(uiElement,"getUIElementsIterator",NULL));//New reference
+    subUIElementsIterator = PyObject_GetIter(PyObject_CallMethod(uiElement,"getUIElementsIterator",NULL));//New reference
     while (subUIElement = PyIter_Next(subUIElementsIterator)) {
       drawUIElement(subUIElement);
 
@@ -620,7 +620,6 @@ void drawUI(){
       }
 
     }
-    */
     
   }
 
