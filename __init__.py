@@ -206,6 +206,7 @@ class cityEditor(uiElement):
 	def show(self,city):
 		self.hide()
 		self.city = city
+		
 		self.names.append(cityNameInputElement(-0.972,0.746,width=(2.0*cDefines['UI_TEXT_INPUT_IMAGE_WIDTH']/cDefines['SCREEN_WIDTH']),height=(2.0*cDefines['UI_TEXT_INPUT_IMAGE_HEIGHT']/cDefines['SCREEN_HEIGHT']),text=self.city.name,textSize=0.0005,textColor='00 00 00',textureIndex=cDefines['UI_TEXT_INPUT_INDEX'],textYPos=-0.035,textXPos=0.01).name)
 		self.names.append(cityCostField(-0.972,0.66,width=(2.0*cDefines['UI_TEXT_INPUT_IMAGE_WIDTH']/cDefines['SCREEN_WIDTH']),height=(2.0*cDefines['UI_TEXT_INPUT_IMAGE_HEIGHT']/cDefines['SCREEN_HEIGHT']),text=str(city.costOfOwnership),textSize=0.0005,textColor='00 00 00',mouseOverColor='00 00 00',textureIndex=cDefines['UI_TEXT_INPUT_INDEX'],textYPos=-0.035,textXPos=0.01).name)
 
@@ -214,6 +215,8 @@ class cityEditor(uiElement):
 			self.names.append(uiElement(-0.972,height,text=unit.name,textSize=0.0005).name)
 			height = height - 0.035
 		self.names.append(addUnitButton(-0.972,height,width=0.0,height=0.0,text="+unit",textSize=0.0005).name)
+		self.names.append(deleteCityButton(-0.972,0.5,width=0.0,height=0.0,text="delete city",textSize=0.0005).name)
+
 	def hide(self):
 		for name in self.names:
 			del theGameMode.elementsDict[name]
@@ -373,6 +376,9 @@ class playerStartLocationButton(clickableElement):
 		theGameMode.selectedButton = self
 		self.selected = True
 		self.color = "99 99 99"
+class deleteCityButton(clickableElement):
+	def onClick(self):
+		print "delete city"
 
 class addUnitButton(clickableElement):	
 	def onClick(self):
@@ -398,21 +404,30 @@ class node:
 
 	def getValue(self):
 		return self.tileValue
-	def onClick(self):
+	def onLeftClickUp(self):
+		if(theGameMode.selectedNode != None):
+			if(theGameMode.selectedNode != self):
+				if(theGameMode.selectedNode.city != None):
+					self.city = theGameMode.selectedNode.city
+					theGameMode.selectedNode.city = None
+					theGameMode.selectedNode.selected = False
+					self.selected = True
+					theGameMode.selectedNode = self
+	def onLeftClickDown(self):
 		if(theGameMode.selectedButton != None):
 			if(hasattr(theGameMode.selectedButton,"tileType")):
 				if(theGameMode.selectedButton.tileType == cDefines['ROAD_TILE_INDEX']):#new road
 					self.roadValue = (~self.roadValue)&1
 				elif(theGameMode.selectedButton.tileType == cDefines['CITY_TILE_INDEX']):#new city
-					#TODO: make it possible to move the city via drag/drop
 					if(self.city == None):
 						self.city = city("city name")
+						theGameMode.cityEditor.show(self.city)
 					else:
-						print "show city editor"
-					#TODO FIX THIS
-					#let's change right click to left click while city tool is selected...
-					#then we can make middle click into right click...
-
+						theGameMode.cityEditor.show(self.city)
+					if(theGameMode.selectedNode != None):
+						theGameMode.selectedNode.selected = False
+					self.selected = True
+					theGameMode.selectedNode = self
 				else:
 					self.tileValue = theGameMode.selectedButton.tileType
 			else:
@@ -424,25 +439,11 @@ class node:
 								button.color = "55 55 55"
 						theGameMode.map.numPlayers = theGameMode.map.numPlayers - 1
 				else:
-#					if(theGameMode.map.numPlayers == theGameMode.selectedButton.playerNumber):
-						
 					for row in theGameMode.map.nodes:
 						for node in row:
 							if(node.playerStartValue == theGameMode.selectedButton.playerNumber):
 								node.playerStartValue = 0
 					self.playerStartValue = theGameMode.selectedButton.playerNumber
-
-	def onRightClick(self):
-		if(theGameMode.selectedNode != None):
-			theGameMode.selectedNode.selected = False
-		self.selected = True
-		theGameMode.selectedNode = self
-		if(self.city != None):
-			theGameMode.cityEditor.show(self.city)
-		else:
-			theGameMode.cityEditor.hide()
-
-
 class map:
 	def __init__(self,mapEditorMode):
 		self.polarity = 0

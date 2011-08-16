@@ -816,7 +816,7 @@ static void handleInput(){
 
 
       if(event.button.button == SDL_BUTTON_MIDDLE){
-	clickScroll = 1;
+	//	clickScroll = 1;
       }
       if(event.button.button == SDL_BUTTON_LEFT){
 	//leftButtonDown = 1;
@@ -824,17 +824,21 @@ static void handleInput(){
 	previousSelectedName = selectedName;
       }
       if(event.button.button == SDL_BUTTON_RIGHT){
-	PyObject_CallMethod(gameMode,"handleRightClick","i",selectedName);//New reference
+	clickScroll = 1;
+	
+	//	PyObject_CallMethod(gameMode,"handleRightClick","i",selectedName);//New reference
       }
       break;
     case SDL_MOUSEBUTTONUP:
       if(event.button.button == SDL_BUTTON_MIDDLE){
-	clickScroll = 0;
+	//	clickScroll = 0;
       }
       if(event.button.button == SDL_BUTTON_LEFT){
 	PyObject_CallMethod(gameMode,"handleLeftClickUp","i",selectedName);//New reference
-	
 	leftButtonDown = 0;
+      }
+      if(event.button.button == SDL_BUTTON_RIGHT){
+	clickScroll = 0;
       }
       break;
     case SDL_KEYDOWN:
