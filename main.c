@@ -18,8 +18,10 @@
 #include "libpngGL.h"
 #include "fonts.h"
 
-#define maxZoom 120.0
+#define maxZoom 70.0
 #define minZoom 10.0
+#define initZoom 60.0
+
 #define zoomSpeed 0.3
 
 #define SCREEN_WIDTH 1280
@@ -109,7 +111,6 @@ int deltaTicks = 0;
 
 float translateX = -30.0;
 float translateY = 30.0;
-#define translateZ -100.0
 float scrollSpeed = 0.04;
 
 PyObject * gameModule;
@@ -899,7 +900,7 @@ static void draw(){
     //game board projection time
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluPerspective(45.0f,screenRatio,minZoom,maxZoom);
+    gluPerspective(45.0f,screenRatio,minZoom,maxZoom+1.0);
 
     //draw the game board
     glMatrixMode(GL_MODELVIEW);
@@ -920,7 +921,7 @@ static void draw(){
     glViewport(UI_MAP_EDITOR_LEFT_IMAGE_WIDTH,UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT,SCREEN_WIDTH - UI_MAP_EDITOR_LEFT_IMAGE_WIDTH - UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH, SCREEN_HEIGHT - UI_MAP_EDITOR_TOP_IMAGE_HEIGHT - UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT);
     glGetIntegerv(GL_VIEWPORT,viewport);
     gluPickMatrix(mouseX,viewport[3]+UI_MAP_EDITOR_TOP_IMAGE_HEIGHT+UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT-mouseY,5,5,viewport);
-    gluPerspective(45.0f,screenRatio,minZoom,maxZoom);
+    gluPerspective(45.0f,screenRatio,minZoom,maxZoom+1.0);
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
     //glInitNames();

@@ -115,12 +115,12 @@ class newGameScreenButton(clickableElement):
 		if(self.index == newGameScreenButton.selectedIndex):
 			self.textColor = newGameScreenButton.selectedTextColor
 	def onClick(self):
-		print "click"
 		global theGameMode
 		theGameMode = self.gameMode()
 		if(hasattr(theGameMode,"loadMap")):
 			theGameMode.loadMap()
 		theGameMode.addUIElements()
+
 class saveButton(clickableElement):	
 	def onClick(self):
 		theGameMode.map.save()
@@ -129,17 +129,19 @@ class saveButton(clickableElement):
 class addColumnButton(clickableElement):
 	def onClick(self):
 		for row in theGameMode.map.nodes:
-			row.append(node(0,0,0))
+			row.append(node(0,0))
+
 class removeColumnButton(clickableElement):
 	def onClick(self):
 		for row in theGameMode.map.nodes:
 			row.pop()
+
 class addFirstColumnButton(clickableElement):
 	def onClick(self):
 		for count in range(0,len(theGameMode.map.nodes)):
 			rowCopy = theGameMode.map.nodes[count][:]
 			rowCopy.reverse()
-			rowCopy.append(node(0,0,0))
+			rowCopy.append(node(0,0))
 			rowCopy.reverse()
 			theGameMode.map.nodes[count] = rowCopy
 class removeFirstColumnButton(clickableElement):
@@ -155,23 +157,23 @@ class addRowButton(clickableElement):
 	def onClick(self):
 		newRow = []
 		for count in range(0,len(theGameMode.map.nodes[0])):
-			newRow.append(node(0,0,0))
+			newRow.append(node(0,0))
 		theGameMode.map.nodes.append(newRow)
 class removeRowButton(clickableElement):
 	def onClick(self):
 		theGameMode.map.nodes.pop()
+
 class addFirstRowButton(clickableElement):
 	def onClick(self):
 		nodesCopy = theGameMode.map.nodes[:]
 		newRow = []
 		for count in range(0,len(theGameMode.map.nodes[0])):
-			newRow.append(node(0,0,0))
+			newRow.append(node(0,0))
 		nodesCopy.reverse()
 		nodesCopy.append(newRow)
 		nodesCopy.reverse()
 		theGameMode.map.polarity = (~theGameMode.map.polarity)&1
 		theGameMode.map.nodes = nodesCopy
-
 class removeFirstRowButton(clickableElement):
 	def onClick(self):
 		nodesCopy = theGameMode.map.nodes[:]
@@ -215,7 +217,7 @@ class cityEditor(uiElement):
 			self.names.append(uiElement(-0.972,height,text=unit.name,textSize=0.0005).name)
 			height = height - 0.035
 		self.names.append(addUnitButton(-0.972,height,width=0.0,height=0.0,text="+unit",textSize=0.0005).name)
-		self.names.append(deleteCityButton(-0.972,0.5,width=0.0,height=0.0,text="delete city",textSize=0.0005).name)
+		self.names.append(deleteCityButton(-0.972,-0.9,width=0.0,height=0.0,text="delete city",textSize=0.0005).name)
 
 	def hide(self):
 		for name in self.names:
@@ -359,7 +361,6 @@ class cityCostSelector(scrollableTextFieldsElement):
 		self.cityCostField.text = textFieldElem.text
 		theGameMode.cityEditor.city.costOfOwnership = int(textFieldElem.text)
 		self.destroy()
-		print "clickkk"
 
 class playerStartLocationButton(clickableElement):
 	playerStartLocationButtons = []
@@ -378,7 +379,10 @@ class playerStartLocationButton(clickableElement):
 		self.color = "99 99 99"
 class deleteCityButton(clickableElement):
 	def onClick(self):
-		print "delete city"
+		theGameMode.cityEditor.hide()
+		theGameMode.selectedNode.city = None
+		theGameMode.selectedNode.selected = False
+		theGameMode.selectedNode = None
 
 class addUnitButton(clickableElement):	
 	def onClick(self):
@@ -390,10 +394,9 @@ class addUnitButton(clickableElement):
 class cityCostField(clickableElement):
 	def onClick(self):
 		cityCostSelector(self.xPosition,self.yPosition-0.06,cityCosts,self,text="select cost",textSize=0.0005,textureIndex=cDefines['UI_SCROLLABLE_INDEX'],width=(2.0*cDefines['UI_SCROLLABLE_IMAGE_WIDTH']/cDefines['SCREEN_WIDTH']),height=(2.0*cDefines['UI_SCROLLABLE_IMAGE_HEIGHT']/cDefines['SCREEN_HEIGHT']))
-		print "cityCost"
 
 class node:
-	def __init__(self,tileValue,roadValue,city,playerStartValue=0):
+	def __init__(self,tileValue,roadValue,city=None,playerStartValue=0):
 		self.name = nameGenerator.getNextName()
 		self.tileValue = tileValue
 		self.roadValue = roadValue
@@ -448,7 +451,7 @@ class map:
 	def __init__(self,mapEditorMode):
 		self.polarity = 0
 		self.load(mapEditorMode)
-		self.translateZ = cDefines['translateZ']
+		self.translateZ = 0-cDefines['initZoom']
 	def load(self,mapEditorMode):
 		mapFile = open('map1','r')
 		self.nodes = []
@@ -456,6 +459,7 @@ class map:
 		yPos = 0
 		xPos = 0
 		for line in mapFile:
+			print line
 			if(count == 0):#header
 				#TODO add players and starting positions to map data
 				self.polarity = int(line)
@@ -474,6 +478,7 @@ class map:
 							newRow.append(newNode)
 					self.nodes.append(newRow)
 		                elif(line.startswith("*")):#city
+					
 					tokens = line.split(":")
 					coords = tokens[0].strip("*").split(",")
 					cityName = tokens[1]
@@ -483,8 +488,7 @@ class map:
 						for unitName in unitNames:
 							units.append(theUnits[unitName])
 					costOfOwnership = tokens[3]
-					self.nodes[int(coords[0])][int(coords[1])].city = city(cityName,units,costOfOwnership)
-
+					self.nodes[int(coords[1])][int(coords[0])].city = city(cityName,units,costOfOwnership)
 			count = count + 1
 		mapFile.close()
 	def save(self):
@@ -506,7 +510,7 @@ class map:
 					for unit in node.city.units:
 						units = units + "," + unit.name
 					units = units[1:]
-					cityLines.append("*" + str(xPos-1) + "," + str(yPos-1) + ":" + node.city.name + ":" + units + ":" + str(node.city.costOfOwnership)  + "\n")
+					cityLines.append("*" + str(xPos-1) + "," + str(yPos-1) + ":" + node.city.name + ":" + units + ":" + str(node.city.costOfOwnership))
 			nodeLines.append(line + "\n")
 		mapFile.writelines(nodeLines)
 		mapFile.writelines(cityLines)
@@ -615,7 +619,6 @@ class mapEditorMode:
 			self.map.translateZ = self.map.translateZ + zoomSpeed*deltaTicks;
 			if(self.map.translateZ > (-10.0-cDefines['minZoom'])):
 				self.map.translateZ = -10.0-cDefines['minZoom']
-
 	def handleScrollDown(self,name,deltaTicks):
 		if(name in self.elementsDict and hasattr(self.elementsDict[name],"onScrollDown")):
 			self.elementsDict[name].onScrollDown()
@@ -648,8 +651,8 @@ class mapEditorMode:
 
 
 
-		addColumnButton(0.98,0.03,text="+",textureIndex=-1)
-		removeColumnButton(0.98,-0.03,text="-",textureIndex=-1)
+		addColumnButton(0.96,0.03,text="+",textureIndex=-1)
+		removeColumnButton(0.96,-0.03,text="-",textureIndex=-1)
 
 		addFirstColumnButton(-0.63,0.03,text="+",textureIndex=-1)
 		removeFirstColumnButton(-0.63,-0.03,text="-",textureIndex=-1)
@@ -772,7 +775,6 @@ class gameMode:
 			except:
 				return
 	def addUIElements(self):
-		print "adding..>"
 		uiElement(xPos=-1.0,yPos=1.0,width=2.0,height=(2.0*cDefines['UI_MAP_EDITOR_TOP_IMAGE_HEIGHT']/cDefines['SCREEN_HEIGHT']),textureIndex=cDefines['UI_MAP_EDITOR_TOP_INDEX'])
 		uiElement(xPos=-1.0,yPos=1.0-(2.0*cDefines['UI_MAP_EDITOR_TOP_IMAGE_HEIGHT']/cDefines['SCREEN_HEIGHT']),width=(2.0*cDefines['UI_MAP_EDITOR_LEFT_IMAGE_WIDTH']/cDefines['SCREEN_WIDTH']),height=(2.0*cDefines['UI_MAP_EDITOR_LEFT_IMAGE_HEIGHT']/cDefines['UI_MAP_EDITOR_LEFT_IMAGE_WIDTH']),textureIndex=cDefines['UI_MAP_EDITOR_LEFT_INDEX'])
 		uiElement(xPos=1.0-(2.0*cDefines['UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH']/cDefines['SCREEN_WIDTH']),yPos=1.0-(2.0*cDefines['vUI_MAP_EDITOR_TOP_IMAGE_HEIGHT']/cDefines['SCREEN_HEIGHT']),width=(2.0*cDefines['UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH']/cDefines['SCREEN_WIDTH']),height=(2.0*cDefines['UI_MAP_EDITOR_RIGHT_IMAGE_HEIGHT']/cDefines['UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH']),textureIndex=cDefines['UI_MAP_EDITOR_RIGHT_INDEX'])
