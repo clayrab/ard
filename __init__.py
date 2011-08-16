@@ -27,9 +27,9 @@ for line in cFile:
 cFile.close()
 
 class city:
-	def __init__(self,name,units):
+	def __init__(self,name,units=[],costOfOwnership=10):
 		self.name = name
-		self.costOfOwnership = 10
+		self.costOfOwnership = costOfOwnership
 		self.units = units
 		
 class unit:
@@ -115,6 +115,7 @@ class newGameScreenButton(clickableElement):
 		if(self.index == newGameScreenButton.selectedIndex):
 			self.textColor = newGameScreenButton.selectedTextColor
 	def onClick(self):
+		print "click"
 		global theGameMode
 		theGameMode = self.gameMode()
 		if(hasattr(theGameMode,"loadMap")):
@@ -405,8 +406,13 @@ class node:
 				elif(theGameMode.selectedButton.tileType == cDefines['CITY_TILE_INDEX']):#new city
 					#TODO: make it possible to move the city via drag/drop
 					if(self.city == None):
-						self.city = city("city name",[])
-					print "TODO FIX THIS"
+						self.city = city("city name")
+					else:
+						print "show city editor"
+					#TODO FIX THIS
+					#let's change right click to left click while city tool is selected...
+					#then we can make middle click into right click...
+
 				else:
 					self.tileValue = theGameMode.selectedButton.tileType
 			else:
@@ -475,7 +481,8 @@ class map:
 						unitNames = tokens[2].strip().split(",")
 						for unitName in unitNames:
 							units.append(theUnits[unitName])
-					self.nodes[int(coords[0])][int(coords[1])].city = city(cityName,units)
+					costOfOwnership = tokens[3]
+					self.nodes[int(coords[0])][int(coords[1])].city = city(cityName,units,costOfOwnership)
 
 			count = count + 1
 		mapFile.close()
@@ -498,7 +505,7 @@ class map:
 					for unit in node.city.units:
 						units = units + "," + unit.name
 					units = units[1:]
-					cityLines.append("*" + str(xPos-1) + "," + str(yPos-1) + ":" + node.city.name + ":" + units +"\n")
+					cityLines.append("*" + str(xPos-1) + "," + str(yPos-1) + ":" + node.city.name + ":" + units + ":" + str(node.city.costOfOwnership)  + "\n")
 			nodeLines.append(line + "\n")
 		mapFile.writelines(nodeLines)
 		mapFile.writelines(cityLines)
@@ -542,12 +549,12 @@ class mapEditorMode:
 		if(not rightClickable):
 			self.selectedNode.selected = False
 			self.selectedNode = None
-	def handleClick(self,name):
-		if(self.elementsDict.has_key(name)):
-			self.elementWithFocus = self.elementsDict[name]
-			self.elementsDict[name].onClick()
-		else:
-			self.elementWithFocus = None
+#	def handleClick(self,name):
+#		if(self.elementsDict.has_key(name)):
+#			self.elementWithFocus = self.elementsDict[name]
+#			self.elementsDict[name].onClick()
+#		else:
+#			self.elementWithFocus = None
 	def handleLeftClickDown(self,name):
 		if(self.elementsDict.has_key(name)):
 			self.elementWithFocus = self.elementsDict[name]
@@ -662,12 +669,34 @@ class newGameScreenMode:
 		self.map = None
 	def getUIElementsIterator(self):
 		return self.elementsDict.values().__iter__()
-	def handleClick(self,name):
-		if(self.elementsDict.has_key(name)):
-			self.elementWithFocus = self.elementsDict[name]
-			self.elementsDict[name].onClick()
+#	def handleMouseMovement(self,name,mouseX,mouseY):
+#		self.mouseX = mouseX
+#		self.mouseY = mouseY
+#		if(self.elementsDict.has_key(name)):
+#			if(hasattr(self.elementsDict[name],"onMouseMovement")):
+#				self.elementsDict[name].onMouseMovement()
+#			elif(hasattr(self.elementWithFocus,"onMouseMovement")):
+#				self.elementWithFocus.onMouseMovement()
+#	def handleClick(self,name):
+#		print "handleClick"
+#		if(self.elementsDict.has_key(name)):
+#			self.elementWithFocus = self.elementsDict[name]
+#			self.elementsDict[name].onClick()
 #		else:
 #			self.elementWithFocus = None
+	def handleLeftClickDown(self,name):
+		if(self.elementsDict.has_key(name)):
+			self.elementWithFocus = self.elementsDict[name]
+			if(hasattr(self.elementsDict[name],"onClick")):
+				self.elementsDict[name].onClick()
+			elif(hasattr(self.elementsDict[name],"onLeftClickDown")):
+				self.elementsDict[name].onLeftClickDown()
+			elif(hasattr(self.elementWithFocus,"onClick")):
+				self.elementWithFocus.onClick()
+			elif(hasattr(self.elementWithFocus,"onLeftClickDown")):
+				self.elementWithFocus.onLeftClickDown()
+		else:
+			self.elementWithFocus = None
 	def handleKeyDown(self,keycode):
 		if(keycode == "up"):
 			if(newGameScreenButton.selectedIndex == 0):

@@ -354,12 +354,12 @@ void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long 
   textureVertices = vertexArrays[tileValue];
   if(name == selectedName){
     glColor3f(0.8f, 0.8f, 0.8f);
-    if(leftButtonDown){
+    /*    if(leftButtonDown){
       if(previousSelectedName != selectedName){
 	PyObject_CallMethod(gameMode,"handleClick","i",selectedName);
       }
       previousSelectedName = selectedName;
-    }
+      }*/
   }else{
     glColor3f(1.0f, 1.0f, 1.0f);
   }
