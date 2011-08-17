@@ -129,7 +129,7 @@ class saveButton(clickableElement):
 class addColumnButton(clickableElement):
 	def onClick(self):
 		for row in theGameMode.map.nodes:
-			row.append(node(0,0))
+			row.append(node())
 
 class removeColumnButton(clickableElement):
 	def onClick(self):
@@ -141,7 +141,7 @@ class addFirstColumnButton(clickableElement):
 		for count in range(0,len(theGameMode.map.nodes)):
 			rowCopy = theGameMode.map.nodes[count][:]
 			rowCopy.reverse()
-			rowCopy.append(node(0,0))
+			rowCopy.append(node())
 			rowCopy.reverse()
 			theGameMode.map.nodes[count] = rowCopy
 class removeFirstColumnButton(clickableElement):
@@ -157,7 +157,7 @@ class addRowButton(clickableElement):
 	def onClick(self):
 		newRow = []
 		for count in range(0,len(theGameMode.map.nodes[0])):
-			newRow.append(node(0,0))
+			newRow.append(node())
 		theGameMode.map.nodes.append(newRow)
 class removeRowButton(clickableElement):
 	def onClick(self):
@@ -168,7 +168,7 @@ class addFirstRowButton(clickableElement):
 		nodesCopy = theGameMode.map.nodes[:]
 		newRow = []
 		for count in range(0,len(theGameMode.map.nodes[0])):
-			newRow.append(node(0,0))
+			newRow.append(node())
 		nodesCopy.reverse()
 		nodesCopy.append(newRow)
 		nodesCopy.reverse()
@@ -396,7 +396,7 @@ class cityCostField(clickableElement):
 		cityCostSelector(self.xPosition,self.yPosition-0.06,cityCosts,self,text="select cost",textSize=0.0005,textureIndex=cDefines['UI_SCROLLABLE_INDEX'],width=(2.0*cDefines['UI_SCROLLABLE_IMAGE_WIDTH']/cDefines['SCREEN_WIDTH']),height=(2.0*cDefines['UI_SCROLLABLE_IMAGE_HEIGHT']/cDefines['SCREEN_HEIGHT']))
 
 class node:
-	def __init__(self,tileValue,roadValue,city=None,playerStartValue=0):
+	def __init__(self,tileValue=cDefines['GRASS_TILE_INDEX'],roadValue=0,city=None,playerStartValue=0):
 		self.name = nameGenerator.getNextName()
 		self.tileValue = tileValue
 		self.roadValue = roadValue
@@ -459,7 +459,6 @@ class map:
 		yPos = 0
 		xPos = 0
 		for line in mapFile:
-			print line
 			if(count == 0):#header
 				#TODO add players and starting positions to map data
 				self.polarity = int(line)
@@ -478,7 +477,6 @@ class map:
 							newRow.append(newNode)
 					self.nodes.append(newRow)
 		                elif(line.startswith("*")):#city
-					
 					tokens = line.split(":")
 					coords = tokens[0].strip("*").split(",")
 					cityName = tokens[1]
@@ -580,7 +578,14 @@ class mapEditorMode:
 			elif(hasattr(self.elementWithFocus,"onLeftClickUp")):
 				self.elementWithFocus.onLeftClickUp()
 
-	def handleMouseOver(self,name):
+	def handleMouseOver(self,name,isLeftMouseDown):
+		#TODO: keeping track of mousedOverObject might not be necessary any more since I added previousMousedoverName to the C code
+		if(isLeftMouseDown > 0):#allows onLeftClickDown to be called for tiles when the mouse is dragged over them
+			if(theGameMode.selectedButton != None):
+				if(theGameMode.selectedButton.tileType != cDefines['CITY_TILE_INDEX']):
+					if(self.elementsDict.has_key(name)):
+						if(hasattr(self.elementsDict[name],"tileValue")):#node
+							self.elementsDict[name].onLeftClickDown()
 		if(self.mousedOverObject != None):
 			if(self.mousedOverObject.name != name):
 				if(hasattr(self.mousedOverObject,"onMouseOut")):

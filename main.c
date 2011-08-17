@@ -109,7 +109,7 @@ int moveRight = 0;
 int previousTick = 0;
 int deltaTicks = 0;
 
-float translateX = -30.0;
+float translateX = -46.0;
 float translateY = 30.0;
 float scrollSpeed = 0.04;
 
@@ -144,7 +144,8 @@ int mouseX = 0;
 int mouseY = 0;
 GLuint selectBuf[BUFSIZE];
 int selectedName = -1;//the mousedover object's 'name'
-int previousSelectedName = -2;
+int previousClickedName = -2;
+int previousMousedoverName = -2;
 int theCursorIndex = -1;
 
 
@@ -355,12 +356,6 @@ void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long 
   textureVertices = vertexArrays[tileValue];
   if(name == selectedName){
     glColor3f(0.8f, 0.8f, 0.8f);
-    /*    if(leftButtonDown){
-      if(previousSelectedName != selectedName){
-	PyObject_CallMethod(gameMode,"handleClick","i",selectedName);
-      }
-      previousSelectedName = selectedName;
-      }*/
   }else{
     glColor3f(1.0f, 1.0f, 1.0f);
   }
@@ -591,8 +586,10 @@ void drawUIElement(PyObject * uiElement){
     Py_DECREF(pyTextXPosition);
     Py_DECREF(pyTextYPosition);
 
-    //    printf("%d\n",selectedName);
-    PyObject_CallMethod(gameMode,"handleMouseOver","i",selectedName);//New reference
+    if(previousMousedoverName != selectedName){
+      PyObject_CallMethod(gameMode,"handleMouseOver","(ii)",selectedName,leftButtonDown);//New reference
+      previousMousedoverName = selectedName;
+    }
 
     if(!hidden){
       if(PyObject_HasAttrString(uiElement,"tileType")){//gameModeTileSelectButton
@@ -776,10 +773,11 @@ static void handleInput(){
       mouseX = event.motion.x;
       mouseY = event.motion.y;
       PyObject_CallMethod(gameMode,"handleMouseMovement","(iii)",selectedName,mouseX,mouseY);
-      //					printf("x: %d\t\ty: %d\n",mouseX,mouseY);
+      //printf("x: %d\t\ty: %d\n",mouseX,mouseY);
       if(clickScroll > 0){
 	translateX = translateX + mouseMapPosX - mouseMapPosXPrevious;
 	translateY = translateY + mouseMapPosY - mouseMapPosYPrevious;
+	//printf("translateX %f, translateY %f\n",translateX,translateY);
       }else{
 	if(mouseX == 0){
 	  moveRight = -1;
@@ -820,13 +818,12 @@ static void handleInput(){
 	//	clickScroll = 1;
       }
       if(event.button.button == SDL_BUTTON_LEFT){
-	//leftButtonDown = 1;
+	leftButtonDown = 1;
 	PyObject_CallMethod(gameMode,"handleLeftClickDown","i",selectedName);//New reference
-	previousSelectedName = selectedName;
+	previousClickedName = selectedName;
       }
       if(event.button.button == SDL_BUTTON_RIGHT){
 	clickScroll = 1;
-	
 	//	PyObject_CallMethod(gameMode,"handleRightClick","i",selectedName);//New reference
       }
       break;
