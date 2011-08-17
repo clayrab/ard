@@ -85,7 +85,7 @@
 #define DESERT_TILE_INDEX 0
 #define GRASS_TILE_INDEX 1
 #define MOUNTAIN_TILE_INDEX 2
-#define JUNGLE_TILE_INDEX 3
+#define FOREST_TILE_INDEX 3
 #define WATER_TILE_INDEX 4
 #define ROAD_TILE_INDEX 5
 #define CITY_TILE_INDEX 6
@@ -157,13 +157,21 @@ float desertVertices[6][2] = {
   {(754.0/1280),1.0-(66.0/1280)},
   {(726.0/1280),1.0-(82.0/1280)}
 };
-float jungleVertices[6][2] = {
+/*float forestVertices[6][2] = {
   {(699.0/1280),1.0-(262.0/1280)},
   {(699.0/1280),1.0-(230.0/1280)},
   {(726.0/1280),1.0-(214.0/1280)},
   {(754.0/1280),1.0-(230.0/1280)},
   {(754.0/1280),1.0-(262.0/1280)},
   {(726.0/1280),1.0-(278.0/1280)}
+  };*/
+float forestVertices[6][2] = {
+  {(643.0/1280),1.0-(360.0/1280)},
+  {(643.0/1280),1.0-(328.0/1280)},
+  {(670.0/1280),1.0-(312.0/1280)},
+  {(696.0/1280),1.0-(328.0/1280)},
+  {(696.0/1280),1.0-(360.0/1280)},
+  {(670.0/1280),1.0-(376.0/1280)}
 };
 float grassVertices[6][2] = {
   {(699.0/1280),1.0-(360.0/1280)},
@@ -737,7 +745,7 @@ static void initGL (){
   vertexArrays[DESERT_TILE_INDEX] = *desertVertices;
   vertexArrays[GRASS_TILE_INDEX] = *grassVertices;
   vertexArrays[MOUNTAIN_TILE_INDEX] = *mountainVertices;
-  vertexArrays[JUNGLE_TILE_INDEX] = *jungleVertices;
+  vertexArrays[FOREST_TILE_INDEX] = *forestVertices;
   vertexArrays[WATER_TILE_INDEX] = *waterVertices;
   vertexArrays[ROAD_TILE_INDEX] = *roadVertices;
   vertexArrays[CITY_TILE_INDEX] = *cityVertices;
