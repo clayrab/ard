@@ -82,6 +82,16 @@
 #define UI_TEXT_INPUT_IMAGE_WIDTH 200
 #define UI_TEXT_INPUT_INDEX 12
 
+#define MEEPLE_IMAGE "assets/meeple.png"
+#define MEEPLE_IMAGE_HEIGHT 20
+#define MEEPLE_IMAGE_WIDTH 200
+#define MEEPLE_INDEX 13
+
+#define HEALTH_BAR_IMAGE "assets/healthBar.png"
+#define HEALTH_BAR_IMAGE_HEIGHT 6
+#define HEALTH_BAR_IMAGE_WIDTH 52
+#define HEALTH_BAR_INDEX 14
+
 #define DESERT_TILE_INDEX 0
 #define GRASS_TILE_INDEX 1
 #define MOUNTAIN_TILE_INDEX 2
@@ -352,7 +362,7 @@ void convertWinCoordsToMapCoords(int x, int y, GLdouble* posX, GLdouble* posY, G
 /**************************** /mouse hover object selection ********************************/
 
 /************************************* drawing subroutines ***************************************/
-void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long roadValue,char * cityName,long isSelected, long mapPolarity,long playerStartValue){
+void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long roadValue,char * cityName,long isSelected, long mapPolarity,long playerStartValue,PyObject * pyUnit){
   float xPosition = (float)tilesXIndex*-(1.9*SIN60);
   float yPosition = (float)tilesYIndex*1.4;
   //pulling the xindex and yindex in a little cause the black lines between tiles to be less harsh
@@ -410,7 +420,9 @@ void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long 
     cityNamesCount = cityNamesCount + 1;
 
   }
-  if(playerStartValue >= 1){
+
+  PyObject * playableMode = PyObject_GetAttrString(gameMode, "units");
+  if(playerStartValue >= 1 && playableMode == NULL){
     textureVertices = vertexArrays[PLAYER_START_TILE_INDEX];
     glBegin(GL_POLYGON);
     glTexCoord2f(*(textureVertices+0),*(textureVertices+1)); glVertex3f(hexagonVertices[0][0]+xPosition, hexagonVertices[0][1]+yPosition, 0.0);
@@ -431,6 +443,65 @@ void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long 
     drawText(playerStartVal);
     glPopMatrix();
   }
+  
+
+  if(pyUnit != NULL && pyUnit != Py_None){
+      //self.movementInitiative = movementInitiative
+      //self.attackInitiative = attackInitiative
+    PyObject * pyUnitType = PyObject_GetAttrString(pyUnit,"unitType");
+    PyObject * pyUnitTextureIndex = PyObject_GetAttrString(pyUnitType,"textureIndex");
+    //    PyObject * pyName = PyObject_GetAttrString(pyUnitType,"name");
+    PyObject * pyHealth = PyObject_GetAttrString(pyUnit,"health");
+    PyObject * pyMaxHealth = PyObject_GetAttrString(pyUnitType,"health");
+
+    glColor3f(255.0, 255.0, 255.0);
+
+    glBindTexture(GL_TEXTURE_2D, texturesArray[MEEPLE_INDEX]);
+    glBegin(GL_QUADS);
+    glTexCoord2f(0.0,0.0);
+    glVertex3f(xPosition-0.5, yPosition-0.5, 0.0);
+    glTexCoord2f(1.0,0.0);
+    glVertex3f(xPosition+0.5, yPosition-0.5, 0.0);
+    glTexCoord2f(1.0,1.0);
+    glVertex3f(xPosition+0.5, yPosition+0.5, 0.0);
+    glTexCoord2f(0.0,1.0);
+    glVertex3f(xPosition-0.5, yPosition+0.5, 0.0);
+    glEnd();
+
+    glBindTexture(GL_TEXTURE_2D, texturesArray[HEALTH_BAR_INDEX]);
+    glBegin(GL_QUADS);
+    glTexCoord2f(0.0,0.0);
+    glVertex3f(xPosition-.75, yPosition-0.2, 0.0);
+    glTexCoord2f(1.0,0.0);
+    glVertex3f(xPosition+.65, yPosition-0.2, 0.0);
+    glTexCoord2f(1.0,1.0);
+    glVertex3f(xPosition+.65, yPosition-0.5, 0.0);
+    glTexCoord2f(0.0,1.0);
+    glVertex3f(xPosition-.75, yPosition-0.5, 0.0);
+    glEnd();
+ 
+    glBegin(GL_QUADS);
+    glColor3f(255.0, 0.0, 0.0);
+    glTexCoord2f(0.0,0.0);
+    glVertex3f(xPosition-.75, yPosition-0.2, 0.0);
+    glTexCoord2f(1.0,0.0);
+    glVertex3f(xPosition+.05, yPosition-0.2, 0.0);
+    glTexCoord2f(1.0,1.0);
+    glVertex3f(xPosition+.05, yPosition-0.5, 0.0);
+    glTexCoord2f(0.0,1.0);
+    glVertex3f(xPosition-.75, yPosition-0.5, 0.0);
+    glEnd();
+
+
+
+    Py_DECREF(pyUnitType);
+    Py_DECREF(pyUnitTextureIndex);
+    //    Py_DECREF(pyName);
+    Py_DECREF(pyHealth);
+    Py_DECREF(pyMaxHealth);
+
+  }
+  
 }
 void drawCityNames(){
   int i,j,cityNameLength = 0;
@@ -474,6 +545,7 @@ void drawTiles(){
       PyObject * pyCityName;
       char * cityName = "";
       PyObject * pyPlayerStartValue = PyObject_GetAttrString(node,"playerStartValue");//New reference                                 
+      PyObject * pyUnit = PyObject_GetAttrString(node,"unit");
       PyObject * isSelected = PyObject_GetAttrString(node,"selected");//New reference
       long longName = PyLong_AsLong(nodeName);
       long longValue = PyLong_AsLong(nodeValue);
@@ -494,8 +566,8 @@ void drawTiles(){
       Py_DECREF(pyPlayerStartValue);
       Py_DECREF(isSelected);
       Py_DECREF(node);
-      //      printf("%d\n",longRoadValue);
-      drawTile(colNumber,rowNumber,longName,longValue,longRoadValue,cityName,longIsSelected,longPolarity,playerStartValue);
+      drawTile(colNumber,rowNumber,longName,longValue,longRoadValue,cityName,longIsSelected,longPolarity,playerStartValue,pyUnit);
+      Py_DECREF(pyUnit);
       colNumber = colNumber - 1;
     }
     Py_DECREF(row);
@@ -740,7 +812,8 @@ static void initGL (){
   pngLoad(&texturesArray[UI_SCROLLABLE_INDEX],UI_SCROLLABLE_IMAGE);
   pngLoad(&texturesArray[UI_SCROLL_PAD_INDEX],UI_SCROLL_PAD_IMAGE);
   pngLoad(&texturesArray[UI_TEXT_INPUT_INDEX],UI_TEXT_INPUT_IMAGE);
-
+  pngLoad(&texturesArray[MEEPLE_INDEX],MEEPLE_IMAGE);
+  pngLoad(&texturesArray[HEALTH_BAR_INDEX],HEALTH_BAR_IMAGE);
 
   vertexArrays[DESERT_TILE_INDEX] = *desertVertices;
   vertexArrays[GRASS_TILE_INDEX] = *grassVertices;

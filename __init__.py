@@ -1,3 +1,5 @@
+import random
+
 zoomSpeed = 0.3
 
 def isFloat(str):
@@ -32,21 +34,35 @@ class city:
 		self.costOfOwnership = costOfOwnership
 		self.units = units
 		
-class unit:
-	def __init__(self,name,movementInitiative,attackInitiative):
+class unitType:
+	def __init__(self,name,textureIndex,movementInitiative,attackInitiative,health):
 		self.name = name
+		self.textureIndex = textureIndex
 		self.movementInitiative = movementInitiative
 		self.attackInitiative = attackInitiative
+		self.health = health
 
-unitsList = []
-unitsList.append(unit("beaver",1.0,1.0))
-unitsList.append(unit("catapult",1.0,1.0))
-unitsList.append(unit("fire elemental",1.0,1.0))
-unitsList.append(unit("dragon",1.0,1.0))
+class unit:
+	def __init__(self,unitType,player,xPos,yPos,node):
+		self.unitType = unitType
+		self.player = player
+		self.xPos = xPos
+		self.yPos = yPos
+		self.node = node
+		self.movementPoints = 0
+		self.attackPoints = 0
+		self.health = self.unitType.health
 
-theUnits = {}
-for unit in unitsList:
-	theUnits[unit.name] = unit
+unitTypesList = []
+unitTypesList.append(unitType("summoner",cDefines["MEEPLE_INDEX"],1.0,1.0,100))
+unitTypesList.append(unitType("beaver",cDefines["MEEPLE_INDEX"],1.0,1.0,100))
+unitTypesList.append(unitType("catapult",cDefines["MEEPLE_INDEX"],1.0,1.0,100))
+unitTypesList.append(unitType("fire elemental",cDefines["MEEPLE_INDEX"],1.0,1.0,100))
+unitTypesList.append(unitType("dragon",cDefines["MEEPLE_INDEX"],1.0,1.0,100))
+
+theUnitTypes = {}
+for unitType in unitTypesList:
+	theUnitTypes[unitType.name] = unitType
 
 cityCosts = ["0","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20"]
 
@@ -101,8 +117,7 @@ class clickableElement(uiElement):
 class newGameScreenButton(clickableElement):
 	index = 0
 	buttonsList = []
-	selectedIndex = 1
-	#selectedIndex = 0
+	selectedIndex = 0
 	selectedTextColor = "55 55 55"
 	normalTextColor = "33 33 33"
 	def __init__(self,xPos,yPos,gameMode,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",selected=False):
@@ -129,7 +144,7 @@ class saveButton(clickableElement):
 class addColumnButton(clickableElement):
 	def onClick(self):
 		for row in theGameMode.map.nodes:
-			row.append(node())
+			row.append(mapEditorNode())
 
 class removeColumnButton(clickableElement):
 	def onClick(self):
@@ -141,7 +156,7 @@ class addFirstColumnButton(clickableElement):
 		for count in range(0,len(theGameMode.map.nodes)):
 			rowCopy = theGameMode.map.nodes[count][:]
 			rowCopy.reverse()
-			rowCopy.append(node())
+			rowCopy.append(mapEditorNode())
 			rowCopy.reverse()
 			theGameMode.map.nodes[count] = rowCopy
 class removeFirstColumnButton(clickableElement):
@@ -157,7 +172,7 @@ class addRowButton(clickableElement):
 	def onClick(self):
 		newRow = []
 		for count in range(0,len(theGameMode.map.nodes[0])):
-			newRow.append(node())
+			newRow.append(mapEditorNode())
 		theGameMode.map.nodes.append(newRow)
 class removeRowButton(clickableElement):
 	def onClick(self):
@@ -168,7 +183,7 @@ class addFirstRowButton(clickableElement):
 		nodesCopy = theGameMode.map.nodes[:]
 		newRow = []
 		for count in range(0,len(theGameMode.map.nodes[0])):
-			newRow.append(node())
+			newRow.append(mapEditorNode())
 		nodesCopy.reverse()
 		nodesCopy.append(newRow)
 		nodesCopy.reverse()
@@ -213,10 +228,10 @@ class cityEditor(uiElement):
 		self.names.append(cityCostField(-0.972,0.66,width=(2.0*cDefines['UI_TEXT_INPUT_IMAGE_WIDTH']/cDefines['SCREEN_WIDTH']),height=(2.0*cDefines['UI_TEXT_INPUT_IMAGE_HEIGHT']/cDefines['SCREEN_HEIGHT']),text=str(city.costOfOwnership),textSize=0.0005,textColor='00 00 00',mouseOverColor='00 00 00',textureIndex=cDefines['UI_TEXT_INPUT_INDEX'],textYPos=-0.035,textXPos=0.01).name)
 
 		height = 0.56
-		for unit in self.city.units:
-			self.names.append(uiElement(-0.972,height,text=unit.name,textSize=0.0005).name)
+		for unitType in self.city.unitTypes:
+			self.names.append(uiElement(-0.972,height,text=unitType.name,textSize=0.0005).name)
 			height = height - 0.035
-		self.names.append(addUnitButton(-0.972,height,width=0.0,height=0.0,text="+unit",textSize=0.0005).name)
+		self.names.append(addUnitTypeButton(-0.972,height,width=0.0,height=0.0,text="+unit",textSize=0.0005).name)
 		self.names.append(deleteCityButton(-0.972,-0.9,width=0.0,height=0.0,text="delete city",textSize=0.0005).name)
 
 	def hide(self):
@@ -345,11 +360,11 @@ class scrollableTextFieldsElement(uiElement):
 		self.names = []
 		del theGameMode.elementsDict[self.name]
 
-class unitSelector(scrollableTextFieldsElement):
+class unitTypeSelector(scrollableTextFieldsElement):
 	def handleClick(self,textFieldElem):
-		for unit in theUnits.values():
-			if(unit.name == textFieldElem.text):
-				theGameMode.cityEditor.city.units.append(unit)
+		for unitType in theUnitTypes.values():
+			if(unitType.name == textFieldElem.text):
+				theGameMode.cityEditor.city.unitTypes.append(unitType)
 		self.destroy()
 		theGameMode.cityEditor.show(theGameMode.cityEditor.city)
 
@@ -380,23 +395,23 @@ class playerStartLocationButton(clickableElement):
 class deleteCityButton(clickableElement):
 	def onClick(self):
 		theGameMode.cityEditor.hide()
-		theGameMode.selectedNode.city = None
-		theGameMode.selectedNode.selected = False
-		theGameMode.selectedNode = None
+		theGameMode.selectedCityNode.city = None
+		theGameMode.selectedCityNode.selected = False
+		theGameMode.selectedCityNode = None
 
-class addUnitButton(clickableElement):	
+class addUnitTypeButton(clickableElement):	
 	def onClick(self):
-		units = theUnits.copy()
-		for unit in theGameMode.cityEditor.city.units:
-			del units[unit.name]
-		unitSelector(self.xPosition,self.yPosition-0.06,units.values(),text="select unit",textSize=0.0005,textureIndex=cDefines['UI_SCROLLABLE_INDEX'],width=(2.0*cDefines['UI_SCROLLABLE_IMAGE_WIDTH']/cDefines['SCREEN_WIDTH']),height=(2.0*cDefines['UI_SCROLLABLE_IMAGE_HEIGHT']/cDefines['SCREEN_HEIGHT']))
+		unitTypes = theUnitTypes.copy()
+		for unitType in theGameMode.cityEditor.city.unitTypes:
+			del unitTypes[unitType.name]
+		unitTypeSelector(self.xPosition,self.yPosition-0.06,unitTypes.values(),text="select unit",textSize=0.0005,textureIndex=cDefines['UI_SCROLLABLE_INDEX'],width=(2.0*cDefines['UI_SCROLLABLE_IMAGE_WIDTH']/cDefines['SCREEN_WIDTH']),height=(2.0*cDefines['UI_SCROLLABLE_IMAGE_HEIGHT']/cDefines['SCREEN_HEIGHT']))
 
 class cityCostField(clickableElement):
 	def onClick(self):
 		cityCostSelector(self.xPosition,self.yPosition-0.06,cityCosts,self,text="select cost",textSize=0.0005,textureIndex=cDefines['UI_SCROLLABLE_INDEX'],width=(2.0*cDefines['UI_SCROLLABLE_IMAGE_WIDTH']/cDefines['SCREEN_WIDTH']),height=(2.0*cDefines['UI_SCROLLABLE_IMAGE_HEIGHT']/cDefines['SCREEN_HEIGHT']))
 
 class node:
-	def __init__(self,tileValue=cDefines['GRASS_TILE_INDEX'],roadValue=0,city=None,playerStartValue=0):
+	def __init__(self,xPos,yPos,tileValue=cDefines['GRASS_TILE_INDEX'],roadValue=0,city=None,playerStartValue=0):
 		self.name = nameGenerator.getNextName()
 		self.tileValue = tileValue
 		self.roadValue = roadValue
@@ -404,18 +419,36 @@ class node:
 		self.playerStartValue = playerStartValue
 		self.selected = False
 		theGameMode.elementsDict[self.name] = self
-
+		self.unit = None
+		self.neighbors = []
 	def getValue(self):
 		return self.tileValue
+
+class playModeNode(node):
+	def onLeftClickDown(self):
+		for node in self.neighbors:
+			node.selected = not node.selected
+		if(theGameMode.nextUnit.node.neighbors.count(self) > 0):
+			if(self.unit != None):
+				print "attack!!!!..?"
+			else:
+				theGameMode.nextUnit.node.selected = False
+				theGameMode.nextUnit.node.unit = None
+				theGameMode.nextUnit.node = self
+				self.unit = theGameMode.nextUnit
+				theGameMode.nextUnit.movementPoints = theGameMode.nextUnit.movementPoints - 1000
+				theGameMode.chooseNextUnit()
+
+class mapEditorNode(node):
 	def onLeftClickUp(self):
-		if(theGameMode.selectedNode != None):
-			if(theGameMode.selectedNode != self):
-				if(theGameMode.selectedNode.city != None):
-					self.city = theGameMode.selectedNode.city
-					theGameMode.selectedNode.city = None
-					theGameMode.selectedNode.selected = False
+		if(theGameMode.selectedCityNode != None):
+			if(theGameMode.selectedCityNode != self):
+				if(theGameMode.selectedCityNode.city != None):
+					self.city = theGameMode.selectedCityNode.city
+					theGameMode.selectedCityNode.city = None
+					theGameMode.selectedCityNode.selected = False
 					self.selected = True
-					theGameMode.selectedNode = self
+					theGameMode.selectedCityNode = self
 	def onLeftClickDown(self):
 		if(theGameMode.selectedButton != None):
 			if(hasattr(theGameMode.selectedButton,"tileType")):
@@ -427,10 +460,10 @@ class node:
 						theGameMode.cityEditor.show(self.city)
 					else:
 						theGameMode.cityEditor.show(self.city)
-					if(theGameMode.selectedNode != None):
-						theGameMode.selectedNode.selected = False
+					if(theGameMode.selectedCityNode != None):
+						theGameMode.selectedCityNode.selected = False
 					self.selected = True
-					theGameMode.selectedNode = self
+					theGameMode.selectedCityNode = self
 				else:
 					self.tileValue = theGameMode.selectedButton.tileType
 			else:
@@ -448,45 +481,68 @@ class node:
 								node.playerStartValue = 0
 					self.playerStartValue = theGameMode.selectedButton.playerNumber
 class map:
-	def __init__(self,mapEditorMode):
+	def __init__(self,nodeType):
 		self.polarity = 0
-		self.load(mapEditorMode)
+		self.nodeType = nodeType
 		self.translateZ = 0-cDefines['initZoom']
-	def load(self,mapEditorMode):
+		self.load()
+	def load(self):
 		mapFile = open('map1','r')
 		self.nodes = []
 		count = 0
-		yPos = 0
-		xPos = 0
+		yPos = -1
+		xPos = -1
 		for line in mapFile:
 			if(count == 0):#header
 				#TODO add players and starting positions to map data
 				self.polarity = int(line)
 				self.numPlayers = 2
 			else:
+				yPos = yPos + 1
+				xPos = -1
 				if(line.startswith("#")):#node
 					newRow = []
 					line = line.strip("#")
 					for char in line:
+						xPos = xPos + 1
 						if(char != '\n'):
 							intValue = ord(char)
 							tileValue = intValue & 15
 							roadValue = (intValue & 16)>>4
 							playerStartValue = (intValue & (32+64+128))>>5
-							newNode = node(tileValue,roadValue,None,playerStartValue=playerStartValue)
+							newNode = self.nodeType(xPos,yPos,tileValue,roadValue,None,playerStartValue=playerStartValue)
+							if(xPos > 0):#add neighbor to the left
+								newNode.neighbors.append(newRow[len(newRow)-1])
+								newRow[len(newRow)-1].neighbors.append(newNode)
+							if(yPos > 0):#add neighbors above
+								if(not (xPos == 0 and (self.polarity+yPos)%2 == 0)):#has top left neighbor
+									if((self.polarity+yPos)%2 == 0):
+										newNode.neighbors.append(self.nodes[yPos-1][xPos-1])
+										self.nodes[yPos-1][xPos-1].neighbors.append(newNode)
+									else:
+										newNode.neighbors.append(self.nodes[yPos-1][xPos])
+										self.nodes[yPos-1][xPos].neighbors.append(newNode)
+								
+								if(not (xPos == len(self.nodes[0])-1 and (self.polarity+yPos)%2 == 1)):#has top right neighbor
+									if((self.polarity+yPos)%2 == 0):
+										newNode.neighbors.append(self.nodes[yPos-1][xPos])
+										self.nodes[yPos-1][xPos].neighbors.append(newNode)
+									else:
+										newNode.neighbors.append(self.nodes[yPos-1][xPos+1])
+										self.nodes[yPos-1][xPos+1].neighbors.append(newNode)
 							newRow.append(newNode)
 					self.nodes.append(newRow)
 		                elif(line.startswith("*")):#city
 					tokens = line.split(":")
 					coords = tokens[0].strip("*").split(",")
 					cityName = tokens[1]
-					units = []
+					unitTypes = []
 					if(len(tokens[2].strip()) != 0):
-						unitNames = tokens[2].strip().split(",")
-						for unitName in unitNames:
-							units.append(theUnits[unitName])
+						unitTypeNames = tokens[2].strip().split(",")
+						for unitTypeName in unitTypeNames:
+							unitTypes.append(theUnitTypes[unitTypeName])
 					costOfOwnership = tokens[3]
-					self.nodes[int(coords[1])][int(coords[0])].city = city(cityName,units,costOfOwnership)
+					self.nodes[int(coords[1])][int(coords[0])].city = city(cityName,unitTypes,costOfOwnership)
 			count = count + 1
 		mapFile.close()
 	def save(self):
@@ -504,11 +560,11 @@ class map:
 				xPos = xPos + 1
 				line = line + chr(node.tileValue + (16*node.roadValue)+ (32*node.playerStartValue) + (512*0))#USE 512 NEXT BECAUSE 8 PLAYERS NEEDS 3 BITS
 				if(node.city != None):
-					units = ""
-					for unit in node.city.units:
-						units = units + "," + unit.name
-					units = units[1:]
-					cityLines.append("*" + str(xPos-1) + "," + str(yPos-1) + ":" + node.city.name + ":" + units + ":" + str(node.city.costOfOwnership))
+					unitTypes = ""
+					for unitType in node.city.unitTypes:
+						unitTypes = unitTypes + "," + unitType.name
+					unitTypes = unitTypes[1:]
+					cityLines.append("*" + str(xPos-1) + "," + str(yPos-1) + ":" + node.city.name + ":" + unitTypes + ":" + str(node.city.costOfOwnership))
 			nodeLines.append(line + "\n")
 		mapFile.writelines(nodeLines)
 		mapFile.writelines(cityLines)
@@ -522,19 +578,16 @@ class map:
 		print numPlayers
 		self.numPlayers = numPlayers
 
-class mapEditorMode:
+class gameMode:
+	def getUIElementsIterator(self):
+		return self.elementsDict.values().__iter__()
+class tiledGameMode(gameMode):
 	def __init__(self):
 		self.elementsDict = {}
 		self.elementWithFocus = None
-		self.selectedButton = None
-		self.selectedNode = None
 		self.mousedOverObject = None
 		self.mouseX = 0
 		self.mouseY = 0
-	def loadMap(self):
-		self.map = map(self)
-	def getUIElementsIterator(self):
-		return self.elementsDict.values().__iter__()
 	def handleMouseMovement(self,name,mouseX,mouseY):
 		self.mouseX = mouseX
 		self.mouseY = mouseY
@@ -550,14 +603,8 @@ class mapEditorMode:
 				rightClickable = True
 				self.elementsDict[name].onRightClick()
 		if(not rightClickable):
-			self.selectedNode.selected = False
-			self.selectedNode = None
-#	def handleClick(self,name):
-#		if(self.elementsDict.has_key(name)):
-#			self.elementWithFocus = self.elementsDict[name]
-#			self.elementsDict[name].onClick()
-#		else:
-#			self.elementWithFocus = None
+			self.selectedCityNode.selected = False
+			self.selectedCityNode = None
 	def handleLeftClickDown(self,name):
 		if(self.elementsDict.has_key(name)):
 			self.elementWithFocus = self.elementsDict[name]
@@ -577,31 +624,6 @@ class mapEditorMode:
                                 self.elementsDict[name].onLeftClickUp()
 			elif(hasattr(self.elementWithFocus,"onLeftClickUp")):
 				self.elementWithFocus.onLeftClickUp()
-
-	def handleMouseOver(self,name,isLeftMouseDown):
-		#TODO: keeping track of mousedOverObject might not be necessary any more since I added previousMousedoverName to the C code
-		if(isLeftMouseDown > 0):#allows onLeftClickDown to be called for tiles when the mouse is dragged over them
-			if(theGameMode.selectedButton != None):
-				if(theGameMode.selectedButton.tileType != cDefines['CITY_TILE_INDEX']):
-					if(self.elementsDict.has_key(name)):
-						if(hasattr(self.elementsDict[name],"tileValue")):#node
-							self.elementsDict[name].onLeftClickDown()
-		if(self.mousedOverObject != None):
-			if(self.mousedOverObject.name != name):
-				if(hasattr(self.mousedOverObject,"onMouseOut")):
-					self.mousedOverObject.onMouseOut()
-				self.mousedOverObject = None
-		if(self.elementsDict.has_key(name)):
-			if(self.mousedOverObject != None):
-				if(self.mouseOverObject.name != name):
-					self.mousedOverObject = self.elementsDict[name]
-					if(hasattr(self.elementsDict[name],"onMouseOver")):
-						self.elementsDict[name].onMouseOver()
-			else:
-				self.mousedOverObject = self.elementsDict[name]
-				if(hasattr(self.elementsDict[name],"onMouseOver")):
-					self.elementsDict[name].onMouseOver()
-
 	def handleKeyDown(self,keycode):
 		try:
 			self.elementWithFocus.onKeyDown(keycode)
@@ -631,6 +653,87 @@ class mapEditorMode:
 			self.map.translateZ = self.map.translateZ - zoomSpeed*deltaTicks;
 			if(self.map.translateZ < (10.0-cDefines['maxZoom'])):
 				self.map.translateZ = 10.0-cDefines['maxZoom']
+
+class playMode(tiledGameMode):
+	def __init__(self):
+		tiledGameMode.__init__(self)
+		self.units = []
+		self.cites = []
+		self.nextUnit = None
+	def loadMap(self):
+		self.map = map(playModeNode)
+		self.loadSummoners()
+	def orderUnits(self):
+		self.units.sort(key=lambda unit:0-unit.movementPoints)
+	def chooseNextUnit(self):
+		self.orderUnits()
+		while(self.units[0].movementPoints < 1000):
+			for unit in self.units:
+				unit.movementPoints = unit.movementPoints + 1
+		eligibleUnits = []
+		eligibleUnits.append(self.units[0])
+		for unit in self.units[1:]:
+			if(unit.movementPoints == eligibleUnits[0].movementPoints):
+				eligibleUnits.append(unit)
+		self.nextUnit = random.choice(eligibleUnits)
+		self.nextUnit.node.selected = True
+		print self.nextUnit.movementPoints
+	def loadSummoners(self):
+		rowCount = 0
+		columnCount = 0
+		for row in self.map.nodes:
+			columnCount = 0
+			rowCount = rowCount + 1
+			for node in row:
+				columnCount = columnCount + 1
+				if(node.playerStartValue != 0):
+					node.unit = unit(theUnitTypes["summoner"],node.playerStartValue,rowCount,columnCount,node)
+					self.units.append(node.unit)
+		self.orderUnits()
+		self.chooseNextUnit()
+	def incrementInitiatives(self):
+		for unit in self.units:
+			unit.movementInitiative = unit.movementInitiative + 1
+			unit.attackInitiative = unit.attackInitiative + 1
+		for city in self.cities:
+			print city
+	def addUIElements(self):
+		uiElement(xPos=-1.0,yPos=1.0,width=2.0,height=(2.0*cDefines['UI_MAP_EDITOR_TOP_IMAGE_HEIGHT']/cDefines['SCREEN_HEIGHT']),textureIndex=cDefines['UI_MAP_EDITOR_TOP_INDEX'])
+		uiElement(xPos=-1.0,yPos=1.0-(2.0*cDefines['UI_MAP_EDITOR_TOP_IMAGE_HEIGHT']/cDefines['SCREEN_HEIGHT']),width=(2.0*cDefines['UI_MAP_EDITOR_LEFT_IMAGE_WIDTH']/cDefines['SCREEN_WIDTH']),height=(2.0*cDefines['UI_MAP_EDITOR_LEFT_IMAGE_HEIGHT']/cDefines['UI_MAP_EDITOR_LEFT_IMAGE_WIDTH']),textureIndex=cDefines['UI_MAP_EDITOR_LEFT_INDEX'])
+		uiElement(xPos=1.0-(2.0*cDefines['UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH']/cDefines['SCREEN_WIDTH']),yPos=1.0-(2.0*cDefines['vUI_MAP_EDITOR_TOP_IMAGE_HEIGHT']/cDefines['SCREEN_HEIGHT']),width=(2.0*cDefines['UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH']/cDefines['SCREEN_WIDTH']),height=(2.0*cDefines['UI_MAP_EDITOR_RIGHT_IMAGE_HEIGHT']/cDefines['UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH']),textureIndex=cDefines['UI_MAP_EDITOR_RIGHT_INDEX'])
+
+		uiElement(xPos=-1.0,yPos=-1.0+(2.0*cDefines['UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT']/cDefines['SCREEN_HEIGHT']),width=2.0,height=(2.0*cDefines['UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT']/cDefines['SCREEN_HEIGHT']),textureIndex=cDefines['UI_MAP_EDITOR_BOTTOM_INDEX'])
+
+class mapEditorMode(tiledGameMode):	
+	def __init__(self):
+		tiledGameMode.__init__(self)
+		self.selectedButton = None
+		self.selectedCityNode = None
+	def loadMap(self):
+		self.map = map(mapEditorNode)
+	def handleMouseOver(self,name,isLeftMouseDown):
+		#TODO: keeping track of mousedOverObject might not be necessary any more since I added previousMousedoverName to the C code
+		if(isLeftMouseDown > 0):#allows onLeftClickDown to be called for tiles when the mouse is dragged over them
+			if(theGameMode.selectedButton != None):
+				if(theGameMode.selectedButton.tileType != cDefines['CITY_TILE_INDEX']):
+					if(self.elementsDict.has_key(name)):
+						if(hasattr(self.elementsDict[name],"tileValue")):#node
+							self.elementsDict[name].onLeftClickDown()
+		if(self.mousedOverObject != None):
+			if(self.mousedOverObject.name != name):
+				if(hasattr(self.mousedOverObject,"onMouseOut")):
+					self.mousedOverObject.onMouseOut()
+				self.mousedOverObject = None
+		if(self.elementsDict.has_key(name)):
+			if(self.mousedOverObject != None):
+				if(self.mouseOverObject.name != name):
+					self.mousedOverObject = self.elementsDict[name]
+					if(hasattr(self.elementsDict[name],"onMouseOver")):
+						self.elementsDict[name].onMouseOver()
+			else:
+				self.mousedOverObject = self.elementsDict[name]
+				if(hasattr(self.elementsDict[name],"onMouseOver")):
+					self.elementsDict[name].onMouseOver()
 
 	def addUIElements(self):
 
@@ -671,28 +774,11 @@ class mapEditorMode:
 		uiElement(0.8,0.925,text="asdf",textSize=0.0005)
 		saveButton(0.9,0.925,text="save",textSize=0.0005)
 
-class newGameScreenMode:
+class newGameScreenMode(gameMode):
 	def __init__(self):
 		self.elementsDict = {}
 		self.elementWithFocus = None
 		self.map = None
-	def getUIElementsIterator(self):
-		return self.elementsDict.values().__iter__()
-#	def handleMouseMovement(self,name,mouseX,mouseY):
-#		self.mouseX = mouseX
-#		self.mouseY = mouseY
-#		if(self.elementsDict.has_key(name)):
-#			if(hasattr(self.elementsDict[name],"onMouseMovement")):
-#				self.elementsDict[name].onMouseMovement()
-#			elif(hasattr(self.elementWithFocus,"onMouseMovement")):
-#				self.elementWithFocus.onMouseMovement()
-#	def handleClick(self,name):
-#		print "handleClick"
-#		if(self.elementsDict.has_key(name)):
-#			self.elementWithFocus = self.elementsDict[name]
-#			self.elementsDict[name].onClick()
-#		else:
-#			self.elementWithFocus = None
 	def handleLeftClickDown(self,name):
 		if(self.elementsDict.has_key(name)):
 			self.elementWithFocus = self.elementsDict[name]
@@ -730,84 +816,12 @@ class newGameScreenMode:
 					
 	def addUIElements(self):
 		uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines['UI_NEW_GAME_SCREEN_INDEX'])
-		newGameScreenButton(-0.16,0.2,text="new game",gameMode=gameMode)
+		newGameScreenButton(-0.16,0.2,text="new game",gameMode=playMode)
 		newGameScreenButton(-0.165,0.1,text="map editor",gameMode=mapEditorMode)
-		newGameScreenButton(-0.16,0.0,text="test test te",gameMode=gameMode)
-		newGameScreenButton(-0.17,-0.1,text="test test tes",gameMode=mapEditorMode)
-#		uiElement(-0.21,0.0,width=0.0,height=0.0,text="unit editor",textColor="DD DD DD")
-#		uiElement(-0.12,-0.1,width=0.0,height=0.0,text="options",textColor="DD DD DD")
-#		startNewGameButton(
+#		newGameScreenButton(-0.16,0.0,text="test test te",gameMode=gameMode)
+#		newGameScreenButton(-0.17,-0.1,text="test test tes",gameMode=mapEditorMode)
 
-class gameMode:
-	def __init__(self):
-		self.elementsDict = {}
-		self.elementWithFocus = None
-		self.selectedButton = None
-#		self.uiElements = []
-		self.selectedNode = None
-		self.units = []
-		self.cites = []
-	def stepInitiatives(self):
-		for unit in self.units:
-			unit.movementInitiative = unit.movementInitiative + 1
-			unit.attackInitiative = unit.attackInitiative + 1
-		for city in self.cities:
-			print city
-	def loadMap(self):
-		self.map = map(self)
-	def getUIElementsIterator(self):
-		return self.elementsDict.values().__iter__()
-	def handleRightClick(self,name):
-		rightClickable = False
-		if(self.elementsDict.has_key(name)):
-			if(hasattr(self.elementsDict[name],"onRightClick")):
-				rightClickable = True
-				self.elementsDict[name].onRightClick()
-		if(not rightClickable):
-			self.selectedNode.selected = False
-			self.selectedNode = None
-	def handleClick(self,name):
-		if(self.elementsDict.has_key(name)):
-			self.elementWithFocus = self.elementsDict[name]
-			if(hasattr(self.elementsDict[name],"onClick")):
-				self.elementsDict[name].onClick()
-	def handleKeyDown(self,keycode):
-		try:
-			self.elementWithFocus.onKeyDown(keycode)
-		except:
-			try:
-				intKeycode = int(keycode)
-			except:
-				return
-	def addUIElements(self):
-		uiElement(xPos=-1.0,yPos=1.0,width=2.0,height=(2.0*cDefines['UI_MAP_EDITOR_TOP_IMAGE_HEIGHT']/cDefines['SCREEN_HEIGHT']),textureIndex=cDefines['UI_MAP_EDITOR_TOP_INDEX'])
-		uiElement(xPos=-1.0,yPos=1.0-(2.0*cDefines['UI_MAP_EDITOR_TOP_IMAGE_HEIGHT']/cDefines['SCREEN_HEIGHT']),width=(2.0*cDefines['UI_MAP_EDITOR_LEFT_IMAGE_WIDTH']/cDefines['SCREEN_WIDTH']),height=(2.0*cDefines['UI_MAP_EDITOR_LEFT_IMAGE_HEIGHT']/cDefines['UI_MAP_EDITOR_LEFT_IMAGE_WIDTH']),textureIndex=cDefines['UI_MAP_EDITOR_LEFT_INDEX'])
-		uiElement(xPos=1.0-(2.0*cDefines['UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH']/cDefines['SCREEN_WIDTH']),yPos=1.0-(2.0*cDefines['vUI_MAP_EDITOR_TOP_IMAGE_HEIGHT']/cDefines['SCREEN_HEIGHT']),width=(2.0*cDefines['UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH']/cDefines['SCREEN_WIDTH']),height=(2.0*cDefines['UI_MAP_EDITOR_RIGHT_IMAGE_HEIGHT']/cDefines['UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH']),textureIndex=cDefines['UI_MAP_EDITOR_RIGHT_INDEX'])
 
-		uiElement(xPos=-1.0,yPos=-1.0+(2.0*cDefines['UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT']/cDefines['SCREEN_HEIGHT']),width=2.0,height=(2.0*cDefines['UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT']/cDefines['SCREEN_HEIGHT']),textureIndex=cDefines['UI_MAP_EDITOR_BOTTOM_INDEX'])
-
-		mapEditorTileSelectUIElement(-0.93,0.92,tileType=cDefines['DESERT_TILE_INDEX'])
-		mapEditorTileSelectUIElement(-0.85,0.92,tileType=cDefines['GRASS_TILE_INDEX'])
-		mapEditorTileSelectUIElement(-0.77,0.92,tileType=cDefines['MOUNTAIN_TILE_INDEX'])
-		mapEditorTileSelectUIElement(-0.69,0.92,tileType=cDefines['FOREST_TILE_INDEX'])
-		mapEditorTileSelectUIElement(-0.61,0.92,tileType=cDefines['WATER_TILE_INDEX'])
-		mapEditorTileSelectUIElement(-0.53,0.92,tileType=cDefines['ROAD_TILE_INDEX'])
-		mapEditorTileSelectUIElement(-0.45,0.92,tileType=cDefines['CITY_TILE_INDEX'])
-
-		addColumnButton(0.98,0.03,width=0.0,height=0.0,text="+")
-		removeColumnButton(0.98,-0.03,width=0.0,height=0.0,text="-")
-
-		addFirstColumnButton(-0.63,0.03,width=0.0,height=0.0,text="+",textureIndex=-1)
-		removeFirstColumnButton(-0.63,-0.03,width=0.0,height=0.0,text="-",textureIndex=-1)
-
-		addRowButton(0.18,-0.98,width=0.0,height=0.0,text="+",textureIndex=-1)
-		removeRowButton(0.21,-0.98,width=0.0,height=0.0,text="-",textureIndex=-1)
-
-		addFirstRowButton(0.18,0.77,width=0.0,height=0.0,text="+",textureIndex=-1)
-		removeFirstRowButton(0.21,0.77,width=0.0,height=0.0,text="-",textureIndex=-1)
-
-		uiElement(0.8,0.925,width=0.0,height=0.0,text="asdf",textSize=0.0005)
-		print "done"
 
 global theGameMode
 theGameMode = newGameScreenMode()
