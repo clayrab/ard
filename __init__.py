@@ -33,7 +33,7 @@ class city:
 		self.name = name
 		self.costOfOwnership = costOfOwnership
 		self.unitTypes = unitTypes
-		
+
 class unitType:
 	def __init__(self,name,textureIndex,movementInitiative,attackInitiative,health,canFly=False,canSwim=False):
 		self.name = name
@@ -44,6 +44,11 @@ class unitType:
 		self.canFly = canFly
 		self.canSwim = canSwim
 		self.defaultCost = 10
+
+class cityUnitType(unitType):
+	def __init__(self,name,textureIndex,movementInitiative,attackInitiative,health,canFly=False,canSwim=False):
+		unitType.__init__(name,textureIndex,movementInitiative,attackInitiative,health,canFly=canFly,canSwim=canSwim)
+		self.cost = self.defaultCost
 
 class unit:
 	def __init__(self,unitType,player,xPos,yPos,node):
