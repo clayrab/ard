@@ -467,9 +467,7 @@ class node:
 
 class playModeNode(node):
 	def onLeftClickDown(self):
-#		print str(self.xPos) + "," + str(self.yPos)
-		
-		if(theGameMode.nextUnit.node.neighbors.count(self) > 0):
+		if(theGameMode.nextUnit.node.selected == True and theGameMode.nextUnit.node.neighbors.count(self) > 0):
 			if(self.unit != None):
 				print "attack!!!!..?"
 			else:
@@ -479,6 +477,17 @@ class playModeNode(node):
 				self.unit = theGameMode.nextUnit
 				theGameMode.nextUnit.movementPoints = theGameMode.nextUnit.movementPoints - 1000.0
 				theGameMode.chooseNextUnit()
+		else:
+			theGameMode.selectedNode.selected = False
+			theGameMode.selectedNode = self
+			self.selected = True
+	def onMouseOver(self):
+		if(theGameMode.nextUnit.node.neighbors.count(self) > 0):
+			print "display 'move' cursor here"
+	def onMouseOut(self):
+		if(theGameMode.nextUnit.node.neighbors.count(self) > 0):
+			print "remove 'move' cursor here"
+		
 
 class mapEditorNode(node):
 	def onLeftClickUp(self):
@@ -682,6 +691,30 @@ class tiledGameMode(gameMode):
 			self.map.translateZ = self.map.translateZ - zoomSpeed*deltaTicks;
 			if(self.map.translateZ < (10.0-cDefines['maxZoom'])):
 				self.map.translateZ = 10.0-cDefines['maxZoom']
+	def handleMouseOver(self,name,isLeftMouseDown):
+		#TODO: keeping track of mousedOverObject might not be necessary any more since I added previousMousedoverName to the C code
+		if(isLeftMouseDown > 0):#allows onLeftClickDown to be called for tiles when the mouse is dragged over them
+			if(theGameMode.selectedButton != None):
+				if(theGameMode.selectedButton.tileType != cDefines['CITY_TILE_INDEX']):
+					if(self.elementsDict.has_key(name)):
+						if(hasattr(self.elementsDict[name],"tileValue")):#node
+							self.elementsDict[name].onLeftClickDown()
+		if(self.mousedOverObject != None):
+			if(self.mousedOverObject.name != name):
+				if(hasattr(self.mousedOverObject,"onMouseOut")):
+					self.mousedOverObject.onMouseOut()
+				self.mousedOverObject = None
+		if(self.elementsDict.has_key(name)):
+			if(self.mousedOverObject != None):
+				if(self.mouseOverObject.name != name):
+					self.mousedOverObject = self.elementsDict[name]
+					if(hasattr(self.elementsDict[name],"onMouseOver")):
+						self.elementsDict[name].onMouseOver()
+			else:
+				self.mousedOverObject = self.elementsDict[name]
+				if(hasattr(self.elementsDict[name],"onMouseOver")):
+					self.elementsDict[name].onMouseOver()
+
 
 class playMode(tiledGameMode):
 	def __init__(self):
@@ -691,6 +724,7 @@ class playMode(tiledGameMode):
 		self.nextUnit = None
 		self.focusNextUnit = 0
 		self.focusNextUnitTemp = 0
+		self.selectedNode = None
 	def loadMap(self):
 		self.map = map(playModeNode)
 		self.loadSummoners()
@@ -703,6 +737,7 @@ class playMode(tiledGameMode):
 	def chooseNextUnit(self):
 		self.orderUnits()
 		while(self.units[0].movementPoints < 1000.0):
+			self.orderUnits()
 			for unit in self.units:
 				if(unit.node.roadValue == 1):
 					unit.movementPoints = unit.movementPoints + 2.0
@@ -721,6 +756,7 @@ class playMode(tiledGameMode):
 				eligibleUnits.append(unit)
 		self.nextUnit = random.choice(eligibleUnits)
 		self.nextUnit.node.selected = True
+		self.selectedNode = self.nextUnit.node
 		self.focusNextUnit = 1
 	def loadSummoners(self):
 		rowCount = 0
@@ -747,7 +783,12 @@ class playMode(tiledGameMode):
 			self.elementWithFocus.onKeyDown(keycode)
 		except:
 			if(keycode == "space"):
+				print "space"
 				self.focusNextUnit = 1
+				self.selectedNode.selected = False
+				self.selectedNode = self.nextUnit.node
+				self.nextUnit.node.selected = True
+
 	def addUIElements(self):
 		uiElement(xPos=-1.0,yPos=1.0,width=2.0,height=(2.0*cDefines['UI_MAP_EDITOR_TOP_IMAGE_HEIGHT']/cDefines['SCREEN_HEIGHT']),textureIndex=cDefines['UI_MAP_EDITOR_TOP_INDEX'])
 		uiElement(xPos=-1.0,yPos=1.0-(2.0*cDefines['UI_MAP_EDITOR_TOP_IMAGE_HEIGHT']/cDefines['SCREEN_HEIGHT']),width=(2.0*cDefines['UI_MAP_EDITOR_LEFT_IMAGE_WIDTH']/cDefines['SCREEN_WIDTH']),height=(2.0*cDefines['UI_MAP_EDITOR_LEFT_IMAGE_HEIGHT']/cDefines['UI_MAP_EDITOR_LEFT_IMAGE_WIDTH']),textureIndex=cDefines['UI_MAP_EDITOR_LEFT_INDEX'])
@@ -779,30 +820,6 @@ class mapEditorMode(tiledGameMode):
 							self.selectedButton = value
 			except:
 				return
-	def handleMouseOver(self,name,isLeftMouseDown):
-		#TODO: keeping track of mousedOverObject might not be necessary any more since I added previousMousedoverName to the C code
-		if(isLeftMouseDown > 0):#allows onLeftClickDown to be called for tiles when the mouse is dragged over them
-			if(theGameMode.selectedButton != None):
-				if(theGameMode.selectedButton.tileType != cDefines['CITY_TILE_INDEX']):
-					if(self.elementsDict.has_key(name)):
-						if(hasattr(self.elementsDict[name],"tileValue")):#node
-							self.elementsDict[name].onLeftClickDown()
-		if(self.mousedOverObject != None):
-			if(self.mousedOverObject.name != name):
-				if(hasattr(self.mousedOverObject,"onMouseOut")):
-					self.mousedOverObject.onMouseOut()
-				self.mousedOverObject = None
-		if(self.elementsDict.has_key(name)):
-			if(self.mousedOverObject != None):
-				if(self.mouseOverObject.name != name):
-					self.mousedOverObject = self.elementsDict[name]
-					if(hasattr(self.elementsDict[name],"onMouseOver")):
-						self.elementsDict[name].onMouseOver()
-			else:
-				self.mousedOverObject = self.elementsDict[name]
-				if(hasattr(self.elementsDict[name],"onMouseOver")):
-					self.elementsDict[name].onMouseOver()
-
 	def addUIElements(self):
 
 		uiElement(xPos=-1.0,yPos=1.0,width=2.0,height=(2.0*cDefines['UI_MAP_EDITOR_TOP_IMAGE_HEIGHT']/cDefines['SCREEN_HEIGHT']),textureIndex=cDefines['UI_MAP_EDITOR_TOP_INDEX'])
