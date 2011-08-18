@@ -29,18 +29,21 @@ for line in cFile:
 cFile.close()
 
 class city:
-	def __init__(self,name,units=[],costOfOwnership=10):
+	def __init__(self,name,unitTypes=[],costOfOwnership=10):
 		self.name = name
 		self.costOfOwnership = costOfOwnership
-		self.units = units
+		self.unitTypes = unitTypes
 		
 class unitType:
-	def __init__(self,name,textureIndex,movementInitiative,attackInitiative,health):
+	def __init__(self,name,textureIndex,movementInitiative,attackInitiative,health,canFly=False,canSwim=False):
 		self.name = name
 		self.textureIndex = textureIndex
 		self.movementInitiative = movementInitiative
 		self.attackInitiative = attackInitiative
 		self.health = health
+		self.canFly = canFly
+		self.canSwim = canSwim
+		self.defaultCost = 10
 
 class unit:
 	def __init__(self,unitType,player,xPos,yPos,node):
@@ -64,8 +67,10 @@ theUnitTypes = {}
 for unitType in unitTypesList:
 	theUnitTypes[unitType.name] = unitType
 
-cityCosts = ["0","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20"]
+cityCosts = ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20"]
+unitCosts = ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20"]
 
+cityNames = ["Eshnunna","Tutub","Der","Sippar","Sippar-Amnanum","Kutha","Jemde Nasr","Kish","Babilim","Borsippa","Mashkan-shapir","Dilbat","Nippur","Marad","Adab","Isin","Kisurra","Shuruppak","Bad-tibira","Zabalam","Umma","Girsu","Lagash","Urum","Uruk","Larsa","Ur","Kuara","Eridu","Akshak","Akkad","Urfa","Shanidar cave","Urkesh","Shekhna","Arbid","Harran","Chagar Bazar","Kahat","el Fakhariya (Washukanni?)","Arslan Tash","Carchemish","Til Barsip","Nabada","Nagar","Telul eth-Thalathat","Tepe Gawra","Tell Arpachiyah","Shibaniba","Tarbisu","Ninua","Qatara","Dur Sharrukin","Tell Shemshara","Arbil","Imgur-Enlil","Nimrud","Emar","Arrapha","Kar-Tukulti-Ninurta","Ashur","Nuzi","al-Fakhar","Terqa","Mari","Haradum","Nerebtum","Agrab","Dur-Kurigalzu","Shaduppum","Seleucia","Ctesiphon","Zenobia","Zalabiye","Hasanlu","Takht-i-Suleiman","Behistun","Godin Tepe","Chogha Mish","Tepe Sialk","Susa","Kabnak","Dur Untash","Pasargadai","Naqsh-e Rustam","Parsa","Anshan","Konar Sandal","Tepe Yahya","Miletus","Sfard","Nicaea","Sapinuwa","Yazilikaya","Alaca Hoyuk","Masat Hoyuk","Hattusa","Ilios","Kanesh","Arslantepe","Sam'al","Beycesultan","Adana","Karatepe","Tarsus","Sultantepe","Attalia","Acre","Adoraim","Alalah","Aleppo","Al-Sinnabra","Aphek","Arad Rabbah","Ashdod","Ashkelon","Baalbek","Batroun","Beersheba","Beth Shean","Bet Shemesh","Bethany","Bet-el","Bezer","Byblos","Capernaum","Dan","Dimashq","Deir Alla","Dhiban","Dor","Ebla","En Gedi","Enfeh","Ekron","Et-Tell","Gath","Gezer","Gibeah","Gilgal Refaim","Gubla","Hamath","Hazor","Hebron","Herodion","Jezreel","Kadesh Barnea","Kedesh","Kumidi","Lachish","Megiddo","Qatna","Qumran","Rabat Amon","Samaria","Sarepta","Sharuhen","Shiloh","Sidon","Tadmor","Tirzah","Tyros","Ugarit","Umm el-Marra"]
 
 class intNameGenerator:
 	def __init__(self):
@@ -221,6 +226,7 @@ class cityEditor(uiElement):
 		self.city = None
 		self.names = []
 	def show(self,city):
+		theGameMode.mapEditor.hide()
 		self.hide()
 		self.city = city
 		self.names.append(cityNameInputElement(-0.972,0.746,width=(2.0*cDefines['UI_TEXT_INPUT_IMAGE_WIDTH']/cDefines['SCREEN_WIDTH']),height=(2.0*cDefines['UI_TEXT_INPUT_IMAGE_HEIGHT']/cDefines['SCREEN_HEIGHT']),text=self.city.name,textSize=0.0005,textColor='00 00 00',textureIndex=cDefines['UI_TEXT_INPUT_INDEX'],textYPos=-0.035,textXPos=0.01).name)
@@ -229,6 +235,7 @@ class cityEditor(uiElement):
 		height = 0.56
 		for unitType in self.city.unitTypes:
 			self.names.append(uiElement(-0.972,height,text=unitType.name,textSize=0.0005).name)
+			self.names.append(unitCostField(-0.7,height,text=str(unitType.defaultCost),textSize=0.0005).name)
 			height = height - 0.035
 		self.names.append(addUnitTypeButton(-0.972,height,width=0.0,height=0.0,text="+unit",textSize=0.0005).name)
 		self.names.append(deleteCityButton(-0.972,-0.9,width=0.0,height=0.0,text="delete city",textSize=0.0005).name)
@@ -257,6 +264,21 @@ class mapEditorTileSelectUIElement(uiElement):
 	def onMouseOut(self):
 		self.toolTipElement.hidden = True
 
+class mapEditorMapOptionsButton(uiElement):
+	def onClick(self):
+		theGameMode.cityEditor.hide()
+		theGameMode.mapEditor.show()
+
+
+class mapOptionsEditor(uiElement):
+	def __init__(self,xPos,yPos,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None):
+		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cursorIndex,color=color,mouseOverColor=mouseOverColor,hidden=True)
+		self.names = []
+	def show(self):
+		self.hidden = False
+	def hide(self):
+		self.hidden = True
+		
 
 class scrollPadElement(uiElement):
 	def __init__(self,xPos,yPos,scrollableElement,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,topOffset=0.016,bottomOffset=0.020,rightOffset=0.012):
@@ -376,6 +398,15 @@ class cityCostSelector(scrollableTextFieldsElement):
 		theGameMode.cityEditor.city.costOfOwnership = int(textFieldElem.text)
 		self.destroy()
 
+class unitCostSelector(scrollableTextFieldsElement):
+	def __init__(self,xPos,yPos,textFields,unitCostField,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,yPositionOffset=-0.04,yOffset=-0.041,numFields=25,scrollSpeed=1):
+		scrollableTextFieldsElement.__init__(self,xPos,yPos,textFields,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,color=color,mouseOverColor=mouseOverColor)
+		self.unitCostField = unitCostField
+	def handleClick(self,textFieldElem):
+		self.unitCostField.text = textFieldElem.text
+#		theGameMode.cityEditor.city.costOfOwnership = int(textFieldElem.text)
+		self.destroy()
+
 class playerStartLocationButton(clickableElement):
 	playerStartLocationButtons = []
 	def __init__(self,xPos,yPos,playerNumber,width=0.0,height=0.0,text="",textSize=0.001,textureIndex=-1,color="FF FF FF"):
@@ -408,6 +439,10 @@ class addUnitTypeButton(clickableElement):
 class cityCostField(clickableElement):
 	def onClick(self):
 		cityCostSelector(self.xPosition,self.yPosition-0.06,cityCosts,self,text="select cost",textSize=0.0005,textureIndex=cDefines['UI_SCROLLABLE_INDEX'],width=(2.0*cDefines['UI_SCROLLABLE_IMAGE_WIDTH']/cDefines['SCREEN_WIDTH']),height=(2.0*cDefines['UI_SCROLLABLE_IMAGE_HEIGHT']/cDefines['SCREEN_HEIGHT']))
+
+class unitCostField(clickableElement):
+	def onClick(self):
+		unitCostSelector(self.xPosition,self.yPosition-0.06,unitCosts,self,text="select cost",textSize=0.0005,textureIndex=cDefines['UI_SCROLLABLE_INDEX'],width=(2.0*cDefines['UI_SCROLLABLE_IMAGE_WIDTH']/cDefines['SCREEN_WIDTH']),height=(2.0*cDefines['UI_SCROLLABLE_IMAGE_HEIGHT']/cDefines['SCREEN_HEIGHT']))
 
 class node:
 	def __init__(self,xPos,yPos,tileValue=cDefines['GRASS_TILE_INDEX'],roadValue=0,city=None,playerStartValue=0):
@@ -457,7 +492,7 @@ class mapEditorNode(node):
 					self.roadValue = (~self.roadValue)&1
 				elif(theGameMode.selectedButton.tileType == cDefines['CITY_TILE_INDEX']):#new city
 					if(self.city == None):
-						self.city = city("city name")
+						self.city = city(random.choice(cityNames))
 						theGameMode.cityEditor.show(self.city)
 					else:
 						theGameMode.cityEditor.show(self.city)
@@ -708,6 +743,8 @@ class mapEditorMode(tiledGameMode):
 		tiledGameMode.__init__(self)
 		self.selectedButton = None
 		self.selectedCityNode = None
+		self.cityEditor = None
+		self.mapEditor = None
 	def loadMap(self):
 		self.map = map(mapEditorNode)
 	def handleKeyDown(self,keycode):
@@ -770,8 +807,10 @@ class mapEditorMode(tiledGameMode):
 
 				playerStartLocationButton(-0.39+(0.05*col),0.972-(0.038*row),playerNumber=col*4+row+1,width=2.0*cDefines['PLAYER_START_BUTTON_WIDTH']/cDefines['SCREEN_WIDTH'],height=2.0*cDefines['PLAYER_START_BUTTON_HEIGHT']/cDefines['SCREEN_HEIGHT'],textureIndex=cDefines['PLAYER_START_BUTTON_INDEX'])
 				uiElement(-0.370+(0.05*col),0.948-(0.04*row),text=str((col*4)+row+1),textSize=0.0004)
+				
+		mapEditorMapOptionsButton(-0.25,0.95,width=(2.0*cDefines['MAP_ICON_WIDTH']/cDefines['SCREEN_WIDTH']),height=(2.0*cDefines['MAP_ICON_HEIGHT']/cDefines['SCREEN_HEIGHT']),textureIndex=cDefines['MAP_ICON_INDEX'],cursorIndex=cDefines['CURSOR_HAND_INDEX'])
 
-
+		self.mapEditor = mapOptionsEditor(-0.91,0.75,text="map options",textSize=0.0005)
 
 		addColumnButton(0.96,0.03,text="+",textureIndex=-1)
 		removeColumnButton(0.96,-0.03,text="-",textureIndex=-1)

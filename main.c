@@ -20,7 +20,7 @@
 
 #define maxZoom 70.0
 #define minZoom 10.0
-#define initZoom 60.0
+#define initZoom 30.0
 
 #define zoomSpeed 0.3
 
@@ -92,6 +92,11 @@
 #define HEALTH_BAR_IMAGE_WIDTH 52
 #define HEALTH_BAR_INDEX 14
 
+#define MAP_ICON_IMAGE "assets/mapIcon.png"
+#define MAP_ICON_HEIGHT 35
+#define MAP_ICON_WIDTH 56
+#define MAP_ICON_INDEX 15
+
 #define DESERT_TILE_INDEX 0
 #define GRASS_TILE_INDEX 1
 #define MOUNTAIN_TILE_INDEX 2
@@ -120,8 +125,8 @@ int moveRight = 0;
 int previousTick = 0;
 int deltaTicks = 0;
 
-float translateX = -46.0;
-float translateY = 30.0;
+float translateX = -20.0;
+float translateY = 15.0;
 float scrollSpeed = 0.04;
 
 PyObject * gameModule;
@@ -820,6 +825,7 @@ static void initGL (){
   pngLoad(&texturesArray[UI_TEXT_INPUT_INDEX],UI_TEXT_INPUT_IMAGE);
   pngLoad(&texturesArray[MEEPLE_INDEX],MEEPLE_IMAGE);
   pngLoad(&texturesArray[HEALTH_BAR_INDEX],HEALTH_BAR_IMAGE);
+  pngLoad(&texturesArray[MAP_ICON_INDEX],MAP_ICON_IMAGE);
 
   vertexArrays[DESERT_TILE_INDEX] = *desertVertices;
   vertexArrays[GRASS_TILE_INDEX] = *grassVertices;
