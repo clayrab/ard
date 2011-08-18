@@ -1,3 +1,9 @@
+#city viewer in playMode
+#unit viewer in playMode
+#fog of war
+#multiple maps
+#AI
+
 import random
 import copy
 
@@ -783,7 +789,6 @@ class playMode(tiledGameMode):
 			self.elementWithFocus.onKeyDown(keycode)
 		except:
 			if(keycode == "space"):
-				print "space"
 				self.focusNextUnit = 1
 				self.selectedNode.selected = False
 				self.selectedNode = self.nextUnit.node
@@ -913,8 +918,3 @@ class newGameScreenMode(gameMode):
 global theGameMode
 theGameMode = newGameScreenMode()
 theGameMode.addUIElements()
-
-#theGameMode = mapEditorMode()
-#theGameMode.loadMap()
-#theGameMode.addUIElements()
-#print theGameMode
