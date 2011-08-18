@@ -426,8 +426,8 @@ class node:
 
 class playModeNode(node):
 	def onLeftClickDown(self):
-		for node in self.neighbors:
-			node.selected = not node.selected
+		print self.xPos + "," + self.yPos
+		
 		if(theGameMode.nextUnit.node.neighbors.count(self) > 0):
 			if(self.unit != None):
 				print "attack!!!!..?"
