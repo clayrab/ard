@@ -1,4 +1,5 @@
 import random
+import copy
 
 zoomSpeed = 0.3
 
@@ -35,7 +36,7 @@ class city:
 		self.unitTypes = unitTypes
 
 class unitType:
-	def __init__(self,name,textureIndex,movementInitiative,attackInitiative,health,canFly=False,canSwim=False):
+	def __init__(self,name,textureIndex,movementInitiative,attackInitiative,health,canFly=False,canSwim=False,defaultCost=10):
 		self.name = name
 		self.textureIndex = textureIndex
 		self.movementInitiative = movementInitiative
@@ -43,12 +44,7 @@ class unitType:
 		self.health = health
 		self.canFly = canFly
 		self.canSwim = canSwim
-		self.defaultCost = 10
-
-class cityUnitType(unitType):
-	def __init__(self,name,textureIndex,movementInitiative,attackInitiative,health,canFly=False,canSwim=False):
-		unitType.__init__(name,textureIndex,movementInitiative,attackInitiative,health,canFly=canFly,canSwim=canSwim)
-		self.cost = self.defaultCost
+		self.cost = defaultCost
 
 class unit:
 	def __init__(self,unitType,player,xPos,yPos,node):
@@ -240,7 +236,7 @@ class cityEditor(uiElement):
 		height = 0.56
 		for unitType in self.city.unitTypes:
 			self.names.append(uiElement(-0.972,height,text=unitType.name,textSize=0.0005).name)
-			self.names.append(unitCostField(-0.7,height,text=str(unitType.defaultCost),textSize=0.0005).name)
+			self.names.append(unitCostField(-0.7,height,unitType,text=str(unitType.cost),textSize=0.0005).name)
 			height = height - 0.035
 		self.names.append(addUnitTypeButton(-0.972,height,width=0.0,height=0.0,text="+unit",textSize=0.0005).name)
 		self.names.append(deleteCityButton(-0.972,-0.9,width=0.0,height=0.0,text="delete city",textSize=0.0005).name)
@@ -390,7 +386,7 @@ class unitTypeSelector(scrollableTextFieldsElement):
 	def handleClick(self,textFieldElem):
 		for unitType in theUnitTypes.values():
 			if(unitType.name == textFieldElem.text):
-				theGameMode.cityEditor.city.unitTypes.append(unitType)
+				theGameMode.cityEditor.city.unitTypes.append(copy.copy(unitType))
 		self.destroy()
 		theGameMode.cityEditor.show(theGameMode.cityEditor.city)
 
@@ -409,7 +405,7 @@ class unitCostSelector(scrollableTextFieldsElement):
 		self.unitCostField = unitCostField
 	def handleClick(self,textFieldElem):
 		self.unitCostField.text = textFieldElem.text
-#		theGameMode.cityEditor.city.costOfOwnership = int(textFieldElem.text)
+		self.unitCostField.unitType.cost = int(textFieldElem.text)
 		self.destroy()
 
 class playerStartLocationButton(clickableElement):
@@ -446,6 +442,10 @@ class cityCostField(clickableElement):
 		cityCostSelector(self.xPosition,self.yPosition-0.06,cityCosts,self,text="select cost",textSize=0.0005,textureIndex=cDefines['UI_SCROLLABLE_INDEX'],width=(2.0*cDefines['UI_SCROLLABLE_IMAGE_WIDTH']/cDefines['SCREEN_WIDTH']),height=(2.0*cDefines['UI_SCROLLABLE_IMAGE_HEIGHT']/cDefines['SCREEN_HEIGHT']))
 
 class unitCostField(clickableElement):
+       	def __init__(self,xPos,yPos,unitType,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,textXPos=0.0,textYPos=0.0):
+		clickableElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines['CURSOR_HAND_INDEX'],color=color,mouseOverColor=mouseOverColor,textXPos=textXPos,textYPos=textYPos)
+		self.unitType = unitType
+
 	def onClick(self):
 		unitCostSelector(self.xPosition,self.yPosition-0.06,unitCosts,self,text="select cost",textSize=0.0005,textureIndex=cDefines['UI_SCROLLABLE_INDEX'],width=(2.0*cDefines['UI_SCROLLABLE_IMAGE_WIDTH']/cDefines['SCREEN_WIDTH']),height=(2.0*cDefines['UI_SCROLLABLE_IMAGE_HEIGHT']/cDefines['SCREEN_HEIGHT']))
 
@@ -579,9 +579,12 @@ class map:
 					cityName = tokens[1]
 					unitTypes = []
 					if(len(tokens[2].strip()) != 0):
-						unitTypeNames = tokens[2].strip().split(",")
-						for unitTypeName in unitTypeNames:
-							unitTypes.append(theUnitTypes[unitTypeName])
+						unitTypeStrings = tokens[2].strip().split(",")
+						for unitTypeString in unitTypeStrings:
+							unitTypeTokens = unitTypeString.split("|")
+							theUnitType = copy.copy(theUnitTypes[unitTypeTokens[0]])
+							theUnitType.cost = unitTypeTokens[1]
+							unitTypes.append(theUnitType)
 					costOfOwnership = tokens[3]
 					self.nodes[int(coords[1])][int(coords[0])].city = city(cityName,unitTypes,costOfOwnership)
 			count = count + 1
@@ -603,7 +606,7 @@ class map:
 				if(node.city != None):
 					unitTypes = ""
 					for unitType in node.city.unitTypes:
-						unitTypes = unitTypes + "," + unitType.name
+						unitTypes = unitTypes + "," + unitType.name + "|" + str(unitType.cost)
 					unitTypes = unitTypes[1:]
 					cityLines.append("*" + str(xPos-1) + "," + str(yPos-1) + ":" + node.city.name + ":" + unitTypes + ":" + str(node.city.costOfOwnership) + "\n")
 			nodeLines.append(line + "\n")
