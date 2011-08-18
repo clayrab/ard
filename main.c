@@ -111,6 +111,7 @@ float screenRatio;
 static SDL_Surface *gScreen;
 
 int clickScroll = 0;
+long focusNextUnit = 0;
 int leftButtonDown = 0;
 
 int done = 0;    
@@ -127,7 +128,6 @@ PyObject * gameModule;
 PyObject * gameMode;
 PyObject * theMap;
 PyObject * mapName;
-PyObject * nodes;
 PyObject * mapIterator;
 PyObject * UIElementsIterator;
 PyObject * rowIterator;
@@ -333,6 +333,7 @@ void stopPicking() {
 //float glMouseCoords[3];
 //void convertWinCoordsToMapCoords(int x, int y){
 void convertWinCoordsToMapCoords(int x, int y, GLdouble* posX, GLdouble* posY, GLdouble* posZ){
+  //TODO: THIS SEEMS OFF BECAUSE OF THE EXTRA SPACE TAKEN BY THE UI ON THE SIDES
   GLint viewport[4];
   GLdouble modelview[16];
   GLdouble projection[16];
@@ -349,7 +350,7 @@ void convertWinCoordsToMapCoords(int x, int y, GLdouble* posX, GLdouble* posY, G
 
   PyObject * pyTranslateZ = PyObject_GetAttrString(theMap,"translateZ");
   double transZ = PyFloat_AsDouble(pyTranslateZ);
-  //Py_DECREF(pyTranslateZ);//This causes a SegFault????
+  //Py_DECREF(pyTranslateZ);//TODO: This causes a SegFault????
 
   winZ = (float)((minZoom-transZ)/maxZoom);
   gluUnProject( winX, winY, winZ, modelview, projection, viewport, posX, posY, posZ);
@@ -379,6 +380,11 @@ void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long 
   }
   if(isSelected == 1){
     glColor3f(0.4f, 0.4f, 0.4f);    
+    if(focusNextUnit){
+      translateX = -xPosition;
+      translateY = -yPosition;
+      focusNextUnit = 0;
+    }
   }
   glPushName(name);	
   glBegin(GL_POLYGON);
@@ -842,17 +848,21 @@ static void initPython(){
 }
 static void handleInput(){
   SDL_Event event;
-
   deltaTicks = SDL_GetTicks()-previousTick;
   previousTick = SDL_GetTicks();
-
-
+  if(PyObject_HasAttrString(gameMode,"getFocusNextUnit")){
+    PyObject * pyFocusNextUnit;
+    pyFocusNextUnit = PyObject_CallMethod(gameMode,"getFocusNextUnit",NULL);
+    focusNextUnit = PyLong_AsLong(pyFocusNextUnit);
+  }
   //SDL_Delay(20);//for framerate testing...
   while(SDL_PollEvent(&event)){
     switch(event.type){
     case SDL_MOUSEMOTION:
       mouseX = event.motion.x;
       mouseY = event.motion.y;
+      //printf("mousex: %d mousey: %d\n",mouseX,mouseY);
+      //printf("translateX: %f translateY: %f\n",translateX,translateY);
       PyObject_CallMethod(gameMode,"handleMouseMovement","(iii)",selectedName,mouseX,mouseY);
       //printf("x: %d\t\ty: %d\n",mouseX,mouseY);
       if(clickScroll > 0){
@@ -934,6 +944,7 @@ static void handleInput(){
 	       || event.key.keysym.sym == 13//enter/return
 	       || (event.key.keysym.sym >= 273 && event.key.keysym.sym <= 276)//arrow keys
 	       ){
+
 	if((event.key.keysym.mod & KMOD_CAPS | event.key.keysym.mod & KMOD_LSHIFT | event.key.keysym.mod & KMOD_RSHIFT) && (event.key.keysym.sym > 0x60 && event.key.keysym.sym <= 0x7A)){
 	  char * key = SDL_GetKeyName(event.key.keysym.sym);
 	  char capsKey[2];
@@ -983,6 +994,7 @@ static void draw(){
     //draw the game board
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
+    
     convertWinCoordsToMapCoords(mouseX,mouseY,&mouseMapPosX,&mouseMapPosY,&mouseMapPosZ);
     //glTranslatef(mouseMapPosX,mouseMapPosY,translateZ);//for some reason we need mouseMapPosZ instead of translateZ
     glTranslatef(translateX,translateY,mouseMapPosZ);
@@ -1059,15 +1071,8 @@ static void mainLoop (){
   while ( !done ) {
     gameMode = PyObject_GetAttrString(gameModule, "theGameMode");
     theMap = PyObject_GetAttrString(gameMode, "map");//New reference
-    if(theMap != Py_None){
-      nodes = PyObject_CallMethod(theMap,"getNodes",NULL);//New reference
-    }
     handleInput();
     draw();
-
-    if(theMap != Py_None){
-      Py_DECREF(nodes);
-    }
     Py_DECREF(theMap);
     Py_DECREF(gameMode);
   }

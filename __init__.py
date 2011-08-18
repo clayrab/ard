@@ -412,6 +412,8 @@ class cityCostField(clickableElement):
 
 class node:
 	def __init__(self,xPos,yPos,tileValue=cDefines['GRASS_TILE_INDEX'],roadValue=0,city=None,playerStartValue=0):
+		self.xPos = xPos
+		self.yPos = yPos
 		self.name = nameGenerator.getNextName()
 		self.tileValue = tileValue
 		self.roadValue = roadValue
@@ -426,7 +428,7 @@ class node:
 
 class playModeNode(node):
 	def onLeftClickDown(self):
-		print self.xPos + "," + self.yPos
+#		print str(self.xPos) + "," + str(self.yPos)
 		
 		if(theGameMode.nextUnit.node.neighbors.count(self) > 0):
 			if(self.unit != None):
@@ -624,21 +626,6 @@ class tiledGameMode(gameMode):
                                 self.elementsDict[name].onLeftClickUp()
 			elif(hasattr(self.elementWithFocus,"onLeftClickUp")):
 				self.elementWithFocus.onLeftClickUp()
-	def handleKeyDown(self,keycode):
-		try:
-			self.elementWithFocus.onKeyDown(keycode)
-		except:
-			try:
-				intKeycode = int(keycode)
-				for key,value in self.elementsDict.iteritems():
-					if(hasattr(value,'tileType')):
-						if(value.tileType == intKeycode-1):
-							if(self.selectedButton != None):
-								self.selectedButton.selected = False
-							value.selected = True
-							self.selectedButton = value
-			except:
-				return
 	def handleScrollUp(self,name,deltaTicks):
 		if(name in self.elementsDict and hasattr(self.elementsDict[name],"onScrollUp")):
 			self.elementsDict[name].onScrollUp()
@@ -660,9 +647,15 @@ class playMode(tiledGameMode):
 		self.units = []
 		self.cites = []
 		self.nextUnit = None
+		self.focusNextUnit = 0
+		self.focusNextUnitTemp = 0
 	def loadMap(self):
 		self.map = map(playModeNode)
 		self.loadSummoners()
+	def getFocusNextUnit(self):
+		self.focusNextUnitTemp = self.focusNextUnit
+		self.focusNextUnit = 0
+		return self.focusNextUnitTemp
 	def orderUnits(self):
 		self.units.sort(key=lambda unit:0-unit.movementPoints)
 	def chooseNextUnit(self):
@@ -677,7 +670,7 @@ class playMode(tiledGameMode):
 				eligibleUnits.append(unit)
 		self.nextUnit = random.choice(eligibleUnits)
 		self.nextUnit.node.selected = True
-		print self.nextUnit.movementPoints
+		self.focusNextUnit = 1
 	def loadSummoners(self):
 		rowCount = 0
 		columnCount = 0
@@ -697,6 +690,13 @@ class playMode(tiledGameMode):
 			unit.attackInitiative = unit.attackInitiative + 1
 		for city in self.cities:
 			print city
+			
+	def handleKeyDown(self,keycode):
+		try:
+			self.elementWithFocus.onKeyDown(keycode)
+		except:
+			if(keycode == "space"):
+				self.focusNextUnit = 1
 	def addUIElements(self):
 		uiElement(xPos=-1.0,yPos=1.0,width=2.0,height=(2.0*cDefines['UI_MAP_EDITOR_TOP_IMAGE_HEIGHT']/cDefines['SCREEN_HEIGHT']),textureIndex=cDefines['UI_MAP_EDITOR_TOP_INDEX'])
 		uiElement(xPos=-1.0,yPos=1.0-(2.0*cDefines['UI_MAP_EDITOR_TOP_IMAGE_HEIGHT']/cDefines['SCREEN_HEIGHT']),width=(2.0*cDefines['UI_MAP_EDITOR_LEFT_IMAGE_WIDTH']/cDefines['SCREEN_WIDTH']),height=(2.0*cDefines['UI_MAP_EDITOR_LEFT_IMAGE_HEIGHT']/cDefines['UI_MAP_EDITOR_LEFT_IMAGE_WIDTH']),textureIndex=cDefines['UI_MAP_EDITOR_LEFT_INDEX'])
@@ -711,6 +711,21 @@ class mapEditorMode(tiledGameMode):
 		self.selectedCityNode = None
 	def loadMap(self):
 		self.map = map(mapEditorNode)
+	def handleKeyDown(self,keycode):
+		try:
+			self.elementWithFocus.onKeyDown(keycode)
+		except:
+			try:
+				intKeycode = int(keycode)
+				for key,value in self.elementsDict.iteritems():
+					if(hasattr(value,'tileType')):
+						if(value.tileType == intKeycode-1):
+							if(self.selectedButton != None):
+								self.selectedButton.selected = False
+							value.selected = True
+							self.selectedButton = value
+			except:
+				return
 	def handleMouseOver(self,name,isLeftMouseDown):
 		#TODO: keeping track of mousedOverObject might not be necessary any more since I added previousMousedoverName to the C code
 		if(isLeftMouseDown > 0):#allows onLeftClickDown to be called for tiles when the mouse is dragged over them
