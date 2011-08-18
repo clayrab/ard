@@ -53,8 +53,8 @@ class unit:
 		self.xPos = xPos
 		self.yPos = yPos
 		self.node = node
-		self.movementPoints = 0
-		self.attackPoints = 0
+		self.movementPoints = 0.0
+		self.attackPoints = 0.0
 		self.health = self.unitType.health
 
 unitTypesList = []
@@ -477,7 +477,7 @@ class playModeNode(node):
 				theGameMode.nextUnit.node.unit = None
 				theGameMode.nextUnit.node = self
 				self.unit = theGameMode.nextUnit
-				theGameMode.nextUnit.movementPoints = theGameMode.nextUnit.movementPoints - 1000
+				theGameMode.nextUnit.movementPoints = theGameMode.nextUnit.movementPoints - 1000.0
 				theGameMode.chooseNextUnit()
 
 class mapEditorNode(node):
@@ -702,9 +702,18 @@ class playMode(tiledGameMode):
 		self.units.sort(key=lambda unit:0-unit.movementPoints)
 	def chooseNextUnit(self):
 		self.orderUnits()
-		while(self.units[0].movementPoints < 1000):
+		while(self.units[0].movementPoints < 1000.0):
 			for unit in self.units:
-				unit.movementPoints = unit.movementPoints + 1
+				if(unit.node.roadValue == 1):
+					unit.movementPoints = unit.movementPoints + 2.0
+				elif(unit.node.tileValue == cDefines['MOUNTAIN_TILE_INDEX']):
+					unit.movementPoints = unit.movementPoints + 0.1
+				elif(unit.node.tileValue == cDefines['WATER_TILE_INDEX'] and unit.canSwim == False):
+					unit.movementPoints = unit.movementPoints + 0.5
+				elif(unit.node.tileValue == cDefines['DESERT_TILE_INDEX']):
+					unit.movementPoints = unit.movementPoints + 0.5
+				else:
+					unit.movementPoints = unit.movementPoints + 1.5
 		eligibleUnits = []
 		eligibleUnits.append(self.units[0])
 		for unit in self.units[1:]:
