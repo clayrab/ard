@@ -34,6 +34,7 @@ class uiElement:
 		if(self.textColor == None):
 			self.textColor = "FF FF FF"
 		gameState.getGameMode().elementsDict[self.name] = self
+		gameState.getGameMode().resortElems = True
 	def onScrollDown(self):
 		return None
 	def onScrollUp(self):
@@ -126,19 +127,14 @@ class cityNameInputElement(textInputElement):
 
 class newMapNameInputElement(textInputElement):
 	def __init__(self,xPos,yPos,gameMode,width=0.0,height=0.0,text="",textSize=0.001,textureIndex=-1,textColor='FF FF FF',textXPos=0.0,textYPos=0.0):
-		print xPos
-		print yPos
-		print textureIndex
 		textInputElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textSize=textSize,textColor=textColor,textXPos=textXPos,textYPos=textYPos)
 		self.gameMode = gameMode
-		print "wtf"
 	def onKeyDown(self,keycode):
 		if(keycode == "return"):
 			if(len(self.text) > 0):
 				shutil.copyfile("maps/defaultMap","maps/" + self.text + ".map")
 				gameState.setMapName(self.text)
 				gameState.setGameMode(self.gameMode)
-			print "enter"
 		else:
 			textInputElement.onKeyDown(self,keycode)
 

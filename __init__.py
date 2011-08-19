@@ -145,7 +145,7 @@ class map:
 			count = count + 1
 		mapFile.close()
 	def save(self):
-		mapFile = open('maps/' + gameState.getMapName() + ".map",'r')
+		mapFile = open('maps/' + gameState.getMapName() + ".map",'w')
 		yPos = 0
 		xPos = 0
 		cityLines = []
@@ -248,8 +248,17 @@ class mapEditorNode(node):
 					self.playerStartValue = gameState.getGameMode().selectedButton.playerNumber
 
 class gameMode:
+	def __init__(self):
+		self.elementsDict = {}
+		self.map = None
+		self.elementWithFocus = None
+		self.resortElems = True
 	def getUIElementsIterator(self):
-		return self.elementsDict.values().__iter__()
+		if(self.resortElems):
+			self.resortElems = False
+			gameMode.sortedElements = sorted(self.elementsDict.values().__iter__())
+			print "SORT"
+		return gameMode.sortedElements
 	def handleLeftClickDown(self,name):
 		if(self.elementsDict.has_key(name)):
 			self.elementWithFocus = self.elementsDict[name]
@@ -275,11 +284,10 @@ class gameMode:
 			
 class tiledGameMode(gameMode):
 	def __init__(self):
-		self.elementsDict = {}
-		self.elementWithFocus = None
 		self.mousedOverObject = None
 		self.mouseX = 0
 		self.mouseY = 0
+		gameMode.__init__(self)
 	def handleMouseMovement(self,name,mouseX,mouseY):
 		self.mouseX = mouseX
 		self.mouseY = mouseY
@@ -338,13 +346,13 @@ class tiledGameMode(gameMode):
 
 class playMode(tiledGameMode):
 	def __init__(self):
-		tiledGameMode.__init__(self)
 		self.units = []
 		self.cites = []
 		self.nextUnit = None
 		self.focusNextUnit = 0
 		self.focusNextUnitTemp = 0
 		self.selectedNode = None
+		tiledGameMode.__init__(self)
 	def loadMap(self):
 		self.map = map(playModeNode)
 		self.loadSummoners()
@@ -416,11 +424,11 @@ class playMode(tiledGameMode):
 
 class mapEditorMode(tiledGameMode):	
 	def __init__(self):
-		tiledGameMode.__init__(self)
 		self.selectedButton = None
 		self.selectedCityNode = None
 		self.cityEditor = None
 		self.mapEditor = None
+		tiledGameMode.__init__(self)
 	def loadMap(self):
 		self.map = map(mapEditorNode)
 	def handleKeyDown(self,keycode):
@@ -481,8 +489,7 @@ class mapEditorMode(tiledGameMode):
 
 class textBasedMenuMode(gameMode):
 	def __init__(self):
-		self.elementsDict = {}
-		self.map = None
+		gameMode.__init__(self)
 	def handleKeyDown(self,keycode):
 		if(keycode == "up"):
 			if(menuButton.selectedIndex == 0):
@@ -515,15 +522,17 @@ class quickPlayMapSelectMode(textBasedMenuMode):
 	def addUIElements(self):
 		uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])
 		dirList=os.listdir("maps")
+		heightDelta = 0.0
 		for fileName in dirList:
 			if(fileName.endswith(".map")):
-				mapPlaySelectButton(-0.16,0.2,playMode,text=fileName[0:len(fileName)-4])
+				heightDelta = heightDelta - 0.1
+				mapPlaySelectButton(-0.16,0.3+heightDelta,playMode,text=fileName[0:len(fileName)-4])
 
 class mapEditorSelectMode(textBasedMenuMode):
 	def addUIElements(self):
 		uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])
-		dirList=os.listdir("maps")
 		mapEditSelectButton(-0.16,0.2,newMapMode,text="create new map")
+		dirList=os.listdir("maps")
 		heightDelta = 0.0
 		for fileName in dirList:
 			if(fileName.endswith(".map")):
@@ -532,13 +541,10 @@ class mapEditorSelectMode(textBasedMenuMode):
 
 class newMapMode(gameMode):
 	def __init__(self):
-		self.elementsDict = {}
-		self.map = None
-		self.elementWithFocus = None
+		gameMode.__init__(self)
 	def addUIElements(self):
 		uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])
-		print "1"
 		self.elementWithFocus = newMapNameInputElement(-0.2,0.2,mapEditorMode,width=(2.0*cDefines.defines['UI_TEXT_INPUT_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_TEXT_INPUT_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),text="",textSize=0.0005,textColor='00 00 00',textureIndex=cDefines.defines['UI_TEXT_INPUT_INDEX'],textYPos=-0.035,textXPos=0.01)
-		print "2"
+		uiElement(-0.2,0.0,text="asdf")
 
 gameState.setGameMode(newGameScreenMode)
