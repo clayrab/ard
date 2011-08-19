@@ -6,6 +6,7 @@
 #multiplayer
 #AI
 
+import os
 import random
 import copy
 import gameState
@@ -82,7 +83,7 @@ class map:
 		self.translateZ = 0-cDefines.defines['initZoom']
 		self.load()
 	def load(self):
-		mapFile = open('map1','r')
+		mapFile = open('maps/' + gameState.getMapName() + ".map",'r')
 		self.nodes = []
 		count = 0
 		yPos = -1
@@ -144,7 +145,7 @@ class map:
 			count = count + 1
 		mapFile.close()
 	def save(self):
-		mapFile = open('map1','w')
+		mapFile = open('maps/' + gameState.getMapName() + ".map",'r')
 		yPos = 0
 		xPos = 0
 		cityLines = []
@@ -262,7 +263,16 @@ class gameMode:
 				self.elementWithFocus.onLeftClickDown()
 		else:
 			self.elementWithFocus = None
-
+	def handleLeftClickUp(self,name):
+		if(self.elementsDict.has_key(name)):
+			if(hasattr(self.elementsDict[name],"onLeftClickUp")):
+                                self.elementsDict[name].onLeftClickUp()
+			elif(hasattr(self.elementWithFocus,"onLeftClickUp")):
+				self.elementWithFocus.onLeftClickUp()
+	def handleKeyDown(self,keycode):
+		if(hasattr(self.elementWithFocus,"onKeyDown")):
+			self.elementWithFocus.onKeyDown(keycode)
+			
 class tiledGameMode(gameMode):
 	def __init__(self):
 		self.elementsDict = {}
@@ -287,25 +297,6 @@ class tiledGameMode(gameMode):
 		if(not rightClickable):
 			self.selectedCityNode.selected = False
 			self.selectedCityNode = None
-	def handleLeftClickDown(self,name):
-		if(self.elementsDict.has_key(name)):
-			self.elementWithFocus = self.elementsDict[name]
-			if(hasattr(self.elementsDict[name],"onClick")):
-				self.elementsDict[name].onClick()
-			elif(hasattr(self.elementsDict[name],"onLeftClickDown")):
-				self.elementsDict[name].onLeftClickDown()
-			elif(hasattr(self.elementWithFocus,"onClick")):
-				self.elementWithFocus.onClick()
-			elif(hasattr(self.elementWithFocus,"onLeftClickDown")):
-				self.elementWithFocus.onLeftClickDown()
-		else:
-			self.elementWithFocus = None
-	def handleLeftClickUp(self,name):
-		if(self.elementsDict.has_key(name)):
-			if(hasattr(self.elementsDict[name],"onLeftClickUp")):
-                                self.elementsDict[name].onLeftClickUp()
-			elif(hasattr(self.elementWithFocus,"onLeftClickUp")):
-				self.elementWithFocus.onLeftClickUp()
 	def handleScrollUp(self,name,deltaTicks):
 		if(name in self.elementsDict and hasattr(self.elementsDict[name],"onScrollUp")):
 			self.elementsDict[name].onScrollUp()
@@ -517,14 +508,37 @@ class textBasedMenuMode(gameMode):
 class newGameScreenMode(textBasedMenuMode):
 	def addUIElements(self):
 		uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])
-		newGameScreenButton(-0.16,0.2,playMode,text="new game")
+		newGameScreenButton(-0.16,0.2,quickPlayMapSelectMode,text="quick play")
 		newGameScreenButton(-0.165,0.1,mapEditorSelectMode,text="map editor")
+
+class quickPlayMapSelectMode(textBasedMenuMode):
+	def addUIElements(self):
+		uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])
+		dirList=os.listdir("maps")
+		for fileName in dirList:
+			if(fileName.endswith(".map")):
+				mapPlaySelectButton(-0.16,0.2,playMode,text=fileName[0:len(fileName)-4])
 
 class mapEditorSelectMode(textBasedMenuMode):
 	def addUIElements(self):
 		uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])
-		mapSelectButton(-0.16,0.2,mapEditorMode,text="map1")
-		mapSelectButton(-0.16,0.1,mapEditorMode,text="map2")
-		mapSelectButton(-0.16,0.0,mapEditorMode,text="map3")
+		dirList=os.listdir("maps")
+		mapEditSelectButton(-0.16,0.2,newMapMode,text="create new map")
+		heightDelta = 0.0
+		for fileName in dirList:
+			if(fileName.endswith(".map")):
+				heightDelta = heightDelta - 0.1
+				mapEditSelectButton(-0.16,0.2+heightDelta,mapEditorMode,text=fileName[0:len(fileName)-4])
+
+class newMapMode(gameMode):
+	def __init__(self):
+		self.elementsDict = {}
+		self.map = None
+		self.elementWithFocus = None
+	def addUIElements(self):
+		uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])
+		print "1"
+		self.elementWithFocus = newMapNameInputElement(-0.2,0.2,mapEditorMode,width=(2.0*cDefines.defines['UI_TEXT_INPUT_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_TEXT_INPUT_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),text="",textSize=0.0005,textColor='00 00 00',textureIndex=cDefines.defines['UI_TEXT_INPUT_INDEX'],textYPos=-0.035,textXPos=0.01)
+		print "2"
 
 gameState.setGameMode(newGameScreenMode)

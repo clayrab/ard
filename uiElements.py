@@ -3,6 +3,7 @@ import copy
 import gameState
 import nameGenerator
 import cDefines
+import shutil
 
 class uiElement:
 	def __init__(self,xPos,yPos,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor=None,textSize=0.001,color=None,mouseOverColor=None,textXPos=0.0,textYPos=0.0):
@@ -115,12 +116,31 @@ class textInputElement(uiElement):
 			self.text = self.text + " "
 		else:
 			self.text = self.text + keycode
+
 class cityNameInputElement(textInputElement):
 	def __init__(self,xPos,yPos,width=0.0,height=0.0,text="",textSize=0.001,textureIndex=-1,textColor='FF FF FF',textXPos=0.0,textYPos=0.0):
 		textInputElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textSize=textSize,textColor=textColor,textXPos=textXPos,textYPos=textYPos)
 	def onKeyDown(self,keycode):
 		textInputElement.onKeyDown(self,keycode)
 		gameState.getGameMode().cityEditor.city.name = self.text
+
+class newMapNameInputElement(textInputElement):
+	def __init__(self,xPos,yPos,gameMode,width=0.0,height=0.0,text="",textSize=0.001,textureIndex=-1,textColor='FF FF FF',textXPos=0.0,textYPos=0.0):
+		print xPos
+		print yPos
+		print textureIndex
+		textInputElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textSize=textSize,textColor=textColor,textXPos=textXPos,textYPos=textYPos)
+		self.gameMode = gameMode
+		print "wtf"
+	def onKeyDown(self,keycode):
+		if(keycode == "return"):
+			if(len(self.text) > 0):
+				shutil.copyfile("maps/defaultMap","maps/" + self.text + ".map")
+				gameState.setMapName(self.text)
+				gameState.setGameMode(self.gameMode)
+			print "enter"
+		else:
+			textInputElement.onKeyDown(self,keycode)
 
 class cityEditor(uiElement):
 	def __init__(self,xPos,yPos,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None):
@@ -376,7 +396,15 @@ class newGameScreenButton(menuButton):
 	def onClick(self):
 		gameState.setGameMode(self.gameMode)
 
-class mapSelectButton(menuButton):
+class mapEditSelectButton(menuButton):
+	def onClick(self):
+		if(self.text == "create new map"):#TODO: someone naming a map "create new map" would fuck this up
+			gameState.setGameMode(self.gameMode)
+		else:
+			gameState.setMapName(self.text)
+			gameState.setGameMode(self.gameMode)
+
+class mapPlaySelectButton(menuButton):
 	def onClick(self):
 		gameState.setMapName(self.text)
 		gameState.setGameMode(self.gameMode)
