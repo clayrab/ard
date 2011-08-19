@@ -926,12 +926,11 @@ class newGameScreenMode(textBasedMenuMode):
 	def addUIElements(self):
 		uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines['UI_NEW_GAME_SCREEN_INDEX'])
 		newGameScreenButton(-0.16,0.2,text="new game",gameMode=playMode)
-#		newGameScreenButton(-0.165,0.1,text="map editor",gameMode=mapEditorSelectMode)
-		newGameScreenButton(-0.165,0.1,text="map editor",gameMode=mapEditorMode)
+		newGameScreenButton(-0.165,0.1,text="map editor",gameMode=mapEditorSelectMode)
+#		newGameScreenButton(-0.165,0.1,text="map editor",gameMode=mapEditorMode)
 
 #		newGameScreenButton(-0.16,0.0,text="test test te",gameMode=gameMode)
 #		newGameScreenButton(-0.17,-0.1,text="test test tes",gameMode=mapEditorMode)
-		print "foo"
 
 class mapEditorSelectMode(textBasedMenuMode):
 	def addUIElements(self):
