@@ -11,6 +11,9 @@ import copy
 import gameState
 import nameGenerator
 import uiElements
+from uiElements import *
+
+#uiElement = uiElements.uiElement
 
 zoomSpeed = 0.3
 currentMap = ""
