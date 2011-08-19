@@ -10,6 +10,9 @@ theGameMode = None
 def setGameMode(gameModeType):
     global theGameMode
     theGameMode = gameModeType()
+    if(hasattr(theGameMode,"loadMap")):
+        theGameMode.loadMap()
+    theGameMode.addUIElements()
 def getGameMode():
     global theGameMode
     return theGameMode
