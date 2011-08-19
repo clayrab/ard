@@ -120,9 +120,7 @@ class uiElement:
 			self.color = "FF FF FF"
 		if(self.textColor == None):
 			self.textColor = "FF FF FF"
-		print "arg"
 		gameState.getGameMode().elementsDict[self.name] = self
-		print "arggg"
 	def onScrollDown(self):
 		return None
 	def onScrollUp(self):
@@ -152,17 +150,11 @@ class newGameScreenButton(clickableElement):
 		if(self.index == newGameScreenButton.selectedIndex):
 			self.textColor = newGameScreenButton.selectedTextColor
 	def onClick(self):
-
-
 		gameState.setGameMode(self.gameMode)
 		if(hasattr(gameState.getGameMode(),"loadMap")):
 			gameState.getGameMode().loadMap()
-		print "0"
 		gameState.getGameMode().addUIElements()
-		print "1"
-		global theGameMode
 		theGameMode = gameState.getGameMode()
-		print "2"
 
 class saveButton(clickableElement):	
 	def onClick(self):
@@ -928,7 +920,6 @@ class newGameScreenMode(textBasedMenuMode):
 		newGameScreenButton(-0.16,0.2,text="new game",gameMode=playMode)
 		newGameScreenButton(-0.165,0.1,text="map editor",gameMode=mapEditorSelectMode)
 #		newGameScreenButton(-0.165,0.1,text="map editor",gameMode=mapEditorMode)
-
 #		newGameScreenButton(-0.16,0.0,text="test test te",gameMode=gameMode)
 #		newGameScreenButton(-0.17,-0.1,text="test test tes",gameMode=mapEditorMode)
 
@@ -939,4 +930,3 @@ class mapEditorSelectMode(textBasedMenuMode):
 
 gameState.setGameMode(newGameScreenMode)
 gameState.getGameMode().addUIElements()
-theGameMode = gameState.getGameMode()

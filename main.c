@@ -130,6 +130,7 @@ float translateY = 15.0;
 float scrollSpeed = 0.04;
 
 PyObject * gameModule;
+PyObject * gameState;
 PyObject * gameMode;
 PyObject * theMap;
 PyObject * mapName;
@@ -1075,7 +1076,7 @@ static void draw(){
 }
 static void mainLoop (){
   while ( !done ) {
-    gameMode = PyObject_GetAttrString(gameModule, "theGameMode");
+    gameMode = PyObject_CallMethod(gameState,"getGameMode",NULL);
     theMap = PyObject_GetAttrString(gameMode, "map");//New reference
     handleInput();
     draw();
@@ -1126,6 +1127,7 @@ int main(int argc, char **argv){
   initFonts();
   //SDL_EnableUNICODE(1);
   gameModule = PyImport_ImportModule("__init__");//New reference
+  gameState = PyImport_ImportModule("gameState");
   mainLoop();
   Py_DECREF(gameModule);
   Py_Finalize();
