@@ -777,12 +777,10 @@ static void initGL (){
   glEnable(GL_TEXTURE_2D);
   glEnable(GL_BLEND);
 
-  //  glDepthMask(GL_TRUE);
-  //glDepthFunc(GL_ALWAYS);
-  //glDisable(GL_DEPTH_TEST);
-  //
-  //glClear(GL_COLOR_BUFFER_BIT);		
-
+  //glDepthMask(GL_TRUE);
+  glClear(GL_COLOR_BUFFER_BIT);		
+  glEnable(GL_DEPTH_TEST);
+  glDepthFunc(GL_ALWAYS);
 
   char file[100] = TILES_IMAGE;
 
@@ -966,7 +964,7 @@ static void handleInput(){
 }
 static void draw(){
 
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		
 
 
     //game board projection time
@@ -1085,11 +1083,9 @@ int main(int argc, char **argv){
     SDL_Quit();
     exit(2);
   }
-  /*
   int * value;
   SDL_GL_GetAttribute(SDL_GL_DEPTH_SIZE,value);
   printf("depth size: %d\n",*value);
-  */
 
   SDL_ShowCursor(0);
   initGL();

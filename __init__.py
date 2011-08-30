@@ -252,6 +252,7 @@ class mapEditorNode(node):
 					self.playerStartValue = gameState.getGameMode().selectedButton.playerNumber
 
 class gameMode:
+	sortedElements = []
 	def __init__(self):
 		self.elementsDict = {}
 		self.map = None
@@ -259,11 +260,15 @@ class gameMode:
 		self.resortElems = True
 		
 	def getUIElementsIterator(self):
+		#TODO: remove resortElems code if it's not needed...
 		if(self.resortElems):
 			self.resortElems = False
-			gameMode.sortedElements = sorted(self.elementsDict.values().__iter__())
-			print "SORT"
-		return gameMode.sortedElements
+#			gameMode.sortedElements = sorted(self.elementsDict.values().__iter__())
+#			gameMode.sortedElements = self.elementsDict.values()
+#			print "SORT"
+#			print gameMode.sortedElements
+#		return gameMode.sortedElements.__iter__()
+		return self.elementsDict.values().__iter__()
 	def handleLeftClickDown(self,name):
 		if(self.elementsDict.has_key(name)):
 			self.elementWithFocus = self.elementsDict[name]
@@ -438,14 +443,14 @@ class mapEditorMode(tiledGameMode):
 		self.selectedButton = None
 		self.selectedCityNode = None
 		self.cityEditor = None
-		self.mapEditor = None
+		self.mapOptionsEditor = None
 		tiledGameMode.__init__(self)
 	def loadMap(self):
 		self.map = map(mapEditorNode)
 	def handleKeyDown(self,keycode):
-#		if(keycode == 'r'):
-#			print keycode
-#			self.resortElems = True
+		if(keycode == 'r'):
+			print keycode
+			self.resortElems = True
 		try:
 			self.elementWithFocus.onKeyDown(keycode)
 		except:
@@ -483,8 +488,6 @@ class mapEditorMode(tiledGameMode):
 				uiElement(-0.370+(0.05*col),0.948-(0.04*row),text=str((col*4)+row+1),textSize=0.0004)
 				
 		mapEditorMapOptionsButton(-0.25,0.95,width=(2.0*cDefines.defines['MAP_ICON_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['MAP_ICON_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),textureIndex=cDefines.defines['MAP_ICON_INDEX'],cursorIndex=cDefines.defines['CURSOR_HAND_INDEX'])
-
-		self.mapEditor = mapOptionsEditor(-0.91,0.75,text="map options",textSize=0.0005)
 
 		addColumnButton(0.96,0.03,text="+",textureIndex=-1)
 		removeColumnButton(0.96,-0.03,text="-",textureIndex=-1)

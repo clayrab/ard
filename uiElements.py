@@ -163,6 +163,10 @@ class cityViewer(uiElement):
 
 class cityEditor(uiElement):
 	def __init__(self,xPos,yPos,city,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None):
+		if(gameState.getGameMode().mapOptionsEditor != None):
+			gameState.getGameMode().mapOptionsEditor.destroy()
+		if(gameState.getGameMode().cityEditor != None):
+			gameState.getGameMode().cityEditor.destroy()
 		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines.defines['CURSOR_HAND_INDEX'],color=color,mouseOverColor=mouseOverColor)
 		self.names = []
 		self.city = city
@@ -179,12 +183,12 @@ class cityEditor(uiElement):
 		self.names.append(deleteCityButton(-0.972,-0.9,width=0.0,height=0.0,text="delete city",textSize=0.0005).name)
 
 	def destroy(self):
+		gameState.getGameMode().cityEditor = None
 		del gameState.getGameMode().elementsDict[self.name]
 		for name in self.names:
 			del gameState.getGameMode().elementsDict[name]
 		self.names = []
 		gameState.getGameMode().resortElems = True
-
 
 
 class mapEditorTileSelectUIElement(uiElement):
@@ -208,19 +212,26 @@ class mapEditorTileSelectUIElement(uiElement):
 
 class mapEditorMapOptionsButton(uiElement):
 	def onClick(self):
-		gameState.getGameMode().cityEditor.destroy()
-		gameState.getGameMode().mapEditor.show()
-
+		gameState.getGameMode().mapOptionsEditor = mapOptionsEditor(0.0,0.0)
 
 class mapOptionsEditor(uiElement):
 	def __init__(self,xPos,yPos,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None):
+		if(gameState.getGameMode().mapOptionsEditor != None):
+			gameState.getGameMode().mapOptionsEditor.destroy()
+		if(gameState.getGameMode().cityEditor != None):
+			gameState.getGameMode().cityEditor.destroy()
 		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cursorIndex,color=color,mouseOverColor=mouseOverColor,hidden=True)
+		print "*********" + str(self.name) + "**********"
 		self.names = []
-	def show(self):
-		self.hidden = False
-	def hide(self):
-		self.hidden = True
-		
+		self.names.append(uiElement(-0.92,0.0,text="map options").name)
+	def destroy(self):
+		gameState.getGameMode().mapOptionsEditor = None
+		print "destroy"
+		for name in self.names:
+			del gameState.getGameMode().elementsDict[name]
+		self.names = []
+		del gameState.getGameMode().elementsDict[self.name]
+		gameState.getGameMode().resortElems = True
 
 class scrollPadElement(uiElement):
 	def __init__(self,xPos,yPos,scrollableElement,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,topOffset=0.016,bottomOffset=0.020,rightOffset=0.012):
