@@ -1,10 +1,10 @@
-#multiple maps
-#campaign
 #city viewer in playMode
 #unit viewer in playMode
+#campaign
 #fog of war
 #multiplayer
 #AI
+
 
 import os
 import random
@@ -21,9 +21,11 @@ class city:
 		self.name = name
 		self.costOfOwnership = costOfOwnership
 		self.unitTypes = unitTypes
+		self.unitBeingProduced = None
+		self.unitProductionProgress = 0
 
 class unitType:
-	def __init__(self,name,textureIndex,movementInitiative,attackInitiative,health,canFly=False,canSwim=False,defaultCost=10):
+	def __init__(self,name,textureIndex,movementInitiative,attackInitiative,health,canFly=False,canSwim=False,defaultCost=10,defaultBuildTime=1000):
 		self.name = name
 		self.textureIndex = textureIndex
 		self.movementInitiative = movementInitiative
@@ -32,6 +34,7 @@ class unitType:
 		self.canFly = canFly
 		self.canSwim = canSwim
 		self.cost = defaultCost
+		self.buildTime = defaultBuildTime
 
 class unit:
 	def __init__(self,unitType,player,xPos,yPos,node):
@@ -55,9 +58,6 @@ theUnitTypes = {}
 for unitType in unitTypesList:
 	theUnitTypes[unitType.name] = unitType
 
-cityCosts = ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20"]
-unitCosts = ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20"]
-
 cityNames = ["Eshnunna","Tutub","Der","Sippar","Sippar-Amnanum","Kutha","Jemde Nasr","Kish","Babilim","Borsippa","Mashkan-shapir","Dilbat","Nippur","Marad","Adab","Isin","Kisurra","Shuruppak","Bad-tibira","Zabalam","Umma","Girsu","Lagash","Urum","Uruk","Larsa","Ur","Kuara","Eridu","Akshak","Akkad","Urfa","Shanidar cave","Urkesh","Shekhna","Arbid","Harran","Chagar Bazar","Kahat","el Fakhariya (Washukanni?)","Arslan Tash","Carchemish","Til Barsip","Nabada","Nagar","Telul eth-Thalathat","Tepe Gawra","Tell Arpachiyah","Shibaniba","Tarbisu","Ninua","Qatara","Dur Sharrukin","Tell Shemshara","Arbil","Imgur-Enlil","Nimrud","Emar","Arrapha","Kar-Tukulti-Ninurta","Ashur","Nuzi","al-Fakhar","Terqa","Mari","Haradum","Nerebtum","Agrab","Dur-Kurigalzu","Shaduppum","Seleucia","Ctesiphon","Zenobia","Zalabiye","Hasanlu","Takht-i-Suleiman","Behistun","Godin Tepe","Chogha Mish","Tepe Sialk","Susa","Kabnak","Dur Untash","Pasargadai","Naqsh-e Rustam","Parsa","Anshan","Konar Sandal","Tepe Yahya","Miletus","Sfard","Nicaea","Sapinuwa","Yazilikaya","Alaca Hoyuk","Masat Hoyuk","Hattusa","Ilios","Kanesh","Arslantepe","Sam'al","Beycesultan","Adana","Karatepe","Tarsus","Sultantepe","Attalia","Acre","Adoraim","Alalah","Aleppo","Al-Sinnabra","Aphek","Arad Rabbah","Ashdod","Ashkelon","Baalbek","Batroun","Beersheba","Beth Shean","Bet Shemesh","Bethany","Bet-el","Bezer","Byblos","Capernaum","Dan","Dimashq","Deir Alla","Dhiban","Dor","Ebla","En Gedi","Enfeh","Ekron","Et-Tell","Gath","Gezer","Gibeah","Gilgal Refaim","Gubla","Hamath","Hazor","Hebron","Herodion","Jezreel","Kadesh Barnea","Kedesh","Kumidi","Lachish","Megiddo","Qatna","Qumran","Rabat Amon","Samaria","Sarepta","Sharuhen","Shiloh","Sidon","Tadmor","Tirzah","Tyros","Ugarit","Umm el-Marra"]
 
 class node:
@@ -68,6 +68,7 @@ class node:
 		self.tileValue = tileValue
 		self.roadValue = roadValue
 		self.city = city
+#		self.cityViewer = None
 		self.playerStartValue = playerStartValue
 		self.selected = False
 		gameState.getGameMode().elementsDict[self.name] = self
@@ -183,20 +184,25 @@ class map:
 
 class playModeNode(node):
 	def onLeftClickDown(self):
-		if(gameState.getGameMode().nextUnit.node.selected == True and gameState.getGameMode().nextUnit.node.neighbors.count(self) > 0):
+		if(gameState.getGameMode().nextUnit.node.neighbors.count(self) > 0):#move unit
 			if(self.unit != None):
 				print "attack!!!!..?"
 			else:
-				gameState.getGameMode().nextUnit.node.selected = False
+				gameState.getGameMode().selectedNode.selected = False
 				gameState.getGameMode().nextUnit.node.unit = None
 				gameState.getGameMode().nextUnit.node = self
 				self.unit = gameState.getGameMode().nextUnit
 				gameState.getGameMode().nextUnit.movementPoints = gameState.getGameMode().nextUnit.movementPoints - 1000.0
 				gameState.getGameMode().chooseNextUnit()
-		else:
+		else:#select node
+			if(gameState.getGameMode().cityViewer != None):
+				gameState.getGameMode().cityViewer.destroy()
 			gameState.getGameMode().selectedNode.selected = False
 			gameState.getGameMode().selectedNode = self
 			self.selected = True
+			if(self.city != None):
+				gameState.getGameMode().cityViewer = cityViewer(0.0,0.0,self.city)
+				
 	def onMouseOver(self):
 		if(gameState.getGameMode().nextUnit.node.neighbors.count(self) > 0):
 			print "display 'move' cursor here"
@@ -223,9 +229,7 @@ class mapEditorNode(node):
 				elif(gameState.getGameMode().selectedButton.tileType == cDefines.defines['CITY_TILE_INDEX']):#new city
 					if(self.city == None):
 						self.city = city(random.choice(cityNames))
-						gameState.getGameMode().cityEditor.show(self.city)
-					else:
-						gameState.getGameMode().cityEditor.show(self.city)
+					gameState.getGameMode().cityEditor = cityEditor(0.0,0.0,self.city)
 					if(gameState.getGameMode().selectedCityNode != None):
 						gameState.getGameMode().selectedCityNode.selected = False
 					self.selected = True
@@ -253,6 +257,7 @@ class gameMode:
 		self.map = None
 		self.elementWithFocus = None
 		self.resortElems = True
+		
 	def getUIElementsIterator(self):
 		if(self.resortElems):
 			self.resortElems = False
@@ -352,10 +357,14 @@ class playMode(tiledGameMode):
 		self.focusNextUnit = 0
 		self.focusNextUnitTemp = 0
 		self.selectedNode = None
+		self.cityViewer = None
 		tiledGameMode.__init__(self)
 	def loadMap(self):
 		self.map = map(playModeNode)
 		self.loadSummoners()
+		self.orderUnits()
+		self.chooseNextUnit()
+
 	def getFocusNextUnit(self):
 		self.focusNextUnitTemp = self.focusNextUnit
 		self.focusNextUnit = 0
@@ -386,6 +395,7 @@ class playMode(tiledGameMode):
 		self.nextUnit.node.selected = True
 		self.selectedNode = self.nextUnit.node
 		self.focusNextUnit = 1
+
 	def loadSummoners(self):
 		rowCount = 0
 		columnCount = 0
@@ -397,8 +407,6 @@ class playMode(tiledGameMode):
 				if(node.playerStartValue != 0):
 					node.unit = unit(theUnitTypes["summoner"],node.playerStartValue,rowCount,columnCount,node)
 					self.units.append(node.unit)
-		self.orderUnits()
-		self.chooseNextUnit()
 	def incrementInitiatives(self):
 		for unit in self.units:
 			unit.movementInitiative = unit.movementInitiative + 1
@@ -421,6 +429,9 @@ class playMode(tiledGameMode):
 		uiElement(xPos=-1.0,yPos=1.0-(2.0*cDefines.defines['UI_MAP_EDITOR_TOP_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),width=(2.0*cDefines.defines['UI_MAP_EDITOR_LEFT_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_MAP_EDITOR_LEFT_IMAGE_HEIGHT']/cDefines.defines['UI_MAP_EDITOR_LEFT_IMAGE_WIDTH']),textureIndex=cDefines.defines['UI_MAP_EDITOR_LEFT_INDEX'])
 		uiElement(xPos=1.0-(2.0*cDefines.defines['UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),yPos=1.0-(2.0*cDefines.defines['UI_MAP_EDITOR_TOP_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),width=(2.0*cDefines.defines['UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_MAP_EDITOR_RIGHT_IMAGE_HEIGHT']/cDefines.defines['UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH']),textureIndex=cDefines.defines['UI_MAP_EDITOR_RIGHT_INDEX'])
 		uiElement(xPos=-1.0,yPos=-1.0+(2.0*cDefines.defines['UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),width=2.0,height=(2.0*cDefines.defines['UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),textureIndex=cDefines.defines['UI_MAP_EDITOR_BOTTOM_INDEX'])
+		if(self.nextUnit.node.city != None):
+			self.cityViewer = cityViewer(0.0,0.0,self.nextUnit.node.city)
+
 
 class mapEditorMode(tiledGameMode):	
 	def __init__(self):
@@ -432,6 +443,9 @@ class mapEditorMode(tiledGameMode):
 	def loadMap(self):
 		self.map = map(mapEditorNode)
 	def handleKeyDown(self,keycode):
+#		if(keycode == 'r'):
+#			print keycode
+#			self.resortElems = True
 		try:
 			self.elementWithFocus.onKeyDown(keycode)
 		except:
@@ -453,7 +467,7 @@ class mapEditorMode(tiledGameMode):
 		uiElement(xPos=1.0-(2.0*cDefines.defines['UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),yPos=1.0-(2.0*cDefines.defines['UI_MAP_EDITOR_TOP_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),width=(2.0*cDefines.defines['UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_MAP_EDITOR_RIGHT_IMAGE_HEIGHT']/cDefines.defines['UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH']),textureIndex=cDefines.defines['UI_MAP_EDITOR_RIGHT_INDEX'])
 
 		uiElement(xPos=-1.0,yPos=-1.0+(2.0*cDefines.defines['UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),width=2.0,height=(2.0*cDefines.defines['UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),textureIndex=cDefines.defines['UI_MAP_EDITOR_BOTTOM_INDEX'])
-		self.cityEditor = cityEditor(0.0,0.0)
+#		self.cityEditor = cityEditor(0.0,0.0)
 
 		mapEditorTileSelectUIElement(-0.93,0.92,tileType=cDefines.defines['DESERT_TILE_INDEX'])
 		mapEditorTileSelectUIElement(-0.85,0.92,tileType=cDefines.defines['GRASS_TILE_INDEX'])

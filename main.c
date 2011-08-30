@@ -287,53 +287,29 @@ static void createSurface(int fullscreen){//DEPRECATED
 /****************************** /SDL STUFF ********************************/
 
 /**************************** mouse hover object selection ********************************/
-void processTheHits(GLint hits, GLuint buffer[]){
+void processTheHits(GLint hitsCount, GLuint buffer[]){
   GLuint *bufferPtr,*ptrNames, numberOfNames;
   int count = 0;
   int nameValue = 0;
   bufferPtr = (GLuint *) buffer;
   selectedName = -1;
-  while(count < hits){
+  while(count < hitsCount){
     numberOfNames = *bufferPtr;
     nameValue = *(bufferPtr + 3);//the value of the name is stored +3 over in mem
     if(numberOfNames == 1){
+      //elements are created from back to front, the names should be in this order so we return the largest name
       if(nameValue > selectedName){
 	selectedName = nameValue;
       }
     }else if(numberOfNames == 0){
       //selectedName = -1;
     }else{
+      //This is just if an object has multiple names, the number of objects hit is hitsCount
       printf("WARNING: WE ONLY EXPECT ONE NAME PER OBJECT WHEN PICKING\n");
     }
     bufferPtr = bufferPtr + 3 + numberOfNames;
     count = count + 1;
   }
-
-
-  /*
-  //each 'hit' gives a 'number of names', then two depth values, then each of the names in the buffer(array)
-  if(hits > 0){
-    //just assume there's one hit for now, can't think of a reason we'd need multiple moused-over objects anyway
-    numberOfNames = *bufferPtr;
-    //these are the names of the object that was 'hit', should only be one if our code is working as expected
-    if(numberOfNames == 1){
-      bufferPtr = bufferPtr + 3;
-      //the value of the name name is stored +3 over in mem
-      selectedName = *bufferPtr;
-    }else if(numberOfNames == 0){
-      selectedName = -1;
-    }else{
-      printf("WARNING: WE ONLY EXPECT ONE NAME PER OBJECT WHEN PICKING\n");
-    }
-  }else{
-    selectedName = -1;
-  }
-  */
-}
-
-void startPicking(){
-}
-void stopPicking() {
 }
 
 //float glMouseCoords[3];
@@ -369,7 +345,7 @@ void convertWinCoordsToMapCoords(int x, int y, GLdouble* posX, GLdouble* posY, G
 /**************************** /mouse hover object selection ********************************/
 
 /************************************* drawing subroutines ***************************************/
-void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long roadValue,char * cityName,long isSelected, long mapPolarity,long playerStartValue,PyObject * pyUnit){
+void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long roadValue,char * cityName,long isSelected, long mapPolarity,long playerStartValue,PyObject * pyUnit, int isNextUnit){
   float xPosition = (float)tilesXIndex*-(1.9*SIN60);
   float yPosition = (float)tilesYIndex*1.4;
   //pulling the xindex and yindex in a little cause the black lines between tiles to be less harsh
@@ -385,12 +361,18 @@ void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long 
     glColor3f(1.0f, 1.0f, 1.0f);
   }
   if(isSelected == 1){
-    glColor3f(0.4f, 0.4f, 0.4f);    
+    glColor3f(0.5f, 0.5f, 0.5f);    
     if(focusNextUnit){
       translateX = -xPosition;
       translateY = -yPosition;
       focusNextUnit = 0;
     }
+  }
+  if(isNextUnit == 1){
+    glColor3f(0.7f, 0.7f, 0.7f);    
+  }
+  if(isSelected == 1 && isNextUnit == 1){
+    glColor3f(0.3f, 0.3f, 0.3f);    
   }
   glPushName(name);	
   glBegin(GL_POLYGON);
@@ -568,6 +550,15 @@ void drawTiles(){
 	cityName = PyString_AsString(pyCityName);
 	longCityValue = 1;
       }
+
+      int isNextUnit = 0;
+      PyObject * nextUnit = PyObject_GetAttrString(gameMode,"nextUnit");
+      PyObject * unit = PyObject_GetAttrString(node,"unit");
+      if(unit != Py_None){
+	if(unit == nextUnit){
+	  isNextUnit = 1;
+	}
+      }
       long playerStartValue = PyLong_AsLong(pyPlayerStartValue);
       long longIsSelected = PyLong_AsLong(isSelected);
 
@@ -578,7 +569,7 @@ void drawTiles(){
       Py_DECREF(pyPlayerStartValue);
       Py_DECREF(isSelected);
       Py_DECREF(node);
-      drawTile(colNumber,rowNumber,longName,longValue,longRoadValue,cityName,longIsSelected,longPolarity,playerStartValue,pyUnit);
+      drawTile(colNumber,rowNumber,longName,longValue,longRoadValue,cityName,longIsSelected,longPolarity,playerStartValue,pyUnit,isNextUnit);
       Py_DECREF(pyUnit);
       colNumber = colNumber - 1;
     }
@@ -982,16 +973,12 @@ static void draw(){
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     gluPerspective(45.0f,screenRatio,minZoom,maxZoom+1.0);
-
     //draw the game board
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    
     convertWinCoordsToMapCoords(mouseX,mouseY,&mouseMapPosX,&mouseMapPosY,&mouseMapPosZ);
     //glTranslatef(mouseMapPosX,mouseMapPosY,translateZ);//for some reason we need mouseMapPosZ instead of translateZ
     glTranslatef(translateX,translateY,mouseMapPosZ);
-
-    //startPicking();
     GLint viewport[4];
     glSelectBuffer(BUFSIZE,selectBuf);
     glRenderMode(GL_SELECT);
@@ -1006,7 +993,7 @@ static void draw(){
     gluPerspective(45.0f,screenRatio,minZoom,maxZoom+1.0);
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
-    //glInitNames();
+
     drawBoard();
 
     glMatrixMode(GL_PROJECTION);
@@ -1018,29 +1005,25 @@ static void draw(){
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
     glLoadIdentity();
+
     drawUI();
+
     glMatrixMode(GL_PROJECTION);
     glPopMatrix();
     glMatrixMode(GL_MODELVIEW);
     glPopMatrix();
-
-    //stopPicking();
-    int hits;
-    //restoring the original projection matrix
     glMatrixMode(GL_PROJECTION);
     glPopMatrix();
     //glViewport(0.0,0.0,SCREEN_WIDTH, SCREEN_HEIGHT);
     glViewport(UI_MAP_EDITOR_LEFT_IMAGE_WIDTH,UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT,SCREEN_WIDTH - UI_MAP_EDITOR_LEFT_IMAGE_WIDTH - UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH, SCREEN_HEIGHT - UI_MAP_EDITOR_TOP_IMAGE_HEIGHT - UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT);
-
     glMatrixMode(GL_MODELVIEW);
     glPopMatrix();
     glFlush();
-    //returning to normal rendering mode
-    hits = glRenderMode(GL_RENDER);
-    //if (hits != 0){
-    processTheHits(hits,selectBuf);
-    //}
-    drawBoard();
+    
+    //returning to normal rendering mode and get the hits
+    processTheHits(glRenderMode(GL_RENDER),selectBuf);
+
+    drawBoard();    
     
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
@@ -1049,7 +1032,9 @@ static void draw(){
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
     glLoadIdentity();
+    
     drawUI();
+    
     glMatrixMode(GL_PROJECTION);
     glPopMatrix();
     glMatrixMode(GL_MODELVIEW);
