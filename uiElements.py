@@ -176,8 +176,8 @@ class cityEditor(uiElement):
 		height = 0.56
 		for unitType in self.city.unitTypes:
 			self.names.append(uiElement(-0.972,height,text=unitType.name,textSize=0.0005).name)
-			self.names.append(unitCostField(-0.7,height,unitType,text=str(unitType.cost),textSize=0.0005).name)
-			self.names.append(unitBuildTimeField(-0.6,height,unitType,text=str(unitType.buildTime),textSize=0.0005).name)
+			self.names.append(unitCostField(-0.75,height,unitType,text=str(unitType.cost),textSize=0.0005).name)
+			self.names.append(unitBuildTimeField(-0.7,height,unitType,text=str(unitType.buildTime),textSize=0.0005).name)
 			height = height - 0.035
 		self.names.append(addUnitTypeButton(-0.972,height,width=0.0,height=0.0,text="+unit",textSize=0.0005).name)
 		self.names.append(deleteCityButton(-0.972,-0.9,width=0.0,height=0.0,text="delete city",textSize=0.0005).name)
@@ -395,6 +395,7 @@ class deleteCityButton(clickableElement):
 
 class addUnitTypeButton(clickableElement):	
 	def onClick(self):
+		print 'click'
 		unitTypes = theUnitTypes.copy()
 		for unitType in gameState.getGameMode().cityEditor.city.unitTypes:
 			del unitTypes[unitType.name]

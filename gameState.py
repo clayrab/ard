@@ -1,3 +1,13 @@
+
+import cDefines
+
+foo = 'bar'
+
+unitTypesList = []
+#unitTypesList.append(unitType("summoner",cDefines.defines["MEEPLE_INDEX"],1.0,1.0,100))
+
+
+
 theMapName = None
 def getMapName():
     global theMapName
