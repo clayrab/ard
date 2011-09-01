@@ -129,6 +129,9 @@ float translateX = -20.0;
 float translateY = 15.0;
 float scrollSpeed = 0.04;
 
+GLdouble convertedX,convertedY,convertedZ;
+float newTranslateX,newTranslateY;
+
 PyObject * gameModule;
 PyObject * gameState;
 PyObject * gameMode;
@@ -852,28 +855,20 @@ static void handleInput(){
       //printf("translateX: %f translateY: %f\n",translateX,translateY);
       PyObject_CallMethod(gameMode,"handleMouseMovement","(iii)",selectedName,mouseX,mouseY);
       //printf("x: %d\t\ty: %d\n",mouseX,mouseY);
-      if(clickScroll > 0){
-	translateX = translateX + mouseMapPosX - mouseMapPosXPrevious;
-	translateY = translateY + mouseMapPosY - mouseMapPosYPrevious;
-	//printf("translateX %f, translateY %f\n",translateX,translateY);
+      if(mouseX == 0){
+	moveRight = -1;
+      }else if(mouseX >= SCREEN_WIDTH-1){
+	moveRight = 1;
       }else{
-	if(mouseX == 0){
-	  moveRight = -1;
-	}else if(mouseX >= SCREEN_WIDTH-1){
-	  moveRight = 1;
-	}else{
-	  moveRight = 0;
-	}
-	if(mouseY == 0){
-	  moveUp = 1;
-	}else if(mouseY >= SCREEN_HEIGHT-1){
-	  moveUp = -1;
-	}else{
-	  moveUp = 0;
-	}
+	moveRight = 0;
       }
-      mouseMapPosXPrevious = mouseMapPosX;
-      mouseMapPosYPrevious = mouseMapPosY;
+      if(mouseY == 0){
+	moveUp = 1;
+      }else if(mouseY >= SCREEN_HEIGHT-1){
+	moveUp = -1;
+      }else{
+	moveUp = 0;
+      }
       break;
     case SDL_MOUSEBUTTONDOWN:
 
@@ -971,6 +966,9 @@ static void draw(){
     //draw the game board
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
+    mouseMapPosXPrevious = mouseMapPosX;
+    mouseMapPosYPrevious = mouseMapPosY;
+
     convertWinCoordsToMapCoords(mouseX,mouseY,&mouseMapPosX,&mouseMapPosY,&mouseMapPosZ);
     //glTranslatef(mouseMapPosX,mouseMapPosY,translateZ);//for some reason we need mouseMapPosZ instead of translateZ
     glTranslatef(translateX,translateY,mouseMapPosZ);
@@ -1005,20 +1003,20 @@ static void draw(){
 
     drawUI();
 
+    processTheHits(glRenderMode(GL_RENDER),selectBuf);
+
     glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
     glPopMatrix();
     glMatrixMode(GL_MODELVIEW);
     glPopMatrix();
-    glMatrixMode(GL_PROJECTION);
     glPopMatrix();
-    //glViewport(0.0,0.0,SCREEN_WIDTH, SCREEN_HEIGHT);
-    glViewport(UI_MAP_EDITOR_LEFT_IMAGE_WIDTH,UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT,SCREEN_WIDTH - UI_MAP_EDITOR_LEFT_IMAGE_WIDTH - UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH, SCREEN_HEIGHT - UI_MAP_EDITOR_TOP_IMAGE_HEIGHT - UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT);
-    glMatrixMode(GL_MODELVIEW);
-    glPopMatrix();
+
     glFlush();
     
     //returning to normal rendering mode and get the hits
-    processTheHits(glRenderMode(GL_RENDER),selectBuf);
+
+    glViewport(UI_MAP_EDITOR_LEFT_IMAGE_WIDTH,UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT,SCREEN_WIDTH - UI_MAP_EDITOR_LEFT_IMAGE_WIDTH - UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH, SCREEN_HEIGHT - UI_MAP_EDITOR_TOP_IMAGE_HEIGHT - UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT);
 
     drawBoard();    
     
@@ -1026,40 +1024,44 @@ static void draw(){
     glPushMatrix();
     glLoadIdentity();
 
-
-    //    printf("translateX: %f\t Y: %f \t",translateX,translateY);
-
-
-    glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-
-
-    //    printf("translateX: %f\t Y: %f \t",translateX,translateY);
-    GLdouble x,y,z;
-    convertWinCoordsToMapCoords(0.0,0.0,&x,&y,&z);
-    printf("x: %f\t y: %f\n",x,y);
-
-    if(!(x > translateTilesXToPositionX(-22))){
-      if(moveRight > 0){// && translateX > -10.0){
-	translateX -= scrollSpeed*deltaTicks;
+    convertWinCoordsToMapCoords(0.0,0.0,&convertedX,&convertedY,&convertedZ);
+    if(clickScroll > 0){
+      newTranslateX = translateX + mouseMapPosX - mouseMapPosXPrevious;
+      newTranslateY = translateY + mouseMapPosY - mouseMapPosYPrevious;
+      if(!((convertedX > translateTilesXToPositionX(-22) && newTranslateX < translateX) || (convertedX < 0.0 && newTranslateX > translateX))){
+	translateX = newTranslateX;
+      }
+      if(!((convertedY > 0.0 && newTranslateY < translateY) || (convertedY < translateTilesYToPositionY(-16) && newTranslateY > translateY))){
+	translateY = newTranslateY;
+      }
+    }else{
+      if(convertedX < translateTilesXToPositionX(-22)){
+	if(moveRight > 0){// && translateX > -10.0){
+	  translateX -= scrollSpeed*deltaTicks;
+	}
+      }
+      if(convertedX > 0.0){
+	if(moveRight < 0){// && translateX < 10.0){
+	  translateX += scrollSpeed*deltaTicks;
+	}
+      }
+      if(convertedY < 0.0){
+	if(moveUp > 0){// && translateY > -10.0){
+	  translateY -= scrollSpeed*deltaTicks;
+	}
+      }
+      if(convertedY > translateTilesYToPositionY(-16)){
+	if(moveUp < 0){// && translateY < 10.0){
+	  translateY += scrollSpeed*deltaTicks;
+	}
       }
     }
-    if(!(x < 0.0)){
-      if(moveRight < 0){// && translateX < 10.0){
-	translateX += scrollSpeed*deltaTicks;
-      }
-    }
-    if(moveUp > 0){// && translateY > -10.0){
-      translateY -= scrollSpeed*deltaTicks;
-    }else if(moveUp < 0){// && translateY < 10.0){
-      translateY += scrollSpeed*deltaTicks;
-    }
-
-
 
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
     glLoadIdentity();
-    
+
+    glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);    
     drawUI();
     
     glMatrixMode(GL_PROJECTION);
@@ -1067,7 +1069,7 @@ static void draw(){
     glMatrixMode(GL_MODELVIEW);
     glPopMatrix();
 
-    glFlush();//"all programs should call glFlush whenever they count on having all of their previously issued commands completed"
+    glFlush();
     SDL_GL_SwapBuffers ();	
   
 }
