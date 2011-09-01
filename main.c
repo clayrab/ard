@@ -345,12 +345,18 @@ void convertWinCoordsToMapCoords(int x, int y, GLdouble* posX, GLdouble* posY, G
 /**************************** /mouse hover object selection ********************************/
 
 /************************************* drawing subroutines ***************************************/
-void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long roadValue,char * cityName,long isSelected, long mapPolarity,long playerStartValue,PyObject * pyUnit, int isNextUnit){
-  float xPosition = (float)tilesXIndex*-(1.9*SIN60);
-  float yPosition = (float)tilesYIndex*1.4;
+float translateTilesXToPositionX(int tilesX){
+  return (float)tilesX*-(1.9*SIN60);
   //pulling the xindex and yindex in a little cause the black lines between tiles to be less harsh
-  //float xPosition = (float)tilesXPosition*-(2.0*SIN60);
-  //float yPosition = (float)tilesYPosition*1.5;
+  //(float)tilesXPosition*-(2.0*SIN60);
+}
+float translateTilesYToPositionY(int tilesY){
+  return (float)tilesY*1.4;
+  //(float)tilesYPosition*1.5;
+}
+void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long roadValue,char * cityName,long isSelected, long mapPolarity,long playerStartValue,PyObject * pyUnit, int isNextUnit){
+  float xPosition = translateTilesXToPositionX(tilesXIndex);
+  float yPosition = translateTilesYToPositionY(tilesYIndex);
   if(abs(tilesYIndex)%2 == mapPolarity){
     xPosition += SIN60;
   }
@@ -951,20 +957,11 @@ static void handleInput(){
       break;
     }
   }
-  if(moveRight > 0){// && translateX > -10.0){
-    translateX -= scrollSpeed*deltaTicks;
-  }else if(moveRight < 0){// && translateX < 10.0){
-    translateX += scrollSpeed*deltaTicks;
-  }
-  if(moveUp > 0){// && translateY > -10.0){
-    translateY -= scrollSpeed*deltaTicks;
-  }else if(moveUp < 0){// && translateY < 10.0){
-    translateY += scrollSpeed*deltaTicks;
-  }
 }
 static void draw(){
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		
+    
 
 
     //game board projection time
@@ -977,6 +974,8 @@ static void draw(){
     convertWinCoordsToMapCoords(mouseX,mouseY,&mouseMapPosX,&mouseMapPosY,&mouseMapPosZ);
     //glTranslatef(mouseMapPosX,mouseMapPosY,translateZ);//for some reason we need mouseMapPosZ instead of translateZ
     glTranslatef(translateX,translateY,mouseMapPosZ);
+
+
     GLint viewport[4];
     glSelectBuffer(BUFSIZE,selectBuf);
     glRenderMode(GL_SELECT);
@@ -1026,7 +1025,37 @@ static void draw(){
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
     glLoadIdentity();
+
+
+    //    printf("translateX: %f\t Y: %f \t",translateX,translateY);
+
+
     glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+
+
+    //    printf("translateX: %f\t Y: %f \t",translateX,translateY);
+    GLdouble x,y,z;
+    convertWinCoordsToMapCoords(0.0,0.0,&x,&y,&z);
+    printf("x: %f\t y: %f\n",x,y);
+
+    if(!(x > translateTilesXToPositionX(-22))){
+      if(moveRight > 0){// && translateX > -10.0){
+	translateX -= scrollSpeed*deltaTicks;
+      }
+    }
+    if(!(x < 0.0)){
+      if(moveRight < 0){// && translateX < 10.0){
+	translateX += scrollSpeed*deltaTicks;
+      }
+    }
+    if(moveUp > 0){// && translateY > -10.0){
+      translateY -= scrollSpeed*deltaTicks;
+    }else if(moveUp < 0){// && translateY < 10.0){
+      translateY += scrollSpeed*deltaTicks;
+    }
+
+
+
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
     glLoadIdentity();

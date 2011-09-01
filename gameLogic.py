@@ -3,13 +3,8 @@ import nameGenerator
 import cDefines
 from uiElements import *
 
-class city:
-	def __init__(self,name,unitTypes=[],costOfOwnership=10):
-		self.name = name
-		self.costOfOwnership = costOfOwnership
-		self.unitTypes = unitTypes
-		self.unitBeingProduced = None
-		self.unitProductionProgress = 0
+
+cityNames = ["Eshnunna","Tutub","Der","Sippar","Sippar-Amnanum","Kutha","Jemde Nasr","Kish","Babilim","Borsippa","Mashkan-shapir","Dilbat","Nippur","Marad","Adab","Isin","Kisurra","Shuruppak","Bad-tibira","Zabalam","Umma","Girsu","Lagash","Urum","Uruk","Larsa","Ur","Kuara","Eridu","Akshak","Akkad","Urfa","Shanidar cave","Urkesh","Shekhna","Arbid","Harran","Chagar Bazar","Kahat","el Fakhariya (Washukanni?)","Arslan Tash","Carchemish","Til Barsip","Nabada","Nagar","Telul eth-Thalathat","Tepe Gawra","Tell Arpachiyah","Shibaniba","Tarbisu","Ninua","Qatara","Dur Sharrukin","Tell Shemshara","Arbil","Imgur-Enlil","Nimrud","Emar","Arrapha","Kar-Tukulti-Ninurta","Ashur","Nuzi","al-Fakhar","Terqa","Mari","Haradum","Nerebtum","Agrab","Dur-Kurigalzu","Shaduppum","Seleucia","Ctesiphon","Zenobia","Zalabiye","Hasanlu","Takht-i-Suleiman","Behistun","Godin Tepe","Chogha Mish","Tepe Sialk","Susa","Kabnak","Dur Untash","Pasargadai","Naqsh-e Rustam","Parsa","Anshan","Konar Sandal","Tepe Yahya","Miletus","Sfard","Nicaea","Sapinuwa","Yazilikaya","Alaca Hoyuk","Masat Hoyuk","Hattusa","Ilios","Kanesh","Arslantepe","Sam'al","Beycesultan","Adana","Karatepe","Tarsus","Sultantepe","Attalia","Acre","Adoraim","Alalah","Aleppo","Al-Sinnabra","Aphek","Arad Rabbah","Ashdod","Ashkelon","Baalbek","Batroun","Beersheba","Beth Shean","Bet Shemesh","Bethany","Bet-el","Bezer","Byblos","Capernaum","Dan","Dimashq","Deir Alla","Dhiban","Dor","Ebla","En Gedi","Enfeh","Ekron","Et-Tell","Gath","Gezer","Gibeah","Gilgal Refaim","Gubla","Hamath","Hazor","Hebron","Herodion","Jezreel","Kadesh Barnea","Kedesh","Kumidi","Lachish","Megiddo","Qatna","Qumran","Rabat Amon","Samaria","Sarepta","Sharuhen","Shiloh","Sidon","Tadmor","Tirzah","Tyros","Ugarit","Umm el-Marra"]
 
 class unitType:
 	def __init__(self,name,textureIndex,movementInitiative,attackInitiative,health,canFly=False,canSwim=False,defaultCost=10,defaultBuildTime=1000):
@@ -23,6 +18,17 @@ class unitType:
 		self.cost = defaultCost
 		self.buildTime = defaultBuildTime
 
+unitTypesList = []
+unitTypesList.append(unitType("summoner",cDefines.defines["MEEPLE_INDEX"],1.0,1.0,100))
+unitTypesList.append(unitType("beaver",cDefines.defines["MEEPLE_INDEX"],1.0,1.0,100))
+unitTypesList.append(unitType("catapult",cDefines.defines["MEEPLE_INDEX"],1.0,1.0,100))
+unitTypesList.append(unitType("fire elemental",cDefines.defines["MEEPLE_INDEX"],1.0,1.0,100))
+unitTypesList.append(unitType("dragon",cDefines.defines["MEEPLE_INDEX"],1.0,1.0,100))
+
+theUnitTypes = {}
+for unitType in unitTypesList:
+	theUnitTypes[unitType.name] = unitType
+
 class unit:
 	def __init__(self,unitType,player,xPos,yPos,node):
 		self.unitType = unitType
@@ -34,16 +40,14 @@ class unit:
 		self.attackPoints = 0.0
 		self.health = self.unitType.health
 
-unitTypesList = []
-unitTypesList.append(unitType("summoner",cDefines.defines["MEEPLE_INDEX"],1.0,1.0,100))
-unitTypesList.append(unitType("beaver",cDefines.defines["MEEPLE_INDEX"],1.0,1.0,100))
-unitTypesList.append(unitType("catapult",cDefines.defines["MEEPLE_INDEX"],1.0,1.0,100))
-unitTypesList.append(unitType("fire elemental",cDefines.defines["MEEPLE_INDEX"],1.0,1.0,100))
-unitTypesList.append(unitType("dragon",cDefines.defines["MEEPLE_INDEX"],1.0,1.0,100))
+class city:
+	def __init__(self,name,unitTypes=[],costOfOwnership=10):
+		self.name = name
+		self.costOfOwnership = costOfOwnership
+		self.unitTypes = unitTypes
+		self.unitBeingProduced = None
+		self.unitProductionProgress = 0
 
-theUnitTypes = {}
-for unitType in unitTypesList:
-	theUnitTypes[unitType.name] = unitType
 
 class node:
 	def __init__(self,xPos,yPos,tileValue=cDefines.defines['GRASS_TILE_INDEX'],roadValue=0,city=None,playerStartValue=0):
