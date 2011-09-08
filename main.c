@@ -127,7 +127,7 @@ int deltaTicks = 0;
 
 float translateX = -20.0;
 float translateY = 15.0;
-float scrollSpeed = 0.04;
+float scrollSpeed = 0.10;
 
 GLdouble convertedX,convertedY,convertedZ;
 float newTranslateX,newTranslateY;
@@ -953,77 +953,7 @@ static void handleInput(){
     }
   }
 }
-static void draw(){
-
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		
-    
-
-
-    //game board projection time
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    gluPerspective(45.0f,screenRatio,minZoom,maxZoom+1.0);
-    //draw the game board
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    mouseMapPosXPrevious = mouseMapPosX;
-    mouseMapPosYPrevious = mouseMapPosY;
-
-    convertWinCoordsToMapCoords(mouseX,mouseY,&mouseMapPosX,&mouseMapPosY,&mouseMapPosZ);
-    //glTranslatef(mouseMapPosX,mouseMapPosY,translateZ);//for some reason we need mouseMapPosZ instead of translateZ
-    glTranslatef(translateX,translateY,mouseMapPosZ);
-
-
-    GLint viewport[4];
-    glSelectBuffer(BUFSIZE,selectBuf);
-    glRenderMode(GL_SELECT);
-
-    glMatrixMode(GL_PROJECTION);
-    glPushMatrix();
-    glLoadIdentity();
-    //glViewport(0.0,0.0,SCREEN_WIDTH, SCREEN_HEIGHT);
-    glViewport(UI_MAP_EDITOR_LEFT_IMAGE_WIDTH,UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT,SCREEN_WIDTH - UI_MAP_EDITOR_LEFT_IMAGE_WIDTH - UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH, SCREEN_HEIGHT - UI_MAP_EDITOR_TOP_IMAGE_HEIGHT - UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT);
-    glGetIntegerv(GL_VIEWPORT,viewport);
-    gluPickMatrix(mouseX,viewport[3]+UI_MAP_EDITOR_TOP_IMAGE_HEIGHT+UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT-mouseY,5,5,viewport);
-    gluPerspective(45.0f,screenRatio,minZoom,maxZoom+1.0);
-    glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
-
-    drawBoard();
-
-    glMatrixMode(GL_PROJECTION);
-    glPushMatrix();
-    glLoadIdentity();
-    glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-    glGetIntegerv(GL_VIEWPORT,viewport);
-    gluPickMatrix(mouseX,viewport[3]-mouseY,5,5,viewport);
-    glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
-    glLoadIdentity();
-
-    drawUI();
-
-    processTheHits(glRenderMode(GL_RENDER),selectBuf);
-
-    glMatrixMode(GL_PROJECTION);
-    glPopMatrix();
-    glPopMatrix();
-    glMatrixMode(GL_MODELVIEW);
-    glPopMatrix();
-    glPopMatrix();
-
-    glFlush();
-    
-    //returning to normal rendering mode and get the hits
-
-    glViewport(UI_MAP_EDITOR_LEFT_IMAGE_WIDTH,UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT,SCREEN_WIDTH - UI_MAP_EDITOR_LEFT_IMAGE_WIDTH - UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH, SCREEN_HEIGHT - UI_MAP_EDITOR_TOP_IMAGE_HEIGHT - UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT);
-
-    drawBoard();    
-    
-    glMatrixMode(GL_PROJECTION);
-    glPushMatrix();
-    glLoadIdentity();
-
+void doScrolling(){
     convertWinCoordsToMapCoords(0.0,0.0,&convertedX,&convertedY,&convertedZ);
     if(clickScroll > 0){
       newTranslateX = translateX + mouseMapPosX - mouseMapPosXPrevious;
@@ -1056,6 +986,80 @@ static void draw(){
 	}
       }
     }
+
+}
+static void draw(){
+
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		
+    
+
+
+    //game board projection time
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    doScrolling();
+    gluPerspective(45.0f,screenRatio,minZoom,maxZoom+1.0);
+    //draw the game board
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    mouseMapPosXPrevious = mouseMapPosX;
+    mouseMapPosYPrevious = mouseMapPosY;
+
+    convertWinCoordsToMapCoords(mouseX,mouseY,&mouseMapPosX,&mouseMapPosY,&mouseMapPosZ);
+    //glTranslatef(mouseMapPosX,mouseMapPosY,translateZ);//for some reason we need mouseMapPosZ instead of translateZ
+    glTranslatef(translateX,translateY,mouseMapPosZ);
+
+    GLint viewport[4];
+    glSelectBuffer(BUFSIZE,selectBuf);
+    glRenderMode(GL_SELECT);
+
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    //glViewport(0.0,0.0,SCREEN_WIDTH, SCREEN_HEIGHT);
+    glViewport(UI_MAP_EDITOR_LEFT_IMAGE_WIDTH,UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT,SCREEN_WIDTH - UI_MAP_EDITOR_LEFT_IMAGE_WIDTH - UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH, SCREEN_HEIGHT - UI_MAP_EDITOR_TOP_IMAGE_HEIGHT - UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT);
+    glGetIntegerv(GL_VIEWPORT,viewport);
+    gluPickMatrix(mouseX,viewport[3]+UI_MAP_EDITOR_TOP_IMAGE_HEIGHT+UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT-mouseY,5,5,viewport);
+    gluPerspective(45.0f,screenRatio,minZoom,maxZoom+1.0);
+
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+
+    drawBoard();
+
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+    glGetIntegerv(GL_VIEWPORT,viewport);
+    gluPickMatrix(mouseX,viewport[3]-mouseY,5,5,viewport);
+
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+
+    drawUI();
+
+    processTheHits(glRenderMode(GL_RENDER),selectBuf);
+
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
+    glPopMatrix();
+    glPopMatrix();
+
+    glFlush();
+    
+    //returning to normal rendering mode and get the hits
+
+    glViewport(UI_MAP_EDITOR_LEFT_IMAGE_WIDTH,UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT,SCREEN_WIDTH - UI_MAP_EDITOR_LEFT_IMAGE_WIDTH - UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH, SCREEN_HEIGHT - UI_MAP_EDITOR_TOP_IMAGE_HEIGHT - UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT);
+
+    drawBoard();  
+    
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
 
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
