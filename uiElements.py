@@ -447,6 +447,11 @@ class unitSelectButton(clickableElement):
 		clickableElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines.defines['CURSOR_HAND_INDEX'],color=color,mouseOverColor=mouseOverColor,textXPos=textXPos,textYPos=textYPos)
 		self.unitType = unitType
 	def onClick(self):
+		if(gameState.getGameMode().selectedNode.unit != None and gameState.getGameMode().selectedNode.unit.unitType.name == "summoner"):
+#			gameState.getGameMode().selectedNode.city.unitBeingProduced = gameLogic.unit()
+			#todo create a unit here and add logic for units to build themselves and then draw when they are done
+
+			print 'summonerrr'
 		print "click"
 
 class menuButton(clickableElement):

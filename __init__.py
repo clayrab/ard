@@ -1,9 +1,9 @@
 #city viewer in playMode
 #unit viewer in playMode
-#campaign
 #fog of war
 #multiplayer
 #AI
+#campaign
 
 import os
 import random
@@ -11,7 +11,6 @@ import copy
 import gameState
 import nameGenerator
 import cDefines
-#from uiElements import *
 import gameLogic
 import uiElements
 
@@ -130,11 +129,14 @@ class playMode(tiledGameMode):
 		self.cityViewer = None
 		tiledGameMode.__init__(self)
 	def loadMap(self):
+		print 'load 1'
 		self.map = gameLogic.map(gameLogic.playModeNode)
 		self.loadSummoners()
+		print '3'
 		self.orderUnits()
+		print '45'
 		self.chooseNextUnit()
-
+		print 'load 2'
 	def getFocusNextUnit(self):
 		self.focusNextUnitTemp = self.focusNextUnit
 		self.focusNextUnit = 0
@@ -175,7 +177,7 @@ class playMode(tiledGameMode):
 			for node in row:
 				columnCount = columnCount + 1
 				if(node.playerStartValue != 0):
-					node.unit = gameLogic.unit(gameLogic.theUnitTypes["summoner"],node.playerStartValue,rowCount,columnCount,node)
+					node.unit = gameLogic.unit(gameState.theUnitTypes["summoner"],node.playerStartValue,rowCount,columnCount,node)
 					self.units.append(node.unit)
 	def incrementInitiatives(self):
 		for unit in self.units:
@@ -195,13 +197,14 @@ class playMode(tiledGameMode):
 				self.nextUnit.node.selected = True
 
 	def addUIElements(self):
+		print '1'
 		uiElements.uiElement(xPos=-1.0,yPos=1.0,width=2.0,height=(2.0*cDefines.defines['UI_MAP_EDITOR_TOP_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),textureIndex=cDefines.defines['UI_MAP_EDITOR_TOP_INDEX'])
 		uiElements.uiElement(xPos=-1.0,yPos=1.0-(2.0*cDefines.defines['UI_MAP_EDITOR_TOP_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),width=(2.0*cDefines.defines['UI_MAP_EDITOR_LEFT_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_MAP_EDITOR_LEFT_IMAGE_HEIGHT']/cDefines.defines['UI_MAP_EDITOR_LEFT_IMAGE_WIDTH']),textureIndex=cDefines.defines['UI_MAP_EDITOR_LEFT_INDEX'])
 		uiElements.uiElement(xPos=1.0-(2.0*cDefines.defines['UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),yPos=1.0-(2.0*cDefines.defines['UI_MAP_EDITOR_TOP_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),width=(2.0*cDefines.defines['UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_MAP_EDITOR_RIGHT_IMAGE_HEIGHT']/cDefines.defines['UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH']),textureIndex=cDefines.defines['UI_MAP_EDITOR_RIGHT_INDEX'])
 		uiElements.uiElement(xPos=-1.0,yPos=-1.0+(2.0*cDefines.defines['UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),width=2.0,height=(2.0*cDefines.defines['UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),textureIndex=cDefines.defines['UI_MAP_EDITOR_BOTTOM_INDEX'])
 		if(self.nextUnit.node.city != None):
 			self.cityViewer = uiElements.cityViewer(0.0,0.0,self.nextUnit.node.city)
-
+		print '2'
 
 class mapEditorMode(tiledGameMode):	
 	def __init__(self):

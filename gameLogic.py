@@ -3,6 +3,7 @@ import nameGenerator
 import cDefines
 import copy
 import uiElements
+import random
 
 cityNames = ["Eshnunna","Tutub","Der","Sippar","Sippar-Amnanum","Kutha","Jemde Nasr","Kish","Babilim","Borsippa","Mashkan-shapir","Dilbat","Nippur","Marad","Adab","Isin","Kisurra","Shuruppak","Bad-tibira","Zabalam","Umma","Girsu","Lagash","Urum","Uruk","Larsa","Ur","Kuara","Eridu","Akshak","Akkad","Urfa","Shanidar cave","Urkesh","Shekhna","Arbid","Harran","Chagar Bazar","Kahat","el Fakhariya (Washukanni?)","Arslan Tash","Carchemish","Til Barsip","Nabada","Nagar","Telul eth-Thalathat","Tepe Gawra","Tell Arpachiyah","Shibaniba","Tarbisu","Ninua","Qatara","Dur Sharrukin","Tell Shemshara","Arbil","Imgur-Enlil","Nimrud","Emar","Arrapha","Kar-Tukulti-Ninurta","Ashur","Nuzi","al-Fakhar","Terqa","Mari","Haradum","Nerebtum","Agrab","Dur-Kurigalzu","Shaduppum","Seleucia","Ctesiphon","Zenobia","Zalabiye","Hasanlu","Takht-i-Suleiman","Behistun","Godin Tepe","Chogha Mish","Tepe Sialk","Susa","Kabnak","Dur Untash","Pasargadai","Naqsh-e Rustam","Parsa","Anshan","Konar Sandal","Tepe Yahya","Miletus","Sfard","Nicaea","Sapinuwa","Yazilikaya","Alaca Hoyuk","Masat Hoyuk","Hattusa","Ilios","Kanesh","Arslantepe","Sam'al","Beycesultan","Adana","Karatepe","Tarsus","Sultantepe","Attalia","Acre","Adoraim","Alalah","Aleppo","Al-Sinnabra","Aphek","Arad Rabbah","Ashdod","Ashkelon","Baalbek","Batroun","Beersheba","Beth Shean","Bet Shemesh","Bethany","Bet-el","Bezer","Byblos","Capernaum","Dan","Dimashq","Deir Alla","Dhiban","Dor","Ebla","En Gedi","Enfeh","Ekron","Et-Tell","Gath","Gezer","Gibeah","Gilgal Refaim","Gubla","Hamath","Hazor","Hebron","Herodion","Jezreel","Kadesh Barnea","Kedesh","Kumidi","Lachish","Megiddo","Qatna","Qumran","Rabat Amon","Samaria","Sarepta","Sharuhen","Shiloh","Sidon","Tadmor","Tirzah","Tyros","Ugarit","Umm el-Marra"]
 
@@ -35,7 +36,6 @@ class city:
 		self.costOfOwnership = costOfOwnership
 		self.unitTypes = unitTypes
 		self.unitBeingProduced = None
-		self.unitProductionProgress = 0
 
 class node:
 	def __init__(self,xPos,yPos,tileValue=cDefines.defines['GRASS_TILE_INDEX'],roadValue=0,city=None,playerStartValue=0):
@@ -176,6 +176,9 @@ class playModeNode(node):
 			self.selected = True
 			if(self.city != None):
 				gameState.getGameMode().cityViewer = uiElements.cityViewer(0.0,0.0,self.city)
+
+
+
 				
 	def onMouseOver(self):
 		if(gameState.getGameMode().nextUnit.node.neighbors.count(self) > 0):
@@ -187,7 +190,8 @@ class playModeNode(node):
 
 class mapEditorNode(node):
 	def onLeftClickUp(self):
-		if(gameState.getGameMode().selectedCityNode != None):
+		self.clicked = False
+		if(gameState.getGameMode().selectedCityNode != None and gameState.getGameMode().selectedCityNode.clicked != None and gameState.getGameMode().selectedCityNode.clicked):
 			if(gameState.getGameMode().selectedCityNode != self):
 				if(gameState.getGameMode().selectedCityNode.city != None):
 					self.city = gameState.getGameMode().selectedCityNode.city
@@ -196,6 +200,7 @@ class mapEditorNode(node):
 					self.selected = True
 					gameState.getGameMode().selectedCityNode = self
 	def onLeftClickDown(self):
+		self.clicked = True
 		if(gameState.getGameMode().selectedButton != None):
 			if(hasattr(gameState.getGameMode().selectedButton,"tileType")):
 				if(gameState.getGameMode().selectedButton.tileType == cDefines.defines['ROAD_TILE_INDEX']):#new road
