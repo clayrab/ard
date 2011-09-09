@@ -5,11 +5,6 @@ import nameGenerator
 import cDefines
 import shutil
 
-cityCosts = ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20"]
-unitCosts = ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20"]
-startingManas = ["5","10","15","20","30","40","50","60","70","80","90","100"]
-unitBuildTimes = ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20"]
-
 class uiElement:
 	def __init__(self,xPos,yPos,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor=None,textSize=0.001,color=None,mouseOverColor=None,textXPos=0.0,textYPos=0.0):
 		self.name = nameGenerator.getNextName()
@@ -171,9 +166,16 @@ class cityEditor(uiElement):
 		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines.defines['CURSOR_HAND_INDEX'],color=color,mouseOverColor=mouseOverColor)
 		self.names = []
 		self.city = city
+		self.draw()
+	def addUnitType(self,unitType):
+		self.city.unitTypes.append(unitType)
+		self.draw()
+	def draw(self):
+		for name in self.names:
+			del gameState.getGameMode().elementsDict[name]
+		self.names = []
 		self.names.append(cityNameInputElement(-0.972,0.746,width=(2.0*cDefines.defines['UI_TEXT_INPUT_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_TEXT_INPUT_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),text=self.city.name,textSize=0.0005,textColor='00 00 00',textureIndex=cDefines.defines['UI_TEXT_INPUT_INDEX'],textYPos=-0.035,textXPos=0.01).name)
-		self.names.append(cityCostField(-0.972,0.66,width=(2.0*cDefines.defines['UI_TEXT_INPUT_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_TEXT_INPUT_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),text=str(city.costOfOwnership),textSize=0.0005,textColor='00 00 00',mouseOverColor='00 00 00',textureIndex=cDefines.defines['UI_TEXT_INPUT_INDEX'],textYPos=-0.035,textXPos=0.01).name)
-
+		self.names.append(cityCostField(-0.972,0.66,width=(2.0*cDefines.defines['UI_TEXT_INPUT_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_TEXT_INPUT_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),text=str(self.city.costOfOwnership),textSize=0.0005,textColor='00 00 00',mouseOverColor='00 00 00',textureIndex=cDefines.defines['UI_TEXT_INPUT_INDEX'],textYPos=-0.035,textXPos=0.01).name)
 		height = 0.56
 		for unitType in self.city.unitTypes:
 			self.names.append(uiElement(-0.972,height,text=unitType.name,textSize=0.0005).name)
@@ -182,7 +184,7 @@ class cityEditor(uiElement):
 			height = height - 0.035
 		self.names.append(addUnitTypeButton(-0.972,height,width=0.0,height=0.0,text="+unit",textSize=0.0005).name)
 		self.names.append(deleteCityButton(-0.972,-0.9,width=0.0,height=0.0,text="delete city",textSize=0.0005).name)
-
+		
 	def destroy(self):
 		gameState.getGameMode().cityEditor = None
 		del gameState.getGameMode().elementsDict[self.name]
@@ -339,11 +341,10 @@ class scrollableTextFieldsElement(uiElement):
 
 class unitTypeSelector(scrollableTextFieldsElement):
 	def handleClick(self,textFieldElem):
-		for unitType in theUnitTypes.values():
+		for unitType in gameState.theUnitTypes.values():
 			if(unitType.name == textFieldElem.text):
-				gameState.getGameMode().cityEditor.city.unitTypes.append(copy.copy(unitType))
+				gameState.getGameMode().cityEditor.addUnitType(copy.copy(unitType))
 		self.destroy()
-#		gameState.getGameMode().cityEditor = cityEditor(0.0,0.0,gameState.getGameMode().cityEditor.city)
 
 class cityCostSelector(scrollableTextFieldsElement):
 	def __init__(self,xPos,yPos,textFields,cityCostField,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,yPositionOffset=-0.04,yOffset=-0.041,numFields=25,scrollSpeed=1):
@@ -408,11 +409,11 @@ class deleteCityButton(clickableElement):
 
 class addUnitTypeButton(clickableElement):	
 	def onClick(self):
-		print 'click'
-		unitTypes = theUnitTypes.copy()
+		unitTypes = gameState.theUnitTypes.copy()
 		for unitType in gameState.getGameMode().cityEditor.city.unitTypes:
 			del unitTypes[unitType.name]
 		unitTypeSelector(self.xPosition,self.yPosition-0.06,unitTypes.values(),text="select unit",textSize=0.0005,textureIndex=cDefines.defines['UI_SCROLLABLE_INDEX'],width=(2.0*cDefines.defines['UI_SCROLLABLE_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_SCROLLABLE_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']))
+
 
 class cityCostField(clickableElement):
 	def onClick(self):
@@ -438,7 +439,6 @@ class unitBuildTimeField(clickableElement):
 		self.unitType = unitType
 
 	def onClick(self):
-		print 'click'
 		unitBuildTimeSelector(self.xPosition,self.yPosition-0.06,unitBuildTimes,self,text="select build time",textSize=0.0005,textureIndex=cDefines.defines['UI_SCROLLABLE_INDEX'],width=(2.0*cDefines.defines['UI_SCROLLABLE_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_SCROLLABLE_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']))
 
 

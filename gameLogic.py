@@ -1,8 +1,8 @@
 import gameState
 import nameGenerator
 import cDefines
-from uiElements import *
-
+import copy
+import uiElements
 
 cityNames = ["Eshnunna","Tutub","Der","Sippar","Sippar-Amnanum","Kutha","Jemde Nasr","Kish","Babilim","Borsippa","Mashkan-shapir","Dilbat","Nippur","Marad","Adab","Isin","Kisurra","Shuruppak","Bad-tibira","Zabalam","Umma","Girsu","Lagash","Urum","Uruk","Larsa","Ur","Kuara","Eridu","Akshak","Akkad","Urfa","Shanidar cave","Urkesh","Shekhna","Arbid","Harran","Chagar Bazar","Kahat","el Fakhariya (Washukanni?)","Arslan Tash","Carchemish","Til Barsip","Nabada","Nagar","Telul eth-Thalathat","Tepe Gawra","Tell Arpachiyah","Shibaniba","Tarbisu","Ninua","Qatara","Dur Sharrukin","Tell Shemshara","Arbil","Imgur-Enlil","Nimrud","Emar","Arrapha","Kar-Tukulti-Ninurta","Ashur","Nuzi","al-Fakhar","Terqa","Mari","Haradum","Nerebtum","Agrab","Dur-Kurigalzu","Shaduppum","Seleucia","Ctesiphon","Zenobia","Zalabiye","Hasanlu","Takht-i-Suleiman","Behistun","Godin Tepe","Chogha Mish","Tepe Sialk","Susa","Kabnak","Dur Untash","Pasargadai","Naqsh-e Rustam","Parsa","Anshan","Konar Sandal","Tepe Yahya","Miletus","Sfard","Nicaea","Sapinuwa","Yazilikaya","Alaca Hoyuk","Masat Hoyuk","Hattusa","Ilios","Kanesh","Arslantepe","Sam'al","Beycesultan","Adana","Karatepe","Tarsus","Sultantepe","Attalia","Acre","Adoraim","Alalah","Aleppo","Al-Sinnabra","Aphek","Arad Rabbah","Ashdod","Ashkelon","Baalbek","Batroun","Beersheba","Beth Shean","Bet Shemesh","Bethany","Bet-el","Bezer","Byblos","Capernaum","Dan","Dimashq","Deir Alla","Dhiban","Dor","Ebla","En Gedi","Enfeh","Ekron","Et-Tell","Gath","Gezer","Gibeah","Gilgal Refaim","Gubla","Hamath","Hazor","Hebron","Herodion","Jezreel","Kadesh Barnea","Kedesh","Kumidi","Lachish","Megiddo","Qatna","Qumran","Rabat Amon","Samaria","Sarepta","Sharuhen","Shiloh","Sidon","Tadmor","Tirzah","Tyros","Ugarit","Umm el-Marra"]
 
@@ -17,17 +17,6 @@ class unitType:
 		self.canSwim = canSwim
 		self.cost = defaultCost
 		self.buildTime = defaultBuildTime
-
-unitTypesList = []
-unitTypesList.append(unitType("summoner",cDefines.defines["MEEPLE_INDEX"],1.0,1.0,100))
-unitTypesList.append(unitType("beaver",cDefines.defines["MEEPLE_INDEX"],1.0,1.0,100))
-unitTypesList.append(unitType("catapult",cDefines.defines["MEEPLE_INDEX"],1.0,1.0,100))
-unitTypesList.append(unitType("fire elemental",cDefines.defines["MEEPLE_INDEX"],1.0,1.0,100))
-unitTypesList.append(unitType("dragon",cDefines.defines["MEEPLE_INDEX"],1.0,1.0,100))
-
-theUnitTypes = {}
-for unitType in unitTypesList:
-	theUnitTypes[unitType.name] = unitType
 
 class unit:
 	def __init__(self,unitType,player,xPos,yPos,node):
@@ -47,7 +36,6 @@ class city:
 		self.unitTypes = unitTypes
 		self.unitBeingProduced = None
 		self.unitProductionProgress = 0
-
 
 class node:
 	def __init__(self,xPos,yPos,tileValue=cDefines.defines['GRASS_TILE_INDEX'],roadValue=0,city=None,playerStartValue=0):
@@ -127,7 +115,7 @@ class map:
 						unitTypeStrings = tokens[2].strip().split(",")
 						for unitTypeString in unitTypeStrings:
 							unitTypeTokens = unitTypeString.split("|")
-							theUnitType = copy.copy(theUnitTypes[unitTypeTokens[0]])
+							theUnitType = copy.copy(gameState.theUnitTypes[unitTypeTokens[0]])
 							theUnitType.cost = unitTypeTokens[1]
 							unitTypes.append(theUnitType)
 					costOfOwnership = tokens[3]
@@ -168,9 +156,6 @@ class map:
 		self.numPlayers = numPlayers
 
 
-
-
-
 class playModeNode(node):
 	def onLeftClickDown(self):
 		if(gameState.getGameMode().nextUnit.node.neighbors.count(self) > 0):#move unit
@@ -190,7 +175,7 @@ class playModeNode(node):
 			gameState.getGameMode().selectedNode = self
 			self.selected = True
 			if(self.city != None):
-				gameState.getGameMode().cityViewer = cityViewer(0.0,0.0,self.city)
+				gameState.getGameMode().cityViewer = uiElements.cityViewer(0.0,0.0,self.city)
 				
 	def onMouseOver(self):
 		if(gameState.getGameMode().nextUnit.node.neighbors.count(self) > 0):
@@ -218,7 +203,7 @@ class mapEditorNode(node):
 				elif(gameState.getGameMode().selectedButton.tileType == cDefines.defines['CITY_TILE_INDEX']):#new city
 					if(self.city == None):
 						self.city = city(random.choice(cityNames))
-					gameState.getGameMode().cityEditor = cityEditor(0.0,0.0,self.city)
+					gameState.getGameMode().cityEditor = uiElements.cityEditor(0.0,0.0,self.city)
 					if(gameState.getGameMode().selectedCityNode != None):
 						gameState.getGameMode().selectedCityNode.selected = False
 					self.selected = True
@@ -239,4 +224,3 @@ class mapEditorNode(node):
 							if(node.playerStartValue == gameState.getGameMode().selectedButton.playerNumber):
 								node.playerStartValue = 0
 					self.playerStartValue = gameState.getGameMode().selectedButton.playerNumber
-

@@ -1,12 +1,16 @@
-
 import cDefines
-
-foo = 'bar'
+import gameLogic
 
 unitTypesList = []
-#unitTypesList.append(unitType("summoner",cDefines.defines["MEEPLE_INDEX"],1.0,1.0,100))
+unitTypesList.append(gameLogic.unitType("summoner",cDefines.defines["MEEPLE_INDEX"],1.0,1.0,100))
+unitTypesList.append(gameLogic.unitType("beaver",cDefines.defines["MEEPLE_INDEX"],1.0,1.0,100))
+unitTypesList.append(gameLogic.unitType("catapult",cDefines.defines["MEEPLE_INDEX"],1.0,1.0,100))
+unitTypesList.append(gameLogic.unitType("fire elemental",cDefines.defines["MEEPLE_INDEX"],1.0,1.0,100))
+unitTypesList.append(gameLogic.unitType("dragon",cDefines.defines["MEEPLE_INDEX"],1.0,1.0,100))
 
-
+theUnitTypes = {}
+for unitType in unitTypesList:
+	theUnitTypes[unitType.name] = unitType
 
 theMapName = None
 def getMapName():

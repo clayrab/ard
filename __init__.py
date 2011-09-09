@@ -11,8 +11,9 @@ import copy
 import gameState
 import nameGenerator
 import cDefines
-from uiElements import *
-from gameLogic import *
+#from uiElements import *
+import gameLogic
+import uiElements
 
 zoomSpeed = 0.3
 class gameMode:
@@ -129,7 +130,7 @@ class playMode(tiledGameMode):
 		self.cityViewer = None
 		tiledGameMode.__init__(self)
 	def loadMap(self):
-		self.map = map(playModeNode)
+		self.map = gameLogic.map(gameLogic.playModeNode)
 		self.loadSummoners()
 		self.orderUnits()
 		self.chooseNextUnit()
@@ -174,7 +175,7 @@ class playMode(tiledGameMode):
 			for node in row:
 				columnCount = columnCount + 1
 				if(node.playerStartValue != 0):
-					node.unit = unit(theUnitTypes["summoner"],node.playerStartValue,rowCount,columnCount,node)
+					node.unit = gameLogic.unit(gameLogic.theUnitTypes["summoner"],node.playerStartValue,rowCount,columnCount,node)
 					self.units.append(node.unit)
 	def incrementInitiatives(self):
 		for unit in self.units:
@@ -194,12 +195,12 @@ class playMode(tiledGameMode):
 				self.nextUnit.node.selected = True
 
 	def addUIElements(self):
-		uiElement(xPos=-1.0,yPos=1.0,width=2.0,height=(2.0*cDefines.defines['UI_MAP_EDITOR_TOP_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),textureIndex=cDefines.defines['UI_MAP_EDITOR_TOP_INDEX'])
-		uiElement(xPos=-1.0,yPos=1.0-(2.0*cDefines.defines['UI_MAP_EDITOR_TOP_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),width=(2.0*cDefines.defines['UI_MAP_EDITOR_LEFT_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_MAP_EDITOR_LEFT_IMAGE_HEIGHT']/cDefines.defines['UI_MAP_EDITOR_LEFT_IMAGE_WIDTH']),textureIndex=cDefines.defines['UI_MAP_EDITOR_LEFT_INDEX'])
-		uiElement(xPos=1.0-(2.0*cDefines.defines['UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),yPos=1.0-(2.0*cDefines.defines['UI_MAP_EDITOR_TOP_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),width=(2.0*cDefines.defines['UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_MAP_EDITOR_RIGHT_IMAGE_HEIGHT']/cDefines.defines['UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH']),textureIndex=cDefines.defines['UI_MAP_EDITOR_RIGHT_INDEX'])
-		uiElement(xPos=-1.0,yPos=-1.0+(2.0*cDefines.defines['UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),width=2.0,height=(2.0*cDefines.defines['UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),textureIndex=cDefines.defines['UI_MAP_EDITOR_BOTTOM_INDEX'])
+		uiElements.uiElement(xPos=-1.0,yPos=1.0,width=2.0,height=(2.0*cDefines.defines['UI_MAP_EDITOR_TOP_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),textureIndex=cDefines.defines['UI_MAP_EDITOR_TOP_INDEX'])
+		uiElements.uiElement(xPos=-1.0,yPos=1.0-(2.0*cDefines.defines['UI_MAP_EDITOR_TOP_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),width=(2.0*cDefines.defines['UI_MAP_EDITOR_LEFT_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_MAP_EDITOR_LEFT_IMAGE_HEIGHT']/cDefines.defines['UI_MAP_EDITOR_LEFT_IMAGE_WIDTH']),textureIndex=cDefines.defines['UI_MAP_EDITOR_LEFT_INDEX'])
+		uiElements.uiElement(xPos=1.0-(2.0*cDefines.defines['UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),yPos=1.0-(2.0*cDefines.defines['UI_MAP_EDITOR_TOP_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),width=(2.0*cDefines.defines['UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_MAP_EDITOR_RIGHT_IMAGE_HEIGHT']/cDefines.defines['UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH']),textureIndex=cDefines.defines['UI_MAP_EDITOR_RIGHT_INDEX'])
+		uiElements.uiElement(xPos=-1.0,yPos=-1.0+(2.0*cDefines.defines['UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),width=2.0,height=(2.0*cDefines.defines['UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),textureIndex=cDefines.defines['UI_MAP_EDITOR_BOTTOM_INDEX'])
 		if(self.nextUnit.node.city != None):
-			self.cityViewer = cityViewer(0.0,0.0,self.nextUnit.node.city)
+			self.cityViewer = uiElements.cityViewer(0.0,0.0,self.nextUnit.node.city)
 
 
 class mapEditorMode(tiledGameMode):	
@@ -210,7 +211,7 @@ class mapEditorMode(tiledGameMode):
 		self.mapOptionsEditor = None
 		tiledGameMode.__init__(self)
 	def loadMap(self):
-		self.map = map(mapEditorNode)
+		self.map = gameLogic.map(gameLogic.mapEditorNode)
 	def handleKeyDown(self,keycode):
 		if(keycode == 'r'):
 			print keycode
@@ -231,101 +232,100 @@ class mapEditorMode(tiledGameMode):
 				return
 	def addUIElements(self):
 
-		uiElement(xPos=-1.0,yPos=1.0,width=2.0,height=(2.0*cDefines.defines['UI_MAP_EDITOR_TOP_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),textureIndex=cDefines.defines['UI_MAP_EDITOR_TOP_INDEX'])
-		uiElement(xPos=-1.0,yPos=1.0-(2.0*cDefines.defines['UI_MAP_EDITOR_TOP_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),width=(2.0*cDefines.defines['UI_MAP_EDITOR_LEFT_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_MAP_EDITOR_LEFT_IMAGE_HEIGHT']/cDefines.defines['UI_MAP_EDITOR_LEFT_IMAGE_WIDTH']),textureIndex=cDefines.defines['UI_MAP_EDITOR_LEFT_INDEX'])
-		uiElement(xPos=1.0-(2.0*cDefines.defines['UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),yPos=1.0-(2.0*cDefines.defines['UI_MAP_EDITOR_TOP_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),width=(2.0*cDefines.defines['UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_MAP_EDITOR_RIGHT_IMAGE_HEIGHT']/cDefines.defines['UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH']),textureIndex=cDefines.defines['UI_MAP_EDITOR_RIGHT_INDEX'])
+		uiElements.uiElement(xPos=-1.0,yPos=1.0,width=2.0,height=(2.0*cDefines.defines['UI_MAP_EDITOR_TOP_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),textureIndex=cDefines.defines['UI_MAP_EDITOR_TOP_INDEX'])
+		uiElements.uiElement(xPos=-1.0,yPos=1.0-(2.0*cDefines.defines['UI_MAP_EDITOR_TOP_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),width=(2.0*cDefines.defines['UI_MAP_EDITOR_LEFT_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_MAP_EDITOR_LEFT_IMAGE_HEIGHT']/cDefines.defines['UI_MAP_EDITOR_LEFT_IMAGE_WIDTH']),textureIndex=cDefines.defines['UI_MAP_EDITOR_LEFT_INDEX'])
+		uiElements.uiElement(xPos=1.0-(2.0*cDefines.defines['UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),yPos=1.0-(2.0*cDefines.defines['UI_MAP_EDITOR_TOP_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),width=(2.0*cDefines.defines['UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_MAP_EDITOR_RIGHT_IMAGE_HEIGHT']/cDefines.defines['UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH']),textureIndex=cDefines.defines['UI_MAP_EDITOR_RIGHT_INDEX'])
 
-		uiElement(xPos=-1.0,yPos=-1.0+(2.0*cDefines.defines['UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),width=2.0,height=(2.0*cDefines.defines['UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),textureIndex=cDefines.defines['UI_MAP_EDITOR_BOTTOM_INDEX'])
-#		self.cityEditor = cityEditor(0.0,0.0)
+		uiElements.uiElement(xPos=-1.0,yPos=-1.0+(2.0*cDefines.defines['UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),width=2.0,height=(2.0*cDefines.defines['UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),textureIndex=cDefines.defines['UI_MAP_EDITOR_BOTTOM_INDEX'])
 
-		mapEditorTileSelectUIElement(-0.93,0.92,tileType=cDefines.defines['DESERT_TILE_INDEX'])
-		mapEditorTileSelectUIElement(-0.85,0.92,tileType=cDefines.defines['GRASS_TILE_INDEX'])
-		mapEditorTileSelectUIElement(-0.77,0.92,tileType=cDefines.defines['MOUNTAIN_TILE_INDEX'])
-		mapEditorTileSelectUIElement(-0.69,0.92,tileType=cDefines.defines['FOREST_TILE_INDEX'])
-		mapEditorTileSelectUIElement(-0.61,0.92,tileType=cDefines.defines['WATER_TILE_INDEX'])
-		mapEditorTileSelectUIElement(-0.53,0.92,tileType=cDefines.defines['ROAD_TILE_INDEX'])
-		mapEditorTileSelectUIElement(-0.45,0.92,tileType=cDefines.defines['CITY_TILE_INDEX'])
+		uiElements.mapEditorTileSelectUIElement(-0.93,0.92,tileType=cDefines.defines['DESERT_TILE_INDEX'])
+		uiElements.mapEditorTileSelectUIElement(-0.85,0.92,tileType=cDefines.defines['GRASS_TILE_INDEX'])
+		uiElements.mapEditorTileSelectUIElement(-0.77,0.92,tileType=cDefines.defines['MOUNTAIN_TILE_INDEX'])
+		uiElements.mapEditorTileSelectUIElement(-0.69,0.92,tileType=cDefines.defines['FOREST_TILE_INDEX'])
+		uiElements.mapEditorTileSelectUIElement(-0.61,0.92,tileType=cDefines.defines['WATER_TILE_INDEX'])
+		uiElements.mapEditorTileSelectUIElement(-0.53,0.92,tileType=cDefines.defines['ROAD_TILE_INDEX'])
+		uiElements.mapEditorTileSelectUIElement(-0.45,0.92,tileType=cDefines.defines['CITY_TILE_INDEX'])
 		for col in range(0,2):
 			for row in range(0,4):
 
-				playerStartLocationButton(-0.39+(0.05*col),0.972-(0.038*row),playerNumber=col*4+row+1,width=2.0*cDefines.defines['PLAYER_START_BUTTON_WIDTH']/cDefines.defines['SCREEN_WIDTH'],height=2.0*cDefines.defines['PLAYER_START_BUTTON_HEIGHT']/cDefines.defines['SCREEN_HEIGHT'],textureIndex=cDefines.defines['PLAYER_START_BUTTON_INDEX'])
-				uiElement(-0.370+(0.05*col),0.948-(0.04*row),text=str((col*4)+row+1),textSize=0.0004)
+				uiElements.playerStartLocationButton(-0.39+(0.05*col),0.972-(0.038*row),playerNumber=col*4+row+1,width=2.0*cDefines.defines['PLAYER_START_BUTTON_WIDTH']/cDefines.defines['SCREEN_WIDTH'],height=2.0*cDefines.defines['PLAYER_START_BUTTON_HEIGHT']/cDefines.defines['SCREEN_HEIGHT'],textureIndex=cDefines.defines['PLAYER_START_BUTTON_INDEX'])
+				uiElements.uiElement(-0.370+(0.05*col),0.948-(0.04*row),text=str((col*4)+row+1),textSize=0.0004)
 				
-		mapEditorMapOptionsButton(-0.25,0.95,width=(2.0*cDefines.defines['MAP_ICON_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['MAP_ICON_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),textureIndex=cDefines.defines['MAP_ICON_INDEX'],cursorIndex=cDefines.defines['CURSOR_HAND_INDEX'])
+		uiElements.mapEditorMapOptionsButton(-0.25,0.95,width=(2.0*cDefines.defines['MAP_ICON_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['MAP_ICON_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),textureIndex=cDefines.defines['MAP_ICON_INDEX'],cursorIndex=cDefines.defines['CURSOR_HAND_INDEX'])
 
-		addColumnButton(0.96,0.03,text="+",textureIndex=-1)
-		removeColumnButton(0.96,-0.03,text="-",textureIndex=-1)
+		uiElements.addColumnButton(0.96,0.03,text="+",textureIndex=-1)
+		uiElements.removeColumnButton(0.96,-0.03,text="-",textureIndex=-1)
 
-		addFirstColumnButton(-0.63,0.03,text="+",textureIndex=-1)
-		removeFirstColumnButton(-0.63,-0.03,text="-",textureIndex=-1)
+		uiElements.addFirstColumnButton(-0.63,0.03,text="+",textureIndex=-1)
+		uiElements.removeFirstColumnButton(-0.63,-0.03,text="-",textureIndex=-1)
 
-		addRowButton(0.18,-0.98,text="+",textureIndex=-1)
-		removeRowButton(0.21,-0.98,text="-",textureIndex=-1)
+		uiElements.addRowButton(0.18,-0.98,text="+",textureIndex=-1)
+		uiElements.removeRowButton(0.21,-0.98,text="-",textureIndex=-1)
 
-		addFirstRowButton(0.18,0.77,text="+",textureIndex=-1)
-		removeFirstRowButton(0.21,0.77,text="-",textureIndex=-1)
+		uiElements.addFirstRowButton(0.18,0.77,text="+",textureIndex=-1)
+		uiElements.removeFirstRowButton(0.21,0.77,text="-",textureIndex=-1)
 
-		uiElement(0.8,0.925,text="asdf",textSize=0.0005)
-		saveButton(0.9,0.925,text="save",textSize=0.0005)
+		uiElements.uiElement(0.8,0.925,text="asdf",textSize=0.0005)
+		uiElements.saveButton(0.9,0.925,text="save",textSize=0.0005)
 
 class textBasedMenuMode(gameMode):
 	def __init__(self):
 		gameMode.__init__(self)
 	def handleKeyDown(self,keycode):
 		if(keycode == "up"):
-			if(menuButton.selectedIndex == 0):
-				menuButton.buttonsList[menuButton.selectedIndex].textColor  = menuButton.normalTextColor
-				menuButton.selectedIndex = menuButton.index - 1
-				menuButton.buttonsList[menuButton.selectedIndex].textColor  =menuButton.selectedTextColor
+			if(uiElements.menuButton.selectedIndex == 0):
+				uiElements.menuButton.buttonsList[uiElements.menuButton.selectedIndex].textColor  = uiElements.menuButton.normalTextColor
+				uiElements.menuButton.selectedIndex = uiElements.menuButton.index - 1
+				uiElements.menuButton.buttonsList[uiElements.menuButton.selectedIndex].textColor  =uiElements.menuButton.selectedTextColor
 			else:
-				menuButton.buttonsList[menuButton.selectedIndex].textColor  = menuButton.normalTextColor
-				menuButton.selectedIndex = menuButton.selectedIndex - 1
-				menuButton.buttonsList[menuButton.selectedIndex].textColor  =menuButton.selectedTextColor
+				uiElements.menuButton.buttonsList[uiElements.menuButton.selectedIndex].textColor  = uiElements.menuButton.normalTextColor
+				uiElements.menuButton.selectedIndex = uiElements.menuButton.selectedIndex - 1
+				uiElements.menuButton.buttonsList[uiElements.menuButton.selectedIndex].textColor  =uiElements.menuButton.selectedTextColor
 		elif(keycode == "down"):
-			if(menuButton.selectedIndex == menuButton.index - 1):
-				menuButton.buttonsList[menuButton.selectedIndex].textColor  = menuButton.normalTextColor
-				menuButton.selectedIndex = 0
-				menuButton.buttonsList[menuButton.selectedIndex].textColor  =menuButton.selectedTextColor
+			if(uiElements.menuButton.selectedIndex == uiElements.menuButton.index - 1):
+				uiElements.menuButton.buttonsList[uiElements.menuButton.selectedIndex].textColor  = uiElements.menuButton.normalTextColor
+				uiElements.menuButton.selectedIndex = 0
+				uiElements.menuButton.buttonsList[uiElements.menuButton.selectedIndex].textColor  =uiElements.menuButton.selectedTextColor
 			else:
-				menuButton.buttonsList[menuButton.selectedIndex].textColor  = menuButton.normalTextColor
-				menuButton.selectedIndex = menuButton.selectedIndex + 1
-				menuButton.buttonsList[menuButton.selectedIndex].textColor  =menuButton.selectedTextColor
+				uiElements.menuButton.buttonsList[uiElements.menuButton.selectedIndex].textColor  = uiElements.menuButton.normalTextColor
+				uiElements.menuButton.selectedIndex = uiElements.menuButton.selectedIndex + 1
+				uiElements.menuButton.buttonsList[uiElements.menuButton.selectedIndex].textColor  =uiElements.menuButton.selectedTextColor
 		elif(keycode == "return"):
-			menuButton.buttonsList[menuButton.selectedIndex].onClick()
+			uiElements.menuButton.buttonsList[uiElements.menuButton.selectedIndex].onClick()
 					
 class newGameScreenMode(textBasedMenuMode):
 	def addUIElements(self):
-		uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])
-		newGameScreenButton(-0.16,0.2,quickPlayMapSelectMode,text="quick play")
-		newGameScreenButton(-0.165,0.1,mapEditorSelectMode,text="map editor")
+		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])
+		uiElements.newGameScreenButton(-0.16,0.2,quickPlayMapSelectMode,text="quick play")
+		uiElements.newGameScreenButton(-0.165,0.1,mapEditorSelectMode,text="map editor")
 
 class quickPlayMapSelectMode(textBasedMenuMode):
 	def addUIElements(self):
-		uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])
+		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])
 		dirList=os.listdir("maps")
 		heightDelta = 0.0
 		for fileName in dirList:
 			if(fileName.endswith(".map")):
 				heightDelta = heightDelta - 0.1
-				mapPlaySelectButton(-0.16,0.3+heightDelta,playMode,text=fileName[0:len(fileName)-4])
+				uiElements.mapPlaySelectButton(-0.16,0.3+heightDelta,playMode,text=fileName[0:len(fileName)-4])
 
 class mapEditorSelectMode(textBasedMenuMode):
 	def addUIElements(self):
-		uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])
-		mapEditSelectButton(-0.16,0.2,newMapMode,text="create new map")
+		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])
+		uiElements.mapEditSelectButton(-0.16,0.2,newMapMode,text="create new map")
 		dirList=os.listdir("maps")
 		heightDelta = 0.0
 		for fileName in dirList:
 			if(fileName.endswith(".map")):
 				heightDelta = heightDelta - 0.1
-				mapEditSelectButton(-0.16,0.2+heightDelta,mapEditorMode,text=fileName[0:len(fileName)-4])
+				uiElements.mapEditSelectButton(-0.16,0.2+heightDelta,mapEditorMode,text=fileName[0:len(fileName)-4])
 
 class newMapMode(gameMode):
 	def __init__(self):
 		gameMode.__init__(self)
 	def addUIElements(self):
-		uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])
-		self.elementWithFocus = newMapNameInputElement(-0.2,0.2,mapEditorMode,width=(2.0*cDefines.defines['UI_TEXT_INPUT_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_TEXT_INPUT_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),text="",textSize=0.0005,textColor='00 00 00',textureIndex=cDefines.defines['UI_TEXT_INPUT_INDEX'],textYPos=-0.035,textXPos=0.01)
-		uiElement(-0.2,0.0,text="asdf")
+		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])
+		uiElements.uiElement(-0.15,0.2,text="map name")
+		self.elementWithFocus = uiElements.newMapNameInputElement(-0.15,0.15,mapEditorMode,width=(2.0*cDefines.defines['UI_TEXT_INPUT_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_TEXT_INPUT_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),text="",textSize=0.0005,textColor='00 00 00',textureIndex=cDefines.defines['UI_TEXT_INPUT_INDEX'],textYPos=-0.035,textXPos=0.01)
 
 gameState.setGameMode(newGameScreenMode)
