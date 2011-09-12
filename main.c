@@ -140,6 +140,10 @@ PyObject * mapName;
 PyObject * mapIterator;
 PyObject * UIElementsIterator;
 PyObject * rowIterator;
+PyObject * pyMapWidth;
+PyObject * pyMapHeight;
+long mapWidth;
+long mapHeight;
 
 #define MAX_CITIES 40
 #define MAX_CITY_NAME_LENGTH 50
@@ -424,7 +428,7 @@ void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long 
 
   }
 
-  PyObject * playableMode = PyObject_GetAttrString(gameMode, "units");
+  PyObject * playableMode = PyObject_GetAttrString(gameMode, "units");//if the mode has units, it's playable
   if(playerStartValue >= 1 && playableMode == NULL){
     textureVertices = vertexArrays[PLAYER_START_TILE_INDEX];
     glBegin(GL_POLYGON);
@@ -449,61 +453,56 @@ void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long 
   
 
   if(pyUnit != NULL && pyUnit != Py_None){
-      //self.movementInitiative = movementInitiative
-      //self.attackInitiative = attackInitiative
-    PyObject * pyUnitType = PyObject_GetAttrString(pyUnit,"unitType");
-    PyObject * pyUnitTextureIndex = PyObject_GetAttrString(pyUnitType,"textureIndex");
-    //    PyObject * pyName = PyObject_GetAttrString(pyUnitType,"name");
-    PyObject * pyHealth = PyObject_GetAttrString(pyUnit,"health");
-    PyObject * pyMaxHealth = PyObject_GetAttrString(pyUnitType,"health");
+      PyObject * pyUnitType = PyObject_GetAttrString(pyUnit,"unitType");
+      PyObject * pyUnitTextureIndex = PyObject_GetAttrString(pyUnitType,"textureIndex");
+      //    PyObject * pyName = PyObject_GetAttrString(pyUnitType,"name");
+      PyObject * pyHealth = PyObject_GetAttrString(pyUnit,"health");
+      PyObject * pyMaxHealth = PyObject_GetAttrString(pyUnitType,"health");
+      
+      glColor3f(255.0, 255.0, 255.0);
+    
+      glBindTexture(GL_TEXTURE_2D, texturesArray[MEEPLE_INDEX]);
+      glBegin(GL_QUADS);
+      glTexCoord2f(0.0,0.0);
+      glVertex3f(xPosition-0.5, yPosition-0.5, 0.0);
+      glTexCoord2f(1.0,0.0);
+      glVertex3f(xPosition+0.5, yPosition-0.5, 0.0);
+      glTexCoord2f(1.0,1.0);
+      glVertex3f(xPosition+0.5, yPosition+0.5, 0.0);
+      glTexCoord2f(0.0,1.0);
+      glVertex3f(xPosition-0.5, yPosition+0.5, 0.0);
+      glEnd();
 
-    glColor3f(255.0, 255.0, 255.0);
-
-    glBindTexture(GL_TEXTURE_2D, texturesArray[MEEPLE_INDEX]);
-    glBegin(GL_QUADS);
-    glTexCoord2f(0.0,0.0);
-    glVertex3f(xPosition-0.5, yPosition-0.5, 0.0);
-    glTexCoord2f(1.0,0.0);
-    glVertex3f(xPosition+0.5, yPosition-0.5, 0.0);
-    glTexCoord2f(1.0,1.0);
-    glVertex3f(xPosition+0.5, yPosition+0.5, 0.0);
-    glTexCoord2f(0.0,1.0);
-    glVertex3f(xPosition-0.5, yPosition+0.5, 0.0);
-    glEnd();
-
-    glBindTexture(GL_TEXTURE_2D, texturesArray[HEALTH_BAR_INDEX]);
-    glBegin(GL_QUADS);
-    glTexCoord2f(0.0,0.0);
-    glVertex3f(xPosition-.75, yPosition-0.2, 0.0);
-    glTexCoord2f(1.0,0.0);
-    glVertex3f(xPosition+.65, yPosition-0.2, 0.0);
-    glTexCoord2f(1.0,1.0);
-    glVertex3f(xPosition+.65, yPosition-0.5, 0.0);
-    glTexCoord2f(0.0,1.0);
-    glVertex3f(xPosition-.75, yPosition-0.5, 0.0);
-    glEnd();
+      glBindTexture(GL_TEXTURE_2D, texturesArray[HEALTH_BAR_INDEX]);
+      glBegin(GL_QUADS);
+      glTexCoord2f(0.0,0.0);
+      glVertex3f(xPosition-.75, yPosition-0.2, 0.0);
+      glTexCoord2f(1.0,0.0);
+      glVertex3f(xPosition+.65, yPosition-0.2, 0.0);
+      glTexCoord2f(1.0,1.0);
+      glVertex3f(xPosition+.65, yPosition-0.5, 0.0);
+      glTexCoord2f(0.0,1.0);
+      glVertex3f(xPosition-.75, yPosition-0.5, 0.0);
+      glEnd();
  
-    glBegin(GL_QUADS);
-    glColor3f(255.0, 0.0, 0.0);
-    glTexCoord2f(0.0,0.0);
-    glVertex3f(xPosition-.75, yPosition-0.2, 0.0);
-    glTexCoord2f(1.0,0.0);
-    glVertex3f(xPosition+.05, yPosition-0.2, 0.0);
-    glTexCoord2f(1.0,1.0);
-    glVertex3f(xPosition+.05, yPosition-0.5, 0.0);
-    glTexCoord2f(0.0,1.0);
-    glVertex3f(xPosition-.75, yPosition-0.5, 0.0);
-    glEnd();
-
-
-
-    Py_DECREF(pyUnitType);
-    Py_DECREF(pyUnitTextureIndex);
-    //    Py_DECREF(pyName);
-    Py_DECREF(pyHealth);
-    Py_DECREF(pyMaxHealth);
-
-  }
+      glBegin(GL_QUADS);
+      glColor3f(255.0, 0.0, 0.0);
+      glTexCoord2f(0.0,0.0);
+      glVertex3f(xPosition-.75, yPosition-0.2, 0.0);
+      glTexCoord2f(1.0,0.0);
+      glVertex3f(xPosition+.05, yPosition-0.2, 0.0);
+      glTexCoord2f(1.0,1.0);
+      glVertex3f(xPosition+.05, yPosition-0.5, 0.0);
+      glTexCoord2f(0.0,1.0);
+      glVertex3f(xPosition-.75, yPosition-0.5, 0.0);
+      glEnd();
+    
+      Py_DECREF(pyUnitType);
+      Py_DECREF(pyUnitTextureIndex);
+      //    Py_DECREF(pyName);
+      Py_DECREF(pyHealth);
+      Py_DECREF(pyMaxHealth);
+    }
   
 }
 void drawCityNames(){
@@ -954,18 +953,22 @@ static void handleInput(){
   }
 }
 void doScrolling(){
+    pyMapWidth = PyObject_CallMethod(theMap,"getWidth",NULL);//New reference
+    pyMapHeight = PyObject_CallMethod(theMap,"getHeight",NULL);//New reference
+    mapWidth = PyLong_AsLong(pyMapWidth);
+    mapHeight = PyLong_AsLong(pyMapHeight);
     convertWinCoordsToMapCoords(0.0,0.0,&convertedX,&convertedY,&convertedZ);
     if(clickScroll > 0){
       newTranslateX = translateX + mouseMapPosX - mouseMapPosXPrevious;
       newTranslateY = translateY + mouseMapPosY - mouseMapPosYPrevious;
-      if(!((convertedX > translateTilesXToPositionX(-22) && newTranslateX < translateX) || (convertedX < 0.0 && newTranslateX > translateX))){
+      if(!((convertedX > translateTilesXToPositionX(-mapHeight) && newTranslateX < translateX) || (convertedX < 0.0 && newTranslateX > translateX))){
 	translateX = newTranslateX;
       }
-      if(!((convertedY > 0.0 && newTranslateY < translateY) || (convertedY < translateTilesYToPositionY(-16) && newTranslateY > translateY))){
+      if(!((convertedY > 0.0 && newTranslateY < translateY) || (convertedY < translateTilesYToPositionY(-mapWidth) && newTranslateY > translateY))){
 	translateY = newTranslateY;
       }
     }else{
-      if(convertedX < translateTilesXToPositionX(-22)){
+      if(convertedX < translateTilesXToPositionX(-mapHeight)){
 	if(moveRight > 0){// && translateX > -10.0){
 	  translateX -= scrollSpeed*deltaTicks;
 	}
@@ -980,20 +983,19 @@ void doScrolling(){
 	  translateY -= scrollSpeed*deltaTicks;
 	}
       }
-      if(convertedY > translateTilesYToPositionY(-16)){
+      if(convertedY > translateTilesYToPositionY(-mapWidth)){
 	if(moveUp < 0){// && translateY < 10.0){
 	  translateY += scrollSpeed*deltaTicks;
 	}
       }
     }
+    //    Py_DECREF(pyMapWidth);//TODO: SEG FAULT????
+    //    Py_DECREF(pyMapHeight);//TODO: SEG FAULT????
 
 }
 static void draw(){
-
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		
     
-
-
     //game board projection time
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();

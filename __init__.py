@@ -121,7 +121,7 @@ class tiledGameMode(gameMode):
 class playMode(tiledGameMode):
 	def __init__(self):
 		self.units = []
-		self.cites = []
+#		self.cites = []
 		self.nextUnit = None
 		self.focusNextUnit = 0
 		self.focusNextUnitTemp = 0
@@ -129,35 +129,41 @@ class playMode(tiledGameMode):
 		self.cityViewer = None
 		tiledGameMode.__init__(self)
 	def loadMap(self):
-		print 'load 1'
 		self.map = gameLogic.map(gameLogic.playModeNode)
 		self.loadSummoners()
-		print '3'
 		self.orderUnits()
-		print '45'
 		self.chooseNextUnit()
-		print 'load 2'
 	def getFocusNextUnit(self):
 		self.focusNextUnitTemp = self.focusNextUnit
 		self.focusNextUnit = 0
 		return self.focusNextUnitTemp
 	def orderUnits(self):
-		self.units.sort(key=lambda unit:0-unit.movementPoints)
+		self.units.sort(key=lambda unit:unit.movementPoints)
 	def chooseNextUnit(self):
 		self.orderUnits()
-		while(self.units[0].movementPoints < 1000.0):
+		while(self.units[0].movementPoints > 0.0):
 			self.orderUnits()
+			print self.units[0].movementPoints
 			for unit in self.units:
 				if(unit.node.roadValue == 1):
-					unit.movementPoints = unit.movementPoints + 2.0
+					unit.movementPoints = unit.movementPoints - 2.0
 				elif(unit.node.tileValue == cDefines.defines['MOUNTAIN_TILE_INDEX']):
-					unit.movementPoints = unit.movementPoints + 0.1
+					unit.movementPoints = unit.movementPoints - 0.1
 				elif(unit.node.tileValue == cDefines.defines['WATER_TILE_INDEX'] and unit.canSwim == False):
-					unit.movementPoints = unit.movementPoints + 0.5
+					unit.movementPoints = unit.movementPoints - 0.5
 				elif(unit.node.tileValue == cDefines.defines['DESERT_TILE_INDEX']):
-					unit.movementPoints = unit.movementPoints + 0.5
+					unit.movementPoints = unit.movementPoints - 0.5
 				else:
-					unit.movementPoints = unit.movementPoints + 1.5
+					unit.movementPoints = unit.movementPoints - 1.0
+			for row in self.map.nodes:
+				for node in row:
+					if(node.city != None and node.city.unitBeingBuilt != None):
+						node.city.unitBeingBuilt.buildPoints = node.city.unitBeingBuilt.buildPoints - 1.0
+						if(node.city.unitBeingBuilt.buildPoints <= 0.0):
+							gameState.getGameMode().units.append(node.city.unitBeingBuilt)
+							node.city.unitBeingBuilt = gameLogic.unit(node.city.unitBeingBuilt.unitType,node.city.unitBeingBuilt.player,node.city.unitBeingBuilt.xPos,node.city.unitBeingBuilt.yPos,node.city.unitBeingBuilt.node)
+							
+						
 		eligibleUnits = []
 		eligibleUnits.append(self.units[0])
 		for unit in self.units[1:]:
@@ -167,6 +173,9 @@ class playMode(tiledGameMode):
 		self.nextUnit.node.selected = True
 		self.selectedNode = self.nextUnit.node
 		self.focusNextUnit = 1
+		if(gameState.getGameMode().cityViewer != None):
+			gameState.getGameMode().cityViewer.destroy()
+			gameState.getGameMode().cityViewer = uiElements.cityViewer(0.0,0.0,self.nextUnit.node)
 
 	def loadSummoners(self):
 		rowCount = 0
@@ -179,12 +188,16 @@ class playMode(tiledGameMode):
 				if(node.playerStartValue != 0):
 					node.unit = gameLogic.unit(gameState.theUnitTypes["summoner"],node.playerStartValue,rowCount,columnCount,node)
 					self.units.append(node.unit)
-	def incrementInitiatives(self):
-		for unit in self.units:
-			unit.movementInitiative = unit.movementInitiative + 1
-			unit.attackInitiative = unit.attackInitiative + 1
-		for city in self.cities:
-			print city
+#	def incrementInitiatives(self):
+#		print 'wtf'
+#		for unit in self.units:
+#			if(not unit.building):
+	#			unit.movementInitiative = unit.movementInitiative + 1
+	#			unit.attackInitiative = unit.attackInitiative + 1
+	#		else:
+	#			unit.buildingPoints = unit.buildingPoints + 1
+	#	for city in self.cities:
+	#		print city
 			
 	def handleKeyDown(self,keycode):
 		try:
@@ -197,14 +210,12 @@ class playMode(tiledGameMode):
 				self.nextUnit.node.selected = True
 
 	def addUIElements(self):
-		print '1'
 		uiElements.uiElement(xPos=-1.0,yPos=1.0,width=2.0,height=(2.0*cDefines.defines['UI_MAP_EDITOR_TOP_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),textureIndex=cDefines.defines['UI_MAP_EDITOR_TOP_INDEX'])
 		uiElements.uiElement(xPos=-1.0,yPos=1.0-(2.0*cDefines.defines['UI_MAP_EDITOR_TOP_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),width=(2.0*cDefines.defines['UI_MAP_EDITOR_LEFT_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_MAP_EDITOR_LEFT_IMAGE_HEIGHT']/cDefines.defines['UI_MAP_EDITOR_LEFT_IMAGE_WIDTH']),textureIndex=cDefines.defines['UI_MAP_EDITOR_LEFT_INDEX'])
 		uiElements.uiElement(xPos=1.0-(2.0*cDefines.defines['UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),yPos=1.0-(2.0*cDefines.defines['UI_MAP_EDITOR_TOP_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),width=(2.0*cDefines.defines['UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_MAP_EDITOR_RIGHT_IMAGE_HEIGHT']/cDefines.defines['UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH']),textureIndex=cDefines.defines['UI_MAP_EDITOR_RIGHT_INDEX'])
 		uiElements.uiElement(xPos=-1.0,yPos=-1.0+(2.0*cDefines.defines['UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),width=2.0,height=(2.0*cDefines.defines['UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),textureIndex=cDefines.defines['UI_MAP_EDITOR_BOTTOM_INDEX'])
 		if(self.nextUnit.node.city != None):
-			self.cityViewer = uiElements.cityViewer(0.0,0.0,self.nextUnit.node.city)
-		print '2'
+			self.cityViewer = uiElements.cityViewer(0.0,0.0,self.nextUnit.node)
 
 class mapEditorMode(tiledGameMode):	
 	def __init__(self):

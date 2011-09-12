@@ -26,8 +26,10 @@ class unit:
 		self.xPos = xPos
 		self.yPos = yPos
 		self.node = node
-		self.movementPoints = 0.0
+		self.movementPoints = self.unitType.movementInitiative
 		self.attackPoints = 0.0
+		self.buildPoints = self.unitType.buildTime
+#		self.building = building
 		self.health = self.unitType.health
 
 class city:
@@ -35,7 +37,8 @@ class city:
 		self.name = name
 		self.costOfOwnership = costOfOwnership
 		self.unitTypes = unitTypes
-		self.unitBeingProduced = None
+		self.unitBeingBuilt = None
+		self.playerOwner = 0
 
 class node:
 	def __init__(self,xPos,yPos,tileValue=cDefines.defines['GRASS_TILE_INDEX'],roadValue=0,city=None,playerStartValue=0):
@@ -54,12 +57,93 @@ class node:
 	def getValue(self):
 		return self.tileValue
 
+
+class playModeNode(node):
+	def onLeftClickDown(self):
+		if(gameState.getGameMode().nextUnit.node.neighbors.count(self) > 0):#move unit
+			if(self.unit != None):
+				print "attack!!!!..?"
+			else:
+				gameState.getGameMode().selectedNode.selected = False
+				gameState.getGameMode().nextUnit.node.unit = None
+				gameState.getGameMode().nextUnit.node = self
+				self.unit = gameState.getGameMode().nextUnit
+				if(self.city != None):
+					self.city.playerOwner = self.unit.player
+				gameState.getGameMode().nextUnit.movementPoints = gameState.getGameMode().nextUnit.movementPoints + gameState.getGameMode().nextUnit.unitType.movementInitiative
+				gameState.getGameMode().chooseNextUnit()
+		else:#select node
+			if(gameState.getGameMode().cityViewer != None):
+				gameState.getGameMode().cityViewer.destroy()
+			gameState.getGameMode().selectedNode.selected = False
+			gameState.getGameMode().selectedNode = self
+			self.selected = True
+			if(self.city != None):
+				gameState.getGameMode().cityViewer = uiElements.cityVgiewer(0.0,0.0,self)
+
+
+
+				
+	def onMouseOver(self):
+		if(gameState.getGameMode().nextUnit.node.neighbors.count(self) > 0):
+			print "display 'move' cursor here"
+	def onMouseOut(self):
+		if(gameState.getGameMode().nextUnit.node.neighbors.count(self) > 0):
+			print "remove 'move' cursor here"
+		
+
+class mapEditorNode(node):
+	def onLeftClickUp(self):
+		self.clicked = False
+		if(gameState.getGameMode().selectedCityNode != None and gameState.getGameMode().selectedCityNode.clicked != None and gameState.getGameMode().selectedCityNode.clicked):
+			if(gameState.getGameMode().selectedCityNode != self):
+				if(gameState.getGameMode().selectedCityNode.city != None):
+					self.city = gameState.getGameMode().selectedCityNode.city
+					gameState.getGameMode().selectedCityNode.city = None
+					gameState.getGameMode().selectedCityNode.selected = False
+					self.selected = True
+					gameState.getGameMode().selectedCityNode = self
+	def onLeftClickDown(self):
+		self.clicked = True
+		if(gameState.getGameMode().selectedButton != None):
+			if(hasattr(gameState.getGameMode().selectedButton,"tileType")):
+				if(gameState.getGameMode().selectedButton.tileType == cDefines.defines['ROAD_TILE_INDEX']):#new road
+					self.roadValue = (~self.roadValue)&1
+				elif(gameState.getGameMode().selectedButton.tileType == cDefines.defines['CITY_TILE_INDEX']):#new city
+					if(self.city == None):
+						self.city = city(random.choice(cityNames))
+					gameState.getGameMode().cityEditor = uiElements.cityEditor(0.0,0.0,self.city)
+					if(gameState.getGameMode().selectedCityNode != None):
+						gameState.getGameMode().selectedCityNode.selected = False
+					self.selected = True
+					gameState.getGameMode().selectedCityNode = self
+				else:
+					self.tileValue = gameState.getGameMode().selectedButton.tileType
+			else:
+				if(self.playerStartValue == gameState.getGameMode().selectedButton.playerNumber):
+					self.playerStartValue = 0
+					if(gameState.getGameMode().map.numPlayers == gameState.getGameMode().selectedButton.playerNumber and gameState.getGameMode().map.numPlayers != 1):
+						for button in playerStartLocationButton.playerStartLocationButtons:
+							if(button.playerNumber == gameState.getGameMode().map.numPlayers + 1):
+								button.color = "55 55 55"
+						gameState.getGameMode().map.numPlayers = gameState.getGameMode().map.numPlayers - 1
+				else:
+					for row in gameState.getGameMode().map.nodes:
+						for node in row:
+							if(node.playerStartValue == gameState.getGameMode().selectedButton.playerNumber):
+								node.playerStartValue = 0
+					self.playerStartValue = gameState.getGameMode().selectedButton.playerNumber
+
 class map:
 	def __init__(self,nodeType):
 		self.polarity = 0
 		self.nodeType = nodeType
 		self.translateZ = 0-cDefines.defines['initZoom']
 		self.load()
+	def getWidth(self):
+		return len(self.nodes)
+	def getHeight(self):
+		return len(self.nodes[0])
 	def load(self):
 		mapFile = open('maps/' + gameState.getMapName() + ".map",'r')
 		self.nodes = []
@@ -155,77 +239,3 @@ class map:
 		print numPlayers
 		self.numPlayers = numPlayers
 
-
-class playModeNode(node):
-	def onLeftClickDown(self):
-		if(gameState.getGameMode().nextUnit.node.neighbors.count(self) > 0):#move unit
-			if(self.unit != None):
-				print "attack!!!!..?"
-			else:
-				gameState.getGameMode().selectedNode.selected = False
-				gameState.getGameMode().nextUnit.node.unit = None
-				gameState.getGameMode().nextUnit.node = self
-				self.unit = gameState.getGameMode().nextUnit
-				gameState.getGameMode().nextUnit.movementPoints = gameState.getGameMode().nextUnit.movementPoints - 1000.0
-				gameState.getGameMode().chooseNextUnit()
-		else:#select node
-			if(gameState.getGameMode().cityViewer != None):
-				gameState.getGameMode().cityViewer.destroy()
-			gameState.getGameMode().selectedNode.selected = False
-			gameState.getGameMode().selectedNode = self
-			self.selected = True
-			if(self.city != None):
-				gameState.getGameMode().cityViewer = uiElements.cityViewer(0.0,0.0,self.city)
-
-
-
-				
-	def onMouseOver(self):
-		if(gameState.getGameMode().nextUnit.node.neighbors.count(self) > 0):
-			print "display 'move' cursor here"
-	def onMouseOut(self):
-		if(gameState.getGameMode().nextUnit.node.neighbors.count(self) > 0):
-			print "remove 'move' cursor here"
-		
-
-class mapEditorNode(node):
-	def onLeftClickUp(self):
-		self.clicked = False
-		if(gameState.getGameMode().selectedCityNode != None and gameState.getGameMode().selectedCityNode.clicked != None and gameState.getGameMode().selectedCityNode.clicked):
-			if(gameState.getGameMode().selectedCityNode != self):
-				if(gameState.getGameMode().selectedCityNode.city != None):
-					self.city = gameState.getGameMode().selectedCityNode.city
-					gameState.getGameMode().selectedCityNode.city = None
-					gameState.getGameMode().selectedCityNode.selected = False
-					self.selected = True
-					gameState.getGameMode().selectedCityNode = self
-	def onLeftClickDown(self):
-		self.clicked = True
-		if(gameState.getGameMode().selectedButton != None):
-			if(hasattr(gameState.getGameMode().selectedButton,"tileType")):
-				if(gameState.getGameMode().selectedButton.tileType == cDefines.defines['ROAD_TILE_INDEX']):#new road
-					self.roadValue = (~self.roadValue)&1
-				elif(gameState.getGameMode().selectedButton.tileType == cDefines.defines['CITY_TILE_INDEX']):#new city
-					if(self.city == None):
-						self.city = city(random.choice(cityNames))
-					gameState.getGameMode().cityEditor = uiElements.cityEditor(0.0,0.0,self.city)
-					if(gameState.getGameMode().selectedCityNode != None):
-						gameState.getGameMode().selectedCityNode.selected = False
-					self.selected = True
-					gameState.getGameMode().selectedCityNode = self
-				else:
-					self.tileValue = gameState.getGameMode().selectedButton.tileType
-			else:
-				if(self.playerStartValue == gameState.getGameMode().selectedButton.playerNumber):
-					self.playerStartValue = 0
-					if(gameState.getGameMode().map.numPlayers == gameState.getGameMode().selectedButton.playerNumber and gameState.getGameMode().map.numPlayers != 1):
-						for button in playerStartLocationButton.playerStartLocationButtons:
-							if(button.playerNumber == gameState.getGameMode().map.numPlayers + 1):
-								button.color = "55 55 55"
-						gameState.getGameMode().map.numPlayers = gameState.getGameMode().map.numPlayers - 1
-				else:
-					for row in gameState.getGameMode().map.nodes:
-						for node in row:
-							if(node.playerStartValue == gameState.getGameMode().selectedButton.playerNumber):
-								node.playerStartValue = 0
-					self.playerStartValue = gameState.getGameMode().selectedButton.playerNumber

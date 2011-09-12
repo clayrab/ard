@@ -1,9 +1,15 @@
 import random
 import copy
 import gameState
+import gameLogic
 import nameGenerator
 import cDefines
 import shutil
+
+cityCosts = ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20"]
+unitCosts = ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20"]
+startingManas = ["5","10","15","20","30","40","50","60","70","80","90","100"]
+unitBuildTimes = ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20"]
 
 class uiElement:
 	def __init__(self,xPos,yPos,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor=None,textSize=0.001,color=None,mouseOverColor=None,textXPos=0.0,textYPos=0.0):
@@ -53,7 +59,7 @@ class saveButton(clickableElement):
 class addColumnButton(clickableElement):
 	def onClick(self):
 		for row in gameState.getGameMode().map.nodes:
-			row.append(mapEditorNode())
+			row.append(gameLogic.mapEditorNode(0,0))
 
 class removeColumnButton(clickableElement):
 	def onClick(self):
@@ -65,9 +71,10 @@ class addFirstColumnButton(clickableElement):
 		for count in range(0,len(gameState.getGameMode().map.nodes)):
 			rowCopy = gameState.getGameMode().map.nodes[count][:]
 			rowCopy.reverse()
-			rowCopy.append(mapEditorNode())
+			rowCopy.append(gameLogic.mapEditorNode(0,0))
 			rowCopy.reverse()
 			gameState.getGameMode().map.nodes[count] = rowCopy
+
 class removeFirstColumnButton(clickableElement):
 	def onClick(self):
 		for count in range(0,len(gameState.getGameMode().map.nodes)):
@@ -81,8 +88,9 @@ class addRowButton(clickableElement):
 	def onClick(self):
 		newRow = []
 		for count in range(0,len(gameState.getGameMode().map.nodes[0])):
-			newRow.append(mapEditorNode())
+			newRow.append(gameLogic.mapEditorNode(0,0))
 		gameState.getGameMode().map.nodes.append(newRow)
+
 class removeRowButton(clickableElement):
 	def onClick(self):
 		gameState.getGameMode().map.nodes.pop()
@@ -92,12 +100,13 @@ class addFirstRowButton(clickableElement):
 		nodesCopy = gameState.getGameMode().map.nodes[:]
 		newRow = []
 		for count in range(0,len(gameState.getGameMode().map.nodes[0])):
-			newRow.append(mapEditorNode())
+			newRow.append(gameLogic.mapEditorNode(0,0))
 		nodesCopy.reverse()
 		nodesCopy.append(newRow)
 		nodesCopy.reverse()
 		gameState.getGameMode().map.polarity = (~gameState.getGameMode().map.polarity)&1
 		gameState.getGameMode().map.nodes = nodesCopy
+
 class removeFirstRowButton(clickableElement):
 	def onClick(self):
 		nodesCopy = gameState.getGameMode().map.nodes[:]
@@ -139,14 +148,14 @@ class newMapNameInputElement(textInputElement):
 			textInputElement.onKeyDown(self,keycode)
 
 class cityViewer(uiElement):
-	def __init__(self,xPos,yPos,city,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None):
+	def __init__(self,xPos,yPos,node,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None):
 		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines.defines['CURSOR_HAND_INDEX'],color=color,mouseOverColor=mouseOverColor)
-		self.city = city
+		self.node = node
 		self.names = []
-		self.names.append(uiElement(-0.972,0.75,text=self.city.name,textSize=0.0005).name)
+		self.names.append(uiElement(-0.972,0.75,text=self.node.city.name,textSize=0.0005).name)
 		height = 0.56
-		for unitType in self.city.unitTypes:
-			self.names.append(unitSelectButton(-0.972,height,unitType,text=unitType.name,textSize=0.0005).name)
+		for unitType in self.node.city.unitTypes:
+			self.names.append(unitSelectButton(-0.972,height,unitType,self.node,text=unitType.name,textSize=0.0005).name)
 			self.names.append(uiElement(-0.7,height,text=str(unitType.cost),textSize=0.0005).name)
 			height = height - 0.035
 		
@@ -424,7 +433,9 @@ class unitCostField(clickableElement):
 		clickableElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines.defines['CURSOR_HAND_INDEX'],color=color,mouseOverColor=mouseOverColor,textXPos=textXPos,textYPos=textYPos)
 		self.unitType = unitType
 	def onClick(self):
+		print unitCosts
 		unitCostSelector(self.xPosition,self.yPosition-0.06,unitCosts,self,text="select cost",textSize=0.0005,textureIndex=cDefines.defines['UI_SCROLLABLE_INDEX'],width=(2.0*cDefines.defines['UI_SCROLLABLE_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_SCROLLABLE_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']))
+		print 'done'
 
 class startingManaField(clickableElement):
        	def __init__(self,xPos,yPos,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,textXPos=0.0,textYPos=0.0):
@@ -443,16 +454,15 @@ class unitBuildTimeField(clickableElement):
 
 
 class unitSelectButton(clickableElement):
-       	def __init__(self,xPos,yPos,unitType,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,textXPos=0.0,textYPos=0.0):
+       	def __init__(self,xPos,yPos,unitType,node,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,textXPos=0.0,textYPos=0.0):
 		clickableElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines.defines['CURSOR_HAND_INDEX'],color=color,mouseOverColor=mouseOverColor,textXPos=textXPos,textYPos=textYPos)
 		self.unitType = unitType
+		self.node = node
 	def onClick(self):
 		if(gameState.getGameMode().selectedNode.unit != None and gameState.getGameMode().selectedNode.unit.unitType.name == "summoner"):
-#			gameState.getGameMode().selectedNode.city.unitBeingProduced = gameLogic.unit()
-			#todo create a unit here and add logic for units to build themselves and then draw when they are done
-
-			print 'summonerrr'
-		print "click"
+			#gameState.getGameMode().units.append(gameLogic.unit(self.unitType,self.node.city.playerOwner,self.node.xPos,self.node.yPos,self.node))
+			self.node.city.unitBeingBuilt = gameLogic.unit(self.unitType,self.node.city.playerOwner,self.node.xPos,self.node.yPos,self.node)
+			print 'building...'
 
 class menuButton(clickableElement):
 	index = 0
