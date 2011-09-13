@@ -143,7 +143,6 @@ class playMode(tiledGameMode):
 		self.orderUnits()
 		while(self.units[0].movementPoints > 0.0):
 			self.orderUnits()
-			print self.units[0].movementPoints
 			for unit in self.units:
 				if(unit.node.roadValue == 1):
 					unit.movementPoints = unit.movementPoints - 2.0

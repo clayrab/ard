@@ -29,7 +29,6 @@ class unit:
 		self.movementPoints = self.unitType.movementInitiative
 		self.attackPoints = 0.0
 		self.buildPoints = self.unitType.buildTime
-#		self.building = building
 		self.health = self.unitType.health
 
 class city:

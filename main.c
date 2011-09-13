@@ -473,6 +473,9 @@ void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long 
       glVertex3f(xPosition-0.5, yPosition+0.5, 0.0);
       glEnd();
 
+      float healthBarLength = 1.4*PyLong_AsLong(pyHealth)/PyLong_AsLong(pyMaxHealth);
+      printf("health: %f\n",healthBarLength);
+
       glBindTexture(GL_TEXTURE_2D, texturesArray[HEALTH_BAR_INDEX]);
       glBegin(GL_QUADS);
       glTexCoord2f(0.0,0.0);
@@ -490,9 +493,9 @@ void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long 
       glTexCoord2f(0.0,0.0);
       glVertex3f(xPosition-.75, yPosition-0.2, 0.0);
       glTexCoord2f(1.0,0.0);
-      glVertex3f(xPosition+.05, yPosition-0.2, 0.0);
+      glVertex3f(xPosition-.75+healthBarLength, yPosition-0.2, 0.0);
       glTexCoord2f(1.0,1.0);
-      glVertex3f(xPosition+.05, yPosition-0.5, 0.0);
+      glVertex3f(xPosition-.75+healthBarLength, yPosition-0.5, 0.0);
       glTexCoord2f(0.0,1.0);
       glVertex3f(xPosition-.75, yPosition-0.5, 0.0);
       glEnd();
