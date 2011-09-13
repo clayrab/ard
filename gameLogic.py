@@ -63,7 +63,6 @@ class playModeNode(node):
 			if(self.unit != None):
 				print "attack!!!!..?"
 			else:
-				gameState.getGameMode().selectedNode.selected = False
 				gameState.getGameMode().nextUnit.node.unit = None
 				gameState.getGameMode().nextUnit.node = self
 				self.unit = gameState.getGameMode().nextUnit
@@ -72,15 +71,7 @@ class playModeNode(node):
 				gameState.getGameMode().nextUnit.movementPoints = gameState.getGameMode().nextUnit.movementPoints + gameState.getGameMode().nextUnit.unitType.movementInitiative
 				gameState.getGameMode().chooseNextUnit()
 		else:#select node
-			if(gameState.getGameMode().cityViewer != None):
-				gameState.getGameMode().cityViewer.destroy()
-			gameState.getGameMode().selectedNode.selected = False
-			gameState.getGameMode().selectedNode = self
-			self.selected = True
-			if(self.city != None):
-				gameState.getGameMode().cityViewer = uiElements.cityVgiewer(0.0,0.0,self)
-
-
+			selectNode(self)
 
 				
 	def onMouseOver(self):
@@ -237,4 +228,21 @@ class map:
 	def setNumPlayers(self,numPlayers):
 		print numPlayers
 		self.numPlayers = numPlayers
+
+def selectNode(node):
+	if(gameState.getGameMode().selectedNode != None):
+		gameState.getGameMode().selectedNode.selected = False
+	gameState.getGameMode().selectedNode = node
+	node.selected = True
+	if(uiElements.cityViewer.theCityViewer != None):
+		uiElements.cityViewer.theCityViewer.destroy()
+		uiElements.cityViewer.theCityViewer = None
+	if(uiElements.unitViewer.theUnitViewer != None):
+		uiElements.unitViewer.theUnitViewer.destroy()
+		uiElements.unitViewer.theUnitViewer = None
+	if(node.city != None):
+		uiElements.cityViewer.theCityViewer = uiElements.cityViewer(0.0,0.0,node)
+	if(node.unit != None):
+		uiElements.unitViewer.theUnitViewer = uiElements.unitViewer(0.0,0.0,node)
+
 

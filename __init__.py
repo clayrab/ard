@@ -161,7 +161,6 @@ class playMode(tiledGameMode):
 						if(node.city.unitBeingBuilt.buildPoints <= 0.0):
 							gameState.getGameMode().units.append(node.city.unitBeingBuilt)
 							node.city.unitBeingBuilt = gameLogic.unit(node.city.unitBeingBuilt.unitType,node.city.unitBeingBuilt.player,node.city.unitBeingBuilt.xPos,node.city.unitBeingBuilt.yPos,node.city.unitBeingBuilt.node)
-							
 						
 		eligibleUnits = []
 		eligibleUnits.append(self.units[0])
@@ -169,12 +168,8 @@ class playMode(tiledGameMode):
 			if(unit.movementPoints == eligibleUnits[0].movementPoints):
 				eligibleUnits.append(unit)
 		self.nextUnit = random.choice(eligibleUnits)
-		self.nextUnit.node.selected = True
-		self.selectedNode = self.nextUnit.node
+		gameLogic.selectNode(self.nextUnit.node)
 		self.focusNextUnit = 1
-		if(gameState.getGameMode().cityViewer != None):
-			gameState.getGameMode().cityViewer.destroy()
-			gameState.getGameMode().cityViewer = uiElements.cityViewer(0.0,0.0,self.nextUnit.node)
 
 	def loadSummoners(self):
 		rowCount = 0
@@ -213,8 +208,7 @@ class playMode(tiledGameMode):
 		uiElements.uiElement(xPos=-1.0,yPos=1.0-(2.0*cDefines.defines['UI_MAP_EDITOR_TOP_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),width=(2.0*cDefines.defines['UI_MAP_EDITOR_LEFT_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_MAP_EDITOR_LEFT_IMAGE_HEIGHT']/cDefines.defines['UI_MAP_EDITOR_LEFT_IMAGE_WIDTH']),textureIndex=cDefines.defines['UI_MAP_EDITOR_LEFT_INDEX'])
 		uiElements.uiElement(xPos=1.0-(2.0*cDefines.defines['UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),yPos=1.0-(2.0*cDefines.defines['UI_MAP_EDITOR_TOP_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),width=(2.0*cDefines.defines['UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_MAP_EDITOR_RIGHT_IMAGE_HEIGHT']/cDefines.defines['UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH']),textureIndex=cDefines.defines['UI_MAP_EDITOR_RIGHT_INDEX'])
 		uiElements.uiElement(xPos=-1.0,yPos=-1.0+(2.0*cDefines.defines['UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),width=2.0,height=(2.0*cDefines.defines['UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),textureIndex=cDefines.defines['UI_MAP_EDITOR_BOTTOM_INDEX'])
-		if(self.nextUnit.node.city != None):
-			self.cityViewer = uiElements.cityViewer(0.0,0.0,self.nextUnit.node)
+		gameLogic.selectNode(self.nextUnit.node)
 
 class mapEditorMode(tiledGameMode):	
 	def __init__(self):

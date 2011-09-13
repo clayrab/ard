@@ -147,10 +147,18 @@ long mapHeight;
 
 #define MAX_CITIES 40
 #define MAX_CITY_NAME_LENGTH 50
+#define MAX_UNITS 400
+#define MAX_UNIT_NAME_LENGTH 50
+
 float cityNamesXs[MAX_CITIES];
 float cityNamesYs[MAX_CITIES];
 char cityNames[MAX_CITIES][MAX_CITY_NAME_LENGTH];
 int cityNamesCount = 0;
+
+float unitNamesXs[MAX_UNITS];
+float unitNamesYs[MAX_UNITS];
+char unitNames[MAX_UNITS][MAX_UNIT_NAME_LENGTH];
+int unitNamesCount = 0;
 
 GLuint tilesTexture;
 /*GLuint uiTexture;
@@ -455,10 +463,11 @@ void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long 
   if(pyUnit != NULL && pyUnit != Py_None){
       PyObject * pyUnitType = PyObject_GetAttrString(pyUnit,"unitType");
       PyObject * pyUnitTextureIndex = PyObject_GetAttrString(pyUnitType,"textureIndex");
-      //    PyObject * pyName = PyObject_GetAttrString(pyUnitType,"name");
+      PyObject * pyName = PyObject_GetAttrString(pyUnitType,"name");
+      char * unitName = PyString_AsString(pyName);
       PyObject * pyHealth = PyObject_GetAttrString(pyUnit,"health");
       PyObject * pyMaxHealth = PyObject_GetAttrString(pyUnitType,"health");
-      
+      float healthBarLength = 1.4*PyLong_AsLong(pyHealth)/PyLong_AsLong(pyMaxHealth);
       glColor3f(255.0, 255.0, 255.0);
     
       glBindTexture(GL_TEXTURE_2D, texturesArray[MEEPLE_INDEX]);
@@ -472,9 +481,6 @@ void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long 
       glTexCoord2f(0.0,1.0);
       glVertex3f(xPosition-0.5, yPosition+0.5, 0.0);
       glEnd();
-
-      float healthBarLength = 1.4*PyLong_AsLong(pyHealth)/PyLong_AsLong(pyMaxHealth);
-      printf("health: %f\n",healthBarLength);
 
       glBindTexture(GL_TEXTURE_2D, texturesArray[HEALTH_BAR_INDEX]);
       glBegin(GL_QUADS);
@@ -499,17 +505,22 @@ void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long 
       glTexCoord2f(0.0,1.0);
       glVertex3f(xPosition-.75, yPosition-0.5, 0.0);
       glEnd();
-    
+
+      unitNamesXs[unitNamesCount] = xPosition+1.0;
+      unitNamesYs[unitNamesCount] = yPosition-1.0;
+      strcpy(unitNames[unitNamesCount],unitName);
+      unitNamesCount = unitNamesCount + 1;
+      
       Py_DECREF(pyUnitType);
       Py_DECREF(pyUnitTextureIndex);
-      //    Py_DECREF(pyName);
+      Py_DECREF(pyName);
       Py_DECREF(pyHealth);
       Py_DECREF(pyMaxHealth);
     }
   
 }
-void drawCityNames(){
-  int i,j,cityNameLength = 0;
+void drawTilesText(){
+  int i,j,cityNameLength,unitNameLength = 0;
   for(i=0; i<cityNamesCount; i++){
     for(j=0; j<MAX_CITY_NAME_LENGTH; j++){
       if(cityNames[i][j] == 0){
@@ -525,6 +536,21 @@ void drawCityNames(){
     glPopMatrix();
   }
   cityNamesCount = 0;
+  for(i=0; i<unitNamesCount; i++){
+    for(j=0; j<MAX_UNIT_NAME_LENGTH; j++){
+      if(unitNames[i][j] == 0){
+	unitNameLength = j;
+	break;
+      }
+    }
+    glColor3f(1.0,1.0,1.0);
+    glPushMatrix();
+    glTranslatef(unitNamesXs[i]-(0.3*j),unitNamesYs[i]+0.5,0.0);
+    glScalef(0.009,0.009,0.0);
+    drawText(unitNames[i]);
+    glPopMatrix();
+  }
+  unitNamesCount = 0;
 }
 void drawTiles(){
   
@@ -594,7 +620,7 @@ drawBoard(){
   //printf("drawBoard");
   if(theMap != Py_None){
     drawTiles();
-    drawCityNames();
+    drawTilesText();
   }
 }
 
