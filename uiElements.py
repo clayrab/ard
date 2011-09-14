@@ -149,26 +149,39 @@ class newMapNameInputElement(textInputElement):
 
 class cityViewer(uiElement):
 	theCityViewer = None
-	def __init__(self,xPos,yPos,node,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None):
+	def __init__(self,node,xPos=0.0,yPos=0.0,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None):
 		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines.defines['CURSOR_HAND_INDEX'],color=color,mouseOverColor=mouseOverColor)
 		self.node = node
 		self.names = []
-		self.names.append(uiElement(-0.972,0.75,text=self.node.city.name,textSize=0.0005).name)
+		self.names.append(uiElement(-0.972,0.75,text=self.node.city.name,textSize=0.0007).name)
+		if(self.node.city.unitBeingBuilt != None):
+			self.names.append(uiElement(-0.972,0.67,text=self.node.city.unitBeingBuilt.unitType.name,textSize=0.0005).name)
+			self.names.append(uiElement(-0.972,0.65,height=(2.0*cDefines.defines['UNIT_BUILD_BAR_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),width=(2.0*cDefines.defines['UNIT_BUILD_BAR_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),textureIndex=cDefines.defines['UNIT_BUILD_BAR_INDEX']).name)
+                        self.names.append(uiElement(-0.972,0.65,height=(2.0*cDefines.defines['UNIT_BUILD_BAR_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),width=(2.0*cDefines.defines['UNIT_BUILD_BAR_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH'])*(self.node.city.unitBeingBuilt.unitType.buildTime-self.node.city.unitBeingBuilt.buildPoints)/self.node.city.unitBeingBuilt.unitType.buildTime,textureIndex=cDefines.defines['UNIT_BUILD_BAR_INDEX'],color="FF 00 00").name)
+
+			print self.node.city.unitBeingBuilt.buildPoints
+			print self.node.city.unitBeingBuilt.unitType.buildTime
+			print (2.0*cDefines.defines['UNIT_BUILD_BAR_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH'])*(self.node.city.unitBeingBuilt.unitType.buildTime-self.node.city.unitBeingBuilt.buildPoints)/self.node.city.unitBeingBuilt.unitType.buildTime
+			
 		height = 0.56
 		for unitType in self.node.city.unitTypes:
 			self.names.append(unitSelectButton(-0.972,height,unitType,self.node,text=unitType.name,textSize=0.0005).name)
 			self.names.append(uiElement(-0.7,height,text=str(unitType.cost),textSize=0.0005).name)
 			height = height - 0.035
+		
 	def destroy(self):
 		del gameState.getGameMode().elementsDict[self.name]
 		for name in self.names:
 			del gameState.getGameMode().elementsDict[name]
 		self.names = []
 		gameState.getGameMode().resortElems = True
+	def reset(self):
+		self.destroy()
+		cityViewer.theCityViewer = cityViewer(self.node)
 
 class unitViewer(uiElement):
 	theUnitViewer = None
-	def __init__(self,xPos,yPos,node,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None):
+	def __init__(self,node,xPos=0.0,yPos=0.0,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None):
 		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines.defines['CURSOR_HAND_INDEX'],color=color,mouseOverColor=mouseOverColor)
 		self.node = node
 		self.names = []
@@ -477,7 +490,7 @@ class unitSelectButton(clickableElement):
 		if(gameState.getGameMode().selectedNode.unit != None and gameState.getGameMode().selectedNode.unit.unitType.name == "summoner"):
 			#gameState.getGameMode().units.append(gameLogic.unit(self.unitType,self.node.city.playerOwner,self.node.xPos,self.node.yPos,self.node))
 			self.node.city.unitBeingBuilt = gameLogic.unit(self.unitType,self.node.city.playerOwner,self.node.xPos,self.node.yPos,self.node)
-			print 'building...'
+			cityViewer.theCityViewer.reset()
 
 class menuButton(clickableElement):
 	index = 0

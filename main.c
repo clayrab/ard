@@ -92,10 +92,15 @@
 #define HEALTH_BAR_IMAGE_WIDTH 52
 #define HEALTH_BAR_INDEX 14
 
+#define UNIT_BUILD_BAR_IMAGE "assets/unitBuildBar.png"
+#define UNIT_BUILD_BAR_IMAGE_HEIGHT 12
+#define UNIT_BUILD_BAR_IMAGE_WIDTH 180
+#define UNIT_BUILD_BAR_INDEX 15
+
 #define MAP_ICON_IMAGE "assets/mapIcon.png"
 #define MAP_ICON_HEIGHT 35
 #define MAP_ICON_WIDTH 56
-#define MAP_ICON_INDEX 15
+#define MAP_ICON_INDEX 16
 
 #define DESERT_TILE_INDEX 0
 #define GRASS_TILE_INDEX 1
@@ -837,6 +842,7 @@ static void initGL (){
   pngLoad(&texturesArray[UI_TEXT_INPUT_INDEX],UI_TEXT_INPUT_IMAGE);
   pngLoad(&texturesArray[MEEPLE_INDEX],MEEPLE_IMAGE);
   pngLoad(&texturesArray[HEALTH_BAR_INDEX],HEALTH_BAR_IMAGE);
+  pngLoad(&texturesArray[UNIT_BUILD_BAR_INDEX],UNIT_BUILD_BAR_IMAGE);
   pngLoad(&texturesArray[MAP_ICON_INDEX],MAP_ICON_IMAGE);
 
   vertexArrays[DESERT_TILE_INDEX] = *desertVertices;

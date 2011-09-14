@@ -241,8 +241,8 @@ def selectNode(node):
 		uiElements.unitViewer.theUnitViewer.destroy()
 		uiElements.unitViewer.theUnitViewer = None
 	if(node.city != None):
-		uiElements.cityViewer.theCityViewer = uiElements.cityViewer(0.0,0.0,node)
+		uiElements.cityViewer.theCityViewer = uiElements.cityViewer(node)
 	if(node.unit != None):
-		uiElements.unitViewer.theUnitViewer = uiElements.unitViewer(0.0,0.0,node)
+		uiElements.unitViewer.theUnitViewer = uiElements.unitViewer(node)
 
 
