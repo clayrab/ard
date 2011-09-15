@@ -1,3 +1,5 @@
+#resolve multiple units per node
+#dont build units when summoner is absent
 #city viewer in playMode
 #unit viewer in playMode
 #fog of war
@@ -156,12 +158,12 @@ class playMode(tiledGameMode):
 					unit.movementPoints = unit.movementPoints - 1.0
 			for row in self.map.nodes:
 				for node in row:
-					if(node.city != None and node.city.unitBeingBuilt != None):
+					if(node.city != None and node.city.unitBeingBuilt != None and node.unit != None and node.unit.unitType.name == "summoner"):
 						node.city.unitBeingBuilt.buildPoints = node.city.unitBeingBuilt.buildPoints - 1.0
 						if(node.city.unitBeingBuilt.buildPoints <= 0.0):
-							gameState.getGameMode().units.append(node.city.unitBeingBuilt)
-							node.city.unitBeingBuilt = gameLogic.unit(node.city.unitBeingBuilt.unitType,node.city.unitBeingBuilt.player,node.city.unitBeingBuilt.xPos,node.city.unitBeingBuilt.yPos,node.city.unitBeingBuilt.node)
-						
+							node.addUnit(node.city.unitBeingBuilt)
+							node.city.buildNextUnit()
+
 		eligibleUnits = []
 		eligibleUnits.append(self.units[0])
 		for unit in self.units[1:]:
@@ -180,24 +182,20 @@ class playMode(tiledGameMode):
 			for node in row:
 				columnCount = columnCount + 1
 				if(node.playerStartValue != 0):
-					node.unit = gameLogic.unit(gameState.theUnitTypes["summoner"],node.playerStartValue,rowCount,columnCount,node)
-					self.units.append(node.unit)
-#	def incrementInitiatives(self):
-#		print 'wtf'
-#		for unit in self.units:
-#			if(not unit.building):
-	#			unit.movementInitiative = unit.movementInitiative + 1
-	#			unit.attackInitiative = unit.attackInitiative + 1
-	#		else:
-	#			unit.buildingPoints = unit.buildingPoints + 1
-	#	for city in self.cities:
-	#		print city
-			
+					node.addUnit(gameLogic.unit(gameState.theUnitTypes["summoner"],node.playerStartValue,rowCount,columnCount,node))
+#					node.unit = gameLogic.unit(gameState.theUnitTypes["summoner"],node.playerStartValue,rowCount,columnCount,node)
+#					self.units.append(node.unit)
 	def handleKeyDown(self,keycode):
+
+
+
+
 		try:
 			self.elementWithFocus.onKeyDown(keycode)
 		except:
 			if(keycode == "space"):
+				self.nextUnit.moveTo(self.nextUnit.node)
+			elif(keycode == "n"):
 				self.focusNextUnit = 1
 				self.selectedNode.selected = False
 				self.selectedNode = self.nextUnit.node

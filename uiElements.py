@@ -158,12 +158,12 @@ class cityViewer(uiElement):
 			self.names.append(uiElement(-0.972,0.67,text=self.node.city.unitBeingBuilt.unitType.name,textSize=0.0005).name)
 			self.names.append(uiElement(-0.972,0.65,height=(2.0*cDefines.defines['UNIT_BUILD_BAR_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),width=(2.0*cDefines.defines['UNIT_BUILD_BAR_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),textureIndex=cDefines.defines['UNIT_BUILD_BAR_INDEX']).name)
                         self.names.append(uiElement(-0.972,0.65,height=(2.0*cDefines.defines['UNIT_BUILD_BAR_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),width=(2.0*cDefines.defines['UNIT_BUILD_BAR_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH'])*(self.node.city.unitBeingBuilt.unitType.buildTime-self.node.city.unitBeingBuilt.buildPoints)/self.node.city.unitBeingBuilt.unitType.buildTime,textureIndex=cDefines.defines['UNIT_BUILD_BAR_INDEX'],color="FF 00 00").name)
+		height = 0.6
+		for unit in self.node.city.unitBuildQueue[1:]:
+			height = height - 0.035
+			self.names.append(uiElement(-0.972,height,text=str(unit.unitType.name),textSize=0.0005).name)
 
-			print self.node.city.unitBeingBuilt.buildPoints
-			print self.node.city.unitBeingBuilt.unitType.buildTime
-			print (2.0*cDefines.defines['UNIT_BUILD_BAR_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH'])*(self.node.city.unitBeingBuilt.unitType.buildTime-self.node.city.unitBeingBuilt.buildPoints)/self.node.city.unitBeingBuilt.unitType.buildTime
-			
-		height = 0.56
+		height = 0.16
 		for unitType in self.node.city.unitTypes:
 			self.names.append(unitSelectButton(-0.972,height,unitType,self.node,text=unitType.name,textSize=0.0005).name)
 			self.names.append(uiElement(-0.7,height,text=str(unitType.cost),textSize=0.0005).name)
@@ -488,8 +488,7 @@ class unitSelectButton(clickableElement):
 		self.node = node
 	def onClick(self):
 		if(gameState.getGameMode().selectedNode.unit != None and gameState.getGameMode().selectedNode.unit.unitType.name == "summoner"):
-			#gameState.getGameMode().units.append(gameLogic.unit(self.unitType,self.node.city.playerOwner,self.node.xPos,self.node.yPos,self.node))
-			self.node.city.unitBeingBuilt = gameLogic.unit(self.unitType,self.node.city.playerOwner,self.node.xPos,self.node.yPos,self.node)
+			self.node.city.queueUnit(gameLogic.unit(self.unitType,self.node.city.playerOwner,self.node.xPos,self.node.yPos,self.node))
 			cityViewer.theCityViewer.reset()
 
 class menuButton(clickableElement):

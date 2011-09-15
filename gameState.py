@@ -5,7 +5,7 @@ unitTypesList = []
 unitTypesList.append(gameLogic.unitType("summoner",cDefines.defines["MEEPLE_INDEX"],100.0,100.0,100))
 unitTypesList.append(gameLogic.unitType("beaver",cDefines.defines["MEEPLE_INDEX"],100.0,100.0,100))
 unitTypesList.append(gameLogic.unitType("catapult",cDefines.defines["MEEPLE_INDEX"],100.0,100.0,100))
-unitTypesList.append(gameLogic.unitType("fire elemental",cDefines.defines["MEEPLE_INDEX"],100.0,100.0,100))
+unitTypesList.append(gameLogic.unitType("archer",cDefines.defines["MEEPLE_INDEX"],100.0,100.0,100))
 unitTypesList.append(gameLogic.unitType("dragon",cDefines.defines["MEEPLE_INDEX"],100.0,100.0,100))
 
 theUnitTypes = {}

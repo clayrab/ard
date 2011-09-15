@@ -30,14 +30,31 @@ class unit:
 		self.attackPoints = 0.0
 		self.buildPoints = self.unitType.buildTime
 		self.health = self.unitType.health
-
+	def moveTo(self,node):
+		self.node.unit = None
+		self.node = node
+		node.unit = self
+		if(node.city != None):
+			node.city.playerOwner = node.unit.player
+		self.movementPoints = self.movementPoints + self.unitType.movementInitiative
+		gameState.getGameMode().chooseNextUnit()
 class city:
 	def __init__(self,name,unitTypes=[],costOfOwnership=10):
 		self.name = name
 		self.costOfOwnership = costOfOwnership
 		self.unitTypes = unitTypes
 		self.unitBeingBuilt = None
+		self.unitBuildQueue = []
 		self.playerOwner = 0
+	def queueUnit(self,unit):
+		self.unitBuildQueue.append(unit)
+		if(self.unitBeingBuilt == None):
+			self.unitBeingBuilt = unit
+	def buildNextUnit(self):
+		self.unitBuildQueue = self.unitBuildQueue[1:]
+		if(len(self.unitBuildQueue) == 0):
+			self.unitBuildQueue.append(unit(self.unitBeingBuilt.unitType,self.unitBeingBuilt.player,self.unitBeingBuilt.xPos,self.unitBeingBuilt.yPos,self.unitBeingBuilt.node))
+		self.unitBeingBuilt = self.unitBuildQueue[0]
 
 class node:
 	def __init__(self,xPos,yPos,tileValue=cDefines.defines['GRASS_TILE_INDEX'],roadValue=0,city=None,playerStartValue=0):
@@ -55,7 +72,13 @@ class node:
 		self.neighbors = []
 	def getValue(self):
 		return self.tileValue
-
+	def addUnit(self,unit):
+		if(self.unit == None):
+			self.unit = unit
+			unit.node = self
+			gameState.getGameMode().units.append(unit)
+		else:
+			(random.choice(self.neighbors)).addUnit(unit)
 
 class playModeNode(node):
 	def onLeftClickDown(self):
@@ -63,17 +86,9 @@ class playModeNode(node):
 			if(self.unit != None):
 				print "attack!!!!..?"
 			else:
-				gameState.getGameMode().nextUnit.node.unit = None
-				gameState.getGameMode().nextUnit.node = self
-				self.unit = gameState.getGameMode().nextUnit
-				if(self.city != None):
-					self.city.playerOwner = self.unit.player
-				gameState.getGameMode().nextUnit.movementPoints = gameState.getGameMode().nextUnit.movementPoints + gameState.getGameMode().nextUnit.unitType.movementInitiative
-				gameState.getGameMode().chooseNextUnit()
+				gameState.getGameMode().nextUnit.moveTo(self)
 		else:#select node
 			selectNode(self)
-
-				
 	def onMouseOver(self):
 		if(gameState.getGameMode().nextUnit.node.neighbors.count(self) > 0):
 			print "display 'move' cursor here"
