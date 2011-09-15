@@ -1,6 +1,4 @@
-#resolve multiple units per node
-#dont build units when summoner is absent
-#city viewer in playMode
+#add move cursor and make shift alter move/select mode
 #unit viewer in playMode
 #fog of war
 #multiplayer
