@@ -67,6 +67,8 @@ class node:
 #		self.cityViewer = None
 		self.playerStartValue = playerStartValue
 		self.selected = False
+		self.cursorIndex = -1
+#		self.cursorIndex = cDefines.defines['CURSOR_HAND_INDEX']
 		gameState.getGameMode().elementsDict[self.name] = self
 		self.unit = None
 		self.neighbors = []
@@ -91,9 +93,11 @@ class playModeNode(node):
 			selectNode(self)
 	def onMouseOver(self):
 		if(gameState.getGameMode().nextUnit.node.neighbors.count(self) > 0):
+			self.cursorIndex = cDefines.defines['CURSOR_HAND_INDEX']
 			print "display 'move' cursor here"
 	def onMouseOut(self):
 		if(gameState.getGameMode().nextUnit.node.neighbors.count(self) > 0):
+			self.cursorIndex = -1
 			print "remove 'move' cursor here"
 		
 

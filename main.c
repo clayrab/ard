@@ -374,7 +374,7 @@ float translateTilesYToPositionY(int tilesY){
   return (float)tilesY*1.4;
   //(float)tilesYPosition*1.5;
 }
-void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long roadValue,char * cityName,long isSelected, long mapPolarity,long playerStartValue,PyObject * pyUnit, int isNextUnit){
+void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long roadValue,char * cityName,long isSelected, long mapPolarity,long playerStartValue,PyObject * pyUnit, int isNextUnit, long cursorIndex){
   float xPosition = translateTilesXToPositionX(tilesXIndex);
   float yPosition = translateTilesYToPositionY(tilesYIndex);
   if(abs(tilesYIndex)%2 == mapPolarity){
@@ -383,6 +383,9 @@ void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long 
   textureVertices = vertexArrays[tileValue];
   if(name == selectedName){
     glColor3f(0.8f, 0.8f, 0.8f);
+    if(name == selectedName && cursorIndex >= 0){
+	theCursorIndex = cursorIndex;
+      }
   }else{
     glColor3f(1.0f, 1.0f, 1.0f);
   }
@@ -578,15 +581,17 @@ void drawTiles(){
       PyObject * nodeValue = PyObject_CallMethod(node,"getValue",NULL);//New reference
       PyObject * roadValue = PyObject_GetAttrString(node,"roadValue");//New reference
       PyObject * pyCity = PyObject_GetAttrString(node,"city");//New reference
-      PyObject * pyCityName;
-      char * cityName = "";
+      PyObject * pyCursorIndex = PyObject_GetAttrString(node,"cursorIndex");//New reference
       PyObject * pyPlayerStartValue = PyObject_GetAttrString(node,"playerStartValue");//New reference                                 
       PyObject * pyUnit = PyObject_GetAttrString(node,"unit");
       PyObject * isSelected = PyObject_GetAttrString(node,"selected");//New reference
       long longName = PyLong_AsLong(nodeName);
       long longValue = PyLong_AsLong(nodeValue);
       long longRoadValue = PyLong_AsLong(roadValue);
+      long cursorIndex = PyLong_AsLong(pyCursorIndex);
       long longCityValue = 0;
+      PyObject * pyCityName;
+      char * cityName = "";
       if(pyCity != Py_None){
 	pyCityName = PyObject_GetAttrString(pyCity,"name");
 	cityName = PyString_AsString(pyCityName);
@@ -608,10 +613,11 @@ void drawTiles(){
       Py_DECREF(nodeValue);
       Py_DECREF(roadValue);
       Py_DECREF(pyCity);
+      Py_DECREF(pyCursorIndex);
       Py_DECREF(pyPlayerStartValue);
       Py_DECREF(isSelected);
       Py_DECREF(node);
-      drawTile(colNumber,rowNumber,longName,longValue,longRoadValue,cityName,longIsSelected,longPolarity,playerStartValue,pyUnit,isNextUnit);
+      drawTile(colNumber,rowNumber,longName,longValue,longRoadValue,cityName,longIsSelected,longPolarity,playerStartValue,pyUnit,isNextUnit,cursorIndex);
       Py_DECREF(pyUnit);
       colNumber = colNumber - 1;
     }
@@ -630,6 +636,7 @@ drawBoard(){
 }
 
 void drawTileSelect(double xPos, double yPos, int name, long tileType, long selected){
+  //THIS REALLY SHOULD HAVE BEEN DONE WITH uiElements...
   glLoadIdentity();
   glColor3f(1.0,1.0,1.0);
   glTranslatef(xPos,yPos,0.0);
@@ -763,7 +770,6 @@ void drawUI(){
   PyObject * uiElement;
   PyObject * subUIElement;
   PyObject * subSubUIElement;
-  theCursorIndex = -1;
   //TODO: make sure CallMethod does not create a new reference and fix these two calls if it does
   UIElementsIterator = PyObject_GetIter(PyObject_CallMethod(gameMode,"getUIElementsIterator",NULL));//New reference
   while (uiElement = PyIter_Next(UIElementsIterator)) {
@@ -1030,6 +1036,7 @@ void doScrolling(){
 }
 static void draw(){
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		
+    theCursorIndex = -1;
     
     //game board projection time
     glMatrixMode(GL_PROJECTION);
