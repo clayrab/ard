@@ -52,55 +52,61 @@
 #define UI_NEW_GAME_SCREEN_IMAGE_WIDTH 1280
 #define UI_NEW_GAME_SCREEN_INDEX 5
 
-
-#define CURSOR_POINTER_IMAGE "assets/cursors/pointer.png"
+#define CURSOR_POINTER_IMAGE "assets/cursors/gam372.png"
 #define CURSOR_POINTER_INDEX 6
-#define CURSOR_HAND_IMAGE "assets/cursors/hand.png"
-#define CURSOR_HAND_INDEX 7
+
+#define CURSOR_POINTER_ON_IMAGE "assets/cursors/gam375.png"
+#define CURSOR_POINTER_ON_INDEX 7
+
+#define CURSOR_MOVE_IMAGE "assets/cursors/gam378.png"
+#define CURSOR_MOVE_INDEX 8
+
+#define CURSOR_WIDTH 32
+#define CURSOR_HEIGHT 29
 
 #define PLAYER_START_BUTTON_IMAGE "assets/playerStartButton.png"
-#define PLAYER_START_BUTTON_INDEX 8
+#define PLAYER_START_BUTTON_INDEX 9
 #define PLAYER_START_BUTTON_WIDTH 13
 #define PLAYER_START_BUTTON_HEIGHT 14
 #define PLAYER_START_IMAGE "assets/playerStart.png"
-#define PLAYER_START_INDEX 9
+#define PLAYER_START_INDEX 10
 #define PLAYER_START_WIDTH 13
 #define PLAYER_START_HEIGHT 14
 
 #define UI_SCROLLABLE_IMAGE "assets/scrollableElement.png"
 #define UI_SCROLLABLE_IMAGE_HEIGHT 404
 #define UI_SCROLLABLE_IMAGE_WIDTH 210
-#define UI_SCROLLABLE_INDEX 10
+#define UI_SCROLLABLE_INDEX 11
 
 #define UI_SCROLL_PAD_IMAGE "assets/scrollPad.png"
 #define UI_SCROLL_PAD_IMAGE_HEIGHT 16
 #define UI_SCROLL_PAD_IMAGE_WIDTH 16
-#define UI_SCROLL_PAD_INDEX 11
+#define UI_SCROLL_PAD_INDEX 12
 
 #define UI_TEXT_INPUT_IMAGE "assets/textInput.png"
 #define UI_TEXT_INPUT_IMAGE_HEIGHT 20
 #define UI_TEXT_INPUT_IMAGE_WIDTH 200
-#define UI_TEXT_INPUT_INDEX 12
+#define UI_TEXT_INPUT_INDEX 13
 
 #define MEEPLE_IMAGE "assets/meeple.png"
 #define MEEPLE_IMAGE_HEIGHT 20
 #define MEEPLE_IMAGE_WIDTH 200
-#define MEEPLE_INDEX 13
+#define MEEPLE_INDEX 14
 
 #define HEALTH_BAR_IMAGE "assets/healthBar.png"
 #define HEALTH_BAR_IMAGE_HEIGHT 6
 #define HEALTH_BAR_IMAGE_WIDTH 52
-#define HEALTH_BAR_INDEX 14
+#define HEALTH_BAR_INDEX 15
 
 #define UNIT_BUILD_BAR_IMAGE "assets/unitBuildBar.png"
 #define UNIT_BUILD_BAR_IMAGE_HEIGHT 12
 #define UNIT_BUILD_BAR_IMAGE_WIDTH 180
-#define UNIT_BUILD_BAR_INDEX 15
+#define UNIT_BUILD_BAR_INDEX 16
 
 #define MAP_ICON_IMAGE "assets/mapIcon.png"
 #define MAP_ICON_HEIGHT 35
 #define MAP_ICON_WIDTH 56
-#define MAP_ICON_INDEX 16
+#define MAP_ICON_INDEX 17
 
 #define DESERT_TILE_INDEX 0
 #define GRASS_TILE_INDEX 1
@@ -787,8 +793,11 @@ void drawUI(){
   glBegin(GL_QUADS);
   float xPos = (mouseX/(SCREEN_WIDTH/2.0))-1.0;
   float yPos = 1.0-(mouseY/(SCREEN_HEIGHT/2.0));
-  float pointerWidth = 3.0*13.0/SCREEN_WIDTH;
-  float pointerHeight = 3.0*21.0/SCREEN_HEIGHT;
+  //  float pointerWidth = 3.0*13.0/SCREEN_WIDTH;
+  //  float pointerHeight = 3.0*21.0/SCREEN_HEIGHT;
+  float pointerWidth = 2.0*CURSOR_WIDTH/SCREEN_WIDTH;
+  float pointerHeight = 2.0*CURSOR_HEIGHT/SCREEN_HEIGHT;
+
   glTexCoord2f(0.0,1.0); glVertex3f(xPos,yPos,0.0);
   glTexCoord2f(1.0,1.0); glVertex3f(xPos+pointerWidth,yPos,0.0);
   glTexCoord2f(1.0,0.0); glVertex3f(xPos+pointerWidth,yPos-pointerHeight,0.0);
@@ -839,9 +848,9 @@ static void initGL (){
   pngLoad(&texturesArray[UI_MAP_EDITOR_LEFT_INDEX],UI_MAP_EDITOR_LEFT_IMAGE);
   pngLoad(&texturesArray[UI_MAP_EDITOR_RIGHT_INDEX],UI_MAP_EDITOR_RIGHT_IMAGE);
   pngLoad(&texturesArray[UI_NEW_GAME_SCREEN_INDEX],UI_NEW_GAME_SCREEN_IMAGE);
-
   pngLoad(&texturesArray[CURSOR_POINTER_INDEX],CURSOR_POINTER_IMAGE);
-  pngLoad(&texturesArray[CURSOR_HAND_INDEX],CURSOR_HAND_IMAGE);
+  pngLoad(&texturesArray[CURSOR_POINTER_ON_INDEX],CURSOR_POINTER_ON_IMAGE);
+  pngLoad(&texturesArray[CURSOR_MOVE_INDEX],CURSOR_MOVE_IMAGE);
   pngLoad(&texturesArray[PLAYER_START_BUTTON_INDEX],PLAYER_START_BUTTON_IMAGE);
   pngLoad(&texturesArray[UI_SCROLLABLE_INDEX],UI_SCROLLABLE_IMAGE);
   pngLoad(&texturesArray[UI_SCROLL_PAD_INDEX],UI_SCROLL_PAD_IMAGE);
