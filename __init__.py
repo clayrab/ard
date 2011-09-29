@@ -8,6 +8,7 @@
 import os
 import random
 import copy
+import time
 import gameState
 import nameGenerator
 import cDefines
@@ -55,6 +56,10 @@ class gameMode:
 	def handleKeyDown(self,keycode):
 		if(hasattr(self.elementWithFocus,"onKeyDown")):
 			self.elementWithFocus.onKeyDown(keycode)
+	def handleKeyUp(self,keycode):
+		if(hasattr(self.elementWithFocus,"onKeyUp")):
+			self.elementWithFocus.onKeyUp(keycode)
+		
 			
 class tiledGameMode(gameMode):
 	def __init__(self):
@@ -144,16 +149,16 @@ class playMode(tiledGameMode):
 		while(self.units[0].movementPoints > 0.0):
 			self.orderUnits()
 			for unit in self.units:
-				if(unit.node.roadValue == 1):
-					unit.movementPoints = unit.movementPoints - 2.0
-				elif(unit.node.tileValue == cDefines.defines['MOUNTAIN_TILE_INDEX']):
-					unit.movementPoints = unit.movementPoints - 0.1
+#				if(unit.node.roadValue == 1):
+#					unit.movementPoints = unit.movementPoints - 2.0
+				if(unit.node.tileValue == cDefines.defines['MOUNTAIN_TILE_INDEX']):
+					unit.movementPoints = unit.movementPoints - ((1.0+float(unit.node.roadValue))/cDefines.defines['MOUNTAIN_MOVE_COST'])
 				elif(unit.node.tileValue == cDefines.defines['WATER_TILE_INDEX'] and unit.canSwim == False):
-					unit.movementPoints = unit.movementPoints - 0.5
+					unit.movementPoints = unit.movementPoints - ((1.0+float(unit.node.roadValue))/cDefines.defines['WATER_MOVE_COST'])
 				elif(unit.node.tileValue == cDefines.defines['DESERT_TILE_INDEX']):
-					unit.movementPoints = unit.movementPoints - 0.5
+					unit.movementPoints = unit.movementPoints - ((1.0+float(unit.node.roadValue))/cDefines.defines['DESERT_MOVE_COST'])
 				else:
-					unit.movementPoints = unit.movementPoints - 1.0
+					unit.movementPoints = unit.movementPoints - ((1.0+float(unit.node.roadValue))/cDefines.defines['GRASS_MOVE_COST'])
 			for row in self.map.nodes:
 				for node in row:
 					if(node.city != None and node.city.unitBeingBuilt != None and node.unit != None and node.unit.unitType.name == "summoner"):
@@ -170,7 +175,9 @@ class playMode(tiledGameMode):
 		self.nextUnit = random.choice(eligibleUnits)
 		gameLogic.selectNode(self.nextUnit.node)
 		self.focusNextUnit = 1
-
+		if(len(self.nextUnit.movePath) > 0):
+			self.nextUnit.movePath = self.nextUnit.movePath[1:]
+			self.nextUnit.moveTo(self.nextUnit.movePath[0])
 	def loadSummoners(self):
 		rowCount = 0
 		columnCount = 0
@@ -184,20 +191,22 @@ class playMode(tiledGameMode):
 #					node.unit = gameLogic.unit(gameState.theUnitTypes["summoner"],node.playerStartValue,rowCount,columnCount,node)
 #					self.units.append(node.unit)
 	def handleKeyDown(self,keycode):
+		if(keycode == "space"):
+			self.nextUnit.moveTo(self.nextUnit.node)
+		elif(keycode == "n"):
+			self.focusNextUnit = 1
+			self.selectedNode.selected = False
+			self.selectedNode = self.nextUnit.node
+			self.nextUnit.node.selected = True
+		else:
+			if(hasattr(self.mousedOverObject,"onKeyDown")):
+				self.mousedOverObject.onKeyDown(keycode)
+			elif(hasattr(self.elementWithFocus,"onKeyDown")):
+				self.elementWithFocus.onKeyDown(keycode)
 
-
-
-
-		try:
-			self.elementWithFocus.onKeyDown(keycode)
-		except:
-			if(keycode == "space"):
-				self.nextUnit.moveTo(self.nextUnit.node)
-			elif(keycode == "n"):
-				self.focusNextUnit = 1
-				self.selectedNode.selected = False
-				self.selectedNode = self.nextUnit.node
-				self.nextUnit.node.selected = True
+	def handleKeyUp(self,keycode):
+		if(hasattr(self.mousedOverObject,"onKeyUp")):
+			self.mousedOverObject.onKeyUp(keycode)
 
 	def addUIElements(self):
 		uiElements.uiElement(xPos=-1.0,yPos=1.0,width=2.0,height=(2.0*cDefines.defines['UI_MAP_EDITOR_TOP_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),textureIndex=cDefines.defines['UI_MAP_EDITOR_TOP_INDEX'])

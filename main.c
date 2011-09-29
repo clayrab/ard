@@ -108,6 +108,11 @@
 #define MAP_ICON_WIDTH 56
 #define MAP_ICON_INDEX 17
 
+#define WALK_ICON_IMAGE "assets/walkIcon.png"
+#define WALK_ICON_HEIGHT 36
+#define WALK_ICON_WIDTH 36
+#define WALK_ICON_INDEX 18
+
 #define DESERT_TILE_INDEX 0
 #define GRASS_TILE_INDEX 1
 #define MOUNTAIN_TILE_INDEX 2
@@ -116,6 +121,13 @@
 #define ROAD_TILE_INDEX 5
 #define CITY_TILE_INDEX 6
 #define PLAYER_START_TILE_INDEX 7//REMOVE THIS
+
+#define DESERT_MOVE_COST 2.0
+#define GRASS_MOVE_COST 1.0
+#define MOUNTAIN_MOVE_COST 10.0
+#define FOREST_MOVE_COST 1.0
+#define WATER_MOVE_COST 10.0
+//ROADS HALF THE COST OF ALL MOVEMENT
 
 #define SIN60 0.8660
 #define COS60 0.5
@@ -380,7 +392,7 @@ float translateTilesYToPositionY(int tilesY){
   return (float)tilesY*1.4;
   //(float)tilesYPosition*1.5;
 }
-void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long roadValue,char * cityName,long isSelected, long mapPolarity,long playerStartValue,PyObject * pyUnit, int isNextUnit, long cursorIndex){
+void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long roadValue,char * cityName,long isSelected, long isOnMovePath, long mapPolarity,long playerStartValue,PyObject * pyUnit, int isNextUnit, long cursorIndex){
   float xPosition = translateTilesXToPositionX(tilesXIndex);
   float yPosition = translateTilesYToPositionY(tilesYIndex);
   if(abs(tilesYIndex)%2 == mapPolarity){
@@ -389,22 +401,22 @@ void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long 
   textureVertices = vertexArrays[tileValue];
   if(name == selectedName){
     glColor3f(0.8f, 0.8f, 0.8f);
-    if(name == selectedName && cursorIndex >= 0){
-	theCursorIndex = cursorIndex;
-      }
+    if(cursorIndex >= 0){
+      theCursorIndex = (int)cursorIndex;
+    }
   }else{
     glColor3f(1.0f, 1.0f, 1.0f);
   }
   if(isSelected == 1){
     glColor3f(0.5f, 0.5f, 0.5f);    
+  }
+  if(isNextUnit == 1){
+    glColor3f(0.7f, 0.7f, 0.7f);    
     if(focusNextUnit){
       translateX = -xPosition;
       translateY = -yPosition;
       focusNextUnit = 0;
     }
-  }
-  if(isNextUnit == 1){
-    glColor3f(0.7f, 0.7f, 0.7f);    
   }
   if(isSelected == 1 && isNextUnit == 1){
     glColor3f(0.3f, 0.3f, 0.3f);    
@@ -530,7 +542,21 @@ void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long 
       Py_DECREF(pyName);
       Py_DECREF(pyHealth);
       Py_DECREF(pyMaxHealth);
-    }
+  }
+  if(isOnMovePath){
+    glBindTexture(GL_TEXTURE_2D, texturesArray[WALK_ICON_INDEX]);
+    //    glPushMatrix();
+    glColor3f(1.0f, 0.0f, 0.0f);
+    glBegin(GL_QUADS);
+    glTexCoord2f(0.0,0.0); glVertex3f(xPosition+0.5,yPosition-0.5,0.0);
+    glTexCoord2f(1.0,0.0); glVertex3f(xPosition-0.5,yPosition-0.5,0.0);
+    glTexCoord2f(1.0,1.0); glVertex3f(xPosition-0.5,yPosition+0.5,0.0);
+    glTexCoord2f(0.0,1.0); glVertex3f(xPosition+0.5,yPosition+0.5,0.0);
+    glEnd();
+    //    glPopMatrix();
+    glBindTexture(GL_TEXTURE_2D, tilesTexture);
+
+  }
   
 }
 void drawTilesText(){
@@ -590,7 +616,8 @@ void drawTiles(){
       PyObject * pyCursorIndex = PyObject_GetAttrString(node,"cursorIndex");//New reference
       PyObject * pyPlayerStartValue = PyObject_GetAttrString(node,"playerStartValue");//New reference                                 
       PyObject * pyUnit = PyObject_GetAttrString(node,"unit");
-      PyObject * isSelected = PyObject_GetAttrString(node,"selected");//New reference
+      PyObject * pyIsSelected = PyObject_GetAttrString(node,"selected");//New reference
+      PyObject * pyIsOnMovePath = PyObject_GetAttrString(node,"onMovePath");//New reference
       long longName = PyLong_AsLong(nodeName);
       long longValue = PyLong_AsLong(nodeValue);
       long longRoadValue = PyLong_AsLong(roadValue);
@@ -613,7 +640,8 @@ void drawTiles(){
 	}
       }
       long playerStartValue = PyLong_AsLong(pyPlayerStartValue);
-      long longIsSelected = PyLong_AsLong(isSelected);
+      long isSelected = PyLong_AsLong(pyIsSelected);
+      long isOnMovePath = PyLong_AsLong(pyIsOnMovePath);
 
       Py_DECREF(nodeName);
       Py_DECREF(nodeValue);
@@ -621,9 +649,9 @@ void drawTiles(){
       Py_DECREF(pyCity);
       Py_DECREF(pyCursorIndex);
       Py_DECREF(pyPlayerStartValue);
-      Py_DECREF(isSelected);
+      Py_DECREF(pyIsSelected);
       Py_DECREF(node);
-      drawTile(colNumber,rowNumber,longName,longValue,longRoadValue,cityName,longIsSelected,longPolarity,playerStartValue,pyUnit,isNextUnit,cursorIndex);
+      drawTile(colNumber,rowNumber,longName,longValue,longRoadValue,cityName,isSelected,isOnMovePath,longPolarity,playerStartValue,pyUnit,isNextUnit,cursorIndex);
       Py_DECREF(pyUnit);
       colNumber = colNumber - 1;
     }
@@ -859,6 +887,7 @@ static void initGL (){
   pngLoad(&texturesArray[HEALTH_BAR_INDEX],HEALTH_BAR_IMAGE);
   pngLoad(&texturesArray[UNIT_BUILD_BAR_INDEX],UNIT_BUILD_BAR_IMAGE);
   pngLoad(&texturesArray[MAP_ICON_INDEX],MAP_ICON_IMAGE);
+  pngLoad(&texturesArray[WALK_ICON_INDEX],WALK_ICON_IMAGE);
 
   vertexArrays[DESERT_TILE_INDEX] = *desertVertices;
   vertexArrays[GRASS_TILE_INDEX] = *grassVertices;
@@ -973,6 +1002,8 @@ static void handleInput(){
 	       || event.key.keysym.sym == 32//space
 	       || event.key.keysym.sym == 45//-
 	       || event.key.keysym.sym == 13//enter/return
+	       || event.key.keysym.sym == 303//rightshift
+	       || event.key.keysym.sym == 304//leftshift
 	       || (event.key.keysym.sym >= 273 && event.key.keysym.sym <= 276)//arrow keys
 	       ){
 
@@ -992,6 +1023,10 @@ static void handleInput(){
     case SDL_KEYUP:
       if(event.key.keysym.sym == SDLK_BACKQUOTE){
 	clickScroll = 0;
+      }else if(event.key.keysym.sym == 303//rightshift
+	       || event.key.keysym.sym == 304//leftshift
+	       ){
+	       PyObject_CallMethod(gameMode,"handleKeyUp","s",SDL_GetKeyName(event.key.keysym.sym));
       }
       break;
     case SDL_QUIT:
@@ -1044,90 +1079,92 @@ void doScrolling(){
 
 }
 static void draw(){
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		
-    theCursorIndex = -1;
+  PyObject_CallMethod(gameMode,"onDraw",NULL);//New reference
+
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		
+  theCursorIndex = -1;
     
-    //game board projection time
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    doScrolling();
-    gluPerspective(45.0f,screenRatio,minZoom,maxZoom+1.0);
-    //draw the game board
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    mouseMapPosXPrevious = mouseMapPosX;
-    mouseMapPosYPrevious = mouseMapPosY;
+  //game board projection time
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();
+  doScrolling();
+  gluPerspective(45.0f,screenRatio,minZoom,maxZoom+1.0);
+  //draw the game board
+  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity();
+  mouseMapPosXPrevious = mouseMapPosX;
+  mouseMapPosYPrevious = mouseMapPosY;
+  
+  convertWinCoordsToMapCoords(mouseX,mouseY,&mouseMapPosX,&mouseMapPosY,&mouseMapPosZ);
+  //glTranslatef(mouseMapPosX,mouseMapPosY,translateZ);//for some reason we need mouseMapPosZ instead of translateZ
+  glTranslatef(translateX,translateY,mouseMapPosZ);
 
-    convertWinCoordsToMapCoords(mouseX,mouseY,&mouseMapPosX,&mouseMapPosY,&mouseMapPosZ);
-    //glTranslatef(mouseMapPosX,mouseMapPosY,translateZ);//for some reason we need mouseMapPosZ instead of translateZ
-    glTranslatef(translateX,translateY,mouseMapPosZ);
+  GLint viewport[4];
+  glSelectBuffer(BUFSIZE,selectBuf);
+  glRenderMode(GL_SELECT);
 
-    GLint viewport[4];
-    glSelectBuffer(BUFSIZE,selectBuf);
-    glRenderMode(GL_SELECT);
+  glMatrixMode(GL_PROJECTION);
+  glPushMatrix();
+  glLoadIdentity();
+  //glViewport(0.0,0.0,SCREEN_WIDTH, SCREEN_HEIGHT);
+  glViewport(UI_MAP_EDITOR_LEFT_IMAGE_WIDTH,UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT,SCREEN_WIDTH - UI_MAP_EDITOR_LEFT_IMAGE_WIDTH - UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH, SCREEN_HEIGHT - UI_MAP_EDITOR_TOP_IMAGE_HEIGHT - UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT);
+  glGetIntegerv(GL_VIEWPORT,viewport);
+  gluPickMatrix(mouseX,viewport[3]+UI_MAP_EDITOR_TOP_IMAGE_HEIGHT+UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT-mouseY,5,5,viewport);
+  gluPerspective(45.0f,screenRatio,minZoom,maxZoom+1.0);
+  
+  glMatrixMode(GL_MODELVIEW);
+  glPushMatrix();
 
-    glMatrixMode(GL_PROJECTION);
-    glPushMatrix();
-    glLoadIdentity();
-    //glViewport(0.0,0.0,SCREEN_WIDTH, SCREEN_HEIGHT);
-    glViewport(UI_MAP_EDITOR_LEFT_IMAGE_WIDTH,UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT,SCREEN_WIDTH - UI_MAP_EDITOR_LEFT_IMAGE_WIDTH - UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH, SCREEN_HEIGHT - UI_MAP_EDITOR_TOP_IMAGE_HEIGHT - UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT);
-    glGetIntegerv(GL_VIEWPORT,viewport);
-    gluPickMatrix(mouseX,viewport[3]+UI_MAP_EDITOR_TOP_IMAGE_HEIGHT+UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT-mouseY,5,5,viewport);
-    gluPerspective(45.0f,screenRatio,minZoom,maxZoom+1.0);
+  drawBoard();
 
-    glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
+  glMatrixMode(GL_PROJECTION);
+  glPushMatrix();
+  glLoadIdentity();
+  glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+  glGetIntegerv(GL_VIEWPORT,viewport);
+  gluPickMatrix(mouseX,viewport[3]-mouseY,5,5,viewport);
+  
+  glMatrixMode(GL_MODELVIEW);
+  glPushMatrix();
+  glLoadIdentity();
 
-    drawBoard();
+  drawUI();
 
-    glMatrixMode(GL_PROJECTION);
-    glPushMatrix();
-    glLoadIdentity();
-    glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-    glGetIntegerv(GL_VIEWPORT,viewport);
-    gluPickMatrix(mouseX,viewport[3]-mouseY,5,5,viewport);
+  processTheHits(glRenderMode(GL_RENDER),selectBuf);
 
-    glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
-    glLoadIdentity();
+  glMatrixMode(GL_PROJECTION);
+  glPopMatrix();
+  glPopMatrix();
+  glMatrixMode(GL_MODELVIEW);
+  glPopMatrix();
+  glPopMatrix();
 
-    drawUI();
-
-    processTheHits(glRenderMode(GL_RENDER),selectBuf);
-
-    glMatrixMode(GL_PROJECTION);
-    glPopMatrix();
-    glPopMatrix();
-    glMatrixMode(GL_MODELVIEW);
-    glPopMatrix();
-    glPopMatrix();
-
-    glFlush();
+  glFlush();
     
-    //returning to normal rendering mode and get the hits
+  //returning to normal rendering mode and get the hits
 
-    glViewport(UI_MAP_EDITOR_LEFT_IMAGE_WIDTH,UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT,SCREEN_WIDTH - UI_MAP_EDITOR_LEFT_IMAGE_WIDTH - UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH, SCREEN_HEIGHT - UI_MAP_EDITOR_TOP_IMAGE_HEIGHT - UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT);
+  glViewport(UI_MAP_EDITOR_LEFT_IMAGE_WIDTH,UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT,SCREEN_WIDTH - UI_MAP_EDITOR_LEFT_IMAGE_WIDTH - UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH, SCREEN_HEIGHT - UI_MAP_EDITOR_TOP_IMAGE_HEIGHT - UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT);
 
-    drawBoard();  
+  drawBoard();  
     
-    glMatrixMode(GL_PROJECTION);
-    glPushMatrix();
-    glLoadIdentity();
+  glMatrixMode(GL_PROJECTION);
+  glPushMatrix();
+  glLoadIdentity();
+  
+  glMatrixMode(GL_MODELVIEW);
+  glPushMatrix();
+  glLoadIdentity();
+  
+  glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);    
+  drawUI();
+  
+  glMatrixMode(GL_PROJECTION);
+  glPopMatrix();
+  glMatrixMode(GL_MODELVIEW);
+  glPopMatrix();
 
-    glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
-    glLoadIdentity();
-
-    glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);    
-    drawUI();
-    
-    glMatrixMode(GL_PROJECTION);
-    glPopMatrix();
-    glMatrixMode(GL_MODELVIEW);
-    glPopMatrix();
-
-    glFlush();
-    SDL_GL_SwapBuffers ();	
+  glFlush();
+  SDL_GL_SwapBuffers ();	
   
 }
 static void mainLoop (){

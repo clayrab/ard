@@ -18,7 +18,6 @@ class unitType:
 		self.canSwim = canSwim
 		self.cost = defaultCost
 		self.buildTime = defaultBuildTime
-
 class unit:
 	def __init__(self,unitType,player,xPos,yPos,node):
 		self.unitType = unitType
@@ -30,6 +29,7 @@ class unit:
 		self.attackPoints = 0.0
 		self.buildPoints = self.unitType.buildTime
 		self.health = self.unitType.health
+		self.movePath = []
 	def moveTo(self,node):
 		self.node.unit = None
 		self.node = node
@@ -70,8 +70,8 @@ class node:
 		self.cursorIndex = -1
 #		self.cursorIndex = cDefines.defines['CURSOR_POINTER_ON_INDEX']
 		gameState.getGameMode().elementsDict[self.name] = self
-		self.unit = None
 		self.neighbors = []
+		self.unit = None
 	def getValue(self):
 		return self.tileValue
 	def addUnit(self,unit):
@@ -83,6 +83,20 @@ class node:
 			(random.choice(self.neighbors)).addUnit(unit)
 
 class playModeNode(node):
+	shiftDown = False
+	isNeighbor = False
+	moveMode = False
+	openNodes = []
+	closedNodes = []
+	movePath = []
+	def __init__(self,xPos,yPos,tileValue=cDefines.defines['GRASS_TILE_INDEX'],roadValue=0,city=None,playerStartValue=0):
+		node.__init__(self,xPos,yPos,tileValue=tileValue,roadValue=roadValue,city=city,playerStartValue=playerStartValue)
+		self.closed = False
+		self.open = False
+		self.aStarKnownCost = 0
+		self.aStarHeuristicCost = 0
+		self.aStarParent = None
+		self.onMovePath = False
 	def onLeftClickDown(self):
 		if(gameState.getGameMode().nextUnit.node.neighbors.count(self) > 0):#move unit
 			if(self.unit != None):
@@ -90,16 +104,135 @@ class playModeNode(node):
 			else:
 				gameState.getGameMode().nextUnit.moveTo(self)
 		else:#select node
-			selectNode(self)
+			if(playModeNode.moveMode):
+				gameState.getGameMode().nextUnit.movePath = gameState.getGameMode().nextUnit.node.movePath[1:]
+				gameState.getGameMode().nextUnit.moveTo(gameState.getGameMode().nextUnit.node.movePath[0])
+			else:
+				selectNode(self)
+	def toggleCursor(self):
+		for node in playModeNode.movePath:
+			node.onMovePath = False
+		playModeNode.movePath = []
+		if((gameState.getGameMode().nextUnit.node == self) or (playModeNode.isNeighbor and playModeNode.shiftDown) or ((not playModeNode.isNeighbor) and (not playModeNode.shiftDown))):
+			self.cursorIndex = -1
+			playModeNode.moveMode = False
+		else:
+			self.cursorIndex = cDefines.defines['CURSOR_MOVE_INDEX']
+			playModeNode.moveMode = True
+			self.aStarSearch()
+	def aStarSearch(self):
+		#start at end point so we can just track back and insert into an array in order
+		self.findAStarHeuristicCost(gameState.getGameMode().nextUnit.node)
+		playModeNode.openNodes.append(self)
+		playModeNode.aStarSearchRecurse(gameState.getGameMode().nextUnit.node)
+		nextNode = gameState.getGameMode().nextUnit.node.aStarParent
+		while nextNode != None:
+			playModeNode.movePath.append(nextNode)
+			nextNode.onMovePath = True
+			nextNode = nextNode.aStarParent
+		for node in playModeNode.openNodes:
+			node.closed = False
+			node.open = False
+			node.aStarKnownCost = 0
+			node.aStarHeuristicCost = 0
+			node.aStarParent = None
+		for node in playModeNode.closedNodes:
+			node.closed = False
+			node.open = False
+			node.aStarKnownCost = 0
+			node.aStarHeuristicCost = 0
+			node.aStarParent = None
+		playModeNode.openNodes = []
+		playModeNode.closedNodes = []
+	def findAStarHeuristicCost(self,target):
+		#This is just a heuristic that guesses the cost to the target by assuming everything is grass
+		#I might want to change this to assume that everything is mountain... or somewhere in between... gotta think about it.
+		#'even row' means map polarity = 0 and row # is even OR map polarity = 0 and row # is odd...
+		#polarity 0 means 'even' rows are to the left
+		#polarity 1 means 'even' rows are to the right
+		#if moving from even to odd row left gives you free x at 1,3,5...
+		#if moving from even to odd row right gives you free x at 3,5,7...
+		#if moving from odd to even row right gives you free x at 1,3,5...
+		#if moving from odd to even row left gives you free x at 3,5,7...
+		heuristicCost = abs(self.xPos - target.xPos)
+		if(abs(self.yPos-target.yPos)%2 == 1):#one row is even, other is odd...
+			if(self.yPos%2 == gameState.getGameMode().map.polarity):#self is even...
+				if(self.xPos > target.xPos):
+					heuristicCost = heuristicCost - (abs(self.yPos-target.yPos)+1)/2
+				else:
+					heuristicCost = heuristicCost - (abs(self.yPos-target.yPos)-1)/2
+			else:#self is odd
+				if(self.xPos > target.xPos):
+					heuristicCost = heuristicCost - (abs(self.yPos-target.yPos)-1)/2
+				else:
+					heuristicCost = heuristicCost - (abs(self.yPos-target.yPos)+1)/2
+		else:
+			heuristicCost = heuristicCost - abs(self.yPos-target.yPos)/2
+		if(heuristicCost < 0):
+			heuristicCost = 0
+		heuristicCost = heuristicCost + abs(self.yPos - target.yPos)
+		#print "heuristicCost final: " + str(heuristicCost)
+		node.aStarHeuristicCost = heuristicCost
+	@staticmethod
+	def aStarSearchRecurse(target):
+		node = None
+		for openNode in playModeNode.openNodes:
+			if(not openNode.closed):
+				if(node == None):
+					node = openNode
+				if(openNode.aStarKnownCost + openNode.aStarHeuristicCost < node.aStarKnownCost + node.aStarHeuristicCost):
+					node = openNode
+		if(node == target):
+			return
+		node.closed = True
+		playModeNode.closedNodes.append(node)
+		for neighbor in node.neighbors:
+			if(not neighbor.closed):
+				if(not neighbor.open):
+					playModeNode.openNodes.append(neighbor)
+					neighbor.open = True
+					neighbor.aStarParent = node
+					neighbor.findAStarHeuristicCost(target)
+					if(neighbor.tileValue == cDefines.defines['MOUNTAIN_TILE_INDEX']):
+						neighbor.aStarKnownCost = node.aStarKnownCost + (cDefines.defines['MOUNTAIN_MOVE_COST']/(1.0+float(neighbor.roadValue)))
+					elif(neighbor.tileValue == cDefines.defines['WATER_TILE_INDEX'] and target.unit.unitType.canSwim == False):
+						neighbor.aStarKnownCost = node.aStarKnownCost + (cDefines.defines['WATER_MOVE_COST']/(1.0+float(neighbor.roadValue)))
+					elif(neighbor.tileValue == cDefines.defines['DESERT_TILE_INDEX']):
+						neighbor.aStarKnownCost = node.aStarKnownCost + (cDefines.defines['DESERT_MOVE_COST']/(1.0+float(neighbor.roadValue)))
+					else:
+						neighbor.aStarKnownCost = node.aStarKnownCost + (cDefines.defines['GRASS_MOVE_COST']/(1.0+float(neighbor.roadValue)))
+				else:
+					if(neighbor.tileValue == cDefines.defines['MOUNTAIN_TILE_INDEX']):
+						if(neighbor.aStarKnownCost > node.aStarKnownCost + (cDefines.defines['MOUNTAIN_MOVE_COST']/(1.0+float(neighbor.roadValue)))):
+							   neighbor.aStarKnownCost = node.aStarKnownCost + (cDefines.defines['MOUNTAIN_MOVE_COST']/(1.0+float(neighbor.roadValue)))
+					elif(neighbor.tileValue == cDefines.defines['WATER_TILE_INDEX'] and target.unit.unitType.canSwim == False):
+						if(neighbor.aStarKnownCost > node.aStarKnownCost + (cDefines.defines['WATER_MOVE_COST']/(1.0+float(neighbor.roadValue)))):
+							   neighbor.aStarKnownCost = node.aStarKnownCost + (cDefines.defines['WATER_MOVE_COST']/(1.0+float(neighbor.roadValue)))
+					elif(neighbor.tileValue == cDefines.defines['DESERT_TILE_INDEX']):
+						if(neighbor.aStarKnownCost > node.aStarKnownCost + (cDefines.defines['DESERT_MOVE_COST']/(1.0+float(neighbor.roadValue)))):
+							   neighbor.aStarKnownCost = node.aStarKnownCost + (cDefines.defines['DESERT_MOVE_COST']/(1.0+float(neighbor.roadValue)))
+					else:
+						if(neighbor.aStarKnownCost > node.aStarKnownCost + (cDefines.defines['GRASS_MOVE_COST']/(1.0+float(neighbor.roadValue)))):
+							   neighbor.aStarKnownCost = node.aStarKnownCost + (cDefines.defines['GRASS_MOVE_COST']/(1.0+float(neighbor.roadValue)))
+		playModeNode.aStarSearchRecurse(target)		
+
 	def onMouseOver(self):
 		if(gameState.getGameMode().nextUnit.node.neighbors.count(self) > 0):
-			self.cursorIndex = cDefines.defines['CURSOR_MOVE_INDEX']
-			print "display 'move' cursor here"
-	def onMouseOut(self):
-		if(gameState.getGameMode().nextUnit.node.neighbors.count(self) > 0):
-			self.cursorIndex = -1
-			print "remove 'move' cursor here"
-		
+			playModeNode.isNeighbor = True
+		else:
+			playModeNode.isNeighbor = False
+		self.toggleCursor()
+#	def onMouseOut(self):
+#		if(gameState.getGameMode().nextUnit.node.neighbors.count(self) > 0):
+#			playModeNode.isNeighbor = False
+	def onKeyDown(self,keycode):
+		if(keycode == "left shift" or keycode == "right shift"):
+			playModeNode.shiftDown = True
+		self.toggleCursor()
+	def onKeyUp(self,keycode):
+		if(keycode == "left shift" or keycode == "right shift"):
+			playModeNode.shiftDown = False
+		self.toggleCursor()
 
 class mapEditorNode(node):
 	def onLeftClickUp(self):
@@ -263,5 +396,6 @@ def selectNode(node):
 		uiElements.cityViewer.theCityViewer = uiElements.cityViewer(node)
 	if(node.unit != None):
 		uiElements.unitViewer.theUnitViewer = uiElements.unitViewer(node)
+	node.toggleCursor()
 
 
