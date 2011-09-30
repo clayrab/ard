@@ -1,6 +1,6 @@
-#add move cursor and make shift alter move/select mode
-#unit viewer in playMode
 #fog of war
+#attacking
+#unit viewer in playMode
 #multiplayer/networking
 #AI
 #campaign

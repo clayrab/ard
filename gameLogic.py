@@ -146,6 +146,7 @@ class playModeNode(node):
 		playModeNode.closedNodes = []
 	def findAStarHeuristicCost(self,target):
 		#This is just a heuristic that guesses the cost to the target by assuming everything is grass
+		#current 'heuristic' is just the distance assuming everything is grass
 		#I might want to change this to assume that everything is mountain... or somewhere in between... gotta think about it.
 		#'even row' means map polarity = 0 and row # is even OR map polarity = 0 and row # is odd...
 		#polarity 0 means 'even' rows are to the left
