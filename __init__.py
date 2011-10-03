@@ -1,7 +1,11 @@
+#server:
+#room for finding games
+#room for each game
+#way to save and resume games
+#icons for each unit
 #fog of war
 #attacking
 #unit viewer in playMode
-#multiplayer/networking
 #AI
 #campaign
 

@@ -23,12 +23,10 @@ TODO: add more documentation!
         self._shutdown = 0
         self._events = Queue()
 
-
     def shout(self, msg):
         """Shout out a message to all listeners."""
         self._message_queue.put(msg)
         self._events.put("message added")
-        
 
     def addListener(self, listener):
         """Adds a callable 'listener' to our list of active listeners."""
@@ -38,7 +36,6 @@ TODO: add more documentation!
         finally:
             self._listeners_lock.release()
 
-
     def removeListener(self, listener):
         """Removes a callable 'listener' from our list of active listeners."""
         self._listeners_lock.acquire()
@@ -46,7 +43,6 @@ TODO: add more documentation!
             self._listeners.remove(listener)
         finally:
             self._listeners_lock.release()
-
 
     def run(self):
         """Runs forever, listening to both shutdown and message shouting."""
@@ -57,16 +53,13 @@ TODO: add more documentation!
             if self._message_queue.qsize():
                 self._broadcastNewMessage()
 
-
     def shutdown(self):
         """Shutdown the chatroom."""
         self._shutdown = 1
         self._events.put("shutdown requested")
 
-
     def _waitForShutdownOrNewMessages(self):
         return self._events.get()
-
 
     def _broadcastNewMessage(self):
         try:
@@ -81,7 +74,6 @@ TODO: add more documentation!
         for listener in listeners_copy:
             self._tryToSendMessageToListener(msg, listener)
 
-
     def _tryToSendMessageToListener(self, msg, listener):
         try:
             ## Fixme: we should somehow a timeout here.  If a message
@@ -93,8 +85,6 @@ TODO: add more documentation!
             listener(msg)
         except:
             self.removeListener(listener)
-
-
 
 ######################################################################
 ## TODO: I may want to move this off to a different module...
