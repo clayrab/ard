@@ -1001,6 +1001,7 @@ static void handleInput(){
 	       || event.key.keysym.sym == 8//backspace
 	       || event.key.keysym.sym == 32//space
 	       || event.key.keysym.sym == 45//-
+	       || event.key.keysym.sym == 46//.
 	       || event.key.keysym.sym == 13//enter/return
 	       || event.key.keysym.sym == 303//rightshift
 	       || event.key.keysym.sym == 304//leftshift

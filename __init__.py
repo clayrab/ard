@@ -18,6 +18,9 @@ import nameGenerator
 import cDefines
 import gameLogic
 import uiElements
+import server
+
+
 
 zoomSpeed = 0.3
 class gameMode:
@@ -312,9 +315,23 @@ class textBasedMenuMode(gameMode):
 class newGameScreenMode(textBasedMenuMode):
 	def addUIElements(self):
 		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])
-		uiElements.newGameScreenButton(-0.16,0.2,quickPlayMapSelectMode,text="quick play")
-		uiElements.newGameScreenButton(-0.165,0.1,mapEditorSelectMode,text="map editor")
+		uiElements.menuButton(-0.16,0.2,quickPlayMapSelectMode,text="quick play")
+		uiElements.menuButton(-0.155,0.1,comingSoonMode,text="campaign")
+		uiElements.menuButton(-0.168,0.0,multiplayerGameScreenMode,text="multiplayer")
+		uiElements.menuButton(-0.165,-0.1,mapEditorSelectMode,text="map editor")
 
+class multiplayerGameScreenMode(textBasedMenuMode):
+	def addUIElements(self):
+		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])
+		uiElements.menuButton(-0.15,0.2,hostLANGameScreenMode,text="host lan game")
+		uiElements.menuButton(-0.15,0.1,joinLANGameScreenMode,text="join lan game")
+		uiElements.menuButton(-0.15,0.0,comingSoonMode,text="online")
+
+class comingSoonMode(textBasedMenuMode):
+	def addUIElements(self):
+		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])
+		uiElements.menuButton(-0.45,0.0,newGameScreenMode,text="campaign mode coming soon!")
+		
 class quickPlayMapSelectMode(textBasedMenuMode):
 	def addUIElements(self):
 		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])
@@ -343,5 +360,39 @@ class newMapMode(gameMode):
 		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])
 		uiElements.uiElement(-0.15,0.2,text="map name")
 		self.elementWithFocus = uiElements.newMapNameInputElement(-0.15,0.15,mapEditorMode,width=(2.0*cDefines.defines['UI_TEXT_INPUT_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_TEXT_INPUT_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),text="",textSize=0.0005,textColor='00 00 00',textureIndex=cDefines.defines['UI_TEXT_INPUT_INDEX'],textYPos=-0.035,textXPos=0.01)
+
+class joinLANGameScreenMode(gameMode):
+	def __init__(self):
+		gameMode.__init__(self)
+	def addUIElements(self):
+		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])
+		uiElements.uiElement(-0.15,0.2,text="Host IP Address")
+		self.elementWithFocus = uiElements.hostIPInputElement(-0.15,0.15,joiningLANGameScreenMode,width=(2.0*cDefines.defines['UI_TEXT_INPUT_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_TEXT_INPUT_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),textSize=0.0005,textColor='00 00 00',textureIndex=cDefines.defines['UI_TEXT_INPUT_INDEX'],textYPos=-0.035,textXPos=0.01)
+
+class joiningLANGameScreenMode(gameMode):
+	def __init__(self):
+		gameMode.__init__(self)
+	def addUIElements(self):
+		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])
+		uiElements.uiElement(-0.15,0.2,text="joining...")
+		#uiElements.menuButton(-0.45,0.0,newGameScreenMode,text="back")
+
+class hostLANGameScreenMode(gameMode):
+	def __init__(self):
+		gameMode.__init__(self)
+		server.startServer(('192.168.1.5', 8080))
+		print 'server started...'
+	def onDraw(self):
+		height = 0.7
+		players = gameState.getPlayers()
+		for player in players:
+			uiElements.uiElement(-0.85,height,text="player " + str(player.playerNumber))
+			height = height - 0.1
+	def addUIElements(self):
+		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])
+		uiElements.uiElement(-0.15,0.9,text="lan game")
+		uiElements.uiElement(-0.85,0.8,text="players")
+		uiElements.uiElement(-0.85,-0.1,text="map")
+		uiElements.menuButton(0.65,-0.8,playMode,text="start")
 
 gameState.setGameMode(newGameScreenMode)

@@ -5,6 +5,7 @@ import gameLogic
 import nameGenerator
 import cDefines
 import shutil
+import client
 
 cityCosts = ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20"]
 unitCosts = ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20"]
@@ -146,6 +147,21 @@ class newMapNameInputElement(textInputElement):
 				gameState.setGameMode(self.gameMode)
 		else:
 			textInputElement.onKeyDown(self,keycode)
+
+class hostIPInputElement(textInputElement):
+	def __init__(self,xPos,yPos,gameMode,width=0.0,height=0.0,text="192.168.1.5",textSize=0.001,textureIndex=-1,textColor='FF FF FF',textXPos=0.0,textYPos=0.0):
+		textInputElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textSize=textSize,textColor=textColor,textXPos=textXPos,textYPos=textYPos)
+		self.gameMode = gameMode
+	def onKeyDown(self,keycode):
+		if(keycode == "return"):
+			if(len(self.text) > 0):
+				gameState.setGameMode(self.gameMode)
+				gameState.setHostIP(self.text)
+				client.startClient(self.text)
+		else:
+			textInputElement.onKeyDown(self,keycode)
+
+
 
 class cityViewer(uiElement):
 	theCityViewer = None
@@ -497,22 +513,21 @@ class menuButton(clickableElement):
 	selectedIndex = 0
 	selectedTextColor = "55 55 55"
 	normalTextColor = "33 33 33"
+	gameMode = None
 	def __init__(self,xPos,yPos,gameMode,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",selected=False):
 		clickableElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=menuButton.normalTextColor,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],mouseOverColor="66 66 66")
-		if(len(menuButton.buttonsList) > 0):
-			if(menuButton.buttonsList[0].__class__ != self.__class__):
-				menuButton.index = 0
-				menuButton.buttonsList = []
-				menuButton.selectedIndex = 0
+		if(menuButton.gameMode != gameState.getGameMode()):
+			menuButton.index = 0
+			menuButton.buttonsList = []
+			menuButton.selectedIndex = 0
 		self.gameMode = gameMode
 		self.selected = selected
 		self.index = menuButton.index
+		menuButton.gameMode = gameState.getGameMode()
 		menuButton.buttonsList.append(self)
 		menuButton.index = menuButton.index + 1
 		if(self.index == menuButton.selectedIndex):
 			self.textColor = menuButton.selectedTextColor
-
-class newGameScreenButton(menuButton):
 	def onClick(self):
 		gameState.setGameMode(self.gameMode)
 
