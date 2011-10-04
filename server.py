@@ -11,6 +11,7 @@ class RequestHandler(SocketServer.StreamRequestHandler):
             else:
                 print line
     def setup(self):
+        print 'setup'
         SocketServer.StreamRequestHandler.setup(self)
         self.player = gameState.addPlayer(self)
         print str(self.client_address) + " connected."
@@ -40,7 +41,7 @@ class ServerThread(threading.Thread):
     def shutdown(self):
         gameState.getServer().shutdown()        
 
-def startServer(serverAddress):
-    serverThread = ServerThread(serverAddress)
+def startServer(serverIP):
+    serverThread = ServerThread((serverIP,8080))
     serverThread.daemon = True
     serverThread.start()

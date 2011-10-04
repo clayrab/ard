@@ -13,7 +13,13 @@ class ClientThread(threading.Thread):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         print 'connecting...'
         self.socket.connect((hostIP,8080))
+#        gameState.setClient(self.socket)
         print 'connected...'
+    def disconnectclose(self):
+        self.socket.close()
+        print 'close'
+    def shutdown(self):
+        print 'shutdown'
     def sendCommand(self):
         print self.socket
 #self.socket.send("data")

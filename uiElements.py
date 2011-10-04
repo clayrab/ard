@@ -149,7 +149,7 @@ class newMapNameInputElement(textInputElement):
 			textInputElement.onKeyDown(self,keycode)
 
 class hostIPInputElement(textInputElement):
-	def __init__(self,xPos,yPos,gameMode,width=0.0,height=0.0,text="192.168.1.5",textSize=0.001,textureIndex=-1,textColor='FF FF FF',textXPos=0.0,textYPos=0.0):
+	def __init__(self,xPos,yPos,gameMode,width=0.0,height=0.0,text="127.0.0.1",textSize=0.001,textureIndex=-1,textColor='FF FF FF',textXPos=0.0,textYPos=0.0):
 		textInputElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textSize=textSize,textColor=textColor,textXPos=textXPos,textYPos=textYPos)
 		self.gameMode = gameMode
 	def onKeyDown(self,keycode):

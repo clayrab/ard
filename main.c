@@ -1177,6 +1177,7 @@ static void mainLoop (){
     Py_DECREF(theMap);
     Py_DECREF(gameMode);
   }
+  gameMode = PyObject_CallMethod(gameMode,"onQuit",NULL);
 }
 int nextPowerOf2(unsigned int v){
   const unsigned int b[] = {0x2, 0xC, 0xF0, 0xFF00, 0xFFFF0000};

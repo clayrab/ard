@@ -49,6 +49,15 @@ def getHostIP():
 	global theHostIP
 	return theHostIP
 
+theClient = None
+def setClient(client):
+	global theClient
+	theClient = client
+def getClient():
+	global theClient
+	return theClient
+
+
 class Player:
 	nextPlayerNumber = 1
 	def __init__(self,requestHandler):
@@ -56,7 +65,6 @@ class Player:
 		self.requestHandler = requestHandler
 		self.playerNumber = Player.nextPlayerNumber
 		Player.nextPlayerNumber = Player.nextPlayerNumber + 1
-		print 'player done...'
 	def dispatchCommand(self,command):
 		self.requestHandler.wfile.write(command)
 

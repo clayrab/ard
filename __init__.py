@@ -19,6 +19,7 @@ import cDefines
 import gameLogic
 import uiElements
 import server
+import client
 
 
 
@@ -66,6 +67,11 @@ class gameMode:
 	def handleKeyUp(self,keycode):
 		if(hasattr(self.elementWithFocus,"onKeyUp")):
 			self.elementWithFocus.onKeyUp(keycode)
+	def onQuit(self):
+		print 'quit'
+		if(gameState.getServer() != None):
+			print gameState.getServer()
+			gameState.getServer().shutdown()
 		
 			
 class tiledGameMode(gameMode):
@@ -380,7 +386,10 @@ class joiningLANGameScreenMode(gameMode):
 class hostLANGameScreenMode(gameMode):
 	def __init__(self):
 		gameMode.__init__(self)
-		server.startServer(('192.168.1.5', 8080))
+		print '0'
+		server.startServer('127.0.0.1')
+		print '1'
+		client.startClient('127.0.0.1')
 		print 'server started...'
 	def onDraw(self):
 		height = 0.7
