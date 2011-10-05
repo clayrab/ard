@@ -138,6 +138,8 @@
 float screenRatio;
 static SDL_Surface *gScreen;
 
+
+int foo = 0;
 int clickScroll = 0;
 long focusNextUnit = 0;
 int leftButtonDown = 0;
