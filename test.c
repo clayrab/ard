@@ -16,7 +16,7 @@
 #include <freetype/fttrigon.h>
 
 //#include "libpngGL.h"
-#include "fonts.h"
+//#include "fonts.h"
 
 // include the SDL headers you put in /mingw/include/SDL/
 
