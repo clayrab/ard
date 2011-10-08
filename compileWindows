@@ -4,5 +4,6 @@
 #gcc -L/c/MinGW/lib -I/c/MinGW/lib -Ignulib -Lgnulib -lmingw32 -lSDLMain -lSDL -Iinclude/SDL -I/MinGW/lib main.c
 #gcc -Iinclude -Ilib -Llib -Wl,-Bstatic `sdl-config --static-libs` -Wl,-Bdynamic test.c
 #gcc -v -I/c/MinGW/lib -L/c/MinGW/lib -Iinclude -Iinclude/SDL -Iinclude/zlib -Iinclude/freetype -Ilib -Llib -IC:/Python26/include/ -LC:/Python26/libs -lpython26 -lpng12 -Wl,-Bstatic `sdl-config --static-libs`  -lglu32 -lopengl32 -Wl,-Bdynamic main.c
-gcc -v -I/c/MinGW/lib -L/c/MinGW/lib -Iinclude -Iinclude/SDL -Iinclude/zlib -Iinclude/freetype -Ilib -Llib -IC:/Python26/include/ -LC:/Python26/libs -lpython26 -lpng12 -Wl,-Bstatic `sdl-config --static-libs`  -lglu32 -lopengl32 -Wl,-Bdynamic test.c
+#gcc -v -I/c/MinGW/lib -L/c/MinGW/lib -Iinclude -Iinclude/SDL -Iinclude/zlib -Iinclude/freetype -Ilib -Llib -IC:/Python26/include/ -LC:/Python26/libs -lpython26 -lpng12 -Wl,-Bstatic `sdl-config --static-libs`  -lglu32 -lopengl32 -Wl,-Bdynamic test.c
+gcc -v -Iinclude -Iinclude/SDL -Iinclude/zlib -Iinclude/freetype -Ilib -Llib -IC:/Python26/include/ -LC:/Python26/libs -lpython26 -lpng12 -Wl,-Bstatic `sdl-config --static-libs`  -lglu32 -lopengl32 -Wl,-Bdynamic test.c
 
