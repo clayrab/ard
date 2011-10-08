@@ -425,8 +425,8 @@ int main(int argc, char **argv){
   }
   printf("1");
   int * value;
-  SDL_GL_GetAttribute(SDL_GL_DEPTH_SIZE,value);
-  printf("depth size: %d\n",*value);
+  //SDL_GL_GetAttribute(SDL_GL_DEPTH_SIZE,value);
+  //printf("depth size: %d\n",*value);
 
   printf("1");
   initGL();
