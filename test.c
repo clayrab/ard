@@ -432,7 +432,9 @@ int main(int argc, char **argv){
   //SDL_EnableUNICODE(1);
   gameModule = PyImport_ImportModule("__init__");//New reference
   gameState = PyImport_ImportModule("gameState");
+  printf("entering loop");
   mainLoop();
+  printf("exiting loop");
   Py_DECREF(gameModule);
   Py_Finalize();
 
