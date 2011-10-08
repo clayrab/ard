@@ -3,5 +3,6 @@
 
 #gcc -mwindows -Iinclude/SDL/ -lopengl32 -lglu32 -lmingw32 -lSDLmain -lSDL main.c 'sdl-config --cflags --libs'
 #gcc -L/c/MinGW/lib -I/c/MinGW/lib -Ignulib -Lgnulib -lmingw32 -lSDLMain -lSDL -Iinclude/SDL -I/MinGW/lib main.c
-gcc -L/c/MinGW/lib -I/c/MinGW/lib -Ignulib -Lgnulib -Iinclude -lmingw32 -lSDLMain -lSDL -Iinclude/SDL -I/MinGW/lib test.c
+#gcc -L/c/MinGW/lib -I/c/MinGW/lib -Ignulib -Lgnulib -Iinclude -lmingw32 -lSDLMain -lSDL -Iinclude/SDL -I/MinGW/lib test.c
 #gcc -Iinclude -lmingw32 -lSDLMain -lSDL -Iinclude/SDL -I/MinGW/lib test.c
+

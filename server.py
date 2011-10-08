@@ -1,6 +1,8 @@
+import socket
 import threading
 import SocketServer
 import gameState
+import client
 
 class RequestHandler(SocketServer.StreamRequestHandler):
     def handle(self):
@@ -20,7 +22,7 @@ class RequestHandler(SocketServer.StreamRequestHandler):
         gameState.removePlayer(self.player)
         print str(self.client_address) + " disconnected."
 
-class Server(SocketServer.TCPServer):
+class Server(SocketServer.ThreadingMixIn,SocketServer.TCPServer):
     def __init__(self,serverAddress):
         SocketServer.TCPServer.__init__(self,serverAddress,RequestHandler)
         self.listeners = []
@@ -42,6 +44,8 @@ class ServerThread(threading.Thread):
         gameState.getServer().shutdown()        
 
 def startServer(serverIP):
-    serverThread = ServerThread((serverIP,8080))
+    server = Server((serverIP,8080))
+    serverThread = threading.Thread(target=server.serve_forever)
     serverThread.daemon = True
     serverThread.start()
+    gameState.setServer(server)

@@ -68,10 +68,14 @@ class gameMode:
 		if(hasattr(self.elementWithFocus,"onKeyUp")):
 			self.elementWithFocus.onKeyUp(keycode)
 	def onQuit(self):
-		print 'quit'
+		if(gameState.getClient() != None):
+			print 'shutting down client...'
+			gameState.getClient().socket.close()
+			print 'done shutting down client'
 		if(gameState.getServer() != None):
-			print gameState.getServer()
+			print 'shutting down server...'
 			gameState.getServer().shutdown()
+			print 'done shutting down'
 		
 			
 class tiledGameMode(gameMode):
@@ -386,11 +390,12 @@ class joiningLANGameScreenMode(gameMode):
 class hostLANGameScreenMode(gameMode):
 	def __init__(self):
 		gameMode.__init__(self)
-		print '0'
+		print 'starting server...'
 		server.startServer('127.0.0.1')
-		print '1'
-		client.startClient('127.0.0.1')
 		print 'server started...'
+		print 'starting client...'
+		client.startClient('127.0.0.1')
+		print 'client started'
 	def onDraw(self):
 		height = 0.7
 		players = gameState.getPlayers()
