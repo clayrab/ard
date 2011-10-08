@@ -318,6 +318,55 @@ static void mainLoop (){
     handleInput();
   }
 }
+static void initGL (){
+  /** needs to be called on screen resize **/
+  //unneeded with sdl?
+
+  glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);//default values anyway, so not needed but w/e
+  glInitNames(); //init names stack	
+  glClearColor(0.0, 0.0, 0.0, 0.0); //sets screen clear color
+  glEnable(GL_TEXTURE_2D);
+  glEnable(GL_BLEND);
+
+  //glDepthMask(GL_TRUE);
+  glClear(GL_COLOR_BUFFER_BIT);		
+  glEnable(GL_DEPTH_TEST);
+  glDepthFunc(GL_ALWAYS);
+
+  char file[100] = TILES_IMAGE;
+
+  pngLoad(&tilesTexture, TILES_IMAGE);	/******************** /image init ***********************/
+  pngLoad(&texturesArray[TILE_SELECT_BOX_INDEX],TILE_SELECT_BOX_IMAGE);
+  pngLoad(&texturesArray[UI_MAP_EDITOR_TOP_INDEX],UI_MAP_EDITOR_TOP_IMAGE);
+  pngLoad(&texturesArray[UI_MAP_EDITOR_BOTTOM_INDEX],UI_MAP_EDITOR_BOTTOM_IMAGE);
+  pngLoad(&texturesArray[UI_MAP_EDITOR_LEFT_INDEX],UI_MAP_EDITOR_LEFT_IMAGE);
+  pngLoad(&texturesArray[UI_MAP_EDITOR_RIGHT_INDEX],UI_MAP_EDITOR_RIGHT_IMAGE);
+  pngLoad(&texturesArray[UI_NEW_GAME_SCREEN_INDEX],UI_NEW_GAME_SCREEN_IMAGE);
+  pngLoad(&texturesArray[CURSOR_POINTER_INDEX],CURSOR_POINTER_IMAGE);
+  pngLoad(&texturesArray[CURSOR_POINTER_ON_INDEX],CURSOR_POINTER_ON_IMAGE);
+  pngLoad(&texturesArray[CURSOR_MOVE_INDEX],CURSOR_MOVE_IMAGE);
+  pngLoad(&texturesArray[PLAYER_START_BUTTON_INDEX],PLAYER_START_BUTTON_IMAGE);
+  pngLoad(&texturesArray[UI_SCROLLABLE_INDEX],UI_SCROLLABLE_IMAGE);
+  pngLoad(&texturesArray[UI_SCROLL_PAD_INDEX],UI_SCROLL_PAD_IMAGE);
+  pngLoad(&texturesArray[UI_TEXT_INPUT_INDEX],UI_TEXT_INPUT_IMAGE);
+  pngLoad(&texturesArray[MEEPLE_INDEX],MEEPLE_IMAGE);
+  pngLoad(&texturesArray[HEALTH_BAR_INDEX],HEALTH_BAR_IMAGE);
+  pngLoad(&texturesArray[UNIT_BUILD_BAR_INDEX],UNIT_BUILD_BAR_IMAGE);
+  pngLoad(&texturesArray[MAP_ICON_INDEX],MAP_ICON_IMAGE);
+  pngLoad(&texturesArray[WALK_ICON_INDEX],WALK_ICON_IMAGE);
+
+  vertexArrays[DESERT_TILE_INDEX] = *desertVertices;
+  vertexArrays[GRASS_TILE_INDEX] = *grassVertices;
+  vertexArrays[MOUNTAIN_TILE_INDEX] = *mountainVertices;
+  vertexArrays[FOREST_TILE_INDEX] = *forestVertices;
+  vertexArrays[WATER_TILE_INDEX] = *waterVertices;
+  vertexArrays[ROAD_TILE_INDEX] = *roadVertices;
+  vertexArrays[CITY_TILE_INDEX] = *cityVertices;
+  vertexArrays[PLAYER_START_TILE_INDEX] = *playerStartVertices;
+  
+  screenRatio = (GLfloat)SCREEN_WIDTH/(GLfloat)SCREEN_HEIGHT;
+  
+}
 static void initPython(){
   //http://docs.python.org/release/2.6.6/c-api/index.html
   char path[100] = "hello";
@@ -347,6 +396,7 @@ int main(int argc, char **argv){
     SDL_Quit();
     exit(2);
   }
+  initGL();
   initPython();
   printf("entering main loop\n");
   mainLoop();
