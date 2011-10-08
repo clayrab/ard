@@ -1,6 +1,9 @@
 #ifndef LIBPNG_GL_H
 #define LIBPNG_GL_H
 
+#include <SDL.h>
+#include <SDL_opengl.h>
+
 //shamelessly stolen from here:
 //http://macdevcenter.com/pub/a/mac/2005/10/14/texture-maps.html?page=3
 void pngLoad(GLuint *textur, char *file){
