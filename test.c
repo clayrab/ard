@@ -18,6 +18,281 @@
 //#include "libpngGL.h"
 //#include "fonts.h"
 
+
+#define maxZoom 70.0
+#define minZoom 10.0
+#define initZoom 30.0
+
+#define zoomSpeed 0.3
+
+#define SCREEN_WIDTH 1280
+#define SCREEN_HEIGHT 800
+
+#define TILES_IMAGE "assets/tiles2.png"
+#define UI_IMAGE "assets/UI.png"
+#define TILE_SELECT_BOX_IMAGE "assets/tileSelect.png"
+#define TILE_SELECT_BOX_INDEX 0
+#define UI_MAP_EDITOR_TOP_IMAGE "assets/UITop.png"
+#define UI_MAP_EDITOR_TOP_IMAGE_HEIGHT 80
+#define UI_MAP_EDITOR_TOP_IMAGE_WIDTH 1280
+#define UI_MAP_EDITOR_TOP_INDEX 1
+#define UI_MAP_EDITOR_BOTTOM_IMAGE "assets/UIBottom.png"
+#define UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT 10
+#define UI_MAP_EDITOR_BOTTOM_IMAGE_WIDTH 1280
+#define UI_MAP_EDITOR_BOTTOM_INDEX 2
+#define UI_MAP_EDITOR_LEFT_IMAGE "assets/UILeft.png"
+#define UI_MAP_EDITOR_LEFT_IMAGE_HEIGHT 871
+#define UI_MAP_EDITOR_LEFT_IMAGE_WIDTH 229
+#define UI_MAP_EDITOR_LEFT_INDEX 3
+#define UI_MAP_EDITOR_RIGHT_IMAGE "assets/UIRight.png"
+#define UI_MAP_EDITOR_RIGHT_IMAGE_HEIGHT 871
+#define UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH 10
+#define UI_MAP_EDITOR_RIGHT_INDEX 4
+#define UI_NEW_GAME_SCREEN_IMAGE "assets/newGameScreen.png"
+#define UI_NEW_GAME_SCREEN_IMAGE_HEIGHT 960
+#define UI_NEW_GAME_SCREEN_IMAGE_WIDTH 1280
+#define UI_NEW_GAME_SCREEN_INDEX 5
+
+#define CURSOR_POINTER_IMAGE "assets/cursors/gam372.png"
+#define CURSOR_POINTER_INDEX 6
+
+#define CURSOR_POINTER_ON_IMAGE "assets/cursors/gam375.png"
+#define CURSOR_POINTER_ON_INDEX 7
+
+#define CURSOR_MOVE_IMAGE "assets/cursors/gam378.png"
+#define CURSOR_MOVE_INDEX 8
+
+#define CURSOR_WIDTH 32
+#define CURSOR_HEIGHT 29
+
+#define PLAYER_START_BUTTON_IMAGE "assets/playerStartButton.png"
+#define PLAYER_START_BUTTON_INDEX 9
+#define PLAYER_START_BUTTON_WIDTH 13
+#define PLAYER_START_BUTTON_HEIGHT 14
+#define PLAYER_START_IMAGE "assets/playerStart.png"
+#define PLAYER_START_INDEX 10
+#define PLAYER_START_WIDTH 13
+#define PLAYER_START_HEIGHT 14
+
+#define UI_SCROLLABLE_IMAGE "assets/scrollableElement.png"
+#define UI_SCROLLABLE_IMAGE_HEIGHT 404
+#define UI_SCROLLABLE_IMAGE_WIDTH 210
+#define UI_SCROLLABLE_INDEX 11
+
+#define UI_SCROLL_PAD_IMAGE "assets/scrollPad.png"
+#define UI_SCROLL_PAD_IMAGE_HEIGHT 16
+#define UI_SCROLL_PAD_IMAGE_WIDTH 16
+#define UI_SCROLL_PAD_INDEX 12
+
+#define UI_TEXT_INPUT_IMAGE "assets/textInput.png"
+#define UI_TEXT_INPUT_IMAGE_HEIGHT 20
+#define UI_TEXT_INPUT_IMAGE_WIDTH 200
+#define UI_TEXT_INPUT_INDEX 13
+
+#define MEEPLE_IMAGE "assets/meeple.png"
+#define MEEPLE_IMAGE_HEIGHT 20
+#define MEEPLE_IMAGE_WIDTH 200
+#define MEEPLE_INDEX 14
+
+#define HEALTH_BAR_IMAGE "assets/healthBar.png"
+#define HEALTH_BAR_IMAGE_HEIGHT 6
+#define HEALTH_BAR_IMAGE_WIDTH 52
+#define HEALTH_BAR_INDEX 15
+
+#define UNIT_BUILD_BAR_IMAGE "assets/unitBuildBar.png"
+#define UNIT_BUILD_BAR_IMAGE_HEIGHT 12
+#define UNIT_BUILD_BAR_IMAGE_WIDTH 180
+#define UNIT_BUILD_BAR_INDEX 16
+
+#define MAP_ICON_IMAGE "assets/mapIcon.png"
+#define MAP_ICON_HEIGHT 35
+#define MAP_ICON_WIDTH 56
+#define MAP_ICON_INDEX 17
+
+#define WALK_ICON_IMAGE "assets/walkIcon.png"
+#define WALK_ICON_HEIGHT 36
+#define WALK_ICON_WIDTH 36
+#define WALK_ICON_INDEX 18
+
+#define DESERT_TILE_INDEX 0
+#define GRASS_TILE_INDEX 1
+#define MOUNTAIN_TILE_INDEX 2
+#define FOREST_TILE_INDEX 3
+#define WATER_TILE_INDEX 4
+#define ROAD_TILE_INDEX 5
+#define CITY_TILE_INDEX 6
+#define PLAYER_START_TILE_INDEX 7//REMOVE THIS
+
+#define DESERT_MOVE_COST 2.0
+#define GRASS_MOVE_COST 1.0
+#define MOUNTAIN_MOVE_COST 10.0
+#define FOREST_MOVE_COST 1.0
+#define WATER_MOVE_COST 10.0
+//ROADS HALF THE COST OF ALL MOVEMENT
+
+#define SIN60 0.8660
+#define COS60 0.5
+
+#define BUFSIZE 512
+
+
+float screenRatio;
+static SDL_Surface *gScreen;
+
+
+int foo = 0;
+int clickScroll = 0;
+long focusNextUnit = 0;
+int leftButtonDown = 0;
+
+int done = 0;    
+int moveUp = 0;
+int moveRight = 0;
+int previousTick = 0;
+int deltaTicks = 0;
+
+float translateX = -20.0;
+float translateY = 15.0;
+float scrollSpeed = 0.10;
+
+GLdouble convertedX,convertedY,convertedZ;
+float newTranslateX,newTranslateY;
+
+PyObject * gameModule;
+PyObject * gameState;
+PyObject * gameMode;
+PyObject * theMap;
+PyObject * mapName;
+PyObject * mapIterator;
+PyObject * UIElementsIterator;
+PyObject * rowIterator;
+PyObject * pyMapWidth;
+PyObject * pyMapHeight;
+long mapWidth;
+long mapHeight;
+
+#define MAX_CITIES 40
+#define MAX_CITY_NAME_LENGTH 50
+#define MAX_UNITS 400
+#define MAX_UNIT_NAME_LENGTH 50
+
+float cityNamesXs[MAX_CITIES];
+float cityNamesYs[MAX_CITIES];
+char cityNames[MAX_CITIES][MAX_CITY_NAME_LENGTH];
+int cityNamesCount = 0;
+
+float unitNamesXs[MAX_UNITS];
+float unitNamesYs[MAX_UNITS];
+char unitNames[MAX_UNITS][MAX_UNIT_NAME_LENGTH];
+int unitNamesCount = 0;
+
+GLuint tilesTexture;
+/*GLuint uiTexture;
+GLuint uiTopTexture;
+GLuint uiBottomTexture;
+GLuint tileSelectBoxTexture;
+GLuint cursorPointerTexture;
+GLuint cursorHandTexture;
+*/
+GLdouble mouseMapPosX, mouseMapPosY, mouseMapPosZ;
+GLdouble mouseMapPosXPrevious, mouseMapPosYPrevious;
+
+int mouseX = 0;
+int mouseY = 0;
+GLuint selectBuf[BUFSIZE];
+int selectedName = -1;//the mousedover object's 'name'
+int previousClickedName = -2;
+int previousMousedoverName = -2;
+int theCursorIndex = -1;
+
+
+float desertVertices[6][2] = {
+  {(699.0/1280),1.0-(66.0/1280)},
+  {(699.0/1280),1.0-(34.0/1280)},
+  {(726.0/1280),1.0-(18.0/1280)},
+  {(754.0/1280),1.0-(34.0/1280)},
+  {(754.0/1280),1.0-(66.0/1280)},
+  {(726.0/1280),1.0-(82.0/1280)}
+};
+/*float forestVertices[6][2] = {
+  {(699.0/1280),1.0-(262.0/1280)},
+  {(699.0/1280),1.0-(230.0/1280)},
+  {(726.0/1280),1.0-(214.0/1280)},
+  {(754.0/1280),1.0-(230.0/1280)},
+  {(754.0/1280),1.0-(262.0/1280)},
+  {(726.0/1280),1.0-(278.0/1280)}
+  };*/
+float forestVertices[6][2] = {
+  {(643.0/1280),1.0-(360.0/1280)},
+  {(643.0/1280),1.0-(328.0/1280)},
+  {(670.0/1280),1.0-(312.0/1280)},
+  {(696.0/1280),1.0-(328.0/1280)},
+  {(696.0/1280),1.0-(360.0/1280)},
+  {(670.0/1280),1.0-(376.0/1280)}
+};
+float grassVertices[6][2] = {
+  {(699.0/1280),1.0-(360.0/1280)},
+  {(699.0/1280),1.0-(328.0/1280)},
+  {(726.0/1280),1.0-(312.0/1280)},
+  {(754.0/1280),1.0-(328.0/1280)},
+  {(754.0/1280),1.0-(360.0/1280)},
+  {(726.0/1280),1.0-(376.0/1280)}
+};
+
+float mountainVertices[6][2] = {
+  {(699.0/1280),1.0-(556.0/1280)},
+  {(699.0/1280),1.0-(524.0/1280)},
+  {(726.0/1280),1.0-(508.0/1280)},
+  {(754.0/1280),1.0-(524.0/1280)},
+  {(754.0/1280),1.0-(556.0/1280)},
+  {(726.0/1280),1.0-(572.0/1280)}
+};
+float waterVertices[6][2] = {
+  {(874.0/1280),1.0-(850.0/1280)},
+  {(874.0/1280),1.0-(818.0/1280)},
+  {(901.0/1280),1.0-(802.0/1280)},
+  {(928.0/1280),1.0-(818.0/1280)},
+  {(928.0/1280),1.0-(850.0/1280)},
+  {(901.0/1280),1.0-(866.0/1280)}
+};
+float roadVertices[6][2] = {
+  {(467.0/1280),1.0-(66.0/1280)},
+  {(467.0/1280),1.0-(34.0/1280)},
+  {(494.0/1280),1.0-(18.0/1280)},
+  {(522.0/1280),1.0-(34.0/1280)},
+  {(522.0/1280),1.0-(66.0/1280)},
+  {(494.0/1280),1.0-(82.0/1280)}
+};
+float cityVertices[6][2] = {
+  {(641.0/1280),1.0-(66.0/1280)},
+  {(641.0/1280),1.0-(34.0/1280)},
+  {(668.0/1280),1.0-(18.0/1280)},
+  {(696.0/1280),1.0-(34.0/1280)},
+  {(696.0/1280),1.0-(66.0/1280)},
+  {(668.0/1280),1.0-(82.0/1280)}
+};
+float playerStartVertices[6][2] = {
+  {(593.0/1280),1.0-(556.0/1280)},
+  {(593.0/1280),1.0-(524.0/1280)},
+  {(610.0/1280),1.0-(508.0/1280)},
+  {(638.0/1280),1.0-(524.0/1280)},
+  {(638.0/1280),1.0-(556.0/1280)},
+  {(610.0/1280),1.0-(572.0/1280)}
+};
+float * vertexArrays[8];
+
+float hexagonVertices[6][2] = {
+  {-SIN60, -COS60},
+  {-SIN60, COS60},
+  {0.0, 1.0},
+  {SIN60, COS60},
+  {SIN60, -COS60},
+  {0.0, -1.0}
+};
+
+float *textureVertices;
+GLuint texturesArray[60];
+
 // include the SDL headers you put in /mingw/include/SDL/
 static void handleInput(){
   SDL_Event event;
