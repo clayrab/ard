@@ -3,5 +3,5 @@
 
 #gcc -L/c/MinGW/lib -I/c/MinGW/lib -Ignulib -Lgnulib -lmingw32 -lSDLMain -lSDL -Iinclude/SDL -I/MinGW/lib main.c
 #gcc -Iinclude -Ilib -Llib -Wl,-Bstatic `sdl-config --static-libs` -Wl,-Bdynamic test.c
-gcc -Iinclude -Iinclude/SDL -Ilib -Llib -Wl,-Bstatic `sdl-config --static-libs` -Wl,-Bdynamic main.c
+gcc -Iinclude -Iinclude/SDL -Iinclude/zlib -Ilib -Llib -Wl,-Bstatic `sdl-config --static-libs` -Wl,-Bdynamic main.c
 
