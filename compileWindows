@@ -1,10 +1,7 @@
 #!/bin/bash
 #gcc -arch x86_64 -lz -framework SDL -framework Cocoa -framework libpng12 -framework openGl -Iinclude/SDL/ -lpython2.6 main.c include/SDLMain.m lib/libfreetype.a
 
-#gcc -mwindows -Iinclude/SDL/ -lopengl32 -lglu32 -lmingw32 -lSDLmain -lSDL main.c 'sdl-config --cflags --libs'
 #gcc -L/c/MinGW/lib -I/c/MinGW/lib -Ignulib -Lgnulib -lmingw32 -lSDLMain -lSDL -Iinclude/SDL -I/MinGW/lib main.c
-#gcc -L/c/MinGW/lib -I/c/MinGW/lib -Ignulib -Lgnulib -Iinclude -lmingw32 -lSDLMain -lSDL -Iinclude/SDL -I/MinGW/lib test.c
-#gcc -v -Iinclude -Llib -lSDL -lmingw32 test.c
-#gcc -v -Iinclude -Llib -lmingw32 -lSDLmain -lSDL -mwindows test.c
-gcc -Iinclude -Ilib -Llib -Wl,-Bstatic `sdl-config --static-libs` -Wl,-Bdynamic test.c
+#gcc -Iinclude -Ilib -Llib -Wl,-Bstatic `sdl-config --static-libs` -Wl,-Bdynamic test.c
+gcc -Iinclude -Ilib -Llib -Wl,-Bstatic `sdl-config --static-libs` -Wl,-Bdynamic main.c
 
