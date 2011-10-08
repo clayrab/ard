@@ -23,7 +23,7 @@
 int main(int argc, char *argv[]){
   // with SDL, you need the argc and argv parameters
 
-  printf("Hello world\n");
+  printf("Hello world!!!\n");
   // with SDL, anything you printf will get printed to the
   // file stdout.txt in the current directory, not to the screen
 }
