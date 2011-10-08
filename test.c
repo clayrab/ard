@@ -920,12 +920,6 @@ static void handleInput(){
   SDL_Event event;
   deltaTicks = SDL_GetTicks()-previousTick;
   previousTick = SDL_GetTicks();
-  if(PyObject_HasAttrString(gameMode,"getFocusNextUnit")){
-    PyObject * pyFocusNextUnit;
-    pyFocusNextUnit = PyObject_CallMethod(gameMode,"getFocusNextUnit",NULL);
-    focusNextUnit = PyLong_AsLong(pyFocusNextUnit);
-  }
-  //SDL_Delay(20);//for framerate testing...
   while(SDL_PollEvent(&event)){
     switch(event.type){
     case SDL_KEYUP:
