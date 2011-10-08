@@ -334,13 +334,9 @@ int main(int argc, char **argv){
     SDL_Quit();
     exit(2);
   }
-  int * value;
-  SDL_GL_GetAttribute(SDL_GL_DEPTH_SIZE,value);
-  printf("depth size: %d\n",*value);
-
-  SDL_ShowCursor(0);
-  //SDL_EnableUNICODE(1);
+  printf("entering main loop");
   mainLoop();
+  printf("exiting main loop");
 
   exit(0);
 }
