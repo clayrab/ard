@@ -315,8 +315,14 @@ static void handleInput(){
 }
 static void mainLoop (){
   while ( !done ) {
+    gameMode = PyObject_CallMethod(gameState,"getGameMode",NULL);
+    theMap = PyObject_GetAttrString(gameMode, "map");//New reference
     handleInput();
+    draw();
+    Py_DECREF(theMap);
+    Py_DECREF(gameMode);
   }
+  gameMode = PyObject_CallMethod(gameMode,"onQuit",NULL);
 }
 static void initGL (){
   /** needs to be called on screen resize **/
