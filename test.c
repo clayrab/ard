@@ -2,7 +2,7 @@
 #include "SDL/SDL.h"
 // include the SDL headers you put in /mingw/include/SDL/
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[]){
   // with SDL, you need the argc and argv parameters
 
   printf("Hello world\n");
