@@ -184,7 +184,7 @@ extern DECLSPEC void SDLCALL SDL_free(void *mem);
 
 #if defined(HAVE_ALLOCA) && !defined(alloca)
 # if defined(HAVE_ALLOCA_H)
-#  include <alloca.h>
+#  include <malloc.h>
 # elif defined(__GNUC__)
 #  define alloca __builtin_alloca
 # elif defined(_MSC_VER)
