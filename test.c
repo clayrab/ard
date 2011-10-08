@@ -931,11 +931,6 @@ static void handleInput(){
     case SDL_KEYUP:
       if(event.key.keysym.sym == SDLK_BACKQUOTE){
 	clickScroll = 0;
-      }else if(event.key.keysym.sym == 303//rightshift
-	       || event.key.keysym.sym == 304//leftshift
-	       ){
-	       PyObject_CallMethod(gameMode,"handleKeyUp","s",SDL_GetKeyName(event.key.keysym.sym));
-      }
       break;
     case SDL_QUIT:
       done = 1;
