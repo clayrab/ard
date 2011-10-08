@@ -1,5 +1,5 @@
 #include <stdio.h>
-//#include "SDL/SDL.h"
+#include "SDL/SDL.h"
 // include the SDL headers you put in /mingw/include/SDL/
 
 int main(int argc, char *argv[]) {
