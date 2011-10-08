@@ -5,5 +5,5 @@
 #gcc -L/c/MinGW/lib -I/c/MinGW/lib -Ignulib -Lgnulib -lmingw32 -lSDLMain -lSDL -Iinclude/SDL -I/MinGW/lib main.c
 #gcc -L/c/MinGW/lib -I/c/MinGW/lib -Ignulib -Lgnulib -Iinclude -lmingw32 -lSDLMain -lSDL -Iinclude/SDL -I/MinGW/lib test.c
 #gcc -v -Iinclude -Llib -lSDL -lmingw32 test.c
-gcc -v -Iinclude -Llib -lmingw32 -lSDL test.c
+gcc -v -Iinclude -Llib -lmingw32 -lSDLmain -lSDL -mwindows test.c
 
