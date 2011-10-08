@@ -410,24 +410,31 @@ int main(int argc, char **argv){
     fprintf(stderr, "Couldn't initialize SDL: %s\n",SDL_GetError());
     exit(1);
   }
+  printf("1");
   SDL_GL_SetAttribute (SDL_GL_DEPTH_SIZE, 16);
   //  SDL_GL_SetAttribute (SDL_GL_DOUBLEBUFFER, 1);
   Uint32 flags = SDL_OPENGL;
   //flags |= SDL_FULLSCREEN;
   gScreen = SDL_SetVideoMode (SCREEN_WIDTH, SCREEN_HEIGHT, 0, flags);
+  printf("1");
   if (gScreen == NULL) {
     fprintf (stderr, "Could not set OpenGL video mode: %s\n",
 	     SDL_GetError());
     SDL_Quit();
     exit(2);
   }
+  printf("1");
   int * value;
   SDL_GL_GetAttribute(SDL_GL_DEPTH_SIZE,value);
   printf("depth size: %d\n",*value);
 
+  printf("1");
   initGL();
+  printf("1");
   initPython();
+  printf("1");
   initFonts();
+  printf("1");
   //SDL_EnableUNICODE(1);
   gameModule = PyImport_ImportModule("__init__");//New reference
   gameState = PyImport_ImportModule("gameState");
