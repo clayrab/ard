@@ -380,6 +380,21 @@ static void initPython(){
   PyObject * global_dict = PyModule_GetDict(main_module);//Borrowed reference
   //use this to create a new object: like "class()" in python //PyObject * instance = PyObject_CallObject(class,NULL);//New reference
 }
+int nextPowerOf2(unsigned int v){
+  const unsigned int b[] = {0x2, 0xC, 0xF0, 0xFF00, 0xFFFF0000};
+  const unsigned int S[] = {1, 2, 4, 8, 16};
+  int i;
+
+  register unsigned int r = 0; // result of log2(v) will go here
+  for (i = 4; i >= 0; i--){ // unroll for speed...
+    if (v & b[i]){
+      v >>= S[i];
+      r |= S[i];
+    } 
+  }
+  return pow(2,r+1);
+}
+
 int main(int argc, char **argv){
   if ( SDL_Init (SDL_INIT_VIDEO) < 0 ) {
     fprintf(stderr, "Couldn't initialize SDL: %s\n",SDL_GetError());
