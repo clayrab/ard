@@ -334,9 +334,9 @@ int main(int argc, char **argv){
     SDL_Quit();
     exit(2);
   }
-  printf("entering main loop");
+  printf("entering main loop\n");
   mainLoop();
-  printf("exiting main loop");
+  printf("exiting main loop\n");
 
   exit(0);
 }
