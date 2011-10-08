@@ -4,7 +4,7 @@
 #include <math.h>
 
 #include <SDL.h>
-#include <SDL_opengl.h>
+//#include <SDL_opengl.h>
 
 #include <libpng12/png.h>
 #include <Python/Python.h>
