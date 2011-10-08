@@ -313,6 +313,95 @@ static void handleInput(){
     }
   }
 }
+static void draw(){
+  PyObject_CallMethod(gameMode,"onDraw",NULL);//New reference
+
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		
+  theCursorIndex = -1;
+    
+  //game board projection time
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();
+  doScrolling();
+  gluPerspective(45.0f,screenRatio,minZoom,maxZoom+1.0);
+  //draw the game board
+  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity();
+  mouseMapPosXPrevious = mouseMapPosX;
+  mouseMapPosYPrevious = mouseMapPosY;
+  
+  convertWinCoordsToMapCoords(mouseX,mouseY,&mouseMapPosX,&mouseMapPosY,&mouseMapPosZ);
+  //glTranslatef(mouseMapPosX,mouseMapPosY,translateZ);//for some reason we need mouseMapPosZ instead of translateZ
+  glTranslatef(translateX,translateY,mouseMapPosZ);
+
+  GLint viewport[4];
+  glSelectBuffer(BUFSIZE,selectBuf);
+  glRenderMode(GL_SELECT);
+
+  glMatrixMode(GL_PROJECTION);
+  glPushMatrix();
+  glLoadIdentity();
+  //glViewport(0.0,0.0,SCREEN_WIDTH, SCREEN_HEIGHT);
+  glViewport(UI_MAP_EDITOR_LEFT_IMAGE_WIDTH,UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT,SCREEN_WIDTH - UI_MAP_EDITOR_LEFT_IMAGE_WIDTH - UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH, SCREEN_HEIGHT - UI_MAP_EDITOR_TOP_IMAGE_HEIGHT - UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT);
+  glGetIntegerv(GL_VIEWPORT,viewport);
+  gluPickMatrix(mouseX,viewport[3]+UI_MAP_EDITOR_TOP_IMAGE_HEIGHT+UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT-mouseY,5,5,viewport);
+  gluPerspective(45.0f,screenRatio,minZoom,maxZoom+1.0);
+  
+  glMatrixMode(GL_MODELVIEW);
+  glPushMatrix();
+
+  drawBoard();
+
+  glMatrixMode(GL_PROJECTION);
+  glPushMatrix();
+  glLoadIdentity();
+  glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+  glGetIntegerv(GL_VIEWPORT,viewport);
+  gluPickMatrix(mouseX,viewport[3]-mouseY,5,5,viewport);
+  
+  glMatrixMode(GL_MODELVIEW);
+  glPushMatrix();
+  glLoadIdentity();
+
+  drawUI();
+
+  processTheHits(glRenderMode(GL_RENDER),selectBuf);
+
+  glMatrixMode(GL_PROJECTION);
+  glPopMatrix();
+  glPopMatrix();
+  glMatrixMode(GL_MODELVIEW);
+  glPopMatrix();
+  glPopMatrix();
+
+  glFlush();
+    
+  //returning to normal rendering mode and get the hits
+
+  glViewport(UI_MAP_EDITOR_LEFT_IMAGE_WIDTH,UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT,SCREEN_WIDTH - UI_MAP_EDITOR_LEFT_IMAGE_WIDTH - UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH, SCREEN_HEIGHT - UI_MAP_EDITOR_TOP_IMAGE_HEIGHT - UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT);
+
+  drawBoard();  
+    
+  glMatrixMode(GL_PROJECTION);
+  glPushMatrix();
+  glLoadIdentity();
+  
+  glMatrixMode(GL_MODELVIEW);
+  glPushMatrix();
+  glLoadIdentity();
+  
+  glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);    
+  drawUI();
+  
+  glMatrixMode(GL_PROJECTION);
+  glPopMatrix();
+  glMatrixMode(GL_MODELVIEW);
+  glPopMatrix();
+
+  glFlush();
+  SDL_GL_SwapBuffers ();	
+  
+}
 static void mainLoop (){
   while ( !done ) {
     gameMode = PyObject_CallMethod(gameState,"getGameMode",NULL);
