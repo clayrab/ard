@@ -363,11 +363,6 @@ static void handleInput(){
   previousTick = SDL_GetTicks();
   while(SDL_PollEvent(&event)){
     switch(event.type){
-    case SDL_KEYUP:
-      if(event.key.keysym.sym == SDLK_BACKQUOTE){
-	clickScroll = 0;
-      }
-      break;
     case SDL_QUIT:
       done = 1;
       break;
