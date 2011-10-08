@@ -318,6 +318,19 @@ static void mainLoop (){
     handleInput();
   }
 }
+static void initPython(){
+  //http://docs.python.org/release/2.6.6/c-api/index.html
+  char path[100] = "hello";
+  //	sprintf(path,"%s","hello");
+  Py_Initialize();
+  char *pyArgv[1];
+  pyArgv[0] = path;
+  PySys_SetArgv(1, pyArgv);
+	
+  PyObject * main_module = PyImport_AddModule("__main__");//Borrowed reference
+  PyObject * global_dict = PyModule_GetDict(main_module);//Borrowed reference
+  //use this to create a new object: like "class()" in python //PyObject * instance = PyObject_CallObject(class,NULL);//New reference
+}
 int main(int argc, char **argv){
   if ( SDL_Init (SDL_INIT_VIDEO) < 0 ) {
     fprintf(stderr, "Couldn't initialize SDL: %s\n",SDL_GetError());
@@ -334,6 +347,7 @@ int main(int argc, char **argv){
     SDL_Quit();
     exit(2);
   }
+  initPython();
   printf("entering main loop\n");
   mainLoop();
   printf("exiting main loop\n");
