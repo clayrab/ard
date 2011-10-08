@@ -15,8 +15,8 @@
 #include <freetype/ftoutln.h>
 #include <freetype/fttrigon.h>
 
-//#include "libpngGL.h"
-//#include "fonts.h"
+#include "libpngGL.h"
+#include "fonts.h"
 
 
 #define maxZoom 70.0
