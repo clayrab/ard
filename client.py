@@ -61,9 +61,6 @@ class ClientThread(threading.Thread):
     def __init__(self,hostIP):
         threading.Thread.__init__(self)
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-#        self.socket.settimeout(0.1)
-        print self.socket.gettimeout()
-        
 #        self.socket.setsockopt(socket.SOL_SOCKET,socket.SO_SNDBUF,1)
 #        self.socket.setsockopt(socket.SOL_SOCKET,socket.SO_RCVBUF,1)
 #        print self.socket.getsockopt(socket.SOL_SOCKET,socket.SO_SNDBUF)
