@@ -4,6 +4,17 @@ import SocketServer
 import gameState
 import client
 
+class NetworkPlayer:
+    nextPlayerNumber = 1
+    def __init__(self,requestHandler):
+        self.requestHandler = requestHandler
+        self.playerNumber = NetworkPlayer.nextPlayerNumber
+        NetworkPlayer.nextPlayerNumber = NetworkPlayer.nextPlayerNumber + 1
+    def dispatchCommand(self,command):
+        print 'dispatching...'
+        self.requestHandler.wfile.write(command)
+        print 'dispatched...'
+            
 class RequestHandler(SocketServer.StreamRequestHandler):
     def handle(self):
         while 1:
@@ -13,13 +24,21 @@ class RequestHandler(SocketServer.StreamRequestHandler):
             else:
                 print line
     def setup(self):
-        print 'setup'
-        SocketServer.StreamRequestHandler.setup(self)
-        self.player = gameState.addPlayer(self)
-        print str(self.client_address) + " connected."
+        if(gameState.getServer().acceptingConnections):
+            SocketServer.StreamRequestHandler.setup(self)
+            self.player = gameState.addNetworkPlayer(self)
+            self.player.dispatchCommand("setPlayerNumber " + str(self.player.playerNumber) + "|")
+            for player in gameState.getNetworkPlayers():
+                self.player.dispatchCommand("addPlayer " + str(player.playerNumber) + "|")
+                if(player.playerNumber != self.player.playerNumber):
+                    player.dispatchCommand("addPlayer " + str(self.player.playerNumber) + "|")
+            print str(self.client_address) + " connected."
+        else:
+            #TODO: send command to client indicating game has started or host is no longer accepting connections...
+            print 'host is not accepting connections'
     def finish(self):
         SocketServer.StreamRequestHandler.finish(self)
-        gameState.removePlayer(self.player)
+        gameState.removeNetworkPlayer(self.player)
         print str(self.client_address) + " disconnected."
 
 class Server(SocketServer.ThreadingMixIn,SocketServer.TCPServer):
@@ -27,6 +46,7 @@ class Server(SocketServer.ThreadingMixIn,SocketServer.TCPServer):
         SocketServer.TCPServer.__init__(self,serverAddress,RequestHandler)
         self.listeners = []
         self.listenersLock = threading.Lock()
+        self.acceptingConnections = True
     def addListener(self, listener):
         with self.listenersLock:
             self.listeners.append(listener)
@@ -34,17 +54,9 @@ class Server(SocketServer.ThreadingMixIn,SocketServer.TCPServer):
         with self.listenersLock:
             self.listeners.remove(listener)
 
-class ServerThread(threading.Thread):
-    def __init__(self,serverAddress):
-        threading.Thread.__init__(self)
-        gameState.setServer(Server(serverAddress))
-    def run(self):
-        gameState.getServer().serve_forever()
-    def shutdown(self):
-        gameState.getServer().shutdown()        
-
 def startServer(serverIP):
     server = Server((serverIP,8080))
+    server.socket.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,0)
     serverThread = threading.Thread(target=server.serve_forever)
     serverThread.daemon = True
     serverThread.start()

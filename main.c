@@ -1221,7 +1221,7 @@ int main(int argc, char **argv){
   initPython();
   initFonts();
   //SDL_EnableUNICODE(1);
-  gameModule = PyImport_ImportModule("__init__");//New reference
+  gameModule = PyImport_ImportModule("gameModes");//New reference
   gameState = PyImport_ImportModule("gameState");
   mainLoop();
   Py_DECREF(gameModule);

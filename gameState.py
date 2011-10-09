@@ -2,6 +2,7 @@ import cDefines
 import gameLogic
 import threading
 import copy
+import server
 
 unitTypesList = []
 unitTypesList.append(gameLogic.unitType("summoner",cDefines.defines["MEEPLE_INDEX"],100.0,100.0,100))
@@ -57,35 +58,54 @@ def getClient():
 	global theClient
 	return theClient
 
+thePlayerNumber = 0
+def setPlayerNumber(playerNumber):
+	global thePlayerNumber
+	thePlayerNumber = playerNumber
+def getPlayerNumber():
+	global thePlayerNumber
+	return thePlayerNumber
 
 class Player:
-	nextPlayerNumber = 1
-	def __init__(self,requestHandler):
-		print 'new player'
-		self.requestHandler = requestHandler
-		self.playerNumber = Player.nextPlayerNumber
-		Player.nextPlayerNumber = Player.nextPlayerNumber + 1
-	def dispatchCommand(self,command):
-		self.requestHandler.wfile.write(command)
+	def __init__(self,playerNumber):
+		self.playerNumber = playerNumber
+		self.isOwnPlayer = False
 
-playersLock = threading.Lock()
+thePlayersLock = threading.Lock()
 thePlayers = []
-def addPlayer(requestHandler):
-	print '1'
-       	player = Player(requestHandler)
-	print '2'
-	with playersLock:
-		thePlayers.append(player)
+def addPlayer(playerNumber):
+       	player = Player(playerNumber)
+	with thePlayersLock:
+		thePlayers.append(player)		
+	getGameMode().redrawPlayers()
 	return player
-def removePlayer(player):
-	Player.nextPlayerNumber = Player.nextPlayerNumber - 1
-	with playersLock:
-		for aPlayer in thePlayers:
-			if(aPlayer.playerNumber > player.playerNumber):
-				aPlayer.playerNumber = aPlayer.playerNumber - 1
-		thePlayers.remove(player)
+def removePlayer(playerNumber):
+	with thePlayersLock:
+		for aPlayer in theNetworkPlayers:
+			if(aPlayer.playerNumber == player.playerNumber):
+				theNetworkPlayers.remove(player)
 def getPlayers():
 	playersCopy = []
-	with playersLock:
+	with thePlayersLock:
 		playersCopy = copy.copy(thePlayers)
+	return playersCopy
+
+networkPlayersLock = threading.Lock()
+theNetworkPlayers = []
+def addNetworkPlayer(requestHandler):
+       	player = server.NetworkPlayer(requestHandler)
+	with networkPlayersLock:
+		theNetworkPlayers.append(player)
+	return player
+def removeNetworkPlayer(player):
+	server.NetworkPlayer.nextPlayerNumber = server.NetworkPlayer.nextPlayerNumber - 1
+	with networkPlayersLock:
+		for aPlayer in theNetworkPlayers:
+			if(aPlayer.playerNumber > player.playerNumber):
+				aPlayer.playerNumber = aPlayer.playerNumber - 1
+		theNetworkPlayers.remove(player)
+def getNetworkPlayers():
+	playersCopy = []
+	with networkPlayersLock:
+		playersCopy = copy.copy(theNetworkPlayers)
 	return playersCopy

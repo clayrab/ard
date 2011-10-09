@@ -21,8 +21,6 @@ import uiElements
 import server
 import client
 
-
-
 zoomSpeed = 0.3
 class gameMode:
 	sortedElements = []
@@ -76,7 +74,10 @@ class gameMode:
 			print 'shutting down server...'
 			gameState.getServer().shutdown()
 			print 'done shutting down'
-		
+	def onDraw(self):
+		if(gameState.getClient() != None):
+			if(hasattr(gameState.getClient(),"checkSocket")):
+				gameState.getClient().checkSocket()
 			
 class tiledGameMode(gameMode):
 	def __init__(self):
@@ -382,31 +383,57 @@ class joinLANGameScreenMode(gameMode):
 class joiningLANGameScreenMode(gameMode):
 	def __init__(self):
 		gameMode.__init__(self)
-	def addUIElements(self):
-		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])
-		uiElements.uiElement(-0.15,0.2,text="joining...")
-		#uiElements.menuButton(-0.45,0.0,newGameScreenMode,text="back")
-
-class hostLANGameScreenMode(gameMode):
-	def __init__(self):
-		gameMode.__init__(self)
-		print 'starting server...'
-		server.startServer('127.0.0.1')
-		print 'server started...'
-		print 'starting client...'
-		client.startClient('127.0.0.1')
-		print 'client started'
-	def onDraw(self):
+		self.playerElementNames = []
+	def removePlayerElements(self):
+		for name in self.playerElementNames:
+			del gameState.getGameMode().elementsDict[name]
+		self.playerElementNames = []
+		gameState.getGameMode().resortElems = True
+	def redrawPlayers(self):
+		self.removePlayerElements()
 		height = 0.7
-		players = gameState.getPlayers()
-		for player in players:
-			uiElements.uiElement(-0.85,height,text="player " + str(player.playerNumber))
+		for player in gameState.getPlayers():
+			if(player.isOwnPlayer):
+				self.playerElementNames.append(uiElements.uiElement(-0.85,height,text="*player " + str(player.playerNumber) + "*").name)
+			else:
+				self.playerElementNames.append(uiElements.uiElement(-0.85,height,text="player " + str(player.playerNumber)).name)
 			height = height - 0.1
 	def addUIElements(self):
 		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])
 		uiElements.uiElement(-0.15,0.9,text="lan game")
 		uiElements.uiElement(-0.85,0.8,text="players")
-		uiElements.uiElement(-0.85,-0.1,text="map")
-		uiElements.menuButton(0.65,-0.8,playMode,text="start")
+		self.mapNameElement = uiElements.uiElement(-0.85,-0.1,text="choose map")
+		#uiElements.menuButton(-0.45,0.0,newGameScreenMode,text="back")
+
+class hostLANGameScreenMode(gameMode):
+	def __init__(self):
+		gameMode.__init__(self)
+		self.playerElementNames = []
+	def removePlayerElements(self):
+		for name in self.playerElementNames:
+			del gameState.getGameMode().elementsDict[name]
+		self.playerElementNames = []
+		gameState.getGameMode().resortElems = True
+	def redrawPlayers(self):
+		self.removePlayerElements()
+		height = 0.7
+		for player in gameState.getPlayers():
+			if(player.isOwnPlayer):
+				self.playerElementNames.append(uiElements.uiElement(-0.85,height,text="*player " + str(player.playerNumber) + "*").name)
+			else:
+				self.playerElementNames.append(uiElements.uiElement(-0.85,height,text="player " + str(player.playerNumber)).name)
+			height = height - 0.1
+	def addUIElements(self):
+		print 'starting server...'
+		server.startServer('')
+		print 'server started...'
+		print 'starting client...'
+		client.startClient('127.0.0.1')
+		print 'client started'
+		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])	
+		uiElements.uiElement(-0.15,0.9,text="lan game")
+		uiElements.uiElement(-0.85,0.8,text="players")
+		uiElements.mapField(-0.85,-0.1,text="choose map")
+		uiElements.startButton(0.65,-0.8,playMode,text="start")
 
 gameState.setGameMode(newGameScreenMode)

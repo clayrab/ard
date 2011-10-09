@@ -1,3 +1,4 @@
+import os
 import random
 import copy
 import gameState
@@ -149,7 +150,7 @@ class newMapNameInputElement(textInputElement):
 			textInputElement.onKeyDown(self,keycode)
 
 class hostIPInputElement(textInputElement):
-	def __init__(self,xPos,yPos,gameMode,width=0.0,height=0.0,text="127.0.0.1",textSize=0.001,textureIndex=-1,textColor='FF FF FF',textXPos=0.0,textYPos=0.0):
+	def __init__(self,xPos,yPos,gameMode,width=0.0,height=0.0,text="192.168.1.5",textSize=0.001,textureIndex=-1,textColor='FF FF FF',textXPos=0.0,textYPos=0.0):
 		textInputElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textSize=textSize,textColor=textColor,textXPos=textXPos,textYPos=textYPos)
 		self.gameMode = gameMode
 	def onKeyDown(self,keycode):
@@ -543,3 +544,37 @@ class mapPlaySelectButton(menuButton):
 	def onClick(self):
 		gameState.setMapName(self.text)
 		gameState.setGameMode(self.gameMode)
+
+class mapSelector(scrollableTextFieldsElement):
+	def __init__(self,xPos,yPos,textFields,mapField,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,yPositionOffset=-0.04,yOffset=-0.041,numFields=25,scrollSpeed=1):
+		scrollableTextFieldsElement.__init__(self,xPos,yPos,textFields,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,color=color,mouseOverColor=mouseOverColor)
+		self.mapField = mapField
+	def handleClick(self,textFieldElem):
+		for player in gameState.getNetworkPlayers():
+			print player
+			player.dispatchCommand("setMap " + textFieldElem.text + "|")
+		self.mapField.text = textFieldElem.text
+		self.destroy()
+
+class mapField(clickableElement):
+       	def __init__(self,xPos,yPos,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,textXPos=0.0,textYPos=0.0):
+		clickableElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],color=color,mouseOverColor=mouseOverColor,textXPos=textXPos,textYPos=textYPos)
+	def onClick(self):
+		dirList=os.listdir("maps")
+		mapNames = []
+		for fileName in dirList:
+			if(fileName.endswith(".map")):
+				mapNames.append(fileName[0:len(fileName)-4])
+		mapSelector(self.xPosition,self.yPosition-0.06,mapNames,self,text="select build time",textSize=0.0005,textureIndex=cDefines.defines['UI_SCROLLABLE_INDEX'],width=(2.0*cDefines.defines['UI_SCROLLABLE_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_SCROLLABLE_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']))
+
+class startButton(menuButton):
+	def onClick(self):
+		if(gameState.getMapName() != None):
+			print '1'
+			gameState.getServer().acceptingConnections = False
+			for player in gameState.getNetworksPlayers():
+				player.dispatchCommand("startGame|")
+				print '2'
+			#gameState.setGameMode(self.gameMode)
+			print '3'
+
