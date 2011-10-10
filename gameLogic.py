@@ -31,8 +31,11 @@ class unit:
 		self.health = self.unitType.health
 		self.movePath = []
 	def moveTo(self,node):
-		if(node.unit != None):
-			print 'attack!!? move elsewhere??!!'
+		if(node.unit != None and self.node != node):
+			if(node.unit.playerOwner != self.playerOwner):
+				print 'attack!!??'
+			else:
+				print 'own unit... do nothing or if were on a movepath, recalc movepath and move'
 		else:
 			self.node.unit = None
 			self.node = node
@@ -46,6 +49,10 @@ class city:
 		self.name = name
 		self.costOfOwnership = costOfOwnership
 		self.unitTypes = unitTypes
+		self.researching = True
+		self.researchUnitType = None
+		self.researchLevel = 0
+		self.researchProgress = 0
 		self.unitBeingBuilt = None
 		self.unitBuildQueue = []
 		self.playerOwner = 0
@@ -58,6 +65,21 @@ class city:
 		if(len(self.unitBuildQueue) == 0):
 			self.unitBuildQueue.append(unit(self.unitBeingBuilt.unitType,self.unitBeingBuilt.player,self.unitBeingBuilt.xPos,self.unitBeingBuilt.yPos,self.unitBeingBuilt.node))
 		self.unitBeingBuilt = self.unitBuildQueue[0]
+	def incrementBuildProgress(self):
+		if(self.researching):
+			if(self.researchUnitType != None):
+				print self.researchProgress
+				self.researchProgress = self.researchProgress + 1
+				if(self.researchProgress >= 200):
+					self.researchLevel = self.researchLevel + 1
+					self.researchProgress = 0
+		else:
+			if(self.unitBeingBuilt != None and self.node.unit != None and self.node.unit.unitType.name == "summoner"):
+				node.city.unitBeingBuilt.buildPoints = node.city.unitBeingBuilt.buildPoints - 1.0
+				if(node.city.unitBeingBuilt.buildPoints <= 0.0):
+					node.addUnit(node.city.unitBeingBuilt)
+					node.city.buildNextUnit()
+
 
 class node:
 	def __init__(self,xPos,yPos,tileValue=cDefines.defines['GRASS_TILE_INDEX'],roadValue=0,city=None,playerStartValue=0):
@@ -103,15 +125,14 @@ class playModeNode(node):
 	def onLeftClickDown(self):
 		if(len(gameState.getPlayers()) > 0):#multiplayer game
 			if(gameState.getGameMode().nextUnit.player == gameState.getPlayerNumber()):
-				gameState.getClient().sendCommand("nodeClick " + str(self.xPos) + " " + str(self.yPos) + "|")
+				gameState.getGameMode().nextUnit.movePath = gameState.getGameMode().nextUnit.node.movePath[1:]
+				gameState.getClient().sendCommand("nodeClick " + str(gameState.getGameMode().nextUnit.node.movePath[0].xPos) + " " + str(gameState.getGameMode().nextUnit.node.movePath[0].yPos) + "|")
 		else:
 			if(playModeNode.moveMode):
 				gameState.getGameMode().nextUnit.movePath = gameState.getGameMode().nextUnit.node.movePath[1:]
 				gameState.getGameMode().nextUnit.moveTo(gameState.getGameMode().nextUnit.node.movePath[0])
 			else:
 				selectNode(self)
-	def doNetworkClick(self):
-		self.moveTo()
 	def toggleCursor(self):
 		for node in playModeNode.movePath:
 			node.onMovePath = False

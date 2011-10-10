@@ -1,11 +1,11 @@
-#server:
-#room for finding games
-#room for each game
-#way to save and resume games
 #icons for each unit
 #fog of war
 #attacking
 #unit viewer in playMode
+#server:
+#room for finding games
+#room for each game
+#way to save and resume games
 #AI
 #campaign
 
@@ -73,7 +73,6 @@ class gameMode:
 		print 'shutting down server...'
 		server.shutdownServer()
 		print 'done shutting down'
-			
 	def onDraw(self):
 		if(gameState.getClient() != None):
 			if(hasattr(gameState.getClient(),"checkSocket")):
@@ -119,11 +118,12 @@ class tiledGameMode(gameMode):
 	def handleMouseOver(self,name,isLeftMouseDown):
 		#TODO: keeping track of mousedOverObject might not be necessary any more since I added previousMousedoverName to the C code
 		if(isLeftMouseDown > 0):#allows onLeftClickDown to be called for tiles when the mouse is dragged over them
-			if(gameState.getGameMode().selectedButton != None):
-				if(gameState.getGameMode().selectedButton.tileType != cDefines.defines['CITY_TILE_INDEX']):
-					if(self.elementsDict.has_key(name)):
-						if(hasattr(self.elementsDict[name],"tileValue")):#node
-							self.elementsDict[name].onLeftClickDown()
+			if(hasattr(gameState.getGameMode(),"selectedButton")):
+				if(gameState.getGameMode().selectedButton != None):
+					if(gameState.getGameMode().selectedButton.tileType != cDefines.defines['CITY_TILE_INDEX']):
+						if(self.elementsDict.has_key(name)):
+							if(hasattr(self.elementsDict[name],"tileValue")):#node
+								self.elementsDict[name].onLeftClickDown()
 		if(self.mousedOverObject != None):
 			if(self.mousedOverObject.name != name):
 				if(hasattr(self.mousedOverObject,"onMouseOut")):
@@ -179,23 +179,29 @@ class playMode(tiledGameMode):
 					unit.movementPoints = unit.movementPoints - ((1.0+float(unit.node.roadValue))/cDefines.defines['GRASS_MOVE_COST'])
 			for row in self.map.nodes:
 				for node in row:
-					if(node.city != None and node.city.unitBeingBuilt != None and node.unit != None and node.unit.unitType.name == "summoner"):
-						node.city.unitBeingBuilt.buildPoints = node.city.unitBeingBuilt.buildPoints - 1.0
-						if(node.city.unitBeingBuilt.buildPoints <= 0.0):
-							node.addUnit(node.city.unitBeingBuilt)
-							node.city.buildNextUnit()
-
+					if(node.city != None):
+						node.city.incrementBuildProgress()
 		eligibleUnits = []
 		eligibleUnits.append(self.units[0])
 		for unit in self.units[1:]:
 			if(unit.movementPoints == eligibleUnits[0].movementPoints):
 				eligibleUnits.append(unit)
 		self.nextUnit = random.choice(eligibleUnits)
+
+
+
 		gameLogic.selectNode(self.nextUnit.node)
 		self.focusNextUnit = 1
+
+
 		if(len(self.nextUnit.movePath) > 0):
-			self.nextUnit.movePath = self.nextUnit.movePath[1:]
-			self.nextUnit.moveTo(self.nextUnit.movePath[0])
+			if(len(gameState.getPlayers()) > 0):#multiplayer game
+				if(gameState.getGameMode().nextUnit.player == gameState.getPlayerNumber()):
+					self.nextUnit.movePath = self.nextUnit.movePath[1:]
+					gameState.getClient().sendCommand("nodeClick " + str(self.nextUnit.movePath[0].xPos) + " " + str(self.nextUnit.movePath[0].yPos) + "|")
+			else:
+				self.nextUnit.movePath = self.nextUnit.movePath[1:]
+				self.nextUnit.moveTo(self.nextUnit.movePath[0])
 	def loadSummoners(self):
 		rowCount = 0
 		columnCount = 0
@@ -210,7 +216,11 @@ class playMode(tiledGameMode):
 #					self.units.append(node.unit)
 	def handleKeyDown(self,keycode):
 		if(keycode == "space"):
-			self.nextUnit.moveTo(self.nextUnit.node)
+			if(len(gameState.getPlayers()) > 0):#multiplayer game
+				if(gameState.getGameMode().nextUnit.player == gameState.getPlayerNumber()):
+					gameState.getClient().sendCommand("nodeClick " + str(self.nextUnit.node.xPos) + " " + str(self.nextUnit.node.yPos) + "|")
+			else:
+				self.nextUnit.moveTo(self.nextUnit.node)
 		elif(keycode == "n"):
 			self.focusNextUnit = 1
 			self.selectedNode.selected = False

@@ -162,7 +162,30 @@ class hostIPInputElement(textInputElement):
 		else:
 			textInputElement.onKeyDown(self,keycode)
 
+class unitResearchButton(clickableElement):
+       	def __init__(self,xPos,yPos,unitType,node,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,textXPos=0.0,textYPos=0.0):
+		clickableElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],color=color,mouseOverColor=mouseOverColor,textXPos=textXPos,textYPos=textYPos)
+		self.unitType = unitType
+		self.node = node
+	def onClick(self):
+		self.node.city.researchUnitType = self.unitType
+		cityViewer.theCityViewer.reset()
 
+class startSummoningButton(clickableElement):
+       	def __init__(self,xPos,yPos,node,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,textXPos=0.0,textYPos=0.0):
+		clickableElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],color=color,mouseOverColor=mouseOverColor,textXPos=textXPos,textYPos=textYPos)
+		self.node = node
+	def onClick(self):
+		self.node.city.researching = False
+		cityViewer.theCityViewer.reset()
+
+class buildUnitButton(clickableElement):
+       	def __init__(self,xPos,yPos,node,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,textXPos=0.0,textYPos=0.0):
+		clickableElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],color=color,mouseOverColor=mouseOverColor,textXPos=textXPos,textYPos=textYPos)
+		self.node = node
+	def onClick(self):
+		self.node.city.queueUnit(gameLogic.unit(self.node.city.researchUnitType,self.node.city.playerOwner,self.node.xPos,self.node.yPos,self.node))
+		cityViewer.theCityViewer.reset()
 
 class cityViewer(uiElement):
 	theCityViewer = None
@@ -171,20 +194,30 @@ class cityViewer(uiElement):
 		self.node = node
 		self.names = []
 		self.names.append(uiElement(-0.972,0.75,text=self.node.city.name,textSize=0.0007).name)
-		if(self.node.city.unitBeingBuilt != None):
-			self.names.append(uiElement(-0.972,0.67,text=self.node.city.unitBeingBuilt.unitType.name,textSize=0.0005).name)
-			self.names.append(uiElement(-0.972,0.65,height=(2.0*cDefines.defines['UNIT_BUILD_BAR_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),width=(2.0*cDefines.defines['UNIT_BUILD_BAR_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),textureIndex=cDefines.defines['UNIT_BUILD_BAR_INDEX']).name)
-                        self.names.append(uiElement(-0.972,0.65,height=(2.0*cDefines.defines['UNIT_BUILD_BAR_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),width=(2.0*cDefines.defines['UNIT_BUILD_BAR_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH'])*(self.node.city.unitBeingBuilt.unitType.buildTime-self.node.city.unitBeingBuilt.buildPoints)/self.node.city.unitBeingBuilt.unitType.buildTime,textureIndex=cDefines.defines['UNIT_BUILD_BAR_INDEX'],color="FF 00 00").name)
-		height = 0.6
-		for unit in self.node.city.unitBuildQueue[1:]:
-			height = height - 0.035
-			self.names.append(uiElement(-0.972,height,text=str(unit.unitType.name),textSize=0.0005).name)
-
-		height = 0.16
-		for unitType in self.node.city.unitTypes:
-			self.names.append(unitSelectButton(-0.972,height,unitType,self.node,text=unitType.name,textSize=0.0005).name)
-			self.names.append(uiElement(-0.7,height,text=str(unitType.cost),textSize=0.0005).name)
-			height = height - 0.035
+		if(self.node.city.researching):
+			if(self.node.city.researchUnitType == None):
+				height = 0.56
+				for unitType in self.node.city.unitTypes:
+					self.names.append(unitResearchButton(-0.972,height,unitType,self.node,text="research "+unitType.name,textSize=0.0005).name)
+					self.names.append(uiElement(-0.7,height,text=str(unitType.cost),textSize=0.0005).name)
+					height = height - 0.035
+			else:
+				self.names.append(uiElement(-0.972,0.65,text="researching " + self.node.city.researchUnitType.name,textSize=0.0005).name)
+				self.names.append(uiElement(-0.972,0.6,text=str(self.node.city.researchProgress),textSize=0.0005).name)
+				self.names.append(uiElement(-0.972,0.55,text=str(self.node.city.researchLevel),textSize=0.0005).name)
+				if(self.node.city.researchLevel > 0):
+					self.names.append(startSummoningButton(-0.972,0.5,self.node,text="start summoning",textSize=0.0005).name)
+		else:
+			
+			if(self.node.city.unitBeingBuilt != None):
+				self.names.append(uiElement(-0.972,0.67,text=self.node.city.unitBeingBuilt.unitType.name,textSize=0.0005).name)
+				self.names.append(uiElement(-0.972,0.65,height=(2.0*cDefines.defines['UNIT_BUILD_BAR_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),width=(2.0*cDefines.defines['UNIT_BUILD_BAR_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),textureIndex=cDefines.defines['UNIT_BUILD_BAR_INDEX']).name)
+				self.names.append(uiElement(-0.972,0.65,height=(2.0*cDefines.defines['UNIT_BUILD_BAR_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),width=(2.0*cDefines.defines['UNIT_BUILD_BAR_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH'])*(self.node.city.unitBeingBuilt.unitType.buildTime-self.node.city.unitBeingBuilt.buildPoints)/self.node.city.unitBeingBuilt.unitType.buildTime,textureIndex=cDefines.defines['UNIT_BUILD_BAR_INDEX'],color="FF 00 00").name)
+			height = 0.6
+			for unit in self.node.city.unitBuildQueue[1:]:
+				height = height - 0.035
+				self.names.append(uiElement(-0.972,height,text=str(unit.unitType.name),textSize=0.0005).name)
+			self.names.append(buildUnitButton(-0.972,height,self.node,text="build " + self.node.city.researchUnitType.name,textSize=0.0005).name)
 		
 	def destroy(self):
 		del gameState.getGameMode().elementsDict[self.name]
@@ -498,15 +531,6 @@ class unitBuildTimeField(clickableElement):
 		unitBuildTimeSelector(self.xPosition,self.yPosition-0.06,unitBuildTimes,self,text="select build time",textSize=0.0005,textureIndex=cDefines.defines['UI_SCROLLABLE_INDEX'],width=(2.0*cDefines.defines['UI_SCROLLABLE_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_SCROLLABLE_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']))
 
 
-class unitSelectButton(clickableElement):
-       	def __init__(self,xPos,yPos,unitType,node,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,textXPos=0.0,textYPos=0.0):
-		clickableElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],color=color,mouseOverColor=mouseOverColor,textXPos=textXPos,textYPos=textYPos)
-		self.unitType = unitType
-		self.node = node
-	def onClick(self):
-		if(gameState.getGameMode().selectedNode.unit != None and gameState.getGameMode().selectedNode.unit.unitType.name == "summoner"):
-			self.node.city.queueUnit(gameLogic.unit(self.unitType,self.node.city.playerOwner,self.node.xPos,self.node.yPos,self.node))
-			cityViewer.theCityViewer.reset()
 
 class menuButton(clickableElement):
 	index = 0
