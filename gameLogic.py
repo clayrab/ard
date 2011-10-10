@@ -31,13 +31,16 @@ class unit:
 		self.health = self.unitType.health
 		self.movePath = []
 	def moveTo(self,node):
-		self.node.unit = None
-		self.node = node
-		node.unit = self
-		if(node.city != None):
-			node.city.playerOwner = node.unit.player
-		self.movementPoints = self.movementPoints + self.unitType.movementInitiative
-		gameState.getGameMode().chooseNextUnit()
+		if(node.unit != None):
+			print 'attack!!? move elsewhere??!!'
+		else:
+			self.node.unit = None
+			self.node = node
+			node.unit = self
+			if(node.city != None):
+				node.city.playerOwner = node.unit.player
+       			self.movementPoints = self.movementPoints + self.unitType.movementInitiative
+			gameState.getGameMode().chooseNextUnit()
 class city:
 	def __init__(self,name,unitTypes=[],costOfOwnership=10):
 		self.name = name
@@ -98,17 +101,17 @@ class playModeNode(node):
 		self.aStarParent = None
 		self.onMovePath = False
 	def onLeftClickDown(self):
-		if(gameState.getGameMode().nextUnit.node.neighbors.count(self) > 0):#move unit
-			if(self.unit != None):
-				print "attack!!!!..?"
-			else:
-				gameState.getGameMode().nextUnit.moveTo(self)
-		else:#select node
+		if(len(gameState.getPlayers()) > 0):#multiplayer game
+			if(gameState.getGameMode().nextUnit.player == gameState.getPlayerNumber()):
+				gameState.getClient().sendCommand("nodeClick " + str(self.xPos) + " " + str(self.yPos) + "|")
+		else:
 			if(playModeNode.moveMode):
 				gameState.getGameMode().nextUnit.movePath = gameState.getGameMode().nextUnit.node.movePath[1:]
 				gameState.getGameMode().nextUnit.moveTo(gameState.getGameMode().nextUnit.node.movePath[0])
 			else:
 				selectNode(self)
+	def doNetworkClick(self):
+		self.moveTo()
 	def toggleCursor(self):
 		for node in playModeNode.movePath:
 			node.onMovePath = False

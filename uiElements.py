@@ -1,5 +1,4 @@
 import os
-import random
 import copy
 import gameState
 import gameLogic
@@ -7,6 +6,7 @@ import nameGenerator
 import cDefines
 import shutil
 import client
+import server
 
 cityCosts = ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20"]
 unitCosts = ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20"]
@@ -550,9 +550,7 @@ class mapSelector(scrollableTextFieldsElement):
 		scrollableTextFieldsElement.__init__(self,xPos,yPos,textFields,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,color=color,mouseOverColor=mouseOverColor)
 		self.mapField = mapField
 	def handleClick(self,textFieldElem):
-		for player in gameState.getNetworkPlayers():
-			print player
-			player.dispatchCommand("setMap " + textFieldElem.text + "|")
+		server.setMap(textFieldElem.text)
 		self.mapField.text = textFieldElem.text
 		self.destroy()
 
@@ -570,11 +568,10 @@ class mapField(clickableElement):
 class startButton(menuButton):
 	def onClick(self):
 		if(gameState.getMapName() != None):
-			print '1'
-			gameState.getServer().acceptingConnections = False
-			for player in gameState.getNetworksPlayers():
+			server.stopAcceptingConnections()
+			for player in gameState.getNetworkPlayers():
 				player.dispatchCommand("startGame|")
-				print '2'
-			#gameState.setGameMode(self.gameMode)
-			print '3'
+		else:
+			#TODO: show host a friendly message
+			print 'choose a map!!'
 

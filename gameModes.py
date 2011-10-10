@@ -29,7 +29,6 @@ class gameMode:
 		self.map = None
 		self.elementWithFocus = None
 		self.resortElems = True
-		
 	def getUIElementsIterator(self):
 		#TODO: remove resortElems code if it's not needed...
 		if(self.resortElems):
@@ -70,10 +69,11 @@ class gameMode:
 			print 'shutting down client...'
 			gameState.getClient().socket.close()
 			print 'done shutting down client'
-		if(gameState.getServer() != None):
-			print 'shutting down server...'
-			gameState.getServer().shutdown()
-			print 'done shutting down'
+		
+		print 'shutting down server...'
+		server.shutdownServer()
+		print 'done shutting down'
+			
 	def onDraw(self):
 		if(gameState.getClient() != None):
 			if(hasattr(gameState.getClient(),"checkSocket")):

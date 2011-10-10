@@ -1,34 +1,43 @@
-import gameModes
 import socket
 import threading
+import random
 import gameState
-
+import gameModes
+import gameLogic
 
 class Commands:
     @staticmethod
+    def seedRNG(seed):
+        print seed
+        random.seed(seed)
+    @staticmethod
     def setMap(mapName):
-        print 'setting map... '
         gameState.setMapName(mapName)
-        print gameState.getMapName()
     @staticmethod
     def setPlayerNumber(playerNumber):
-        print 'setting player num'
-        gameState.setPlayerNumber(playerNumber)
-        print gameState.getPlayerNumber()
+        gameState.setPlayerNumber(int(playerNumber))
     @staticmethod
     def addPlayer(playerNumber):
-        print 'adding player...'
         player = gameState.addPlayer(playerNumber)
         if(gameState.getPlayerNumber() == player.playerNumber):
-            print 'it me!'
             player.isOwnPlayer = True
+        gameState.getGameMode().redrawPlayers()
     @staticmethod
     def startGame():
-        print 'starting game...'
         gameState.setGameMode(gameModes.playMode)
-
+    @staticmethod
+    def nodeClick(args):
+        print 'nodeclick'
+        tokens = args.split(" ")
+        print tokens
+        nodes = gameState.getGameMode().map.nodes
+        print int(tokens[0])
+        print int(tokens[1])
+        node = nodes[int(tokens[1])][int(tokens[0])]
+        print node
+       	gameState.getGameMode().nextUnit.moveTo(node)
+        
 def doCommand(commandName,args=None):
-    print 'doing ' + commandName 
     commandFunc = getattr(Commands,commandName)
     if(commandFunc != None):
         if(args != None):
@@ -40,8 +49,7 @@ def doCommand(commandName,args=None):
 
 class ClientThread(threading.Thread):
     def run(self):
-        while(self.isAlive()):
-            print 'run...'
+        while(1):
             receivedData = self.socket.recv(1024)
             print "receivedData: " + receivedData
             for command in receivedData.split("|"):
@@ -51,12 +59,12 @@ class ClientThread(threading.Thread):
                         doCommand(tokens[0],args=tokens[1])                    
                     else:
                         doCommand(tokens[0])
-        else:
+#        else:
             #TODO: create a socketLock and call these explicitely
-            print '*****SOCKET SHUTTING DOWN*****'
-            self.socket.shutdown()
-            self.socket.close()
-            print '*****SOCKET SHUT DOWN*****'
+#            print '*****SOCKET SHUTTING DOWN*****'
+#            self.socket.shutdown()
+#            self.socket.close()
+#            print '*****SOCKET SHUT DOWN*****'
     
     def __init__(self,hostIP):
         threading.Thread.__init__(self)
@@ -66,12 +74,12 @@ class ClientThread(threading.Thread):
 #        print self.socket.getsockopt(socket.SOL_SOCKET,socket.SO_SNDBUF)
         gameState.setClient(self)
         self.socket.connect((hostIP,8080))
+
 class Client:
     def __init__(self,hostIP):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.connect((hostIP,8080))
         self.socket.setblocking(0)
-        gameState.setClient(self)
     def checkSocket(self):
         receivedData = self.socket.recv(1024)
         print "receivedData: " + receivedData
@@ -82,9 +90,12 @@ class Client:
                     doCommand(tokens[0],args=tokens[1])                    
                 else:
                     doCommand(tokens[0])
-        
+    def sendCommand(self,command):
+        print 'sending... ' + command
+        self.socket.send(command)
+        print 'sent...'
 def startClient(hostIP):
-    Client(hostIP)
+    gameState.setClient(Client(hostIP))
 #    clientThread = ClientThread(hostIP)
 #    clientThread.daemon = True
 #    clientThread.start()

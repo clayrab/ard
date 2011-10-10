@@ -34,13 +34,13 @@ def getGameMode():
     global theGameMode
     return theGameMode
 
-theServer = None
-def setServer(server):
-	global theServer
-	theServer = server
-def getServer():
-	global theServer
-	return theServer
+#theServer = None
+#def setServer(server):
+#	global theServer
+#	theServer = server
+#def getServer():
+#	global theServer
+#	return theServer
 
 theHostIP = None
 def setHostIP(hostIP):
@@ -77,7 +77,6 @@ def addPlayer(playerNumber):
        	player = Player(playerNumber)
 	with thePlayersLock:
 		thePlayers.append(player)		
-	getGameMode().redrawPlayers()
 	return player
 def removePlayer(playerNumber):
 	with thePlayersLock:
