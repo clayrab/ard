@@ -1,0 +1,11 @@
+#name		txtrName	movSpd      atkPwr   fly cost    movSpdBonus
+#				      atkSpd  range    swim         atkSpdBonus
+#				      	        health 	     bldTime   atkPwrBonus 
+summoner	MEEPLE		100.0 100.0 0 0 0100 0 0 300 300 00 00 00  					
+swordsman	MEEPLE		100.0 100.0 5 1 0100 0 0 100 100 00 01 01
+archer		MEEPLE		100.0 100.0 3 5 0100 0 0 100 100 00 01 01
+giant_bat	MEEPLE		160.0 100.0 3 1 0080 1 0 100 100 05 01 01
+#unitTypesList.append(gameLogic.unitType("beaver",cDefines.defines["MEEPLE_INDEX"],100.0,100.0,100))
+#unitTypesList.append(gameLogic.unitType("catapult",cDefines.defines["MEEPLE_INDEX"],100.0,100.0,100))
+#unitTypesList.append(gameLogic.unitType("archer",cDefines.defines["MEEPLE_INDEX"],100.0,100.0,100))
+#unitTypesList.append(gameLogic.unitType("dragon",cDefines.defines["MEEPLE_INDEX"],100.0,100.0,100))

@@ -30,15 +30,13 @@ class gameMode:
 		self.elementWithFocus = None
 		self.resortElems = True
 	def getUIElementsIterator(self):
-		#TODO: remove resortElems code if it's not needed...
 		if(self.resortElems):
 			self.resortElems = False
-#			gameMode.sortedElements = sorted(self.elementsDict.values().__iter__())
-#			gameMode.sortedElements = self.elementsDict.values()
-#			print "SORT"
-#			print gameMode.sortedElements
-#		return gameMode.sortedElements.__iter__()
-		return self.elementsDict.values().__iter__()
+#			gameMode.sortedElements = sorted(self.elementsDict.values(),key=lambda x:x.name)
+			gameMode.sortedElements = self.elementsDict.values()
+			gameMode.sortedElements.sort(lambda x,y:x.name-y.name)
+		return gameMode.sortedElements.__iter__()
+#		return self.elementsDict.values().__iter__()
 	def handleLeftClickDown(self,name):
 		if(self.elementsDict.has_key(name)):
 			self.elementWithFocus = self.elementsDict[name]
@@ -378,6 +376,7 @@ class newMapMode(gameMode):
 	def __init__(self):
 		gameMode.__init__(self)
 	def addUIElements(self):
+		print '1'
 		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])
 		uiElements.uiElement(-0.15,0.2,text="map name")
 		self.elementWithFocus = uiElements.newMapNameInputElement(-0.15,0.15,mapEditorMode,width=(2.0*cDefines.defines['UI_TEXT_INPUT_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_TEXT_INPUT_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),text="",textSize=0.0005,textColor='00 00 00',textureIndex=cDefines.defines['UI_TEXT_INPUT_INDEX'],textYPos=-0.035,textXPos=0.01)

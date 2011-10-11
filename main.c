@@ -704,8 +704,6 @@ void drawTileSelect(double xPos, double yPos, int name, long tileType, long sele
 void drawUIElement(PyObject * uiElement){
   int isNode = PyObject_HasAttrString(uiElement,"tileValue");
   if(!isNode){
-  
-
     unsigned int red[1],green[1],blue[1];
     PyObject * pyXPosition = PyObject_GetAttrString(uiElement,"xPosition");
     PyObject * pyYPosition = PyObject_GetAttrString(uiElement,"yPosition");
@@ -931,10 +929,7 @@ static void handleInput(){
     case SDL_MOUSEMOTION:
       mouseX = event.motion.x;
       mouseY = event.motion.y;
-      //printf("mousex: %d mousey: %d\n",mouseX,mouseY);
-      //printf("translateX: %f translateY: %f\n",translateX,translateY);
       PyObject_CallMethod(gameMode,"handleMouseMovement","(iii)",selectedName,mouseX,mouseY);
-      //printf("x: %d\t\ty: %d\n",mouseX,mouseY);
       if(mouseX == 0){
 	moveRight = -1;
       }else if(mouseX >= SCREEN_WIDTH-1){

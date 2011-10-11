@@ -1,16 +1,35 @@
+import os
+import copy
+import re
 import cDefines
 import gameLogic
 import threading
-import copy
 import server
 
 unitTypesList = []
-unitTypesList.append(gameLogic.unitType("summoner",cDefines.defines["MEEPLE_INDEX"],100.0,100.0,100))
-unitTypesList.append(gameLogic.unitType("beaver",cDefines.defines["MEEPLE_INDEX"],100.0,100.0,100))
-unitTypesList.append(gameLogic.unitType("catapult",cDefines.defines["MEEPLE_INDEX"],100.0,100.0,100))
-unitTypesList.append(gameLogic.unitType("archer",cDefines.defines["MEEPLE_INDEX"],100.0,100.0,100))
-unitTypesList.append(gameLogic.unitType("dragon",cDefines.defines["MEEPLE_INDEX"],100.0,100.0,100))
+unitsFile = open("units")
+for line in unitsFile:
+	if(not line.startswith("#")):
+		line = line.replace("\n","")
+		line = re.sub('[ \t]+'," ",line)
+		tokens = line.split(" ")
+		tokens[0] = tokens[0].replace("_"," ")
+		tokens[1] = cDefines.defines[tokens[1]+"_INDEX"]
+		tokens[2] = float(tokens[2])
+		tokens[3] = float(tokens[3])
+		tokens[4] = int(tokens[4])
+		tokens[5] = int(tokens[5])
+		tokens[6] = int(tokens[6])
+		tokens[7] = bool(int(tokens[7]))
+		tokens[8] = bool(int(tokens[8]))
+		tokens[9] = int(tokens[9])
+		tokens[10] = int(tokens[10])
+		tokens[11] = int(tokens[11])
+		tokens[12] = int(tokens[12])
+		tokens[13] = int(tokens[13])
 
+		unitTypesList.append(gameLogic.unitType(tokens[0],tokens[1],tokens[2],tokens[3],tokens[4],tokens[5],tokens[6],tokens[7],tokens[8],tokens[9],tokens[10],tokens[11],tokens[12],tokens[13]))
+		
 theUnitTypes = {}
 for unitType in unitTypesList:
 	theUnitTypes[unitType.name] = unitType

@@ -8,16 +8,26 @@ import random
 cityNames = ["Eshnunna","Tutub","Der","Sippar","Sippar-Amnanum","Kutha","Jemde Nasr","Kish","Babilim","Borsippa","Mashkan-shapir","Dilbat","Nippur","Marad","Adab","Isin","Kisurra","Shuruppak","Bad-tibira","Zabalam","Umma","Girsu","Lagash","Urum","Uruk","Larsa","Ur","Kuara","Eridu","Akshak","Akkad","Urfa","Shanidar cave","Urkesh","Shekhna","Arbid","Harran","Chagar Bazar","Kahat","el Fakhariya (Washukanni?)","Arslan Tash","Carchemish","Til Barsip","Nabada","Nagar","Telul eth-Thalathat","Tepe Gawra","Tell Arpachiyah","Shibaniba","Tarbisu","Ninua","Qatara","Dur Sharrukin","Tell Shemshara","Arbil","Imgur-Enlil","Nimrud","Emar","Arrapha","Kar-Tukulti-Ninurta","Ashur","Nuzi","al-Fakhar","Terqa","Mari","Haradum","Nerebtum","Agrab","Dur-Kurigalzu","Shaduppum","Seleucia","Ctesiphon","Zenobia","Zalabiye","Hasanlu","Takht-i-Suleiman","Behistun","Godin Tepe","Chogha Mish","Tepe Sialk","Susa","Kabnak","Dur Untash","Pasargadai","Naqsh-e Rustam","Parsa","Anshan","Konar Sandal","Tepe Yahya","Miletus","Sfard","Nicaea","Sapinuwa","Yazilikaya","Alaca Hoyuk","Masat Hoyuk","Hattusa","Ilios","Kanesh","Arslantepe","Sam'al","Beycesultan","Adana","Karatepe","Tarsus","Sultantepe","Attalia","Acre","Adoraim","Alalah","Aleppo","Al-Sinnabra","Aphek","Arad Rabbah","Ashdod","Ashkelon","Baalbek","Batroun","Beersheba","Beth Shean","Bet Shemesh","Bethany","Bet-el","Bezer","Byblos","Capernaum","Dan","Dimashq","Deir Alla","Dhiban","Dor","Ebla","En Gedi","Enfeh","Ekron","Et-Tell","Gath","Gezer","Gibeah","Gilgal Refaim","Gubla","Hamath","Hazor","Hebron","Herodion","Jezreel","Kadesh Barnea","Kedesh","Kumidi","Lachish","Megiddo","Qatna","Qumran","Rabat Amon","Samaria","Sarepta","Sharuhen","Shiloh","Sidon","Tadmor","Tirzah","Tyros","Ugarit","Umm el-Marra"]
 
 class unitType:
-	def __init__(self,name,textureIndex,movementInitiative,attackInitiative,health,canFly=False,canSwim=False,defaultCost=10,defaultBuildTime=1000):
+	def __init__(self,name,textureIndex,movementInitiative,attackInitiative,attackPower,range,health,canFly,canSwim,cost,buildTime,movementInitiativeBonus,attackInitiativeBonus,attackPowerBonus):
+
+#name		txtrName	movSpd      atkPwr   fly cost    bldTime   atkPwrBonus
+#				      atkSpd  range    swim    	        atkSpdBonus
+#				      	        health 		     movSpdBonus 
 		self.name = name
 		self.textureIndex = textureIndex
 		self.movementInitiative = movementInitiative
 		self.attackInitiative = attackInitiative
+		self.attackPower = attackPower
+		self.range = range
 		self.health = health
 		self.canFly = canFly
 		self.canSwim = canSwim
-		self.cost = defaultCost
-		self.buildTime = defaultBuildTime
+		self.cost = cost
+		self.buildTime = buildTime
+		self.movementInitiativeBonus = movementInitiativeBonus
+		self.attackInitiativeBonus = attackInitiativeBonus
+		self.attackPowerBonus = attackPowerBonus
+		
 class unit:
 	def __init__(self,unitType,player,xPos,yPos,node):
 		self.unitType = unitType
@@ -92,6 +102,7 @@ class node:
 #		self.cityViewer = None
 		self.playerStartValue = playerStartValue
 		self.selected = False
+		self.onMovePath = False
 		self.cursorIndex = -1
 #		self.cursorIndex = cDefines.defines['CURSOR_POINTER_ON_INDEX']
 		gameState.getGameMode().elementsDict[self.name] = self
@@ -121,7 +132,6 @@ class playModeNode(node):
 		self.aStarKnownCost = 0
 		self.aStarHeuristicCost = 0
 		self.aStarParent = None
-		self.onMovePath = False
 	def onLeftClickDown(self):
 		if(len(gameState.getPlayers()) > 0):#multiplayer game
 			if(gameState.getGameMode().nextUnit.player == gameState.getPlayerNumber()):
