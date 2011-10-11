@@ -1,5 +1,7 @@
-#icons for each unit
+#unit viewer in city
+#remove units from cities in map editor
 #fog of war
+#icons for each unit
 #attacking
 #unit viewer in playMode
 #server:
@@ -209,9 +211,7 @@ class playMode(tiledGameMode):
 			for node in row:
 				columnCount = columnCount + 1
 				if(node.playerStartValue != 0):
-					node.addUnit(gameLogic.unit(gameState.theUnitTypes["summoner"],node.playerStartValue,rowCount,columnCount,node))
-#					node.unit = gameLogic.unit(gameState.theUnitTypes["summoner"],node.playerStartValue,rowCount,columnCount,node)
-#					self.units.append(node.unit)
+					node.addUnit(gameLogic.unit(gameState.theUnitTypes["summoner"],node.playerStartValue,1,rowCount,columnCount,node))
 	def handleKeyDown(self,keycode):
 		if(keycode == "space"):
 			if(len(gameState.getPlayers()) > 0):#multiplayer game

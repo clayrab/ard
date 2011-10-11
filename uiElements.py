@@ -184,7 +184,7 @@ class buildUnitButton(clickableElement):
 		clickableElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],color=color,mouseOverColor=mouseOverColor,textXPos=textXPos,textYPos=textYPos)
 		self.node = node
 	def onClick(self):
-		self.node.city.queueUnit(gameLogic.unit(self.node.city.researchUnitType,self.node.city.playerOwner,self.node.xPos,self.node.yPos,self.node))
+		self.node.city.queueUnit(gameLogic.unit(self.node.city.researchUnitType,self.node.city.playerOwner,self.node.city.researchLevel,self.node.xPos,self.node.yPos,self.node))
 		cityViewer.theCityViewer.reset()
 
 class cityViewer(uiElement):
@@ -217,6 +217,7 @@ class cityViewer(uiElement):
 			for unit in self.node.city.unitBuildQueue[1:]:
 				height = height - 0.035
 				self.names.append(uiElement(-0.972,height,text=str(unit.unitType.name),textSize=0.0005).name)
+			height = height - 0.035
 			self.names.append(buildUnitButton(-0.972,height,self.node,text="build " + self.node.city.researchUnitType.name,textSize=0.0005).name)
 		
 	def destroy(self):
@@ -235,7 +236,10 @@ class unitViewer(uiElement):
 		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],color=color,mouseOverColor=mouseOverColor)
 		self.node = node
 		self.names = []
-		self.names.append(uiElement(-0.972,0.0,text=self.node.unit.unitType.name,textSize=0.0005).name)
+		self.names.append(uiElement(-0.972,-0.6,text=self.node.unit.unitType.name,textSize=0.0005).name)
+#		self.names.append(uiElement(-0.972,-0.6,text=self.node.unit.unitType.name,textSize=0.0005).name)
+#		self.names.append(uiElement(-0.972,-0.6,text=self.node.unit.unitType.name,textSize=0.0005).name)
+#		self.names.append(uiElement(-0.972,-0.6,text=self.node.unit.unitType.name,textSize=0.0005).name)
 		
 	def destroy(self):
 		del gameState.getGameMode().elementsDict[self.name]

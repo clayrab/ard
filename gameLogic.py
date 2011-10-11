@@ -29,7 +29,7 @@ class unitType:
 		self.attackPowerBonus = attackPowerBonus
 		
 class unit:
-	def __init__(self,unitType,player,xPos,yPos,node):
+	def __init__(self,unitType,player,level,xPos,yPos,node):
 		self.unitType = unitType
 		self.player = player
 		self.xPos = xPos
@@ -55,8 +55,9 @@ class unit:
        			self.movementPoints = self.movementPoints + self.unitType.movementInitiative
 			gameState.getGameMode().chooseNextUnit()
 class city:
-	def __init__(self,name,unitTypes=[],costOfOwnership=10):
+	def __init__(self,name,node,unitTypes=[],costOfOwnership=10):
 		self.name = name
+		self.node = node
 		self.costOfOwnership = costOfOwnership
 		self.unitTypes = unitTypes
 		self.researching = True
@@ -69,12 +70,11 @@ class city:
 	def queueUnit(self,unit):
 		self.unitBuildQueue.append(unit)
 		if(self.unitBeingBuilt == None):
-			self.unitBeingBuilt = unit
+			self.buildNextUnit()
 	def buildNextUnit(self):
-		self.unitBuildQueue = self.unitBuildQueue[1:]
-		if(len(self.unitBuildQueue) == 0):
-			self.unitBuildQueue.append(unit(self.unitBeingBuilt.unitType,self.unitBeingBuilt.player,self.unitBeingBuilt.xPos,self.unitBeingBuilt.yPos,self.unitBeingBuilt.node))
-		self.unitBeingBuilt = self.unitBuildQueue[0]
+		if(len(self.unitBuildQueue) > 0):
+			self.unitBeingBuilt = self.unitBuildQueue[0]
+			self.unitBuildQueue = self.unitBuildQueue[1:]
 	def incrementBuildProgress(self):
 		if(self.researching):
 			if(self.researchUnitType != None):
@@ -84,10 +84,11 @@ class city:
 					self.researchProgress = 0
 		else:
 			if(self.unitBeingBuilt != None and self.node.unit != None and self.node.unit.unitType.name == "summoner"):
-				node.city.unitBeingBuilt.buildPoints = node.city.unitBeingBuilt.buildPoints - 1.0
-				if(node.city.unitBeingBuilt.buildPoints <= 0.0):
-					node.addUnit(node.city.unitBeingBuilt)
-					node.city.buildNextUnit()
+				self.unitBeingBuilt.buildPoints = self.unitBeingBuilt.buildPoints - 1.0
+				if(self.unitBeingBuilt.buildPoints <= 0.0):
+					self.node.addUnit(self.unitBeingBuilt)
+					self.unitBeingBuilt = None
+					self.buildNextUnit()
 
 
 class node:
@@ -287,7 +288,7 @@ class mapEditorNode(node):
 					self.roadValue = (~self.roadValue)&1
 				elif(gameState.getGameMode().selectedButton.tileType == cDefines.defines['CITY_TILE_INDEX']):#new city
 					if(self.city == None):
-						self.city = city(random.choice(cityNames))
+						self.city = city(random.choice(cityNames),self)
 					gameState.getGameMode().cityEditor = uiElements.cityEditor(0.0,0.0,self.city)
 					if(gameState.getGameMode().selectedCityNode != None):
 						gameState.getGameMode().selectedCityNode.selected = False
@@ -379,7 +380,7 @@ class map:
 							theUnitType.cost = unitTypeTokens[1]
 							unitTypes.append(theUnitType)
 					costOfOwnership = tokens[3]
-					self.nodes[int(coords[1])][int(coords[0])].city = city(cityName,unitTypes,costOfOwnership)
+					self.nodes[int(coords[1])][int(coords[0])].city = city(cityName,self.nodes[int(coords[1])][int(coords[0])],unitTypes,costOfOwnership)
 			count = count + 1
 		mapFile.close()
 	def save(self):
