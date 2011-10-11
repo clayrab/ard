@@ -7,6 +7,8 @@ import cDefines
 import shutil
 import client
 import server
+from textureFunctions import texWidth, texHeight, texIndex
+
 
 cityCosts = ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20"]
 unitCosts = ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20"]
@@ -210,9 +212,11 @@ class cityViewer(uiElement):
 		else:
 			
 			if(self.node.city.unitBeingBuilt != None):
+
+
 				self.names.append(uiElement(-0.972,0.67,text=self.node.city.unitBeingBuilt.unitType.name,textSize=0.0005).name)
-				self.names.append(uiElement(-0.972,0.65,height=(2.0*cDefines.defines['UNIT_BUILD_BAR_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),width=(2.0*cDefines.defines['UNIT_BUILD_BAR_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),textureIndex=cDefines.defines['UNIT_BUILD_BAR_INDEX']).name)
-				self.names.append(uiElement(-0.972,0.65,height=(2.0*cDefines.defines['UNIT_BUILD_BAR_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),width=(2.0*cDefines.defines['UNIT_BUILD_BAR_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH'])*(self.node.city.unitBeingBuilt.unitType.buildTime-self.node.city.unitBeingBuilt.buildPoints)/self.node.city.unitBeingBuilt.unitType.buildTime,textureIndex=cDefines.defines['UNIT_BUILD_BAR_INDEX'],color="FF 00 00").name)
+				self.names.append(uiElement(-0.972,0.65,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE'),textureIndex=texIndex('UNIT_BUILD_BAR')).name)
+				self.names.append(uiElement(-0.972,0.65,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE')*(self.node.city.unitBeingBuilt.unitType.buildTime-self.node.city.unitBeingBuilt.buildPoints)/self.node.city.unitBeingBuilt.unitType.buildTime,textureIndex=texIndex('UNIT_BUILD_BAR'),color="FF 00 00").name)
 			height = 0.6
 			for unit in self.node.city.unitBuildQueue[1:]:
 				height = height - 0.035
@@ -265,8 +269,8 @@ class cityEditor(uiElement):
 		for name in self.names:
 			del gameState.getGameMode().elementsDict[name]
 		self.names = []
-		self.names.append(cityNameInputElement(-0.972,0.746,width=(2.0*cDefines.defines['UI_TEXT_INPUT_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_TEXT_INPUT_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),text=self.city.name,textSize=0.0005,textColor='00 00 00',textureIndex=cDefines.defines['UI_TEXT_INPUT_INDEX'],textYPos=-0.035,textXPos=0.01).name)
-		self.names.append(cityCostField(-0.972,0.66,width=(2.0*cDefines.defines['UI_TEXT_INPUT_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_TEXT_INPUT_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),text=str(self.city.costOfOwnership),textSize=0.0005,textColor='00 00 00',mouseOverColor='00 00 00',textureIndex=cDefines.defines['UI_TEXT_INPUT_INDEX'],textYPos=-0.035,textXPos=0.01).name)
+		self.names.append(cityNameInputElement(-0.972,0.746,width=texWidth('UI_TEXT_INPUT_IMAGE'),height=texHeight('UI_TEXT_INPUT_IMAGE'),text=self.city.name,textSize=0.0005,textColor='00 00 00',textureIndex=texIndex('UI_TEXT_INPUT'),textYPos=-0.035,textXPos=0.01).name)
+		self.names.append(cityCostField(-0.972,0.66,width=texWidth('UI_TEXT_INPUT_IMAGE'),height=texHeight('UI_TEXT_INPUT_IMAGE'),text=str(self.city.costOfOwnership),textSize=0.0005,textColor='00 00 00',mouseOverColor='00 00 00',textureIndex=texIndex('UI_TEXT_INPUT'),textYPos=-0.035,textXPos=0.01).name)
 		height = 0.56
 		for unitType in self.city.unitTypes:
 			self.names.append(uiElement(-0.972,height,text=unitType.name,textSize=0.0005).name)
@@ -284,10 +288,9 @@ class cityEditor(uiElement):
 		self.names = []
 		gameState.getGameMode().resortElems = True
 
-
 class mapEditorTileSelectUIElement(uiElement):
 	def __init__(self,xPos,yPos,width=0.0,height=0.0,textureIndex=-1,hidden=False,tileType=0,playerNumber=-1):
-		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'])
+		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,cursorIndex=texIndex('CURSOR_POINTER_ON'))
 		self.tileType = tileType
 		self.selected = False
 		self.playerNumber = playerNumber
@@ -330,7 +333,7 @@ class mapOptionsEditor(uiElement):
 
 class scrollPadElement(uiElement):
 	def __init__(self,xPos,yPos,scrollableElement,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,topOffset=0.016,bottomOffset=0.020,rightOffset=0.012):
-		uiElement.__init__(self,xPos-rightOffset,yPos-topOffset,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],color=color,mouseOverColor=mouseOverColor)
+		uiElement.__init__(self,xPos-rightOffset,yPos-topOffset,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=texIndex('CURSOR_POINTER_ON'),color=color,mouseOverColor=mouseOverColor)
 		self.scrolling = False
 		self.initMouseYPos = 0
 		self.initYPos = 0

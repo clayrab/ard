@@ -7,7 +7,7 @@ import threading
 import server
 
 unitTypesList = []
-unitsFile = open("units")
+unitsFile = open("units_old")
 for line in unitsFile:
 	if(not line.startswith("#")):
 		line = line.replace("\n","")

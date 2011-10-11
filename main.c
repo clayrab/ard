@@ -113,6 +113,16 @@
 #define WALK_ICON_WIDTH 36
 #define WALK_ICON_INDEX 18
 
+#define ADD_BUTTON_IMAGE "assets/addButton.png"
+#define ADD_BUTTON_HEIGHT 20
+#define ADD_BUTTON_WIDTH 20
+#define ADD_BUTTON_INDEX 19
+
+#define REMOVE_BUTTON_IMAGE "assets/removeButton.png"
+#define REMOVE_BUTTON_HEIGHT 20
+#define REMOVE_BUTTON_WIDTH 20
+#define REMOVE_BUTTON_INDEX 20
+
 #define DESERT_TILE_INDEX 0
 #define GRASS_TILE_INDEX 1
 #define MOUNTAIN_TILE_INDEX 2
@@ -888,6 +898,8 @@ static void initGL (){
   pngLoad(&texturesArray[UNIT_BUILD_BAR_INDEX],UNIT_BUILD_BAR_IMAGE);
   pngLoad(&texturesArray[MAP_ICON_INDEX],MAP_ICON_IMAGE);
   pngLoad(&texturesArray[WALK_ICON_INDEX],WALK_ICON_IMAGE);
+  pngLoad(&texturesArray[ADD_BUTTON_INDEX],ADD_BUTTON_IMAGE);
+  pngLoad(&texturesArray[REMOVE_BUTTON_INDEX],REMOVE_BUTTON_IMAGE);
 
   vertexArrays[DESERT_TILE_INDEX] = *desertVertices;
   vertexArrays[GRASS_TILE_INDEX] = *grassVertices;
