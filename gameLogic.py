@@ -79,12 +79,12 @@ class city:
 		if(self.researching):
 			if(self.researchUnitType != None):
 				self.researchProgress = self.researchProgress + 1
-				if(self.researchProgress >= 200):
+				if(self.researchProgress >= 1000):
 					self.researchLevel = self.researchLevel + 1
 					self.researchProgress = 0
 		else:
 			if(self.unitBeingBuilt != None and self.node.unit != None and self.node.unit.unitType.name == "summoner"):
-				self.unitBeingBuilt.buildPoints = self.unitBeingBuilt.buildPoints - 1.0
+				self.unitBeingBuilt.buildPoints = self.unitBeingBuilt.buildPoints - 0.001
 				if(self.unitBeingBuilt.buildPoints <= 0.0):
 					self.node.addUnit(self.unitBeingBuilt)
 					self.unitBeingBuilt = None
