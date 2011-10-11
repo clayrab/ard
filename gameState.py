@@ -7,29 +7,27 @@ import threading
 import server
 
 unitTypesList = []
-unitsFile = open("units_old")
-for line in unitsFile:
-	if(not line.startswith("#")):
-		line = line.replace("\n","")
-		line = re.sub('[ \t]+'," ",line)
-		tokens = line.split(" ")
-		tokens[0] = tokens[0].replace("_"," ")
-		tokens[1] = cDefines.defines[tokens[1]+"_INDEX"]
+		
+dirList=os.listdir("units")
+for fileName in dirList:
+	if(fileName != "template"):
+		unitFile = open("units/"+fileName)
+		tokens = unitFile.read().split("\n")
+		tokens[0] = cDefines.defines[tokens[0]+"_INDEX"]
+		tokens[1] = float(tokens[1])
 		tokens[2] = float(tokens[2])
-		tokens[3] = float(tokens[3])
+		tokens[3] = int(tokens[3])
 		tokens[4] = int(tokens[4])
 		tokens[5] = int(tokens[5])
-		tokens[6] = int(tokens[6])
+		tokens[6] = bool(tokens[6])
 		tokens[7] = bool(int(tokens[7]))
-		tokens[8] = bool(int(tokens[8]))
+		tokens[8] = int(int(tokens[8]))
 		tokens[9] = int(tokens[9])
 		tokens[10] = int(tokens[10])
 		tokens[11] = int(tokens[11])
 		tokens[12] = int(tokens[12])
-		tokens[13] = int(tokens[13])
+		unitTypesList.append(gameLogic.unitType(fileName.replace("_"," "),tokens[0],tokens[1],tokens[2],tokens[3],tokens[4],tokens[5],tokens[6],tokens[7],tokens[8],tokens[9],tokens[10],tokens[11],tokens[12]))
 
-		unitTypesList.append(gameLogic.unitType(tokens[0],tokens[1],tokens[2],tokens[3],tokens[4],tokens[5],tokens[6],tokens[7],tokens[8],tokens[9],tokens[10],tokens[11],tokens[12],tokens[13]))
-		
 theUnitTypes = {}
 for unitType in unitTypesList:
 	theUnitTypes[unitType.name] = unitType
