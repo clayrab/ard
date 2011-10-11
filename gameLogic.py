@@ -78,7 +78,6 @@ class city:
 	def incrementBuildProgress(self):
 		if(self.researching):
 			if(self.researchUnitType != None):
-				print self.researchProgress
 				self.researchProgress = self.researchProgress + 1
 				if(self.researchProgress >= 200):
 					self.researchLevel = self.researchLevel + 1
