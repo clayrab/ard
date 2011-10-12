@@ -1,17 +1,18 @@
-#movePath bug
-#summoners 'wait' until one level complete
-#stop summoning
+#finish networking cityviewer stuff
+#cancel summoning
+#stop researching
 #unit armor
 #unit armor level bonus(replace attack speed)
 #add research cost/time to units
-#make sure text edit boxes only allow chars and not shift/enter
-#unit viewer in city
-#remove units from cities in map editor
+#map editor UI polish
 #save and resume games
 #fog of war
+#make sure text edit boxes only allow chars and not shift/enter
+
+#remove units from cities in map editor
 #icons for each unit
 #attacking
-#unit viewer in playMode
+
 #server:
 #room for finding games
 #room for each game
@@ -70,6 +71,7 @@ class gameMode:
 	def handleKeyDown(self,keycode):
 		if(hasattr(self.elementWithFocus,"onKeyDown")):
 			self.elementWithFocus.onKeyDown(keycode)
+		print keycode
 	def handleKeyUp(self,keycode):
 		if(hasattr(self.elementWithFocus,"onKeyUp")):
 			self.elementWithFocus.onKeyUp(keycode)
@@ -153,13 +155,13 @@ class tiledGameMode(gameMode):
 class playMode(tiledGameMode):
 	def __init__(self):
 		self.units = []
-#		self.cites = []
 		self.nextUnit = None
 		self.focusNextUnit = 0
 		self.focusNextUnitTemp = 0
 		self.selectedNode = None
 		self.cityViewer = None
 		tiledGameMode.__init__(self)
+		self.shiftDown = False
 	def loadMap(self):
 		self.map = gameLogic.map(gameLogic.playModeNode)
 		self.loadSummoners()
@@ -170,7 +172,7 @@ class playMode(tiledGameMode):
 		self.focusNextUnit = 0
 		return self.focusNextUnitTemp
 	def orderUnits(self):
-		self.units.sort(key=lambda unit:unit.movementPoints)
+		self.units.sort(key=lambda unit:1000.0 if unit.waiting else unit.movementPoints)
 	def chooseNextUnit(self):
 		self.orderUnits()
 		while(self.units[0].movementPoints > 0.0):
@@ -186,6 +188,8 @@ class playMode(tiledGameMode):
 					unit.movementPoints = unit.movementPoints - ((1.0+float(unit.node.roadValue))/cDefines.defines['DESERT_MOVE_COST'])
 				else:
 					unit.movementPoints = unit.movementPoints - ((1.0+float(unit.node.roadValue))/cDefines.defines['GRASS_MOVE_COST'])
+			if(unit.movementPoints < 0.0):
+				unit.movementPoints = 0.0#for waiting units
 			for row in self.map.nodes:
 				for node in row:
 					if(node.city != None):
@@ -193,16 +197,11 @@ class playMode(tiledGameMode):
 		eligibleUnits = []
 		eligibleUnits.append(self.units[0])
 		for unit in self.units[1:]:
-			if(unit.movementPoints == eligibleUnits[0].movementPoints):
+			if(unit.movementPoints == eligibleUnits[0].movementPoints and not unit.waiting):
 				eligibleUnits.append(unit)
 		self.nextUnit = random.choice(eligibleUnits)
-
-
-
 		gameLogic.selectNode(self.nextUnit.node)
 		self.focusNextUnit = 1
-
-
 		if(len(self.nextUnit.movePath) > 0):
 			if(len(gameState.getPlayers()) > 0):#multiplayer game
 				if(gameState.getGameMode().nextUnit.player == gameState.getPlayerNumber()):
@@ -222,6 +221,8 @@ class playMode(tiledGameMode):
 				if(node.playerStartValue != 0):
 					node.addUnit(gameLogic.unit(gameState.theUnitTypes["summoner"],node.playerStartValue,1,rowCount,columnCount,node))
 	def handleKeyDown(self,keycode):
+		if(keycode == "left shift" or keycode == "right shift"):
+			self.shiftDown = True
 		if(keycode == "space"):
 			if(len(gameState.getPlayers()) > 0):#multiplayer game
 				if(gameState.getGameMode().nextUnit.player == gameState.getPlayerNumber()):
@@ -240,6 +241,8 @@ class playMode(tiledGameMode):
 				self.elementWithFocus.onKeyDown(keycode)
 
 	def handleKeyUp(self,keycode):
+		if(keycode == "left shift" or keycode == "right shift"):
+			self.shiftDown = False
 		if(hasattr(self.mousedOverObject,"onKeyUp")):
 			self.mousedOverObject.onKeyUp(keycode)
 
@@ -254,7 +257,6 @@ class mapEditorMode(tiledGameMode):
 	def __init__(self):
 		self.selectedButton = None
 		self.selectedCityNode = None
-		self.cityEditor = None
 		self.mapOptionsEditor = None
 		tiledGameMode.__init__(self)
 	def loadMap(self):

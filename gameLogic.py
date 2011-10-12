@@ -39,6 +39,7 @@ class unit:
 		self.buildPoints = self.unitType.buildTime
 		self.health = self.unitType.health
 		self.movePath = []
+		self.waiting = False
 	def moveTo(self,node):
 		if(node.unit != None and self.node != node):
 			if(node.unit.playerOwner != self.playerOwner):
@@ -81,6 +82,7 @@ class city:
 				if(self.researchProgress >= researchBuildTime):
 					self.researchLevel = self.researchLevel + 1
 					self.researchProgress = 0
+					self.node.unit.waiting = False
 		else:
 			if(self.unitBeingBuilt != None and self.node.unit != None and self.node.unit.unitType.name == "summoner"):
 				self.unitBeingBuilt.buildPoints = self.unitBeingBuilt.buildPoints - unitBuildSpeed
@@ -118,7 +120,7 @@ class node:
 			(random.choice(self.neighbors)).addUnit(unit)
 
 class playModeNode(node):
-	shiftDown = False
+#	shiftDown = False
 	isNeighbor = False
 	moveMode = False
 	openNodes = []
@@ -146,7 +148,7 @@ class playModeNode(node):
 		for node in playModeNode.movePath:
 			node.onMovePath = False
 		playModeNode.movePath = []
-		if((gameState.getGameMode().nextUnit.node == self) or (playModeNode.isNeighbor and playModeNode.shiftDown) or ((not playModeNode.isNeighbor) and (not playModeNode.shiftDown))):
+		if((gameState.getGameMode().nextUnit.node == self) or (playModeNode.isNeighbor and gameState.getGameMode().shiftDown) or ((not playModeNode.isNeighbor) and (not gameState.getGameMode().shiftDown))):
 			self.cursorIndex = -1
 			playModeNode.moveMode = False
 		else:
@@ -260,12 +262,8 @@ class playModeNode(node):
 #		if(gameState.getGameMode().nextUnit.node.neighbors.count(self) > 0):
 #			playModeNode.isNeighbor = False
 	def onKeyDown(self,keycode):
-		if(keycode == "left shift" or keycode == "right shift"):
-			playModeNode.shiftDown = True
 		self.toggleCursor()
 	def onKeyUp(self,keycode):
-		if(keycode == "left shift" or keycode == "right shift"):
-			playModeNode.shiftDown = False
 		self.toggleCursor()
 
 class mapEditorNode(node):
@@ -288,7 +286,7 @@ class mapEditorNode(node):
 				elif(gameState.getGameMode().selectedButton.tileType == cDefines.defines['CITY_TILE_INDEX']):#new city
 					if(self.city == None):
 						self.city = city(random.choice(cityNames),self)
-					gameState.getGameMode().cityEditor = uiElements.cityEditor(0.0,0.0,self.city)
+					uiElements.cityEditor.theCityEditor = uiElements.cityEditor(0.0,0.0,self.city)
 					if(gameState.getGameMode().selectedCityNode != None):
 						gameState.getGameMode().selectedCityNode.selected = False
 					self.selected = True
@@ -420,16 +418,12 @@ def selectNode(node):
 		gameState.getGameMode().selectedNode.selected = False
 	gameState.getGameMode().selectedNode = node
 	node.selected = True
-	if(uiElements.cityViewer.theCityViewer != None):
-		uiElements.cityViewer.theCityViewer.destroy()
-		uiElements.cityViewer.theCityViewer = None
-	if(uiElements.unitViewer.theUnitViewer != None):
-		uiElements.unitViewer.theUnitViewer.destroy()
-		uiElements.unitViewer.theUnitViewer = None
+	uiElements.cityViewer.destroy()
+	uiElements.unitViewer.destroy()
 	if(node.city != None):
 		uiElements.cityViewer.theCityViewer = uiElements.cityViewer(node)
 	if(node.unit != None):
-		uiElements.unitViewer.theUnitViewer = uiElements.unitViewer(node)
+		uiElements.unitViewer.theUnitViewer = uiElements.unitViewer(node.unit.unitType)
 	node.toggleCursor()
 
 
