@@ -1,12 +1,5 @@
 #finish networking cityviewer stuff
 
-#unit armor
-#unit armor level bonus(replace attack speed)
-#add research cost/time to units
-#add second resource
-#add second resource to units/cities/city editor
-
-
 #cancel summoning
 #stop researching
 
@@ -29,6 +22,7 @@
 #AI
 #campaign
 #right-justifiable text
+#unit editor
 
 import os
 import random
