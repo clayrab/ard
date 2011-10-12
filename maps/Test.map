@@ -17,11 +17,11 @@
 #
 #
 #
-*2,2:Hasanlu:summoner|300,archer|100,giant bat|100:10
+*1,1:Hasanlu:summoner|300,archer|100,giant bat|100:10
 
-*21,2:Batroun:summoner|300,archer|100,giant bat|100:10
+*21,1:Batroun:summoner|300,archer|100,giant bat|100:10
 
 *4,4:Para:giant bat|100:10
 
-*11,9:Tepe Gawra:ogre|100,treant|100:10
+*11,9:Tepe Gawra:ogre|100,treant|100,skeleton archer|100:10
 

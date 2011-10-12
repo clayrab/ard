@@ -9,7 +9,6 @@ import client
 import server
 from textureFunctions import texWidth, texHeight, texIndex
 
-
 cityCosts = ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20"]
 unitCosts = ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20"]
 startingManas = ["5","10","15","20","30","40","50","60","70","80","90","100"]
@@ -164,15 +163,6 @@ class hostIPInputElement(textInputElement):
 		else:
 			textInputElement.onKeyDown(self,keycode)
 
-class unitResearchButton(clickableElement):
-       	def __init__(self,xPos,yPos,unitType,node,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,textXPos=0.0,textYPos=0.0):
-		clickableElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],color=color,mouseOverColor=mouseOverColor,textXPos=textXPos,textYPos=textYPos)
-		self.unitType = unitType
-		self.node = node
-	def onClick(self):
-		self.node.city.researchUnitType = self.unitType
-		cityViewer.theCityViewer.reset()
-
 class startSummoningButton(clickableElement):
        	def __init__(self,xPos,yPos,node,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,textXPos=0.0,textYPos=0.0):
 		clickableElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],color=color,mouseOverColor=mouseOverColor,textXPos=textXPos,textYPos=textYPos)
@@ -189,24 +179,109 @@ class buildUnitButton(clickableElement):
 		self.node.city.queueUnit(gameLogic.unit(self.node.city.researchUnitType,self.node.city.playerOwner,self.node.city.researchLevel,self.node.xPos,self.node.yPos,self.node))
 		cityViewer.theCityViewer.reset()
 
+class startResearchButton(clickableElement):
+       	def __init__(self,xPos,yPos,unitType,node,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,textXPos=0.0,textYPos=0.0):
+		clickableElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],color=color,mouseOverColor=mouseOverColor,textXPos=textXPos,textYPos=textYPos)
+		self.unitType = unitType
+		self.node = node
+	def onClick(self):
+		self.node.city.researchUnitType = self.unitType
+		cityViewer.theCityViewer.reset()
+
+class viewResearchButton(clickableElement):
+       	def __init__(self,xPos,yPos,unitType,node,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,textXPos=0.0,textYPos=0.0):
+		clickableElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],color=color,mouseOverColor=mouseOverColor,textXPos=textXPos,textYPos=textYPos)
+		self.unitType = unitType
+		self.node = node
+	def onClick(self):
+		researchView.theResearchViewer = researchViewer(self.unitType,self.node)
+
+class researchViewer(uiElement):
+	theResearchViewer = None
+	def __init__(self,unitType,node,xPos=0.0,yPos=0.0,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None):
+		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],color=color,mouseOverColor=mouseOverColor)
+		self.unitType = unitType
+		self.node = node
+		self.names = []
+		self.names.append(uiElement(-0.978,-0.165,textXPos=0.01,textYPos=-0.035,height=texHeight('CITY_VIEWER_BOX2'),width=texWidth('CITY_VIEWER_BOX2'),textureIndex=texIndex('CITY_VIEWER_BOX2'),textSize=0.0005).name)
+		self.names.append(uiElement(-0.96,-0.20,text=self.unitType.name,textSize=0.0005).name)
+		self.names.append(uiElement(-0.96,-0.24,text="research cost",textSize=0.0005).name)
+
+
+		self.names.append(uiElement(-0.96,-0.32,text="level bonuses",textSize=0.0005).name)
+		self.names.append(uiElement(-0.96,-0.36,text="attack power",textSize=0.0005).name)
+		self.names.append(uiElement(-0.96,-0.40,text="armor bonus(derp)",textSize=0.0005).name)
+		self.names.append(uiElement(-0.96,-0.44,text="movement speed",textSize=0.0005).name)
+
+		self.names.append(startResearchButton(-0.96,-0.52,self.unitType,self.node,text="start research",textSize=0.0005).name)
+
+
+		self.names.append(uiElement(-0.978,-0.555,textXPos=0.01,textYPos=-0.035,height=texHeight('CITY_VIEWER_BOX2'),width=texWidth('CITY_VIEWER_BOX2'),textureIndex=texIndex('CITY_VIEWER_BOX2'),textSize=0.0005).name)
+		self.names.append(uiElement(-0.96,-0.59,text=self.unitType.name,textSize=0.0005).name)
+		self.names.append(uiElement(-0.96,-0.63,text="attack power",textSize=0.0005).name)
+		self.names.append(uiElement(-0.75,-0.63,text=str(self.unitType.attackPower),textSize=0.0005).name)
+		self.names.append(uiElement(-0.96,-0.67,text="attack speed",textSize=0.0005).name)
+		self.names.append(uiElement(-0.75,-0.67,text=str(self.unitType.attackSpeed),textSize=0.0005).name)
+		self.names.append(uiElement(-0.96,-0.71,text="move speed",textSize=0.0005).name)
+		self.names.append(uiElement(-0.75,-0.71,text=str(self.unitType.movementSpeed),textSize=0.0005).name)
+		self.names.append(uiElement(-0.96,-0.75,text="health",textSize=0.0005).name)
+		self.names.append(uiElement(-0.75,-0.75,text=str(self.unitType.health),textSize=0.0005).name)
+		self.names.append(uiElement(-0.96,-0.79,text="range",textSize=0.0005).name)
+		self.names.append(uiElement(-0.75,-0.79,text=str(self.unitType.range),textSize=0.0005).name)
+		self.names.append(uiElement(-0.96,-0.83,text="fly",textSize=0.0005).name)
+		if(self.unitType.canFly):
+			self.names.append(uiElement(-0.92,-0.83,text="[x]",textSize=0.0005).name)
+		else:
+			self.names.append(uiElement(-0.92,-0.83,text="[ ]",textSize=0.0005).name)
+		self.names.append(uiElement(-0.78,-0.83,text="swim",textSize=0.0005).name)
+		if(self.unitType.canSwim):
+			self.names.append(uiElement(-0.7,-0.83,text="[x]",textSize=0.0005).name)
+		else:
+			self.names.append(uiElement(-0.7,-0.83,text="[ ]",textSize=0.0005).name)
+
+		self.names.append(uiElement(-0.96,-0.87,text="test",textSize=0.0005).name)
+		self.names.append(uiElement(-0.96,-0.91,text="test",textSize=0.0005).name)
+
+				
+	def destroy(self):
+	      del gameState.getGameMode().elementsDict[self.name]
+	      for name in self.names:
+		      del gameState.getGameMode().elementsDict[name]
+	      self.names = []
+	      gameState.getGameMode().resortElems = True
+	def reset(self):
+		self.destroy()
+		researchViewer.theResearchViewer = None
+		cityViewer.theCityViewer = cityViewer(self.node)
+
 class cityViewer(uiElement):
 	theCityViewer = None
 	def __init__(self,node,xPos=0.0,yPos=0.0,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None):
 		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],color=color,mouseOverColor=mouseOverColor)
 		self.node = node
 		self.names = []
+#		self.names.append(uiElement(-0.96,0.75,text=self.node.city.name,textXPos=0.01,textYPos=-0.035,height=texHeight('CITY_VIEW_TITLE_BOX'),width=texWidth('CITY_VIEW_TITLE_BOX'),textureIndex=texIndex('CITY_VIEW_TITLE_BOX'),textSize=0.0005).name)
 		self.names.append(uiElement(-0.972,0.75,text=self.node.city.name,textSize=0.0007).name)
 		if(self.node.city.researching):
+			self.names.append(uiElement(-0.978,0.73,textureIndex=texIndex('CITY_VIEWER_BOX'),width=texWidth('CITY_VIEWER_BOX'),height=texHeight('CITY_VIEWER_BOX'),textSize=0.0007).name)
 			if(self.node.city.researchUnitType == None):
-				height = 0.56
+				self.names.append(uiElement(-0.88,0.68,text="research",textSize=0.0005).name)
+				height = 0.62
 				for unitType in self.node.city.unitTypes:
-					self.names.append(unitResearchButton(-0.972,height,unitType,self.node,text="research "+unitType.name,textSize=0.0005).name)
-					self.names.append(uiElement(-0.7,height,text=str(unitType.cost),textSize=0.0005).name)
-					height = height - 0.035
+
+
+
+
+
+
+					self.names.append(viewResearchButton(-0.964,height,unitType,self.node,text=unitType.name,textSize=0.0005).name)
+					self.names.append(uiElement(-0.72,height,text=str(unitType.cost),textSize=0.0005).name)
+					height = height - 0.04
 			else:
-				self.names.append(uiElement(-0.972,0.65,text="researching " + self.node.city.researchUnitType.name,textSize=0.0005).name)
-				self.names.append(uiElement(-0.972,0.6,text=str(self.node.city.researchProgress),textSize=0.0005).name)
-				self.names.append(uiElement(-0.972,0.55,text=str(self.node.city.researchLevel),textSize=0.0005).name)
+				self.names.append(uiElement(-0.964,0.65,text="researching",textSize=0.0005).name)
+				self.names.append(uiElement(-0.964,0.61,text=self.node.city.researchUnitType.name,textSize=0.0005).name)
+				self.names.append(uiElement(-0.964,0.55,text=str(self.node.city.researchProgress),textSize=0.0005).name)
+				self.names.append(uiElement(-0.964,0.51,text=str(self.node.city.researchLevel),textSize=0.0005).name)
 				if(self.node.city.researchLevel > 0):
 					self.names.append(startSummoningButton(-0.972,0.5,self.node,text="start summoning",textSize=0.0005).name)
 		else:

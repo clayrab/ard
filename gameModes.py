@@ -1,6 +1,13 @@
+#movePath bug
+#summoners 'wait' until one level complete
+#stop summoning
+#unit armor
+#unit armor level bonus(replace attack speed)
+#add research cost/time to units
 #make sure text edit boxes only allow chars and not shift/enter
 #unit viewer in city
 #remove units from cities in map editor
+#save and resume games
 #fog of war
 #icons for each unit
 #attacking
@@ -8,9 +15,9 @@
 #server:
 #room for finding games
 #room for each game
-#way to save and resume games
 #AI
 #campaign
+#right-justifiable text
 
 import os
 import random

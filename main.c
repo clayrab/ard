@@ -123,6 +123,26 @@
 #define REMOVE_BUTTON_WIDTH 20
 #define REMOVE_BUTTON_INDEX 20
 
+#define CITY_VIEWER_BOX_IMAGE "assets/cityViewerBox.png"
+#define CITY_VIEWER_BOX_HEIGHT 352
+#define CITY_VIEWER_BOX_WIDTH 211
+#define CITY_VIEWER_BOX_INDEX 21
+
+#define CITY_VIEWER_BOX2_IMAGE "assets/cityViewerBox2.png"
+#define CITY_VIEWER_BOX2_HEIGHT 150
+#define CITY_VIEWER_BOX2_WIDTH 211
+#define CITY_VIEWER_BOX2_INDEX 22
+
+#define CITY_VIEW_TITLE_BOX_IMAGE "assets/cityViewTitleBox.png"
+#define CITY_VIEW_TITLE_BOX_HEIGHT 22
+#define CITY_VIEW_TITLE_BOX_WIDTH 190
+#define CITY_VIEW_TITLE_BOX_INDEX 23
+
+#define RESEARCH_BOX_IMAGE "assets/researchBox.png"
+#define RESEARCH_BOX_HEIGHT 45
+#define RESEARCH_BOX_WIDTH 190
+#define RESEARCH_BOX_INDEX 24
+
 #define DESERT_TILE_INDEX 0
 #define GRASS_TILE_INDEX 1
 #define MOUNTAIN_TILE_INDEX 2
@@ -900,6 +920,10 @@ static void initGL (){
   pngLoad(&texturesArray[WALK_ICON_INDEX],WALK_ICON_IMAGE);
   pngLoad(&texturesArray[ADD_BUTTON_INDEX],ADD_BUTTON_IMAGE);
   pngLoad(&texturesArray[REMOVE_BUTTON_INDEX],REMOVE_BUTTON_IMAGE);
+  pngLoad(&texturesArray[CITY_VIEWER_BOX_INDEX],CITY_VIEWER_BOX_IMAGE);
+  pngLoad(&texturesArray[CITY_VIEWER_BOX2_INDEX],CITY_VIEWER_BOX2_IMAGE);
+  pngLoad(&texturesArray[CITY_VIEW_TITLE_BOX_INDEX],CITY_VIEW_TITLE_BOX_IMAGE);
+  pngLoad(&texturesArray[RESEARCH_BOX_INDEX],RESEARCH_BOX_IMAGE);
 
   vertexArrays[DESERT_TILE_INDEX] = *desertVertices;
   vertexArrays[GRASS_TILE_INDEX] = *grassVertices;

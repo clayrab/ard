@@ -7,10 +7,9 @@ import threading
 import server
 
 unitTypesList = []
-		
 dirList=os.listdir("units")
 for fileName in dirList:
-	if(fileName != "template"):
+	if((not fileName.startswith(".")) and fileName != "template"):
 		unitFile = open("units/"+fileName)
 		tokens = unitFile.read().split("\n")
 		tokens[0] = cDefines.defines[tokens[0]+"_INDEX"]
@@ -19,7 +18,7 @@ for fileName in dirList:
 		tokens[3] = int(tokens[3])
 		tokens[4] = int(tokens[4])
 		tokens[5] = int(tokens[5])
-		tokens[6] = bool(tokens[6])
+		tokens[6] = bool(int(tokens[6]))
 		tokens[7] = bool(int(tokens[7]))
 		tokens[8] = int(int(tokens[8]))
 		tokens[9] = int(tokens[9])
@@ -50,14 +49,6 @@ def setGameMode(gameModeType):
 def getGameMode():
     global theGameMode
     return theGameMode
-
-#theServer = None
-#def setServer(server):
-#	global theServer
-#	theServer = server
-#def getServer():
-#	global theServer
-#	return theServer
 
 theHostIP = None
 def setHostIP(hostIP):
