@@ -216,13 +216,9 @@ class researchViewer(uiElement):
 		self.names.append(uiElement(-0.96,-0.04,text="movement speed",textSize=0.0005).name)
 
 		self.names.append(startResearchButton(-0.96,-0.12,self.unitType,self.node,text="start research",textSize=0.0005).name)
-
+		unitViewer.destroy()
+		unitViewer.theUnitViewer = unitViewer(self.unitType)
 		
-
-		self.names.append(uiElement(-0.96,-0.87,text="test",textSize=0.0005).name)
-		self.names.append(uiElement(-0.96,-0.91,text="test",textSize=0.0005).name)
-
-				
 	def destroy(self):
 	      del gameState.getGameMode().elementsDict[self.name]
 	      for name in self.names:
@@ -248,12 +244,6 @@ class cityViewer(uiElement):
 				self.names.append(uiElement(-0.88,0.68,text="research",textSize=0.0005).name)
 				height = 0.62
 				for unitType in self.node.city.unitTypes:
-
-
-
-
-
-
 					self.names.append(viewResearchButton(-0.964,height,unitType,self.node,text=unitType.name,textSize=0.0005).name)
 					self.names.append(uiElement(-0.72,height,text=str(unitType.cost),textSize=0.0005).name)
 					height = height - 0.04
@@ -263,12 +253,10 @@ class cityViewer(uiElement):
 				self.names.append(uiElement(-0.964,0.55,text=str(self.node.city.researchProgress),textSize=0.0005).name)
 				self.names.append(uiElement(-0.964,0.51,text=str(self.node.city.researchLevel),textSize=0.0005).name)
 				if(self.node.city.researchLevel > 0):
-					self.names.append(startSummoningButton(-0.964,0.47,self.node,text="start summoning",textSize=0.0005).name)
+					self.names.append(startSummoningButton(-0.964,0.47,self.node,text="stop research",textSize=0.0005).name)
+					self.names.append(startResearchButton(-0.964,0.43,self.node.city.researchUnitType,self.node,text="continue research",textSize=0.0005).name)
 		else:
-			
 			if(self.node.city.unitBeingBuilt != None):
-
-
 				self.names.append(uiElement(-0.972,0.67,text=self.node.city.unitBeingBuilt.unitType.name,textSize=0.0005).name)
 				self.names.append(uiElement(-0.972,0.65,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE'),textureIndex=texIndex('UNIT_BUILD_BAR')).name)
 				self.names.append(uiElement(-0.972,0.65,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE')*(self.node.city.unitBeingBuilt.unitType.buildTime-self.node.city.unitBeingBuilt.buildPoints)/self.node.city.unitBeingBuilt.unitType.buildTime,textureIndex=texIndex('UNIT_BUILD_BAR'),color="FF 00 00").name)
@@ -340,8 +328,7 @@ class unitViewer(uiElement):
 class cityEditor(uiElement):
 	theCityEditor = None
 	def __init__(self,xPos,yPos,city,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None):
-		if(gameState.getGameMode().mapOptionsEditor != None):
-			gameState.getGameMode().mapOptionsEditor.destroy()
+		mapOptionsEditor.destroy()
 		cityEditor.destroy()
 		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],color=color,mouseOverColor=mouseOverColor)
 		self.names = []
@@ -398,22 +385,24 @@ class mapEditorTileSelectUIElement(uiElement):
 
 class mapEditorMapOptionsButton(uiElement):
 	def onClick(self):
-		gameState.getGameMode().mapOptionsEditor = mapOptionsEditor(0.0,0.0)
+		mapOptionsEditor.theMapOptionsEditor = mapOptionsEditor(0.0,0.0)
 
 class mapOptionsEditor(uiElement):
+	theMapOptionsEditor = None
 	def __init__(self,xPos,yPos,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None):
-		if(gameState.getGameMode().mapOptionsEditor != None):
-			gameState.getGameMode().mapOptionsEditor.destroy()
+		mapOptionsEditor.destroy()
 		cityEditor.destroy()
-
 		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cursorIndex,color=color,mouseOverColor=mouseOverColor,hidden=True)
 		self.names = []
 		self.names.append(uiElement(-0.96,0.73,text="map options",textSize=0.0008).name)
 		self.names.append(uiElement(-0.96,0.63,text="starting mana",textSize=0.0005).name)
 		self.names.append(startingManaField(-0.96,0.53,text="10",textSize=0.0005).name)
-	def destroy(self):
-		gameState.getGameMode().mapOptionsEditor = None
-		print "destroy"
+	@staticmethod
+	def destroy():
+		if(mapOptionsEditor.theMapOptionsEditor != None):
+			mapOptionsEditor.theMapOptionsEditor._destroy()
+	def _destroy(self):
+		mapOptionsEditor.theMapOptionsEditor = None
 		for name in self.names:
 			del gameState.getGameMode().elementsDict[name]
 		self.names = []

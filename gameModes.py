@@ -1,9 +1,19 @@
 #finish networking cityviewer stuff
-#cancel summoning
-#stop researching
+
 #unit armor
 #unit armor level bonus(replace attack speed)
 #add research cost/time to units
+#add second resource
+#add second resource to units/cities/city editor
+
+
+#cancel summoning
+#stop researching
+
+#allow summoner and gatherer from all cities
+#disallow summoner and gatherer from city editor
+
+
 #map editor UI polish
 #save and resume games
 #fog of war
@@ -175,7 +185,7 @@ class playMode(tiledGameMode):
 		self.units.sort(key=lambda unit:1000.0 if unit.waiting else unit.movementPoints)
 	def chooseNextUnit(self):
 		self.orderUnits()
-		while(self.units[0].movementPoints > 0.0):
+		while(self.units[0].movementPoints > 0.0 or self.units[0].waiting):
 			self.orderUnits()
 			for unit in self.units:
 #				if(unit.node.roadValue == 1):
@@ -257,7 +267,6 @@ class mapEditorMode(tiledGameMode):
 	def __init__(self):
 		self.selectedButton = None
 		self.selectedCityNode = None
-		self.mapOptionsEditor = None
 		tiledGameMode.__init__(self)
 	def loadMap(self):
 		self.map = gameLogic.map(gameLogic.mapEditorNode)
