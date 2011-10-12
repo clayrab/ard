@@ -1,16 +1,20 @@
 #finish networking cityviewer stuff
 
+#progress bar function
+
 #cancel summoning
 #stop researching
 
 #allow summoner and gatherer from all cities
 #disallow summoner and gatherer from city editor
 
-
 #map editor UI polish
 #save and resume games
 #fog of war
 #make sure text edit boxes only allow chars and not shift/enter
+
+#add second resource
+#add second resource to units/cities/city editor
 
 #remove units from cities in map editor
 #icons for each unit

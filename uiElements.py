@@ -14,6 +14,9 @@ unitCosts = ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","
 startingManas = ["5","10","15","20","30","40","50","60","70","80","90","100"]
 unitBuildTimes = ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20"]
 
+
+
+
 class uiElement:
 	def __init__(self,xPos,yPos,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor=None,textSize=0.001,color=None,mouseOverColor=None,textXPos=0.0,textYPos=0.0):
 		self.name = nameGenerator.getNextName()
@@ -250,9 +253,11 @@ class cityViewer(uiElement):
 			else:
 				self.names.append(uiElement(-0.964,0.65,text="researching",textSize=0.0005).name)
 				self.names.append(uiElement(-0.964,0.61,text=self.node.city.researchUnitType.name,textSize=0.0005).name)
-				self.names.append(uiElement(-0.964,0.55,text=str(self.node.city.researchProgress),textSize=0.0005).name)
-				self.names.append(uiElement(-0.964,0.51,text=str(self.node.city.researchLevel),textSize=0.0005).name)
+
+				self.names.append(uiElement(-0.964,0.59,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE'),textureIndex=texIndex('UNIT_BUILD_BAR')).name)
+				self.names.append(uiElement(-0.964,0.59,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE')*(float(self.node.city.researchProgress)/gameLogic.researchBuildTime),textureIndex=texIndex('UNIT_BUILD_BAR'),color="FF 00 00").name)
 				if(self.node.city.researchLevel > 0):
+					self.names.append(uiElement(-0.964,0.53,text="level "+str(self.node.city.researchLevel),textSize=0.0005).name)
 					self.names.append(startSummoningButton(-0.964,0.47,self.node,text="stop research",textSize=0.0005).name)
 					self.names.append(startResearchButton(-0.964,0.43,self.node.city.researchUnitType,self.node,text="continue research",textSize=0.0005).name)
 		else:
