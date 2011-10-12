@@ -1,7 +1,5 @@
 #finish networking cityviewer stuff
 
-#progress bar function
-
 #cancel summoning
 #stop researching
 

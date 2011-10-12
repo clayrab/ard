@@ -552,6 +552,8 @@ void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long 
       glVertex3f(xPosition-.75, yPosition-0.5, 0.0);
       glEnd();
  
+      printf("healthBarLength %f\n",healthBarLength);
+
       glBegin(GL_QUADS);
       glColor3f(255.0, 0.0, 0.0);
       glTexCoord2f(0.0,0.0);
