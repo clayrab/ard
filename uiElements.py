@@ -212,13 +212,13 @@ class researchViewer(uiElement):
 		self.unitType = unitType
 		self.node = node
 		self.names = []
-		self.names.append(uiElement(-0.96,0.16,text="research cost",textSize=0.0005).name)
-		self.names.append(uiElement(-0.96,0.08,text="level bonuses",textSize=0.0005).name)
-		self.names.append(uiElement(-0.96,0.04,text="attack power",textSize=0.0005).name)
-		self.names.append(uiElement(-0.96,0.0,text="armor bonus(derp)",textSize=0.0005).name)
-		self.names.append(uiElement(-0.96,-0.04,text="movement speed",textSize=0.0005).name)
+		self.names.append(uiElement(-0.96,-0.65,text="research cost",textSize=0.0005).name)
+		self.names.append(uiElement(-0.96,-0.72,text="level bonuses",textSize=0.0005).name)
+		self.names.append(uiElement(-0.96,-0.77,text="attack power",textSize=0.0005).name)
+		self.names.append(uiElement(-0.96,-0.81,text="armor bonus(derp)",textSize=0.0005).name)
+		self.names.append(uiElement(-0.96,-0.85,text="movement speed",textSize=0.0005).name)
 
-		self.names.append(startResearchButton(-0.96,-0.12,self.unitType,self.node,text="start research",textSize=0.0005).name)
+		self.names.append(startResearchButton(-0.96,-0.93,self.unitType,self.node,text="start research",textSize=0.0005).name)
 		unitViewer.destroy()
 		unitViewer.theUnitViewer = unitViewer(self.unitType)
 		
@@ -239,38 +239,44 @@ class cityViewer(uiElement):
 		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],color=color,mouseOverColor=mouseOverColor)
 		self.node = node
 		self.names = []
-#		self.names.append(uiElement(-0.96,0.75,text=self.node.city.name,textXPos=0.01,textYPos=-0.035,height=texHeight('CITY_VIEW_TITLE_BOX'),width=texWidth('CITY_VIEW_TITLE_BOX'),textureIndex=texIndex('CITY_VIEW_TITLE_BOX'),textSize=0.0005).name)
-		self.names.append(uiElement(-0.972,0.75,text=self.node.city.name,textSize=0.0007).name)
+		self.names.append(uiElement(-0.978,-0.085,textureIndex=texIndex('CITY_VIEWER_BOX'),width=texWidth('CITY_VIEWER_BOX'),height=texHeight('CITY_VIEWER_BOX'),textSize=0.0007).name)
+		self.names.append(uiElement(-0.964,-0.13,text=self.node.city.name,textSize=0.0007).name)
 		if(self.node.city.researching):
-			self.names.append(uiElement(-0.978,0.73,textureIndex=texIndex('CITY_VIEWER_BOX'),width=texWidth('CITY_VIEWER_BOX'),height=texHeight('CITY_VIEWER_BOX'),textSize=0.0007).name)
 			if(self.node.city.researchUnitType == None):
-				self.names.append(uiElement(-0.88,0.68,text="research",textSize=0.0005).name)
-				height = 0.62
+				self.names.append(uiElement(-0.88,-0.19,text="research",textSize=0.0005).name)
+				height = -0.25
 				for unitType in self.node.city.unitTypes:
 					self.names.append(viewResearchButton(-0.964,height,unitType,self.node,text=unitType.name,textSize=0.0005).name)
 					self.names.append(uiElement(-0.72,height,text=str(unitType.cost),textSize=0.0005).name)
 					height = height - 0.04
 			else:
-				self.names.append(uiElement(-0.964,0.65,text="researching",textSize=0.0005).name)
-				self.names.append(uiElement(-0.964,0.61,text=self.node.city.researchUnitType.name,textSize=0.0005).name)
-
-				self.names.append(uiElement(-0.964,0.59,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE'),textureIndex=texIndex('UNIT_BUILD_BAR')).name)
-				self.names.append(uiElement(-0.964,0.59,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE')*(float(self.node.city.researchProgress)/gameLogic.researchBuildTime),textureIndex=texIndex('UNIT_BUILD_BAR'),color="FF 00 00").name)
+				self.names.append(uiElement(-0.964,-0.19,text="researching",textSize=0.0005).name)
+				self.names.append(uiElement(-0.964,-0.23,text=self.node.city.researchUnitType.name,textSize=0.0005).name)
+				self.names.append(uiElement(-0.964,-0.25,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE'),textureIndex=texIndex('UNIT_BUILD_BAR')).name)
+				self.names.append(uiElement(-0.964,-0.25,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE')*(float(self.node.city.researchProgress)/gameLogic.researchBuildTime),textureIndex=texIndex('UNIT_BUILD_BAR'),color="FF 00 00").name)
 				if(self.node.city.researchLevel > 0):
-					self.names.append(uiElement(-0.964,0.53,text="level "+str(self.node.city.researchLevel),textSize=0.0005).name)
-					self.names.append(startSummoningButton(-0.964,0.47,self.node,text="stop research",textSize=0.0005).name)
-					self.names.append(startResearchButton(-0.964,0.43,self.node.city.researchUnitType,self.node,text="continue research",textSize=0.0005).name)
+					self.names.append(startSummoningButton(-0.964,-0.41,self.node,text="start summoning",textSize=0.0005).name)
+				else:
+					self.names.append(startSummoningButton(-0.964,-0.41,self.node,text="cancel research",textSize=0.0005).name)
+					
+
+				if(self.node.city.researchLevel > 0):
+					self.names.append(uiElement(-0.964,-0.28,text="level "+str(self.node.city.researchLevel),textSize=0.0005).name)
+					self.names.append(startResearchButton(-0.964,-0.38,self.node.city.researchUnitType,self.node,text="research level " + str(self.node.city.researchLevel+1),textSize=0.0005).name)
 		else:
 			if(self.node.city.unitBeingBuilt != None):
-				self.names.append(uiElement(-0.972,0.67,text=self.node.city.unitBeingBuilt.unitType.name,textSize=0.0005).name)
-				self.names.append(uiElement(-0.972,0.65,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE'),textureIndex=texIndex('UNIT_BUILD_BAR')).name)
-				self.names.append(uiElement(-0.972,0.65,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE')*(self.node.city.unitBeingBuilt.unitType.buildTime-self.node.city.unitBeingBuilt.buildPoints)/self.node.city.unitBeingBuilt.unitType.buildTime,textureIndex=texIndex('UNIT_BUILD_BAR'),color="FF 00 00").name)
-			height = 0.6
+				self.names.append(uiElement(-0.972,-0.14,text=self.node.city.unitBeingBuilt.unitType.name,textSize=0.0005).name)
+				self.names.append(uiElement(-0.972,-0.16,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE'),textureIndex=texIndex('UNIT_BUILD_BAR')).name)
+				self.names.append(uiElement(-0.972,-0.16,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE')*(self.node.city.unitBeingBuilt.unitType.buildTime-self.node.city.unitBeingBuilt.buildPoints)/self.node.city.unitBeingBuilt.unitType.buildTime,textureIndex=texIndex('UNIT_BUILD_BAR'),color="FF 00 00").name)
+			height = -0.21
 			for unit in self.node.city.unitBuildQueue[1:]:
 				height = height - 0.035
 				self.names.append(uiElement(-0.972,height,text=str(unit.unitType.name),textSize=0.0005).name)
 			height = height - 0.035
-			self.names.append(buildUnitButton(-0.972,height,self.node,text="build " + self.node.city.researchUnitType.name,textSize=0.0005).name)
+			self.names.append(buildUnitButton(-0.972,height,self.node,text="summon " + self.node.city.researchUnitType.name,textSize=0.0005).name)
+			height = height - 0.035
+			self.names.append(uiElement(-0.972,height,self.node,text="cancel " + self.node.city.researchUnitType.name,textSize=0.0005).name)
+			
 	@staticmethod
 	def destroy():
 		if(cityViewer.theCityViewer != None):
@@ -299,28 +305,31 @@ class unitViewer(uiElement):
 		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],color=color,mouseOverColor=mouseOverColor)
 		self.unitType = unitType
 		self.names = []
-		self.names.append(uiElement(-0.978,-0.555,textXPos=0.01,textYPos=-0.035,height=texHeight('CITY_VIEWER_BOX2'),width=texWidth('CITY_VIEWER_BOX2'),textureIndex=texIndex('CITY_VIEWER_BOX2'),textSize=0.0005).name)
-		self.names.append(uiElement(-0.96,-0.59,text=self.unitType.name,textSize=0.0005).name)
-		self.names.append(uiElement(-0.96,-0.63,text="attack power",textSize=0.0005).name)
-		self.names.append(uiElement(-0.75,-0.63,text=str(self.unitType.attackPower),textSize=0.0005).name)
-		self.names.append(uiElement(-0.96,-0.67,text="attack speed",textSize=0.0005).name)
-		self.names.append(uiElement(-0.75,-0.67,text=str(self.unitType.attackSpeed),textSize=0.0005).name)
-		self.names.append(uiElement(-0.96,-0.71,text="move speed",textSize=0.0005).name)
-		self.names.append(uiElement(-0.75,-0.71,text=str(self.unitType.movementSpeed),textSize=0.0005).name)
-		self.names.append(uiElement(-0.96,-0.75,text="health",textSize=0.0005).name)
-		self.names.append(uiElement(-0.75,-0.75,text=str(self.unitType.health),textSize=0.0005).name)
-		self.names.append(uiElement(-0.96,-0.79,text="range",textSize=0.0005).name)
-		self.names.append(uiElement(-0.75,-0.79,text=str(self.unitType.range),textSize=0.0005).name)
-		self.names.append(uiElement(-0.96,-0.83,text="fly",textSize=0.0005).name)
+		self.names.append(uiElement(-0.978,0.79,textXPos=0.01,textYPos=-0.035,height=texHeight('CITY_VIEWER_BOX2'),width=texWidth('CITY_VIEWER_BOX2'),textureIndex=texIndex('CITY_VIEWER_BOX2'),textSize=0.0005).name)
+		self.names.append(uiElement(-0.96,0.74,text=self.unitType.name,textSize=0.0007).name)
+		self.names.append(uiElement(-0.96,0.70,text="move",textSize=0.0005).name)
+		self.names.append(uiElement(-0.96,0.66,text="attack",textSize=0.0005).name)
+		self.names.append(uiElement(-0.96,0.62,text="wait",textSize=0.0005).name)
+		self.names.append(uiElement(-0.96,0.51,text="attack power",textSize=0.0005).name)
+		self.names.append(uiElement(-0.75,0.51,text=str(self.unitType.attackPower),textSize=0.0005).name)
+		self.names.append(uiElement(-0.96,0.47,text="attack speed",textSize=0.0005).name)
+		self.names.append(uiElement(-0.75,0.47,text=str(self.unitType.attackSpeed),textSize=0.0005).name)
+		self.names.append(uiElement(-0.96,0.43,text="move speed",textSize=0.0005).name)
+		self.names.append(uiElement(-0.75,0.43,text=str(self.unitType.movementSpeed),textSize=0.0005).name)
+		self.names.append(uiElement(-0.96,0.39,text="health",textSize=0.0005).name)
+		self.names.append(uiElement(-0.75,0.39,text=str(self.unitType.health),textSize=0.0005).name)
+		self.names.append(uiElement(-0.96,0.35,text="range",textSize=0.0005).name)
+		self.names.append(uiElement(-0.75,0.35,text=str(self.unitType.range),textSize=0.0005).name)
+		self.names.append(uiElement(-0.96,0.31,text="fly",textSize=0.0005).name)
 		if(self.unitType.canFly):
-			self.names.append(uiElement(-0.92,-0.83,text="[x]",textSize=0.0005).name)
+			self.names.append(uiElement(-0.92,0.31,text="[x]",textSize=0.0005).name)
 		else:
-			self.names.append(uiElement(-0.92,-0.83,text="[ ]",textSize=0.0005).name)
-		self.names.append(uiElement(-0.78,-0.83,text="swim",textSize=0.0005).name)
+			self.names.append(uiElement(-0.92,0.31,text="[ ]",textSize=0.0005).name)
+		self.names.append(uiElement(-0.78,0.31,text="swim",textSize=0.0005).name)
 		if(self.unitType.canSwim):
-			self.names.append(uiElement(-0.7,-0.83,text="[x]",textSize=0.0005).name)
+			self.names.append(uiElement(-0.7,0.31,text="[x]",textSize=0.0005).name)
 		else:
-			self.names.append(uiElement(-0.7,-0.83,text="[ ]",textSize=0.0005).name)
+			self.names.append(uiElement(-0.7,0.31,text="[ ]",textSize=0.0005).name)
 
 
 	def _destroy(self):
@@ -619,7 +628,7 @@ class unitBuildTimeField(clickableElement):
 		self.unitType = unitType
 
 	def onClick(self):
-		unitBuildTimeSelector(self.xPosition,self.yPosition-0.06,unitBuildTimes,self,text="select build time",textSize=0.0005,textureIndex=cDefines.defines['UI_SCROLLABLE_INDEX'],width=(2.0*cDefines.defines['UI_SCROLLABLE_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_SCROLLABLE_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']))
+		unitBuildTimeSelector(self.xPosition,self.yPosition-0.06,unitBuildTimes,self,text="select build timeGET RID OF THIS",textSize=0.0005,textureIndex=cDefines.defines['UI_SCROLLABLE_INDEX'],width=(2.0*cDefines.defines['UI_SCROLLABLE_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_SCROLLABLE_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']))
 
 
 

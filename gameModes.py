@@ -1,7 +1,11 @@
 #finish networking cityviewer stuff
 
+#cancel waiting
+#wait while summoning
 #cancel summoning
-#stop researching
+#cancel summoning/research when stop waiting
+
+#remove buildtime editiing from city editor
 
 #allow summoner and gatherer from all cities
 #disallow summoner and gatherer from city editor
