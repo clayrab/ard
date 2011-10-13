@@ -7,7 +7,7 @@ import threading
 import server
 
 unitTypesList = []
-dirList=os.listdir("units")
+dirList=os.listdir("unitz")
 for fileName in dirList:
 	if((not fileName.startswith(".")) and fileName != "template"):
 		unitFile = open("units/"+fileName)
