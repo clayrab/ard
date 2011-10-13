@@ -1,5 +1,7 @@
 #finish networking cityviewer stuff
 
+#AStar is pretty junkie on larger maps :(
+
 #cancel waiting
 #wait while summoning
 #cancel summoning
@@ -22,11 +24,12 @@
 #icons for each unit
 #attacking
 
+#check new/editted city names for duplicates
+
 #server:
 #room for finding games
 #room for each game
 
-#astar is pretty junkie on larger maps :(
 #sound effects
 #mouseover effects
 #music

@@ -137,8 +137,8 @@ class playModeNode(node):
 		node.__init__(self,xPos,yPos,tileValue=tileValue,roadValue=roadValue,city=city,playerStartValue=playerStartValue)
 		self.closed = False
 		self.open = False
-		self.aStarKnownCost = 0
-		self.aStarHeuristicCost = 0
+		self.aStarKnownCost = 0.0
+		self.aStarHeuristicCost = 0.0
 		self.aStarParent = None
 	def onLeftClickDown(self):
 		if(len(gameState.getPlayers()) > 0):#multiplayer game
@@ -167,25 +167,6 @@ class playModeNode(node):
 		self.findAStarHeuristicCost(gameState.getGameMode().nextUnit.node)
 		playModeNode.openNodes.append(self)
 		playModeNode.aStarSearchRecurse(gameState.getGameMode().nextUnit.node)
-		nextNode = gameState.getGameMode().nextUnit.node.aStarParent
-		while nextNode != None:
-			playModeNode.movePath.append(nextNode)
-			nextNode.onMovePath = True
-			nextNode = nextNode.aStarParent
-		for node in playModeNode.openNodes:
-			node.closed = False
-			node.open = False
-			node.aStarKnownCost = 0
-			node.aStarHeuristicCost = 0
-			node.aStarParent = None
-		for node in playModeNode.closedNodes:
-			node.closed = False
-			node.open = False
-			node.aStarKnownCost = 0
-			node.aStarHeuristicCost = 0
-			node.aStarParent = None
-		playModeNode.openNodes = []
-		playModeNode.closedNodes = []
 	def findAStarHeuristicCost(self,target):
 		#This is just a heuristic that guesses the cost to the target by assuming everything is grass
 		#current 'heuristic' is just the distance assuming everything is grass
@@ -197,7 +178,7 @@ class playModeNode(node):
 		#if moving from even to odd row right gives you free x at 3,5,7...
 		#if moving from odd to even row right gives you free x at 1,3,5...
 		#if moving from odd to even row left gives you free x at 3,5,7...
-		heuristicCost = abs(self.xPos - target.xPos)
+		heuristicCost = float(abs(self.xPos - target.xPos))
 		if(abs(self.yPos-target.yPos)%2 == 1):#one row is even, other is odd...
 			if(self.yPos%2 == gameState.getGameMode().map.polarity):#self is even...
 				if(self.xPos > target.xPos):
@@ -211,21 +192,41 @@ class playModeNode(node):
 					heuristicCost = heuristicCost - (abs(self.yPos-target.yPos)+1)/2
 		else:
 			heuristicCost = heuristicCost - abs(self.yPos-target.yPos)/2
-		if(heuristicCost < 0):
-			heuristicCost = 0
+		if(heuristicCost < 0.0):
+			heuristicCost = 0.0
 		heuristicCost = heuristicCost + abs(self.yPos - target.yPos)
-		#print "heuristicCost final: " + str(heuristicCost)
-		node.aStarHeuristicCost = heuristicCost
+		self.aStarHeuristicCost = heuristicCost
 	@staticmethod
-	def aStarSearchRecurse(target):
+	def aStarSearchRecurse(target,count=0):
+		#TODO: remove count from here since it's really just for debugging purposes...
+#		node = playModeNode.openNodes[0]
 		node = None
 		for openNode in playModeNode.openNodes:
 			if(not openNode.closed):
 				if(node == None):
 					node = openNode
-				if(openNode.aStarKnownCost + openNode.aStarHeuristicCost < node.aStarKnownCost + node.aStarHeuristicCost):
+				if((openNode.aStarKnownCost + openNode.aStarHeuristicCost) < (node.aStarKnownCost + node.aStarHeuristicCost)):
 					node = openNode
 		if(node == target):
+			nextNode = gameState.getGameMode().nextUnit.node.aStarParent
+			while nextNode != None:
+				playModeNode.movePath.append(nextNode)
+				nextNode.onMovePath = True
+				nextNode = nextNode.aStarParent
+       			for node in playModeNode.openNodes:
+				node.closed = False
+				node.open = False
+				node.aStarKnownCost = 0.0
+				node.aStarHeuristicCost = 0.0
+				node.aStarParent = None
+			for node in playModeNode.closedNodes:
+				node.closed = False
+				node.open = False
+				node.aStarKnownCost = 0.0
+				node.aStarHeuristicCost = 0.0
+				node.aStarParent = None
+			playModeNode.openNodes = []
+			playModeNode.closedNodes = []
 			return
 		node.closed = True
 		playModeNode.closedNodes.append(node)
@@ -257,8 +258,9 @@ class playModeNode(node):
 					else:
 						if(neighbor.aStarKnownCost > node.aStarKnownCost + (cDefines.defines['GRASS_MOVE_COST']/(1.0+float(neighbor.roadValue)))):
 							   neighbor.aStarKnownCost = node.aStarKnownCost + (cDefines.defines['GRASS_MOVE_COST']/(1.0+float(neighbor.roadValue)))
-		playModeNode.aStarSearchRecurse(target)		
-
+		count = count + 1
+		#print "count:"+str(count)
+		playModeNode.aStarSearchRecurse(target,count)
 	def onMouseOver(self):
 		if(gameState.getGameMode().nextUnit.node.neighbors.count(self) > 0):
 			playModeNode.isNeighbor = True

@@ -604,7 +604,6 @@ void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long 
     glBindTexture(GL_TEXTURE_2D, tilesTexture);
 
   }
-  
 }
 void drawTilesText(){
   int i,j,cityNameLength,unitNameLength = 0;
