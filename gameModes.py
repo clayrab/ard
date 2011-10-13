@@ -25,6 +25,11 @@
 #server:
 #room for finding games
 #room for each game
+
+#astar is pretty junkie on larger maps :(
+#sound effects
+#mouseover effects
+#music
 #AI
 #campaign
 #right-justifiable text
@@ -34,6 +39,7 @@ import os
 import random
 import copy
 import time
+import traceback
 import gameState
 import nameGenerator
 import cDefines
@@ -42,6 +48,9 @@ import uiElements
 import server
 import client
 from textureFunctions import texWidth, texHeight, texIndex
+
+def printTraceBack(tb):
+	traceback.print_tb(tb)
 
 zoomSpeed = 0.3
 class gameMode:
@@ -108,11 +117,13 @@ class tiledGameMode(gameMode):
 	def handleMouseMovement(self,name,mouseX,mouseY):
 		self.mouseX = mouseX
 		self.mouseY = mouseY
+#		raise NameError('HiThere')
 		if(self.elementsDict.has_key(name)):
 			if(hasattr(self.elementsDict[name],"onMouseMovement")):
 				self.elementsDict[name].onMouseMovement()
 			elif(hasattr(self.elementWithFocus,"onMouseMovement")):
 				self.elementWithFocus.onMouseMovement()
+
 	def handleRightClick(self,name):
 		rightClickable = False
 		if(self.elementsDict.has_key(name)):

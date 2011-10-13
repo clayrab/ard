@@ -219,8 +219,8 @@ class researchViewer(uiElement):
 		self.names.append(uiElement(-0.96,-0.85,text="movement speed",textSize=0.0005).name)
 
 		self.names.append(startResearchButton(-0.96,-0.93,self.unitType,self.node,text="start research",textSize=0.0005).name)
-		unitViewer.destroy()
-		unitViewer.theUnitViewer = unitViewer(self.unitType)
+		unitTypeViewer.destroy()
+		unitTypeViewer.theUnitViewer = unitTypeViewer(self.unitType)
 		
 	def destroy(self):
 	      del gameState.getGameMode().elementsDict[self.name]
@@ -293,23 +293,29 @@ class cityViewer(uiElement):
 		self._destroy()
 		cityViewer.theCityViewer = cityViewer(self.node)
 
-class unitViewer(uiElement):
+class unitTypeViewer(uiElement):
 	theUnitViewer = None
 	@staticmethod
 	def destroy():
-		if(unitViewer.theUnitViewer != None):
-			unitViewer.theUnitViewer._destroy()
-			unitViewer.theUnitViewer = None
+		if(unitTypeViewer.theUnitViewer != None):
+			unitTypeViewer.theUnitViewer._destroy()
+			unitTypeViewer.theUnitViewer = None
 
-	def __init__(self,unitType,xPos=0.0,yPos=0.0,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None):
+	def __init__(self,unitType,unit=None,xPos=0.0,yPos=0.0,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None):
 		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],color=color,mouseOverColor=mouseOverColor)
 		self.unitType = unitType
 		self.names = []
 		self.names.append(uiElement(-0.978,0.79,textXPos=0.01,textYPos=-0.035,height=texHeight('CITY_VIEWER_BOX2'),width=texWidth('CITY_VIEWER_BOX2'),textureIndex=texIndex('CITY_VIEWER_BOX2'),textSize=0.0005).name)
 		self.names.append(uiElement(-0.96,0.74,text=self.unitType.name,textSize=0.0007).name)
+
+
+		
+
 		self.names.append(uiElement(-0.96,0.70,text="move",textSize=0.0005).name)
 		self.names.append(uiElement(-0.96,0.66,text="attack",textSize=0.0005).name)
 		self.names.append(uiElement(-0.96,0.62,text="wait",textSize=0.0005).name)
+
+
 		self.names.append(uiElement(-0.96,0.51,text="attack power",textSize=0.0005).name)
 		self.names.append(uiElement(-0.75,0.51,text=str(self.unitType.attackPower),textSize=0.0005).name)
 		self.names.append(uiElement(-0.96,0.47,text="attack speed",textSize=0.0005).name)

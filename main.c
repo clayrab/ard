@@ -143,6 +143,11 @@
 #define RESEARCH_BOX_WIDTH 190
 #define RESEARCH_BOX_INDEX 24
 
+#define SELECTION_BRACKET_IMAGE "assets/selectionBrackets.png"
+#define SELECTION_BRACKET_HEIGHT 20
+#define SELECTION_BRACKET_WIDTH 65
+#define SELECTION_BRACKET_INDEX 25
+
 #define DESERT_TILE_INDEX 0
 #define GRASS_TILE_INDEX 1
 #define MOUNTAIN_TILE_INDEX 2
@@ -321,6 +326,16 @@ float hexagonVertices[6][2] = {
 
 float *textureVertices;
 GLuint texturesArray[60];
+
+static void printPyStackTrace(){
+  //put this thing after the call that is causing your problem!
+  PyObject *exc_type, *exc_value, *exc_traceback;
+    PyErr_Fetch(&exc_type, &exc_value, &exc_traceback);
+    if(exc_type){
+      PyObject_CallMethodObjArgs(gameModule,PyString_FromString("printTraceBack"),exc_traceback,NULL);
+      PyErr_Print();//This is supposed to print it but doesn't. i left it here so the exception gets cleared...
+    }
+}
 
 /****************************** SDL STUFF ********************************/
 static void printAttributes (){
@@ -924,6 +939,7 @@ static void initGL (){
   pngLoad(&texturesArray[CITY_VIEWER_BOX2_INDEX],CITY_VIEWER_BOX2_IMAGE);
   pngLoad(&texturesArray[CITY_VIEW_TITLE_BOX_INDEX],CITY_VIEW_TITLE_BOX_IMAGE);
   pngLoad(&texturesArray[RESEARCH_BOX_INDEX],RESEARCH_BOX_IMAGE);
+  pngLoad(&texturesArray[SELECTION_BRACKET_INDEX],SELECTION_BRACKET_IMAGE);
 
   vertexArrays[DESERT_TILE_INDEX] = *desertVertices;
   vertexArrays[GRASS_TILE_INDEX] = *grassVertices;
@@ -966,6 +982,7 @@ static void handleInput(){
       mouseX = event.motion.x;
       mouseY = event.motion.y;
       PyObject_CallMethod(gameMode,"handleMouseMovement","(iii)",selectedName,mouseX,mouseY);
+      printPyStackTrace();
       if(mouseX == 0){
 	moveRight = -1;
       }else if(mouseX >= SCREEN_WIDTH-1){
@@ -1050,6 +1067,7 @@ static void handleInput(){
 	}else{
 	  PyObject_CallMethod(gameMode,"handleKeyDown","s",SDL_GetKeyName(event.key.keysym.sym));
 	}
+	printPyStackTrace();
       }else{
 	printf("rejected: %d\n",event.key.keysym.sym);
       }
@@ -1209,6 +1227,12 @@ static void mainLoop (){
     draw();
     Py_DECREF(theMap);
     Py_DECREF(gameMode);
+
+    PyObject *exc_type, *exc_value, *exc_traceback, *pystring;
+    PyErr_Fetch(&exc_type, &exc_value, &exc_traceback);
+    if(exc_type){
+      printf("exception%d\n",1);
+    }
   }
   gameMode = PyObject_CallMethod(gameMode,"onQuit",NULL);
 }
