@@ -9,7 +9,7 @@ import server
 unitTypesList = []
 dirList=os.listdir("units")
 for fileName in dirList:
-	if((not fileName.startswith(".")) and fileName != "template"):
+	if((not fileName.startswith(".")) and fileName != "Template"):
 		unitFile = open("units/"+fileName)
 		tokens = unitFile.read().split("\n")
 		tokens[0] = cDefines.defines[tokens[0]+"_INDEX"]
