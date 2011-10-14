@@ -128,15 +128,15 @@
 #define CITY_VIEWER_BOX_WIDTH 211
 #define CITY_VIEWER_BOX_INDEX 21
 
-#define CITY_VIEWER_BOX2_IMAGE "assets/cityViewerBox2.png"
-#define CITY_VIEWER_BOX2_HEIGHT 341
-#define CITY_VIEWER_BOX2_WIDTH 211
-#define CITY_VIEWER_BOX2_INDEX 22
+#define UNIT_VIEWER_BOX_IMAGE "assets/unitViewerBox.png"
+#define UNIT_VIEWER_BOX_HEIGHT 100
+#define UNIT_VIEWER_BOX_WIDTH 211
+#define UNIT_VIEWER_BOX_INDEX 22
 
-#define CITY_VIEW_TITLE_BOX_IMAGE "assets/cityViewTitleBox.png"
-#define CITY_VIEW_TITLE_BOX_HEIGHT 22
-#define CITY_VIEW_TITLE_BOX_WIDTH 190
-#define CITY_VIEW_TITLE_BOX_INDEX 23
+#define UNIT_TYPE_VIEWER_BOX_IMAGE "assets/unitTypeViewerBox.png"
+#define UNIT_TYPE_VIEWER_BOX_HEIGHT 241
+#define UNIT_TYPE_VIEWER_BOX_WIDTH 211
+#define UNIT_TYPE_VIEWER_BOX_INDEX 23
 
 #define RESEARCH_BOX_IMAGE "assets/researchBox.png"
 #define RESEARCH_BOX_HEIGHT 45
@@ -145,7 +145,7 @@
 
 #define SELECTION_BRACKET_IMAGE "assets/selectionBrackets.png"
 #define SELECTION_BRACKET_HEIGHT 20
-#define SELECTION_BRACKET_WIDTH 65
+#define SELECTION_BRACKET_WIDTH 67
 #define SELECTION_BRACKET_INDEX 25
 
 #define DESERT_TILE_INDEX 0
@@ -331,8 +331,8 @@ static void printPyStackTrace(){
   //put this thing after the call that is causing your problem!
   PyObject *exc_type, *exc_value, *exc_traceback;
     PyErr_Fetch(&exc_type, &exc_value, &exc_traceback);
-    if(exc_type){
-      PyObject_CallMethodObjArgs(gameModule,PyString_FromString("printTraceBack"),exc_traceback,NULL);
+    if(exc_type && exc_traceback){
+      PyObject_CallMethodObjArgs(gameModule,PyString_FromString("printTraceBack"),exc_type,exc_value,exc_traceback,NULL);
       PyErr_Print();//This is supposed to print it but doesn't. i left it here so the exception gets cleared...
     }
 }
@@ -800,6 +800,7 @@ void drawUIElement(PyObject * uiElement){
       PyObject_CallMethod(gameMode,"handleMouseOver","(ii)",selectedName,leftButtonDown);//New reference
       previousMousedoverName = selectedName;
     }
+    printPyStackTrace();
 
     if(!hidden){
       if(PyObject_HasAttrString(uiElement,"tileType")){//gameModeTileSelectButton
@@ -935,8 +936,8 @@ static void initGL (){
   pngLoad(&texturesArray[ADD_BUTTON_INDEX],ADD_BUTTON_IMAGE);
   pngLoad(&texturesArray[REMOVE_BUTTON_INDEX],REMOVE_BUTTON_IMAGE);
   pngLoad(&texturesArray[CITY_VIEWER_BOX_INDEX],CITY_VIEWER_BOX_IMAGE);
-  pngLoad(&texturesArray[CITY_VIEWER_BOX2_INDEX],CITY_VIEWER_BOX2_IMAGE);
-  pngLoad(&texturesArray[CITY_VIEW_TITLE_BOX_INDEX],CITY_VIEW_TITLE_BOX_IMAGE);
+  pngLoad(&texturesArray[UNIT_TYPE_VIEWER_BOX_INDEX],UNIT_TYPE_VIEWER_BOX_IMAGE);
+  pngLoad(&texturesArray[UNIT_VIEWER_BOX_INDEX],UNIT_VIEWER_BOX_IMAGE);
   pngLoad(&texturesArray[RESEARCH_BOX_INDEX],RESEARCH_BOX_IMAGE);
   pngLoad(&texturesArray[SELECTION_BRACKET_INDEX],SELECTION_BRACKET_IMAGE);
 
@@ -1022,6 +1023,7 @@ static void handleInput(){
 	PyObject_CallMethod(gameMode,"handleLeftClickDown","i",selectedName);//New reference
 	previousClickedName = selectedName;
       }
+      printPyStackTrace();
       if(event.button.button == SDL_BUTTON_RIGHT){
 	clickScroll = 1;
 	//	PyObject_CallMethod(gameMode,"handleRightClick","i",selectedName);//New reference

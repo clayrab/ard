@@ -180,6 +180,7 @@ class buildUnitButton(clickableElement):
 		self.node = node
 	def onClick(self):
 		self.node.city.queueUnit(gameLogic.unit(self.node.city.researchUnitType,self.node.city.playerOwner,self.node.city.researchLevel,self.node.xPos,self.node.yPos,self.node))
+		self.node.unit.unitAction = gameLogic.unitAction.WAIT
 		cityViewer.theCityViewer.reset()
 
 class startResearchButton(clickableElement):
@@ -189,7 +190,7 @@ class startResearchButton(clickableElement):
 		self.node = node
 	def onClick(self):
 		self.node.city.researchUnitType = self.unitType
-		self.node.unit.waiting = True
+		self.node.unit.unitAction = gameLogic.unitAction.WAIT
 		self.node.unit.moveTo(self.node)
 		cityViewer.theCityViewer.reset()
 		
@@ -200,10 +201,32 @@ class viewResearchButton(clickableElement):
 		self.unitType = unitType
 		self.node = node
 	def onClick(self):
-		if(researchViewer.theResearchViewer != None):
-#			print 'wtf'
-			researchViewer.theResearchViewer.destroy()
+		researchViewer.destroy()
 		researchViewer.theResearchViewer = researchViewer(self.unitType,self.node)
+
+class moveButton(clickableElement):
+       	def __init__(self,xPos,yPos,unit,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,textXPos=0.0,textYPos=0.0):
+		clickableElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],color=color,mouseOverColor=mouseOverColor,textXPos=textXPos,textYPos=textYPos)
+		self.unit=unit
+	def onClick(self):
+		self.unit.unitAction = gameLogic.unitAction.MOVE
+		unitViewer.reset()
+
+class attackButton(clickableElement):
+       	def __init__(self,xPos,yPos,unit,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,textXPos=0.0,textYPos=0.0):
+		clickableElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],color=color,mouseOverColor=mouseOverColor,textXPos=textXPos,textYPos=textYPos)
+		self.unit=unit
+	def onClick(self):
+		self.unit.unitAction = gameLogic.unitAction.ATTACK
+		unitViewer.reset()
+
+class waitButton(clickableElement):
+       	def __init__(self,xPos,yPos,unit,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,textXPos=0.0,textYPos=0.0):
+		clickableElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],color=color,mouseOverColor=mouseOverColor,textXPos=textXPos,textYPos=textYPos)
+		self.unit=unit
+	def onClick(self):
+		self.unit.unitAction = gameLogic.unitAction.WAIT
+		unitViewer.reset()
 
 class researchViewer(uiElement):
 	theResearchViewer = None
@@ -220,18 +243,18 @@ class researchViewer(uiElement):
 
 		self.names.append(startResearchButton(-0.96,-0.93,self.unitType,self.node,text="start research",textSize=0.0005).name)
 		unitTypeViewer.destroy()
-		unitTypeViewer.theUnitViewer = unitTypeViewer(self.unitType)
-		
-	def destroy(self):
-	      del gameState.getGameMode().elementsDict[self.name]
-	      for name in self.names:
-		      del gameState.getGameMode().elementsDict[name]
-	      self.names = []
-	      gameState.getGameMode().resortElems = True
-	def reset(self):
-		self.destroy()
+		unitTypeViewer.theUnitTypeViewer = unitTypeViewer(self.unitType)
+	@staticmethod
+	def destroy():
+		if(researchViewer.theResearchViewer != None):
+			researchViewer.theResearchViewer._destroy()
 		researchViewer.theResearchViewer = None
-		cityViewer.theCityViewer = cityViewer(self.node)
+	def _destroy(self):
+		del gameState.getGameMode().elementsDict[self.name]
+		for name in self.names:
+			del gameState.getGameMode().elementsDict[name]
+			self.names = []
+		gameState.getGameMode().resortElems = True
 
 class cityViewer(uiElement):
 	theCityViewer = None
@@ -262,7 +285,7 @@ class cityViewer(uiElement):
 
 				if(self.node.city.researchLevel > 0):
 					self.names.append(uiElement(-0.964,-0.28,text="level "+str(self.node.city.researchLevel),textSize=0.0005).name)
-					self.names.append(startResearchButton(-0.964,-0.38,self.node.city.researchUnitType,self.node,text="research level " + str(self.node.city.researchLevel+1),textSize=0.0005).name)
+					self.names.append(startResearchButton(-0.964,-0.37,self.node.city.researchUnitType,self.node,text="start level " + str(self.node.city.researchLevel+1),textSize=0.0005).name)
 		else:
 			if(self.node.city.unitBeingBuilt != None):
 				self.names.append(uiElement(-0.972,-0.14,text=self.node.city.unitBeingBuilt.unitType.name,textSize=0.0005).name)
@@ -270,12 +293,13 @@ class cityViewer(uiElement):
 				self.names.append(uiElement(-0.972,-0.16,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE')*(self.node.city.unitBeingBuilt.unitType.buildTime-self.node.city.unitBeingBuilt.buildPoints)/self.node.city.unitBeingBuilt.unitType.buildTime,textureIndex=texIndex('UNIT_BUILD_BAR'),color="FF 00 00").name)
 			height = -0.21
 			for unit in self.node.city.unitBuildQueue[1:]:
-				height = height - 0.035
+				height = height - 0.04
 				self.names.append(uiElement(-0.972,height,text=str(unit.unitType.name),textSize=0.0005).name)
-			height = height - 0.035
+			height = height - 0.04
 			self.names.append(buildUnitButton(-0.972,height,self.node,text="summon " + self.node.city.researchUnitType.name,textSize=0.0005).name)
-			height = height - 0.035
-			self.names.append(uiElement(-0.972,height,self.node,text="cancel " + self.node.city.researchUnitType.name,textSize=0.0005).name)
+			if(self.node.city.unitBeingBuilt != None):
+				height = height - 0.04
+				self.names.append(uiElement(-0.972,height,self.node,text="cancel " + self.node.city.researchUnitType.name,textSize=0.0005).name)
 			
 	@staticmethod
 	def destroy():
@@ -293,49 +317,76 @@ class cityViewer(uiElement):
 		self._destroy()
 		cityViewer.theCityViewer = cityViewer(self.node)
 
-class unitTypeViewer(uiElement):
+class unitViewer(uiElement):
 	theUnitViewer = None
+	def __init__(self,unit,xPos=0.0,yPos=0.0,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None):
+		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],color=color,mouseOverColor=mouseOverColor)
+		self.unit = unit
+		self.names = []
+		self.names.append(uiElement(-0.978,0.79,textXPos=0.01,textYPos=-0.035,height=texHeight('UNIT_VIEWER_BOX'),width=texWidth('UNIT_VIEWER_BOX'),textureIndex=texIndex('UNIT_VIEWER_BOX'),textSize=0.0005).name)	
+		self.names.append(uiElement(-0.96,0.73,text=self.unit.unitType.name,textSize=0.0007).name)
+		
+		self.names.append(moveButton(-0.947,0.68,self.unit,text="move",textSize=0.0005).name)
+		self.names.append(attackButton(-0.95,0.63,self.unit,text="attack",textSize=0.0005).name)
+		self.names.append(waitButton(-0.940,0.58,self.unit,text="wait",textSize=0.0005).name)
+		
+		if(self.unit.unitAction == gameLogic.unitAction.MOVE):
+			self.names.append(uiElement(-0.958,0.715,textureIndex=texIndex("SELECTION_BRACKET"),width=texWidth("SELECTION_BRACKET"),height=texHeight("SELECTION_BRACKET"),textSize=0.0005).name)
+		elif(self.unit.unitAction == gameLogic.unitAction.ATTACK):
+			self.names.append(uiElement(-0.958,0.665,textureIndex=texIndex("SELECTION_BRACKET"),width=texWidth("SELECTION_BRACKET"),height=texHeight("SELECTION_BRACKET"),textSize=0.0005).name)
+		else:
+			self.names.append(uiElement(-0.958,0.615,textureIndex=texIndex("SELECTION_BRACKET"),width=texWidth("SELECTION_BRACKET"),height=texHeight("SELECTION_BRACKET"),textSize=0.0005).name)
 	@staticmethod
 	def destroy():
-		if(unitTypeViewer.theUnitViewer != None):
-			unitTypeViewer.theUnitViewer._destroy()
-			unitTypeViewer.theUnitViewer = None
+		if(unitViewer.theUnitViewer != None):
+			unitViewer.theUnitViewer._destroy()
+			unitViewer.theUnitViewer = None
 
-	def __init__(self,unitType,unit=None,xPos=0.0,yPos=0.0,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None):
+	def _destroy(self):
+		del gameState.getGameMode().elementsDict[self.name]
+		for name in self.names:
+			del gameState.getGameMode().elementsDict[name]
+		self.names = []
+		gameState.getGameMode().resortElems = True
+	@staticmethod
+	def reset():
+		unitViewer.theUnitViewer._destroy()
+		unitViewer.theUnitViewer = unitViewer(unitViewer.theUnitViewer.unit)
+
+class unitTypeViewer(uiElement):
+	theUnitTypeViewer = None
+	@staticmethod
+	def destroy():
+		if(unitTypeViewer.theUnitTypeViewer != None):
+			unitTypeViewer.theUnitTypeViewer._destroy()
+			unitTypeViewer.theUnitTypeViewer = None
+
+	def __init__(self,unitType,xPos=0.0,yPos=0.0,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None):
 		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],color=color,mouseOverColor=mouseOverColor)
 		self.unitType = unitType
 		self.names = []
-		self.names.append(uiElement(-0.978,0.79,textXPos=0.01,textYPos=-0.035,height=texHeight('CITY_VIEWER_BOX2'),width=texWidth('CITY_VIEWER_BOX2'),textureIndex=texIndex('CITY_VIEWER_BOX2'),textSize=0.0005).name)
-		self.names.append(uiElement(-0.96,0.74,text=self.unitType.name,textSize=0.0007).name)
-
-
-		
-
-		self.names.append(uiElement(-0.96,0.70,text="move",textSize=0.0005).name)
-		self.names.append(uiElement(-0.96,0.66,text="attack",textSize=0.0005).name)
-		self.names.append(uiElement(-0.96,0.62,text="wait",textSize=0.0005).name)
-
-
-		self.names.append(uiElement(-0.96,0.51,text="attack power",textSize=0.0005).name)
-		self.names.append(uiElement(-0.75,0.51,text=str(self.unitType.attackPower),textSize=0.0005).name)
-		self.names.append(uiElement(-0.96,0.47,text="attack speed",textSize=0.0005).name)
-		self.names.append(uiElement(-0.75,0.47,text=str(self.unitType.attackSpeed),textSize=0.0005).name)
-		self.names.append(uiElement(-0.96,0.43,text="move speed",textSize=0.0005).name)
-		self.names.append(uiElement(-0.75,0.43,text=str(self.unitType.movementSpeed),textSize=0.0005).name)
-		self.names.append(uiElement(-0.96,0.39,text="health",textSize=0.0005).name)
-		self.names.append(uiElement(-0.75,0.39,text=str(self.unitType.health),textSize=0.0005).name)
-		self.names.append(uiElement(-0.96,0.35,text="range",textSize=0.0005).name)
-		self.names.append(uiElement(-0.75,0.35,text=str(self.unitType.range),textSize=0.0005).name)
-		self.names.append(uiElement(-0.96,0.31,text="fly",textSize=0.0005).name)
+		self.names.append(uiElement(-0.978,0.53,textXPos=0.01,textYPos=-0.035,height=texHeight('UNIT_TYPE_VIEWER_BOX'),width=texWidth('UNIT_TYPE_VIEWER_BOX'),textureIndex=texIndex('UNIT_TYPE_VIEWER_BOX'),textSize=0.0005).name)
+		self.names.append(uiElement(-0.96,0.48,text=self.unitType.name,textSize=0.0007).name)
+		self.names.append(uiElement(-0.96,0.44,text="attack power",textSize=0.0005).name)
+		self.names.append(uiElement(-0.75,0.44,text=str(self.unitType.attackPower),textSize=0.0005).name)
+		self.names.append(uiElement(-0.96,0.40,text="attack speed",textSize=0.0005).name)
+		self.names.append(uiElement(-0.75,0.40,text=str(self.unitType.attackSpeed),textSize=0.0005).name)
+		self.names.append(uiElement(-0.96,0.36,text="move speed",textSize=0.0005).name)
+		self.names.append(uiElement(-0.75,0.36,text=str(self.unitType.movementSpeed),textSize=0.0005).name)
+		self.names.append(uiElement(-0.96,0.32,text="health",textSize=0.0005).name)
+		self.names.append(uiElement(-0.75,0.32,text=str(self.unitType.health),textSize=0.0005).name)
+		self.names.append(uiElement(-0.96,0.28,text="range",textSize=0.0005).name)
+		self.names.append(uiElement(-0.75,0.28,text=str(self.unitType.range),textSize=0.0005).name)
+		self.names.append(uiElement(-0.96,0.24,text="can fly",textSize=0.0005).name)
 		if(self.unitType.canFly):
-			self.names.append(uiElement(-0.92,0.31,text="[x]",textSize=0.0005).name)
+			self.names.append(uiElement(-0.75,0.24,text="[x]",textSize=0.0005).name)
 		else:
-			self.names.append(uiElement(-0.92,0.31,text="[ ]",textSize=0.0005).name)
-		self.names.append(uiElement(-0.78,0.31,text="swim",textSize=0.0005).name)
+			self.names.append(uiElement(-0.75,0.24,text="[ ]",textSize=0.0005).name)
+		self.names.append(uiElement(-0.96,0.20,text="can swim",textSize=0.0005).name)
 		if(self.unitType.canSwim):
-			self.names.append(uiElement(-0.7,0.31,text="[x]",textSize=0.0005).name)
+			self.names.append(uiElement(-0.75,0.20,text="[x]",textSize=0.0005).name)
 		else:
-			self.names.append(uiElement(-0.7,0.31,text="[ ]",textSize=0.0005).name)
+			self.names.append(uiElement(-0.75,0.20,text="[ ]",textSize=0.0005).name)
 
 
 	def _destroy(self):
@@ -347,43 +398,45 @@ class unitTypeViewer(uiElement):
 
 class cityEditor(uiElement):
 	theCityEditor = None
-	def __init__(self,xPos,yPos,city,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None):
-		mapOptionsEditor.destroy()
-		cityEditor.destroy()
+	def __init__(self,city,xPos=0.0,yPos=0.0,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None):
 		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],color=color,mouseOverColor=mouseOverColor)
+		mapOptionsEditor.destroy()
 		self.names = []
 		self.city = city
-		self.draw()
-	def addUnitType(self,unitType):
-		self.city.unitTypes.append(unitType)
-		self.draw()
-	def draw(self):
-		for name in self.names:
-			del gameState.getGameMode().elementsDict[name]
-		self.names = []
 		self.names.append(cityNameInputElement(-0.972,0.746,width=texWidth('UI_TEXT_INPUT_IMAGE'),height=texHeight('UI_TEXT_INPUT_IMAGE'),text=self.city.name,textSize=0.0005,textColor='00 00 00',textureIndex=texIndex('UI_TEXT_INPUT'),textYPos=-0.035,textXPos=0.01).name)
 		self.names.append(cityCostField(-0.972,0.66,width=texWidth('UI_TEXT_INPUT_IMAGE'),height=texHeight('UI_TEXT_INPUT_IMAGE'),text=str(self.city.costOfOwnership),textSize=0.0005,textColor='00 00 00',mouseOverColor='00 00 00',textureIndex=texIndex('UI_TEXT_INPUT'),textYPos=-0.035,textXPos=0.01).name)
 		height = 0.56
 		for unitType in self.city.unitTypes:
 			self.names.append(uiElement(-0.972,height,text=unitType.name,textSize=0.0005).name)
-			self.names.append(unitCostField(-0.75,height,unitType,text=str(unitType.cost),textSize=0.0005).name)
-			self.names.append(unitBuildTimeField(-0.7,height,unitType,text=str(unitType.buildTime),textSize=0.0005).name)
-			height = height - 0.035
+			self.names.append(uiElement(-0.75,height,text=str(unitType.cost),textSize=0.0005).name)
+			self.names.append(removeUnitTypeButton(-0.7,height,unitType,textureIndex=texIndex("REMOVE_BUTTON"),width=texWidth("REMOVE_BUTTON"),height=texHeight("REMOVE_BUTTON")).name)
+			#asdf
+
+			height = height - 0.04
 		self.names.append(addUnitTypeButton(-0.972,height,width=0.0,height=0.0,text="+unit",textSize=0.0005).name)
 		self.names.append(deleteCityButton(-0.972,-0.9,width=0.0,height=0.0,text="delete city",textSize=0.0005).name)
+	def addUnitType(self,unitType):
+		self.city.unitTypes.append(unitType)
+		self.reset()
+	def removeUnitType(self,unitType):
+		self.city.unitTypes.append(unitType)
+		cityEditor.reset()
 	@staticmethod
 	def destroy():
 		if(cityEditor.theCityEditor != None):
 			cityEditor.theCityEditor._destroy()
-
-	def _destroy(self):
 		cityEditor.theCityEditor = None
+	def _destroy(self):
 		del gameState.getGameMode().elementsDict[self.name]
 		for name in self.names:
 			del gameState.getGameMode().elementsDict[name]
 		self.names = []
 		gameState.getGameMode().resortElems = True
-
+	@staticmethod
+	def reset():
+		if(cityEditor.theCityEditor != None):
+                        cityEditor.theCityEditor._destroy()
+		cityEditor.theCityEditor = cityEditor(cityEditor.theCityEditor.city)
 class mapEditorTileSelectUIElement(uiElement):
 	def __init__(self,xPos,yPos,width=0.0,height=0.0,textureIndex=-1,hidden=False,tileType=0,playerNumber=-1):
 		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,cursorIndex=texIndex('CURSOR_POINTER_ON'))
@@ -498,6 +551,7 @@ class scrollableTextFieldsElement(uiElement):
 			self.scrollPadElem = None
 		else:
 			self.scrollPadElem = scrollPadElement(self.xPosition + self.width - (2.0*cDefines.defines['UI_SCROLL_PAD_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),self.yPosition,scrollableElement=self,width=(2.0*cDefines.defines['UI_SCROLL_PAD_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_SCROLL_PAD_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),textureIndex=cDefines.defines['UI_SCROLL_PAD_INDEX'])
+			self.names.append(self.scrollPadElem.name)
 #			self.scrollPadElem.hidden = True
 	def hideAndShowTextFields(self):
 		count = 0
@@ -561,21 +615,19 @@ class startingManaSelector(scrollableTextFieldsElement):
 		scrollableTextFieldsElement.__init__(self,xPos,yPos,textFields,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,color=color,mouseOverColor=mouseOverColor)
 	 	self.startingManaField = startingManaField
 	def handleClick(self,textFieldElem):
-		print 'click'
 		self.startingManaField.text = textFieldElem.text
 		#TODO: Save this data to the map and update save/load
 #		self.unitCostField.unitType.cost = int(textFieldElem.text)
 		self.destroy()
 
-class unitBuildTimeSelector(scrollableTextFieldsElement):
-	def __init__(self,xPos,yPos,textFields,unitBuildTimeField,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,yPositionOffset=-0.04,yOffset=-0.041,numFields=25,scrollSpeed=1):
-		scrollableTextFieldsElement.__init__(self,xPos,yPos,textFields,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,color=color,mouseOverColor=mouseOverColor)
-		self.unitBuildTimeField = unitBuildTimeField
-	def handleClick(self,textFieldElem):
-		print 'click'
-		self.unitBuildTimeField.text = textFieldElem.text
-		self.unitBuildTimeField.unitType.cost = int(textFieldElem.text)
-		self.destroy()
+#class unitBuildTimeSelector(scrollableTextFieldsElement):
+#	def __init__(self,xPos,yPos,textFields,unitBuildTimeField,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,yPositionOffset=-0.04,yOffset=-0.041,numFields=25,scrollSpeed=1):
+#		scrollableTextFieldsElement.__init__(self,xPos,yPos,textFields,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,color=color,mouseOverColor=mouseOverColor)
+#		self.unitBuildTimeField = unitBuildTimeField
+#	def handleClick(self,textFieldElem):
+#		self.unitBuildTimeField.text = textFieldElem.text
+#		self.unitBuildTimeField.unitType.cost = int(textFieldElem.text)
+#		self.destroy()
 
 class playerStartLocationButton(clickableElement):
 	playerStartLocationButtons = []
@@ -602,11 +654,17 @@ class deleteCityButton(clickableElement):
 class addUnitTypeButton(clickableElement):	
 	def onClick(self):
 		unitTypes = gameState.theUnitTypes.copy()
-		print cityEditor.theCityEditor
 		for unitType in cityEditor.theCityEditor.city.unitTypes:
 			del unitTypes[unitType.name]
 		unitTypeSelector(self.xPosition,self.yPosition-0.06,unitTypes.values(),text="select unit",textSize=0.0005,textureIndex=cDefines.defines['UI_SCROLLABLE_INDEX'],width=(2.0*cDefines.defines['UI_SCROLLABLE_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_SCROLLABLE_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']))
 
+class removeUnitTypeButton(clickableElement):
+	def __init__(self,xPos,yPos,unitType,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None):
+		clickableElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],color=color,mouseOverColor=mouseOverColor)
+
+		self.unitType = unitType
+	def onClick(self):
+		print cityEditor.theCityEditor
 
 class cityCostField(clickableElement):
 	def onClick(self):
@@ -617,9 +675,7 @@ class unitCostField(clickableElement):
 		clickableElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],color=color,mouseOverColor=mouseOverColor,textXPos=textXPos,textYPos=textYPos)
 		self.unitType = unitType
 	def onClick(self):
-		print unitCosts
 		unitCostSelector(self.xPosition,self.yPosition-0.06,unitCosts,self,text="select cost",textSize=0.0005,textureIndex=cDefines.defines['UI_SCROLLABLE_INDEX'],width=(2.0*cDefines.defines['UI_SCROLLABLE_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_SCROLLABLE_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']))
-		print 'done'
 
 class startingManaField(clickableElement):
        	def __init__(self,xPos,yPos,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,textXPos=0.0,textYPos=0.0):
@@ -628,13 +684,12 @@ class startingManaField(clickableElement):
 		startingManaSelector(self.xPosition,self.yPosition-0.06,startingManas,self,text="select cost",textSize=0.0005,textureIndex=cDefines.defines['UI_SCROLLABLE_INDEX'],width=(2.0*cDefines.defines['UI_SCROLLABLE_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_SCROLLABLE_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']))
 
 
-class unitBuildTimeField(clickableElement):
-       	def __init__(self,xPos,yPos,unitType,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,textXPos=0.0,textYPos=0.0):
-		clickableElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],color=color,mouseOverColor=mouseOverColor,textXPos=textXPos,textYPos=textYPos)
-		self.unitType = unitType
-
-	def onClick(self):
-		unitBuildTimeSelector(self.xPosition,self.yPosition-0.06,unitBuildTimes,self,text="select build timeGET RID OF THIS",textSize=0.0005,textureIndex=cDefines.defines['UI_SCROLLABLE_INDEX'],width=(2.0*cDefines.defines['UI_SCROLLABLE_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_SCROLLABLE_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']))
+#class unitBuildTimeField(clickableElement):
+#       	def __init__(self,xPos,yPos,unitType,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,textXPos=0.0,textYPos=0.0):
+#		clickableElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],color=color,mouseOverColor=mouseOverColor,textXPos=textXPos,textYPos=textYPos)
+#		self.unitType = unitType
+#	def onClick(self):
+#		unitBuildTimeSelector(self.xPosition,self.yPosition-0.06,unitBuildTimes,self,text="select build timeGET RID OF THIS",textSize=0.0005,textureIndex=cDefines.defines['UI_SCROLLABLE_INDEX'],width=(2.0*cDefines.defines['UI_SCROLLABLE_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_SCROLLABLE_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']))
 
 
 

@@ -33,7 +33,6 @@ class unitType:
 		self.attackPowerBonus = attackPowerBonus
 		self.researchCost = researchCost
 		self.researchTime = researchTime
-		self.unitAction = unitAction.MOVE
 class unit:
 	def __init__(self,unitType,player,level,xPos,yPos,node):
 		self.unitType = unitType
@@ -46,10 +45,10 @@ class unit:
 		self.buildPoints = self.unitType.buildTime
 		self.health = self.unitType.health
 		self.movePath = []
-		self.waiting = False
+		self.unitAction = unitAction.MOVE
 	def moveTo(self,node):
 		if(node.unit != None and self.node != node):
-			if(node.unit.playerOwner != self.playerOwner):
+			if(node.unit.player != self.playerOwner):
 				print 'attack!!??'
 			else:
 				print 'own unit... do nothing or if were on a movepath, recalc movepath and move'
@@ -89,7 +88,7 @@ class city:
 				if(self.researchProgress >= researchBuildTime):
 					self.researchLevel = self.researchLevel + 1
 					self.researchProgress = 0
-					self.node.unit.waiting = False
+					self.node.unit.unitAction = unitAction.MOVE
 		else:
 			if(self.unitBeingBuilt != None and self.node.unit != None and self.node.unit.unitType.name == "summoner"):
 				self.unitBeingBuilt.buildPoints = self.unitBeingBuilt.buildPoints - unitBuildSpeed
@@ -259,7 +258,7 @@ class playModeNode(node):
 						if(neighbor.aStarKnownCost > node.aStarKnownCost + (cDefines.defines['GRASS_MOVE_COST']/(1.0+float(neighbor.roadValue)))):
 							   neighbor.aStarKnownCost = node.aStarKnownCost + (cDefines.defines['GRASS_MOVE_COST']/(1.0+float(neighbor.roadValue)))
 		count = count + 1
-		#print "count:"+str(count)
+#		print "count:"+str(count)
 		playModeNode.aStarSearchRecurse(target,count)
 	def onMouseOver(self):
 		if(gameState.getGameMode().nextUnit.node.neighbors.count(self) > 0):
@@ -295,7 +294,7 @@ class mapEditorNode(node):
 				elif(gameState.getGameMode().selectedButton.tileType == cDefines.defines['CITY_TILE_INDEX']):#new city
 					if(self.city == None):
 						self.city = city(random.choice(cityNames),self)
-					uiElements.cityEditor.theCityEditor = uiElements.cityEditor(0.0,0.0,self.city)
+					uiElements.cityEditor.theCityEditor = uiElements.cityEditor(self.city)
 					if(gameState.getGameMode().selectedCityNode != None):
 						gameState.getGameMode().selectedCityNode.selected = False
 					self.selected = True
@@ -419,7 +418,6 @@ class map:
 	def getIterator(self):
 		return self.nodes.__iter__()
 	def setNumPlayers(self,numPlayers):
-		print numPlayers
 		self.numPlayers = numPlayers
 
 def selectNode(node):
@@ -429,10 +427,11 @@ def selectNode(node):
 	node.selected = True
 	uiElements.cityViewer.destroy()
 	uiElements.unitTypeViewer.destroy()
+	uiElements.researchViewer.destroy()
 	if(node.city != None):
 		uiElements.cityViewer.theCityViewer = uiElements.cityViewer(node)
 	if(node.unit != None):
-		uiElements.unitTypeViewer.theUnitViewer = uiElements.unitTypeViewer(node.unit.unitType)
+		uiElements.unitViewer.theUnitViewer = uiElements.unitViewer(node.unit)
 	node.toggleCursor()
 
 

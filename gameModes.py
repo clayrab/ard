@@ -1,16 +1,18 @@
 #finish networking cityviewer stuff
 
-#AStar is pretty junkie on larger maps :(
+
+#remove units from cities in map editor
+#remove buildtime editiing from city editor
+#allow summoner and gatherer from all cities
+#disallow summoner and gatherer from city editor
+
 
 #cancel waiting
 #wait while summoning
 #cancel summoning
 #cancel summoning/research when stop waiting
 
-#remove buildtime editiing from city editor
 
-#allow summoner and gatherer from all cities
-#disallow summoner and gatherer from city editor
 
 #map editor UI polish
 #save and resume games
@@ -20,7 +22,7 @@
 #add second resource
 #add second resource to units/cities/city editor
 
-#remove units from cities in map editor
+
 #icons for each unit
 #attacking
 
@@ -38,6 +40,7 @@
 #right-justifiable text
 #unit editor
 
+import sys
 import os
 import random
 import copy
@@ -52,8 +55,15 @@ import server
 import client
 from textureFunctions import texWidth, texHeight, texIndex
 
-def printTraceBack(tb):
-	traceback.print_tb(tb)
+print sys.setrecursionlimit(100000)
+#need this to allow deep recursion for AStar
+#defaults to 1000... may cause crash on systems where 1000000 is too large...
+
+def printTraceBack(excType,excValue,tb=None):
+	print excType
+	print excValue
+	if(tb!=None):
+		traceback.print_tb(tb)
 
 zoomSpeed = 0.3
 class gameMode:
@@ -93,7 +103,6 @@ class gameMode:
 	def handleKeyDown(self,keycode):
 		if(hasattr(self.elementWithFocus,"onKeyDown")):
 			self.elementWithFocus.onKeyDown(keycode)
-		print keycode
 	def handleKeyUp(self,keycode):
 		if(hasattr(self.elementWithFocus,"onKeyUp")):
 			self.elementWithFocus.onKeyUp(keycode)
@@ -196,10 +205,10 @@ class playMode(tiledGameMode):
 		self.focusNextUnit = 0
 		return self.focusNextUnitTemp
 	def orderUnits(self):
-		self.units.sort(key=lambda unit:1000.0 if unit.waiting else unit.movementPoints)
+		self.units.sort(key=lambda unit: 1000.0 if (unit.unitAction==gameLogic.unitAction.WAIT) else unit.movementPoints)
 	def chooseNextUnit(self):
 		self.orderUnits()
-		while(self.units[0].movementPoints > 0.0 or self.units[0].waiting):
+		while(self.units[0].movementPoints > 0.0 or (self.units[0].unitAction == gameLogic.unitAction.WAIT)):
 			self.orderUnits()
 			for unit in self.units:
 #				if(unit.node.roadValue == 1):
@@ -221,7 +230,7 @@ class playMode(tiledGameMode):
 		eligibleUnits = []
 		eligibleUnits.append(self.units[0])
 		for unit in self.units[1:]:
-			if(unit.movementPoints == eligibleUnits[0].movementPoints and not unit.waiting):
+			if(unit.movementPoints == eligibleUnits[0].movementPoints and not (unit.unitAction == gameLogic.unitAction.WAIT)):
 				eligibleUnits.append(unit)
 		self.nextUnit = random.choice(eligibleUnits)
 		gameLogic.selectNode(self.nextUnit.node)
@@ -286,7 +295,6 @@ class mapEditorMode(tiledGameMode):
 		self.map = gameLogic.map(gameLogic.mapEditorNode)
 	def handleKeyDown(self,keycode):
 		if(keycode == 'r'):
-			print keycode
 			self.resortElems = True
 		try:
 			self.elementWithFocus.onKeyDown(keycode)
@@ -408,7 +416,6 @@ class newMapMode(gameMode):
 	def __init__(self):
 		gameMode.__init__(self)
 	def addUIElements(self):
-		print '1'
 		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])
 		uiElements.uiElement(-0.15,0.2,text="map name")
 		self.elementWithFocus = uiElements.newMapNameInputElement(-0.15,0.15,mapEditorMode,width=(2.0*cDefines.defines['UI_TEXT_INPUT_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_TEXT_INPUT_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),text="",textSize=0.0005,textColor='00 00 00',textureIndex=cDefines.defines['UI_TEXT_INPUT_INDEX'],textYPos=-0.035,textXPos=0.01)
