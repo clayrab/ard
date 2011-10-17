@@ -1,20 +1,11 @@
 #finish networking cityviewer stuff
 
-
-#remove units from cities in map editor
-#remove buildtime editiing from city editor
-#allow summoner and gatherer from all cities
-#disallow summoner and gatherer from city editor
-
-
 #cancel waiting
 #wait while summoning
 #cancel summoning
 #cancel summoning/research when stop waiting
 
-
-
-#map editor UI polish
+#attacking
 #save and resume games
 #fog of war
 #make sure text edit boxes only allow chars and not shift/enter
@@ -22,11 +13,9 @@
 #add second resource
 #add second resource to units/cities/city editor
 
-
 #icons for each unit
-#attacking
 
-#check new/editted city names for duplicates
+#check new/edited city names for duplicates
 
 #server:
 #room for finding games

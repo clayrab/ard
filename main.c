@@ -18,7 +18,7 @@
 #include "libpngGL.h"
 #include "fonts.h"
 
-#define maxZoom 70.0
+#define maxZoom 50.0
 #define minZoom 10.0
 #define initZoom 30.0
 
@@ -147,6 +147,16 @@
 #define SELECTION_BRACKET_HEIGHT 20
 #define SELECTION_BRACKET_WIDTH 67
 #define SELECTION_BRACKET_INDEX 25
+
+#define ADD_BUTTON_SMALL_IMAGE "assets/addButtonSmall.png"
+#define ADD_BUTTON_SMALL_HEIGHT 13
+#define ADD_BUTTON_SMALL_WIDTH 13
+#define ADD_BUTTON_SMALL_INDEX 26
+
+#define REMOVE_BUTTON_SMALL_IMAGE "assets/removeButtonSmall.png"
+#define REMOVE_BUTTON_SMALL_HEIGHT 13
+#define REMOVE_BUTTON_SMALL_WIDTH 13
+#define REMOVE_BUTTON_SMALL_INDEX 27
 
 #define DESERT_TILE_INDEX 0
 #define GRASS_TILE_INDEX 1
@@ -602,7 +612,6 @@ void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long 
     glEnd();
     //    glPopMatrix();
     glBindTexture(GL_TEXTURE_2D, tilesTexture);
-
   }
 }
 void drawTilesText(){
@@ -940,6 +949,8 @@ static void initGL (){
   pngLoad(&texturesArray[UNIT_VIEWER_BOX_INDEX],UNIT_VIEWER_BOX_IMAGE);
   pngLoad(&texturesArray[RESEARCH_BOX_INDEX],RESEARCH_BOX_IMAGE);
   pngLoad(&texturesArray[SELECTION_BRACKET_INDEX],SELECTION_BRACKET_IMAGE);
+  pngLoad(&texturesArray[ADD_BUTTON_SMALL_INDEX],ADD_BUTTON_SMALL_IMAGE);
+  pngLoad(&texturesArray[REMOVE_BUTTON_SMALL_INDEX],REMOVE_BUTTON_SMALL_IMAGE);
 
   vertexArrays[DESERT_TILE_INDEX] = *desertVertices;
   vertexArrays[GRASS_TILE_INDEX] = *grassVertices;

@@ -15,8 +15,6 @@ startingManas = ["5","10","15","20","30","40","50","60","70","80","90","100"]
 unitBuildTimes = ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20"]
 
 
-
-
 class uiElement:
 	def __init__(self,xPos,yPos,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor=None,textSize=0.001,color=None,mouseOverColor=None,textXPos=0.0,textYPos=0.0):
 		self.name = nameGenerator.getNextName()
@@ -407,11 +405,9 @@ class cityEditor(uiElement):
 		self.names.append(cityCostField(-0.972,0.66,width=texWidth('UI_TEXT_INPUT_IMAGE'),height=texHeight('UI_TEXT_INPUT_IMAGE'),text=str(self.city.costOfOwnership),textSize=0.0005,textColor='00 00 00',mouseOverColor='00 00 00',textureIndex=texIndex('UI_TEXT_INPUT'),textYPos=-0.035,textXPos=0.01).name)
 		height = 0.56
 		for unitType in self.city.unitTypes:
-			self.names.append(uiElement(-0.972,height,text=unitType.name,textSize=0.0005).name)
+			self.names.append(uiElement(-0.95,height,text=unitType.name,textSize=0.0005).name)
 			self.names.append(uiElement(-0.75,height,text=str(unitType.cost),textSize=0.0005).name)
-			self.names.append(removeUnitTypeButton(-0.7,height,unitType,textureIndex=texIndex("REMOVE_BUTTON"),width=texWidth("REMOVE_BUTTON"),height=texHeight("REMOVE_BUTTON")).name)
-			#asdf
-
+			self.names.append(removeUnitTypeButton(-0.96,height+0.03,unitType,textureIndex=texIndex("REMOVE_BUTTON_SMALL"),width=texWidth("REMOVE_BUTTON_SMALL"),height=texHeight("REMOVE_BUTTON_SMALL")).name)
 			height = height - 0.04
 		self.names.append(addUnitTypeButton(-0.972,height,width=0.0,height=0.0,text="+unit",textSize=0.0005).name)
 		self.names.append(deleteCityButton(-0.972,-0.9,width=0.0,height=0.0,text="delete city",textSize=0.0005).name)
@@ -425,7 +421,8 @@ class cityEditor(uiElement):
 	def destroy():
 		if(cityEditor.theCityEditor != None):
 			cityEditor.theCityEditor._destroy()
-		cityEditor.theCityEditor = None
+			cityEditor.theCityEditor.city = None
+			cityEditor.theCityEditor = None
 	def _destroy(self):
 		del gameState.getGameMode().elementsDict[self.name]
 		for name in self.names:
@@ -589,7 +586,7 @@ class unitTypeSelector(scrollableTextFieldsElement):
 	def handleClick(self,textFieldElem):
 		for unitType in gameState.theUnitTypes.values():
 			if(unitType.name == textFieldElem.text):
-				cityEditor.theCityEditor.addUnitType(copy.copy(unitType))
+				cityEditor.theCityEditor.addUnitType(unitType)
 		self.destroy()
 
 class cityCostSelector(scrollableTextFieldsElement):
@@ -664,7 +661,8 @@ class removeUnitTypeButton(clickableElement):
 
 		self.unitType = unitType
 	def onClick(self):
-		print cityEditor.theCityEditor
+		cityEditor.theCityEditor.city.unitTypes.remove(self.unitType)
+		cityEditor.reset()
 
 class cityCostField(clickableElement):
 	def onClick(self):

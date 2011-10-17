@@ -61,11 +61,16 @@ class unit:
        			self.movementPoints = self.movementPoints + self.unitType.movementSpeed
 			gameState.getGameMode().chooseNextUnit()
 class city:
-	def __init__(self,name,node,unitTypes=[],costOfOwnership=10):
+	def __init__(self,name,node,unitTypes=None,costOfOwnership=10):
+		if(unitTypes == None):
+			unitTypes = []
 		self.name = name
 		self.node = node
 		self.costOfOwnership = costOfOwnership
-		self.unitTypes = unitTypes
+		self.unitTypes = []
+		self.unitTypes.append(gameState.theUnitTypes["summoner"])
+		self.unitTypes.append(gameState.theUnitTypes["gatherer"])	
+		self.unitTypes.extend(unitTypes)
 		self.researching = True
 		self.researchUnitType = None
 		self.researchLevel = 0
@@ -106,12 +111,10 @@ class node:
 		self.tileValue = tileValue
 		self.roadValue = roadValue
 		self.city = city
-#		self.cityViewer = None
 		self.playerStartValue = playerStartValue
 		self.selected = False
 		self.onMovePath = False
 		self.cursorIndex = -1
-#		self.cursorIndex = cDefines.defines['CURSOR_POINTER_ON_INDEX']
 		gameState.getGameMode().elementsDict[self.name] = self
 		self.neighbors = []
 		self.unit = None
@@ -126,7 +129,6 @@ class node:
 			(random.choice(self.neighbors)).addUnit(unit)
 
 class playModeNode(node):
-#	shiftDown = False
 	isNeighbor = False
 	moveMode = False
 	openNodes = []
@@ -294,6 +296,7 @@ class mapEditorNode(node):
 				elif(gameState.getGameMode().selectedButton.tileType == cDefines.defines['CITY_TILE_INDEX']):#new city
 					if(self.city == None):
 						self.city = city(random.choice(cityNames),self)
+					uiElements.cityEditor.destroy()
 					uiElements.cityEditor.theCityEditor = uiElements.cityEditor(self.city)
 					if(gameState.getGameMode().selectedCityNode != None):
 						gameState.getGameMode().selectedCityNode.selected = False
