@@ -1,4 +1,9 @@
 
+#add +/- buttons to summon list and summon queue
+#dismiss unitTypeBuildViewer on starr
+
+#redesign attack/move/wait - add wait/skip buttons
+
 #finish networking cityviewer stuff
 
 #attacking
@@ -16,6 +21,8 @@
 
 #check new/edited city names for duplicates
 
+#move research unit type view over top of the actionViewer(probably need to break unitTypeViewer into two classes)
+
 #server:
 #room for finding games
 #room for each game
@@ -24,6 +31,7 @@
 #mouseover effects
 #music
 #AI
+#after AI remove playerNumber = -1 code which allows control of multiple players via one client...
 #campaign
 #right-justifiable text
 #unit editor
@@ -180,7 +188,6 @@ class playMode(tiledGameMode):
 		self.focusNextUnit = 0
 		self.focusNextUnitTemp = 0
 		self.selectedNode = None
-		self.cityViewer = None
 		tiledGameMode.__init__(self)
 		self.shiftDown = False
 	def loadMap(self):
@@ -224,10 +231,14 @@ class playMode(tiledGameMode):
 		gameLogic.selectNode(self.nextUnit.node)
 		self.focusNextUnit = 1
 		if(len(self.nextUnit.movePath) > 0):
-			if(len(gameState.getPlayers()) > 0):#multiplayer game
-				if(gameState.getGameMode().nextUnit.player == gameState.getPlayerNumber()):
+			if(True or len(gameState.getPlayers()) > 1):#multiplayer game
+				if(gameState.getGameMode().nextUnit.player == gameState.getPlayerNumber() or gameState.getPlayerNumber() == -1):
 					self.nextUnit.movePath = self.nextUnit.movePath[1:]
 					gameState.getClient().sendCommand("nodeClick " + str(self.nextUnit.movePath[0].xPos) + " " + str(self.nextUnit.movePath[0].yPos) + "|")
+			elif(len(gameState.getPlayers()) > 0):#multiplayer game
+				self.nextUnit.movePath = self.nextUnit.movePath[1:]
+				gameState.getClient().sendCommand("nodeClick " + str(self.nextUnit.movePath[0].xPos) + " " + str(self.nextUnit.movePath[0].yPos) + "|")
+
 			else:
 				moveToNode = self.nextUnit.movePath[0]
 				self.nextUnit.moveTo(self.nextUnit.movePath[0])#self.nextUnit is changed in moveTo
@@ -247,9 +258,13 @@ class playMode(tiledGameMode):
 		if(keycode == "left shift" or keycode == "right shift"):
 			self.shiftDown = True
 		if(keycode == "space"):
-			if(len(gameState.getPlayers()) > 0):#multiplayer game
-				if(gameState.getGameMode().nextUnit.player == gameState.getPlayerNumber()):
+			if(True or len(gameState.getPlayers()) > 1):#multiplayer game
+				if(gameState.getGameMode().nextUnit.player == gameState.getPlayerNumber() or gameState.getPlayerNumber() == -1):
 					gameState.getClient().sendCommand("nodeClick " + str(self.nextUnit.node.xPos) + " " + str(self.nextUnit.node.yPos) + "|")
+				
+			elif(len(gameState.getPlayers()) > 0):#multiplayer game
+				gameState.getClient().sendCommand("nodeClick " + str(self.nextUnit.node.xPos) + " " + str(self.nextUnit.node.yPos) + "|")
+				
 			else:
 				self.nextUnit.moveTo(self.nextUnit.node)
 				self.chooseNextUnit()
@@ -273,7 +288,7 @@ class playMode(tiledGameMode):
 	def addUIElements(self):
 		server.startServer('')
 		client.startClient('127.0.0.1')
-		print 'done...'
+		gameState.setPlayerNumber(-1)
 
 		uiElements.uiElement(xPos=-1.0,yPos=1.0,width=2.0,height=texHeight('UI_MAP_EDITOR_TOP_IMAGE'),textureIndex=texIndex('UI_MAP_EDITOR_TOP'))
 		uiElements.uiElement(xPos=-1.0,yPos=1.0-texHeight('UI_MAP_EDITOR_TOP_IMAGE'),width=texWidth('UI_MAP_EDITOR_LEFT_IMAGE'),height=texHeight('UI_MAP_EDITOR_LEFT_IMAGE'),textureIndex=texIndex('UI_MAP_EDITOR_LEFT'))

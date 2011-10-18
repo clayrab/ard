@@ -15,11 +15,12 @@ class Commands:
         gameState.setMapName(mapName)
     @staticmethod
     def setPlayerNumber(playerNumber):
-        gameState.setPlayerNumber(int(playerNumber))
+        if(gameState.getPlayerNumber() != -1):
+            gameState.setPlayerNumber(int(playerNumber))
     @staticmethod
     def addPlayer(playerNumber):
         player = gameState.addPlayer(playerNumber)
-        if(gameState.getPlayerNumber() == player.playerNumber):
+        if(gameState.getPlayerNumber() == player.playerNumber or gameState.getPlayerNumber() == -1):
             player.isOwnPlayer = True
         gameState.getGameMode().redrawPlayers()
     @staticmethod
@@ -27,16 +28,15 @@ class Commands:
         gameState.setGameMode(gameModes.playMode)
     @staticmethod
     def nodeClick(args):
-        print 'nodeclick'
         tokens = args.split(" ")
-        print tokens
         nodes = gameState.getGameMode().map.nodes
-        print int(tokens[0])
-        print int(tokens[1])
         node = nodes[int(tokens[1])][int(tokens[0])]
-        print node
        	gameState.getGameMode().nextUnit.moveTo(node)
+        gameState.getGameMode().chooseNextUnit()
+    def startSummoning(args):
+        tokens = args.split(" ")
         
+
 def doCommand(commandName,args=None):
     commandFunc = getattr(Commands,commandName)
     if(commandFunc != None):

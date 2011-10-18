@@ -46,6 +46,7 @@ class unit:
 		self.health = self.unitType.health
 		self.movePath = []
 		self.unitAction = unitAction.MOVE
+		self.level = level
 	def moveTo(self,node):
 		if(node.unit != None and self.node != node):
 			if(node.unit.player != self.player):
@@ -70,7 +71,8 @@ class city:
 		self.unitTypes.append(gameState.theUnitTypes["summoner"])
 		self.unitTypes.append(gameState.theUnitTypes["gatherer"])	
 		self.unitTypes.extend(unitTypes)
-		self.researching = True
+		self.researching = False
+		self.doneResearching = False
 		self.researchUnitType = None
 		self.researchLevel = 0
 		self.researchProgress = 0
@@ -96,6 +98,7 @@ class city:
 						self.researchLevel = self.researchLevel + 1
 						self.researchProgress = 0
 						self.node.unit.unitAction = unitAction.MOVE
+						self.researching = False
 			else:
 				if(self.unitBeingBuilt != None):
 					self.unitBeingBuilt.buildPoints = self.unitBeingBuilt.buildPoints - unitBuildSpeed
@@ -143,10 +146,22 @@ class playModeNode(node):
 		self.aStarHeuristicCost = 0.0
 		self.aStarParent = None
 	def onLeftClickDown(self):
-		if(len(gameState.getPlayers()) > 0):#multiplayer game
-			if(gameState.getGameMode().nextUnit.player == gameState.getPlayerNumber()):
-				gameState.getGameMode().nextUnit.movePath = gameState.getGameMode().nextUnit.node.movePath[1:]
-				gameState.getClient().sendCommand("nodeClick " + str(gameState.getGameMode().nextUnit.node.movePath[0].xPos) + " " + str(gameState.getGameMode().nextUnit.node.movePath[0].yPos) + "|")
+		if(True or len(gameState.getPlayers()) > 1):#multiplayer game
+			print "plyrnumber:"+str(gameState.getPlayerNumber())
+			if((gameState.getGameMode().nextUnit.player == gameState.getPlayerNumber()) or gameState.getPlayerNumber() == -1):
+				if(playModeNode.moveMode):
+					print '1'
+					gameState.getGameMode().nextUnit.movePath = gameState.getGameMode().nextUnit.node.movePath[1:]
+					print '1'
+					gameState.getClient().sendCommand("nodeClick " + str(gameState.getGameMode().nextUnit.node.movePath[0].xPos) + " " + str(gameState.getGameMode().nextUnit.node.movePath[0].yPos) + "|")
+					print '1'
+				else:
+					selectNode(self)
+		elif(len(gameState.getPlayers()) > 0):#single player network game...
+			print 'here...'
+			gameState.getGameMode().nextUnit.movePath = gameState.getGameMode().nextUnit.node.movePath[1:]
+			gameState.getClient().sendCommand("nodeClick " + str(gameState.getGameMode().nextUnit.node.movePath[0].xPos) + " " + str(gameState.getGameMode().nextUnit.node.movePath[0].yPos) + "|")
+
 		else:
 			if(playModeNode.moveMode):
 				gameState.getGameMode().nextUnit.movePath = gameState.getGameMode().nextUnit.node.movePath[1:]
@@ -430,13 +445,13 @@ def selectNode(node):
 		gameState.getGameMode().selectedNode.selected = False
 	gameState.getGameMode().selectedNode = node
 	node.selected = True
-	uiElements.cityViewer.destroy()
-	uiElements.unitTypeViewer.destroy()
-	uiElements.researchViewer.destroy()
+	uiElements.actionViewer.destroy()
+	uiElements.unitTypeResearchViewer.destroy()
+	uiElements.unitTypeBuildViewer.destroy()
 	if(node.city != None):
-		uiElements.cityViewer.theCityViewer = uiElements.cityViewer(node)
-	if(node.unit != None):
-		uiElements.unitViewer.theUnitViewer = uiElements.unitViewer(node.unit)
+		uiElements.actionViewer.theActionViewer = uiElements.actionViewer(node)
+#	if(node.unit != None):
+#		uiElements.unitViewer.theUnitViewer = uiElements.unitViewer(node.unit)
 	node.toggleCursor()
 
 
