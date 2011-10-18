@@ -1,6 +1,5 @@
 
 #add +/- buttons to summon list and summon queue
-#dismiss unitTypeBuildViewer on starr
 
 #redesign attack/move/wait - add wait/skip buttons
 
