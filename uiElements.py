@@ -201,13 +201,11 @@ class viewUnitTypeButton(clickableElement):
 
 class stopWaitingButton(clickableElement):
 	def onClick(self):
-		actionViewer.theActionViewer.node.unit.waiting = False
-		unitViewer.reset()
-
+		gameState.getClient().sendCommand("stopWaiting " + str(actionViewer.theActionViewer.node.xPos) + " " + str(actionViewer.theActionViewer.node.yPos) + "|")
+		
 class waitButton(clickableElement):
 	def onClick(self):
-		actionViewer.theActionViewer.node.unit.waiting = True
-		gameState.getGameMode().chooseNextUnit()
+		gameState.getClient().sendCommand("wait " + str(actionViewer.theActionViewer.node.xPos) + " " + str(actionViewer.theActionViewer.node.yPos) + "|")
 
 class skipButton(clickableElement):
        	def __init__(self,xPos,yPos,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,textXPos=0.0,textYPos=0.0):
@@ -445,6 +443,7 @@ class cityEditor(uiElement):
 		if(cityEditor.theCityEditor != None):
                         cityEditor.theCityEditor._destroy()
 		cityEditor.theCityEditor = cityEditor(cityEditor.theCityEditor.city)
+
 class mapEditorTileSelectUIElement(uiElement):
 	def __init__(self,xPos,yPos,width=0.0,height=0.0,textureIndex=-1,hidden=False,tileType=0,playerNumber=-1):
 		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,cursorIndex=texIndex('CURSOR_POINTER_ON'))
@@ -628,15 +627,6 @@ class startingManaSelector(scrollableTextFieldsElement):
 #		self.unitCostField.unitType.cost = int(textFieldElem.text)
 		self.destroy()
 
-#class unitBuildTimeSelector(scrollableTextFieldsElement):
-#	def __init__(self,xPos,yPos,textFields,unitBuildTimeField,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,yPositionOffset=-0.04,yOffset=-0.041,numFields=25,scrollSpeed=1):
-#		scrollableTextFieldsElement.__init__(self,xPos,yPos,textFields,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,color=color,mouseOverColor=mouseOverColor)
-#		self.unitBuildTimeField = unitBuildTimeField
-#	def handleClick(self,textFieldElem):
-#		self.unitBuildTimeField.text = textFieldElem.text
-#		self.unitBuildTimeField.unitType.cost = int(textFieldElem.text)
-#		self.destroy()
-
 class playerStartLocationButton(clickableElement):
 	playerStartLocationButtons = []
 	def __init__(self,xPos,yPos,playerNumber,width=0.0,height=0.0,text="",textSize=0.001,textureIndex=-1,color="FF FF FF"):
@@ -652,6 +642,7 @@ class playerStartLocationButton(clickableElement):
 		gameState.getGameMode().selectedButton = self
 		self.selected = True
 		self.color = "99 99 99"
+
 class deleteCityButton(clickableElement):
 	def onClick(self):
 		cityEditor.theCityEditor.destroy()
@@ -701,7 +692,6 @@ class startingManaField(clickableElement):
 #		self.unitType = unitType
 #	def onClick(self):
 #		unitBuildTimeSelector(self.xPosition,self.yPosition-0.06,unitBuildTimes,self,text="select build timeGET RID OF THIS",textSize=0.0005,textureIndex=cDefines.defines['UI_SCROLLABLE_INDEX'],width=(2.0*cDefines.defines['UI_SCROLLABLE_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_SCROLLABLE_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']))
-
 
 
 class menuButton(clickableElement):

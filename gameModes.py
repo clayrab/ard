@@ -1,5 +1,3 @@
-#finish networking cityviewer stuff
-
 #attacking
 #save and resume games
 #fog of war
@@ -11,17 +9,20 @@
 #add second resource
 #add second resource to units/cities/city editor
 
+#player colors
+
 #icons for each unit
 
 #make sure text edit boxes only allow chars and not shift/enter
 
-#check new/edited city names for duplicates
-
-#move research unit type view over top of the actionViewer(probably need to break unitTypeViewer into two classes)
+#move research unit type view over top of the actionViewer
 
 #server:
 #room for finding games
 #room for each game
+
+#check new/edited city names for duplicates
+#uiElements startingManaSelector???
 
 #sound effects
 #mouseover effects

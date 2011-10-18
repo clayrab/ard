@@ -68,6 +68,25 @@ class Commands:
 #	node.unit.moveTo(node)
         if(gameState.getGameMode().nextUnit == node.unit):
             gameState.getGameMode().chooseNextUnit()
+    @staticmethod
+    def stopWaiting(args):
+        tokens = args.split(" ")
+        node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
+        node.unit.waiting = False
+        if(uiElements.unitViewer.unit == node.unit):
+            unitViewer.reset()
+    @staticmethod
+    def wait(args):
+        tokens = args.split(" ")
+        node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
+        node.unit.waiting = True
+        if(gameState.getGameMode().nextUnit == node.unit):
+            gameState.getGameMode().chooseNextUnit()
+        elif(uiElements.unitViewer.unit == node.unit):
+            unitViewer.reset()
+
+
+
 
 
 def doCommand(commandName,args=None):
