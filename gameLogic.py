@@ -48,7 +48,7 @@ class unit:
 		self.unitAction = unitAction.MOVE
 	def moveTo(self,node):
 		if(node.unit != None and self.node != node):
-			if(node.unit.player != self.playerOwner):
+			if(node.unit.player != self.player):
 				print 'attack!!??'
 			else:
 				print 'own unit... do nothing or if were on a movepath, recalc movepath and move'
@@ -57,9 +57,8 @@ class unit:
 			self.node = node
 			node.unit = self
 			if(node.city != None):
-				node.city.playerOwner = node.unit.player
+				node.city.player = node.unit.player
        			self.movementPoints = self.movementPoints + self.unitType.movementSpeed
-			gameState.getGameMode().chooseNextUnit()
 class city:
 	def __init__(self,name,node,unitTypes=None,costOfOwnership=10):
 		if(unitTypes == None):
@@ -77,7 +76,7 @@ class city:
 		self.researchProgress = 0
 		self.unitBeingBuilt = None
 		self.unitBuildQueue = []
-		self.playerOwner = 0
+		self.player = 0
 	def queueUnit(self,unit):
 		self.unitBuildQueue.append(unit)
 		if(self.unitBeingBuilt == None):
@@ -86,22 +85,24 @@ class city:
 		if(len(self.unitBuildQueue) > 0):
 			self.unitBeingBuilt = self.unitBuildQueue[0]
 			self.unitBuildQueue = self.unitBuildQueue[1:]
-	def incrementBuildProgress(self):
-		if(self.researching):
-			if(self.researchUnitType != None):
-				self.researchProgress = self.researchProgress + 1
-				if(self.researchProgress >= researchBuildTime):
-					self.researchLevel = self.researchLevel + 1
-					self.researchProgress = 0
-					self.node.unit.unitAction = unitAction.MOVE
 		else:
-			if(self.unitBeingBuilt != None and self.node.unit != None and self.node.unit.unitType.name == "summoner"):
-				self.unitBeingBuilt.buildPoints = self.unitBeingBuilt.buildPoints - unitBuildSpeed
-				if(self.unitBeingBuilt.buildPoints <= 0.0):
-					self.node.addUnit(self.unitBeingBuilt)
-					self.unitBeingBuilt = None
-					self.buildNextUnit()
-
+			self.node.unit.unitAction = unitAction.MOVE#wake up summoner
+	def incrementBuildProgress(self):
+		if(self.node.unit != None and self.node.unit.unitType.name == "summoner"):
+			if(self.researching):
+				if(self.researchUnitType != None):
+					self.researchProgress = self.researchProgress + 1
+					if(self.researchProgress >= researchBuildTime):
+						self.researchLevel = self.researchLevel + 1
+						self.researchProgress = 0
+						self.node.unit.unitAction = unitAction.MOVE
+			else:
+				if(self.unitBeingBuilt != None):
+					self.unitBeingBuilt.buildPoints = self.unitBeingBuilt.buildPoints - unitBuildSpeed
+					if(self.unitBeingBuilt.buildPoints <= 0.0):
+						self.node.addUnit(self.unitBeingBuilt)
+						self.unitBeingBuilt = None
+						self.buildNextUnit()
 
 class node:
 	def __init__(self,xPos,yPos,tileValue=cDefines.defines['GRASS_TILE_INDEX'],roadValue=0,city=None,playerStartValue=0):
@@ -150,6 +151,7 @@ class playModeNode(node):
 			if(playModeNode.moveMode):
 				gameState.getGameMode().nextUnit.movePath = gameState.getGameMode().nextUnit.node.movePath[1:]
 				gameState.getGameMode().nextUnit.moveTo(gameState.getGameMode().nextUnit.node.movePath[0])
+				gameState.getGameMode().chooseNextUnit()
 			else:
 				selectNode(self)
 	def toggleCursor(self):

@@ -1,14 +1,14 @@
-#finish networking cityviewer stuff
 
-#cancel waiting
-#wait while summoning
-#cancel summoning
-#cancel summoning/research when stop waiting
+#wake up summoner on empty queue
+
+#finish networking cityviewer stuff
 
 #attacking
 #save and resume games
 #fog of war
 #make sure text edit boxes only allow chars and not shift/enter
+
+#gatherer auto pathing
 
 #add second resource
 #add second resource to units/cities/city editor
@@ -230,8 +230,10 @@ class playMode(tiledGameMode):
 					self.nextUnit.movePath = self.nextUnit.movePath[1:]
 					gameState.getClient().sendCommand("nodeClick " + str(self.nextUnit.movePath[0].xPos) + " " + str(self.nextUnit.movePath[0].yPos) + "|")
 			else:
+				moveToNode = self.nextUnit.movePath[0]
+				self.nextUnit.moveTo(self.nextUnit.movePath[0])#self.nextUnit is changed in moveTo
 				self.nextUnit.movePath = self.nextUnit.movePath[1:]
-				self.nextUnit.moveTo(self.nextUnit.movePath[0])
+				self.chooseNextUnit()
 	def loadSummoners(self):
 		rowCount = 0
 		columnCount = 0
@@ -251,6 +253,7 @@ class playMode(tiledGameMode):
 					gameState.getClient().sendCommand("nodeClick " + str(self.nextUnit.node.xPos) + " " + str(self.nextUnit.node.yPos) + "|")
 			else:
 				self.nextUnit.moveTo(self.nextUnit.node)
+				self.chooseNextUnit()
 		elif(keycode == "n"):
 			self.focusNextUnit = 1
 			self.selectedNode.selected = False
