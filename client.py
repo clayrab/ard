@@ -29,12 +29,26 @@ class Commands:
     @staticmethod
     def nodeClick(args):
         tokens = args.split(" ")
-        nodes = gameState.getGameMode().map.nodes
-        node = nodes[int(tokens[1])][int(tokens[0])]
+        node = gameState.getGameMode().map.nodens[int(tokens[1])][int(tokens[0])]
        	gameState.getGameMode().nextUnit.moveTo(node)
         gameState.getGameMode().chooseNextUnit()
     def startSummoning(args):
         tokens = args.split(" ")
+        node = gameState.getGameMode().map.nodens[int(tokens[1])][int(tokens[0])]
+        print node        
+	#	actionViewer.theActionViewer.node.city.doneResearching = True
+	#	actionViewer.theActionViewer.node.city.queueUnit(gameLogic.unit(self.unitType,actionViewer.theActionViewer.node.city.player,actionViewer.theActionViewer.node.city.researchLevel,actionViewer.theActionViewer.node.xPos,actionViewer.theActionViewer.node.yPos,actionViewer.theActionViewer.node))
+	#	actionViewer.theActionViewer.node.unit.unitAction = gameLogic.unitAction.WAIT
+	#	if(gameState.getGameMode().nextUnit == actionViewer.theActionViewer.node.unit):
+	#		gameState.getGameMode().chooseNextUnit()
+	#	else:
+	#		actionViewer.theActionViewer.reset()
+	#		unitTypeBuildViewer.destroy()
+
+
+
+
+
         
 
 def doCommand(commandName,args=None):

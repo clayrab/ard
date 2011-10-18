@@ -169,14 +169,7 @@ class startSummoningButton(clickableElement):
 		clickableElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],color=color,mouseOverColor=mouseOverColor,textXPos=textXPos,textYPos=textYPos)
 		self.unitType = unitType
 	def onClick(self):
-		actionViewer.theActionViewer.node.city.doneResearching = True
-		actionViewer.theActionViewer.node.city.queueUnit(gameLogic.unit(self.unitType,actionViewer.theActionViewer.node.city.player,actionViewer.theActionViewer.node.city.researchLevel,actionViewer.theActionViewer.node.xPos,actionViewer.theActionViewer.node.yPos,actionViewer.theActionViewer.node))
-		actionViewer.theActionViewer.node.unit.unitAction = gameLogic.unitAction.WAIT
-		if(gameState.getGameMode().nextUnit == actionViewer.theActionViewer.node.unit):
-			gameState.getGameMode().chooseNextUnit()
-		else:
-			actionViewer.theActionViewer.reset()
-			unitTypeBuildViewer.destroy()
+		gameState.getClient().sendCommand("startSummoning " + str(actionViewer.theActionViewer.node.xPos) + " " + str(actionViewer.theActionViewer.node.movePath[0].yPos) + " " + self.unitType.name + "|")
 
 class cancelUnitButton(clickableElement):
        	def __init__(self,xPos,yPos,node,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,textXPos=0.0,textYPos=0.0):
