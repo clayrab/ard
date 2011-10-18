@@ -217,35 +217,21 @@ class viewUnitTypeButton(clickableElement):
 	def onClick(self):
 		unitTypeBuildViewer.destroy()
 		unitTypeBuildViewer.theUnitTypeBuildViewer = unitTypeBuildViewer(self.unitType)
-#		print click
-#		researchViewer.destroy()
-#		researchViewer.theResearchViewer = researchViewer(self.unitType,self.node)
 
-
-class moveButton(clickableElement):
-       	def __init__(self,xPos,yPos,unit,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,textXPos=0.0,textYPos=0.0):
-		clickableElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],color=color,mouseOverColor=mouseOverColor,textXPos=textXPos,textYPos=textYPos)
-		self.unit=unit
+class stopWaitingButton(clickableElement):
 	def onClick(self):
-		self.unit.unitAction = gameLogic.unitAction.MOVE
+		actionViewer.theActionViewer.node.unit.unitAction = gameLogic.unitAction.MOVE
 		unitViewer.reset()
 
 class attackButton(clickableElement):
-       	def __init__(self,xPos,yPos,unit,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,textXPos=0.0,textYPos=0.0):
-		clickableElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],color=color,mouseOverColor=mouseOverColor,textXPos=textXPos,textYPos=textYPos)
-		self.unit=unit
 	def onClick(self):
-		self.unit.unitAction = gameLogic.unitAction.ATTACK
+		actionViewer.theActionViewer.node.unit.unitAction = gameLogic.unitAction.ATTACK
 		unitViewer.reset()
 
 class waitButton(clickableElement):
-       	def __init__(self,xPos,yPos,unit,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,textXPos=0.0,textYPos=0.0):
-		clickableElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],color=color,mouseOverColor=mouseOverColor,textXPos=textXPos,textYPos=textYPos)
-		self.unit=unit
 	def onClick(self):
-		self.unit.unitAction = gameLogic.unitAction.WAIT
+		actionViewer.theActionViewer.node.unit.unitAction = gameLogic.unitAction.WAIT
 		gameState.getGameMode().chooseNextUnit()
-#		unitViewer.reset()
 
 class skipButton(clickableElement):
        	def __init__(self,xPos,yPos,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,textXPos=0.0,textYPos=0.0):
@@ -290,38 +276,22 @@ class actionViewer(uiElement):
 						self.names.append(viewResearchButton(-0.964,height,unitType,self.node,text=unitType.name,textSize=0.0005).name)
 						self.names.append(uiElement(-0.72,height,text=str(unitType.cost),textSize=0.0005).name)
 						height = height - 0.04
-
-
-
-
-
-
 		self.names.append(uiElement(-0.88,-0.51,text="summon",textSize=0.0005).name)
-		self.names.append(startSummoningButton(-0.97,-0.525,gameState.theUnitTypes["gatherer"],textureIndex=texIndex("ADD_BUTTON_SMALL"),width=texWidth("ADD_BUTTON_SMALL"),height=texHeight("ADD_BUTTON_SMALL")).name)
 		self.names.append(viewUnitTypeButton(-0.94,-0.55,gameState.theUnitTypes["gatherer"],text="gatherer",textSize=0.0005).name)
-		self.names.append(startSummoningButton(-0.97,-0.565,gameState.theUnitTypes["summoner"],textureIndex=texIndex("ADD_BUTTON_SMALL"),width=texWidth("ADD_BUTTON_SMALL"),height=texHeight("ADD_BUTTON_SMALL")).name)
+		if(self.node.unit != None and self.node.unit.unitType.name == "summoner"):
+			self.names.append(startSummoningButton(-0.97,-0.525,gameState.theUnitTypes["gatherer"],textureIndex=texIndex("ADD_BUTTON_SMALL"),width=texWidth("ADD_BUTTON_SMALL"),height=texHeight("ADD_BUTTON_SMALL")).name)
 		self.names.append(viewUnitTypeButton(-0.94,-0.59,gameState.theUnitTypes["summoner"],text="summoner",textSize=0.0005).name)
+		if(self.node.unit != None and self.node.unit.unitType.name == "summoner"):
+			self.names.append(startSummoningButton(-0.97,-0.565,gameState.theUnitTypes["summoner"],textureIndex=texIndex("ADD_BUTTON_SMALL"),width=texWidth("ADD_BUTTON_SMALL"),height=texHeight("ADD_BUTTON_SMALL")).name)
 		if(self.node.city.researchLevel > 0):
-			self.names.append(startSummoningButton(-0.97,-0.605,self.node.city.researchUnitType,textureIndex=texIndex("ADD_BUTTON_SMALL"),width=texWidth("ADD_BUTTON_SMALL"),height=texHeight("ADD_BUTTON_SMALL")).name)
 			self.names.append(viewUnitTypeButton(-0.94,-0.63,self.node.city.researchUnitType,text=self.node.city.researchUnitType.name + "(lvl " + str(self.node.city.researchLevel) + ")",textSize=0.0005).name)
+			if(self.node.unit != None and self.node.unit.unitType.name == "summoner"):
+				self.names.append(startSummoningButton(-0.97,-0.605,self.node.city.researchUnitType,textureIndex=texIndex("ADD_BUTTON_SMALL"),width=texWidth("ADD_BUTTON_SMALL"),height=texHeight("ADD_BUTTON_SMALL")).name)
 
-#		else:
-			
-#			if(self.node.city.unitBeingBuilt != None):
-#			self.names.append(buildUnitButton(-0.972,-0.73,self.node,gameState.theUnitTypes["summoner"],text="add summoner",textSize=0.0005).name)
-#			self.names.append(buildUnitButton(-0.972,-0.77,self.node,gameState.theUnitTypes["gatherer"],text="add gatherer",textSize=0.0005).name)
-#			if(self.node.city.researchUnitType != None):
-#				self.names.append(buildUnitButton(-0.972,-0.81,self.node,self.node.city.researchUnitType,text="add " + self.node.city.researchUnitType.name + "(lvl " + str(self.node.city.researchLevel) + ")",textSize=0.0005).name)
-#			
-#			if(len(self.node.city.unitBuildQueue) > 0):
 #				self.names.append(cancelUnitButton(-0.972,-0.85,self.node,text="cancel " + self.node.city.unitBuildQueue[-1].unitType.name,textSize=0.0005).name)				
-#			elif(self.node.city.unitBeingBuilt != None):
-#				self.names.append(cancelUnitButton(-0.972,-0.85,self.node,text="cancel " + self.node.city.unitBeingBuilt.unitType.name,textSize=0.0005).name)
-			
-#			self.names.append(waitButton(-0.972,-0.93,self.node.unit,text="done/wait",textSize=0.0005).name)
-			
-		self.names.append(skipButton(-0.964,-0.89,text="skip",textSize=0.0005).name)
-		self.names.append(uiElement(-0.964,-0.93,text="wait",textSize=0.0005).name)
+		if(self.node.unit == gameState.getGameMode().nextUnit):
+			self.names.append(skipButton(-0.964,-0.89,text="skip",textSize=0.0005).name)
+			self.names.append(waitButton(-0.964,-0.93,text="wait",textSize=0.0005).name)
 
 	@staticmethod
 	def destroy():
@@ -346,9 +316,9 @@ class unitViewer(uiElement):
 		self.names = []
 		self.names.append(uiElement(-0.978,0.79,textXPos=0.01,textYPos=-0.035,height=texHeight('UNIT_VIEWER_BOX'),width=texWidth('UNIT_VIEWER_BOX'),textureIndex=texIndex('UNIT_VIEWER_BOX'),textSize=0.0005).name)	
 		self.names.append(uiElement(-0.96,0.73,text=self.unit.unitType.name,textSize=0.0007).name)
-		self.names.append(moveButton(-0.947,0.68,self.unit,text="move",textSize=0.0005).name)
-		self.names.append(attackButton(-0.95,0.63,self.unit,text="attack",textSize=0.0005).name)
-		self.names.append(waitButton(-0.940,0.58,self.unit,text="wait",textSize=0.0005).name)
+		self.names.append(stopWaitingButton(-0.947,0.68,text="move",textSize=0.0005).name)
+		self.names.append(attackButton(-0.95,0.63,text="attack",textSize=0.0005).name)
+		self.names.append(waitButton(-0.940,0.58,text="wait",textSize=0.0005).name)
 		if(self.unit.unitAction == gameLogic.unitAction.MOVE):
 			self.names.append(uiElement(-0.958,0.715,textureIndex=texIndex("SELECTION_BRACKET"),width=texWidth("SELECTION_BRACKET"),height=texHeight("SELECTION_BRACKET"),textSize=0.0005).name)
 		elif(self.unit.unitAction == gameLogic.unitAction.ATTACK):
@@ -405,7 +375,9 @@ class unitTypeResearchViewer(uiElement):
 			self.names.append(uiElement(-0.75,0.20,text="[x]",textSize=0.0005).name)
 		else:
 			self.names.append(uiElement(-0.75,0.20,text="[ ]",textSize=0.0005).name)
-		self.names.append(startResearchButton(-0.96,0.00,self.unitType,text="start research",textSize=0.0005).name)
+		if(actionViewer.theActionViewer.node.unit != None and actionViewer.theActionViewer.node.unit.unitType.name == "summoner"):
+
+			self.names.append(startResearchButton(-0.96,0.00,self.unitType,text="start research",textSize=0.0005).name)
 
 
 	def _destroy(self):
@@ -443,7 +415,8 @@ class unitTypeBuildViewer(uiElement):
 			self.names.append(uiElement(-0.75,0.20,text="[x]",textSize=0.0005).name)
 		else:
 			self.names.append(uiElement(-0.75,0.20,text="[ ]",textSize=0.0005).name)
-		self.names.append(startSummoningButton(-0.96,0.00,self.unitType,text="summon",textSize=0.0005).name)
+		if(actionViewer.theActionViewer.node.unit != None and actionViewer.theActionViewer.node.unit.unitType.name == "summoner"):
+			self.names.append(startSummoningButton(-0.96,0.00,self.unitType,text="summon",textSize=0.0005).name)
 
 	@staticmethod
 	def destroy():

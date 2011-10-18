@@ -1,8 +1,3 @@
-
-#add +/- buttons to summon list and summon queue
-
-#redesign attack/move/wait - add wait/skip buttons
-
 #finish networking cityviewer stuff
 
 #attacking
