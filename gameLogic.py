@@ -141,28 +141,24 @@ class playModeNode(node):
 		self.aStarHeuristicCost = 0.0
 		self.aStarParent = None
 	def onLeftClickDown(self):
-		if(True or len(gameState.getPlayers()) > 1):#multiplayer game
-			if(gameState.getPlayers()[gameState.getGameMode().nextUnit.player-1].isOwnPlayer):
-				if(playModeNode.moveMode):
-					print '1'
-					gameState.getGameMode().nextUnit.movePath = gameState.getGameMode().nextUnit.node.movePath[1:]
-					print '1'
-					gameState.getClient().sendCommand("nodeClick " + str(gameState.getGameMode().nextUnit.node.movePath[0].xPos) + " " + str(gameState.getGameMode().nextUnit.node.movePath[0].yPos) + "|")
-					print '1'
-				else:
-					selectNode(self)
-		elif(len(gameState.getPlayers()) > 0):#single player network game...
-			print 'here...'
-			gameState.getGameMode().nextUnit.movePath = gameState.getGameMode().nextUnit.node.movePath[1:]
-			gameState.getClient().sendCommand("nodeClick " + str(gameState.getGameMode().nextUnit.node.movePath[0].xPos) + " " + str(gameState.getGameMode().nextUnit.node.movePath[0].yPos) + "|")
-
-		else:
+#		if(True or len(gameState.getPlayers()) > 1):#multiplayer game
+		if(gameState.getPlayers()[gameState.getGameMode().nextUnit.player-1].isOwnPlayer):
 			if(playModeNode.moveMode):
 				gameState.getGameMode().nextUnit.movePath = gameState.getGameMode().nextUnit.node.movePath[1:]
-				gameState.getGameMode().nextUnit.moveTo(gameState.getGameMode().nextUnit.node.movePath[0])
-				gameState.getGameMode().chooseNextUnit()
+				gameState.getClient().sendCommand("nodeClick " + str(gameState.getGameMode().nextUnit.node.movePath[0].xPos) + " " + str(gameState.getGameMode().nextUnit.node.movePath[0].yPos) + "|")
 			else:
 				selectNode(self)
+#		elif(len(gameState.getPlayers()) > 0):#single player network game...
+#			print 'here...'
+#			gameState.getGameMode().nextUnit.movePath = gameState.getGameMode().nextUnit.node.movePath[1:]
+#			gameState.getClient().sendCommand("nodeClick " + str(gameState.getGameMode().nextUnit.node.movePath[0].xPos) + " " + str(gameState.getGameMode().nextUnit.node.movePath[0].yPos) + "|")
+#		else:
+#			if(playModeNode.moveMode):
+#				gameState.getGameMode().nextUnit.movePath = gameState.getGameMode().nextUnit.node.movePath[1:]
+#				gameState.getGameMode().nextUnit.moveTo(gameState.getGameMode().nextUnit.node.movePath[0])
+#				gameState.getGameMode().chooseNextUnit()
+#			else:
+#				selectNode(self)
 	def toggleCursor(self):
 		for node in playModeNode.movePath:
 			node.onMovePath = False

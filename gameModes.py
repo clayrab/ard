@@ -1,15 +1,16 @@
+#player colors
+
+#add + button to research options
+
 #attacking
 #save and resume games
 #fog of war
 
+#gathering
 #gatherer auto pathing
-
-#add + button to research options
 
 #add second resource
 #add second resource to units/cities/city editor
-
-#player colors
 
 #icons for each unit
 
@@ -227,19 +228,18 @@ class playMode(tiledGameMode):
 		gameLogic.selectNode(self.nextUnit.node)
 		self.focusNextUnit = 1
 		if(len(self.nextUnit.movePath) > 0):
-			if(True or len(gameState.getPlayers()) > 1):#multiplayer game
-				if(gameState.getPlayers()[gameState.getGameMode().nextUnit.player-1].isOwnPlayer):
-					self.nextUnit.movePath = self.nextUnit.movePath[1:]
-					gameState.getClient().sendCommand("nodeClick " + str(self.nextUnit.movePath[0].xPos) + " " + str(self.nextUnit.movePath[0].yPos) + "|")
-			elif(len(gameState.getPlayers()) > 0):#multiplayer game
+#			if(True or len(gameState.getPlayers()) > 1):#multiplayer game
+			if(gameState.getPlayers()[gameState.getGameMode().nextUnit.player-1].isOwnPlayer):
 				self.nextUnit.movePath = self.nextUnit.movePath[1:]
 				gameState.getClient().sendCommand("nodeClick " + str(self.nextUnit.movePath[0].xPos) + " " + str(self.nextUnit.movePath[0].yPos) + "|")
-
-			else:
-				moveToNode = self.nextUnit.movePath[0]
-				self.nextUnit.moveTo(self.nextUnit.movePath[0])#self.nextUnit is changed in moveTo
-				self.nextUnit.movePath = self.nextUnit.movePath[1:]
-				self.chooseNextUnit()
+#			elif(len(gameState.getPlayers()) > 0):#multiplayer game
+#				self.nextUnit.movePath = self.nextUnit.movePath[1:]
+#				gameState.getClient().sendCommand("nodeClick " + str(self.nextUnit.movePath[0].xPos) + " " + str(self.nextUnit.movePath[0].yPos) + "|")
+#			else:
+#				moveToNode = self.nextUnit.movePath[0]
+#				self.nextUnit.moveTo(self.nextUnit.movePath[0])#self.nextUnit is changed in moveTo
+#				self.nextUnit.movePath = self.nextUnit.movePath[1:]
+#				self.chooseNextUnit()
 	def loadSummoners(self):
 		rowCount = 0
 		columnCount = 0
@@ -254,16 +254,14 @@ class playMode(tiledGameMode):
 		if(keycode == "left shift" or keycode == "right shift"):
 			self.shiftDown = True
 		if(keycode == "space"):
-			if(True or len(gameState.getPlayers()) > 1):#multiplayer game
-				if(gameState.getPlayers()[gameState.getGameMode().nextUnit.player-1].isOwnPlayer):
-					gameState.getClient().sendCommand("nodeClick " + str(self.nextUnit.node.xPos) + " " + str(self.nextUnit.node.yPos) + "|")
-				
-			elif(len(gameState.getPlayers()) > 0):#multiplayer game
+#			if(True or len(gameState.getPlayers()) > 1):#multiplayer game
+			if(gameState.getPlayers()[gameState.getGameMode().nextUnit.player-1].isOwnPlayer):
 				gameState.getClient().sendCommand("nodeClick " + str(self.nextUnit.node.xPos) + " " + str(self.nextUnit.node.yPos) + "|")
-				
-			else:
-				self.nextUnit.moveTo(self.nextUnit.node)
-				self.chooseNextUnit()
+#			elif(len(gameState.getPlayers()) > 0):#multiplayer game
+#				gameState.getClient().sendCommand("nodeClick " + str(self.nextUnit.node.xPos) + " " + str(self.nextUnit.node.yPos) + "|")
+#			else:
+#				self.nextUnit.moveTo(self.nextUnit.node)
+#				self.chooseNextUnit()
 		elif(keycode == "n"):
 			self.focusNextUnit = 1
 			self.selectedNode.selected = False
