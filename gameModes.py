@@ -195,10 +195,10 @@ class playMode(tiledGameMode):
 		self.focusNextUnit = 0
 		return self.focusNextUnitTemp
 	def orderUnits(self):
-		self.units.sort(key=lambda unit: 1000.0 if (unit.unitAction==gameLogic.unitAction.WAIT) else unit.movementPoints)
+		self.units.sort(key=lambda unit: 1000.0 if (unit.waiting) else unit.movementPoints)
 	def chooseNextUnit(self):
 		self.orderUnits()
-		while(self.units[0].movementPoints > 0.0 or (self.units[0].unitAction == gameLogic.unitAction.WAIT)):
+		while(self.units[0].movementPoints > 0.0 or (self.units[0].waiting)):
 			self.orderUnits()
 			for unit in self.units:
 #				if(unit.node.roadValue == 1):
@@ -220,7 +220,7 @@ class playMode(tiledGameMode):
 		eligibleUnits = []
 		eligibleUnits.append(self.units[0])
 		for unit in self.units[1:]:
-			if(unit.movementPoints == eligibleUnits[0].movementPoints and not (unit.unitAction == gameLogic.unitAction.WAIT)):
+			if(unit.movementPoints == eligibleUnits[0].movementPoints and not unit.waiting):
 				eligibleUnits.append(unit)
 		self.nextUnit = random.choice(eligibleUnits)
 		gameLogic.selectNode(self.nextUnit.node)

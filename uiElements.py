@@ -201,17 +201,12 @@ class viewUnitTypeButton(clickableElement):
 
 class stopWaitingButton(clickableElement):
 	def onClick(self):
-		actionViewer.theActionViewer.node.unit.unitAction = gameLogic.unitAction.MOVE
-		unitViewer.reset()
-
-class attackButton(clickableElement):
-	def onClick(self):
-		actionViewer.theActionViewer.node.unit.unitAction = gameLogic.unitAction.ATTACK
+		actionViewer.theActionViewer.node.unit.waiting = False
 		unitViewer.reset()
 
 class waitButton(clickableElement):
 	def onClick(self):
-		actionViewer.theActionViewer.node.unit.unitAction = gameLogic.unitAction.WAIT
+		actionViewer.theActionViewer.node.unit.waiting = True
 		gameState.getGameMode().chooseNextUnit()
 
 class skipButton(clickableElement):
@@ -301,15 +296,9 @@ class unitViewer(uiElement):
 		self.names = []
 		self.names.append(uiElement(-0.978,0.79,textXPos=0.01,textYPos=-0.035,height=texHeight('UNIT_VIEWER_BOX'),width=texWidth('UNIT_VIEWER_BOX'),textureIndex=texIndex('UNIT_VIEWER_BOX'),textSize=0.0005).name)	
 		self.names.append(uiElement(-0.96,0.73,text=self.unit.unitType.name,textSize=0.0007).name)
-		self.names.append(stopWaitingButton(-0.947,0.68,text="move",textSize=0.0005).name)
-		self.names.append(attackButton(-0.95,0.63,text="attack",textSize=0.0005).name)
-		self.names.append(waitButton(-0.940,0.58,text="wait",textSize=0.0005).name)
-		if(self.unit.unitAction == gameLogic.unitAction.MOVE):
-			self.names.append(uiElement(-0.958,0.715,textureIndex=texIndex("SELECTION_BRACKET"),width=texWidth("SELECTION_BRACKET"),height=texHeight("SELECTION_BRACKET"),textSize=0.0005).name)
-		elif(self.unit.unitAction == gameLogic.unitAction.ATTACK):
-			self.names.append(uiElement(-0.958,0.665,textureIndex=texIndex("SELECTION_BRACKET"),width=texWidth("SELECTION_BRACKET"),height=texHeight("SELECTION_BRACKET"),textSize=0.0005).name)
-		else:
-			self.names.append(uiElement(-0.958,0.615,textureIndex=texIndex("SELECTION_BRACKET"),width=texWidth("SELECTION_BRACKET"),height=texHeight("SELECTION_BRACKET"),textSize=0.0005).name)
+#		self.names.append(stopWaitingButton(-0.947,0.68,text="move",textSize=0.0005).name)
+#		self.names.append(attackButton(-0.95,0.63,text="attack",textSize=0.0005).name)
+#		self.names.append(waitButton(-0.940,0.58,text="wait",textSize=0.0005).name)
 	@staticmethod
 	def destroy():
 		if(unitViewer.theUnitViewer != None):

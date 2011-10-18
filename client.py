@@ -41,7 +41,7 @@ class Commands:
         if(node.unit != None and node.unit.unitType.name == "summoner"):#don't trust the other client...
             node.city.doneResearching = True
             node.city.queueUnit(gameLogic.unit(unitType,node.city.player,node.city.researchLevel,node.xPos,node.yPos,node))
-            node.unit.unitAction = gameLogic.unitAction.WAIT
+            node.unit.waiting = True
             if(gameState.getGameMode().nextUnit == node.unit):
                 gameState.getGameMode().chooseNextUnit()
             elif(uiElements.actionViewer.theActionViewer.node == node):
@@ -64,7 +64,7 @@ class Commands:
         unitType = gameState.theUnitTypes[tokens[2]]
         node.city.researching = True
 	node.city.researchUnitType = unitType
-	node.unit.unitAction = gameLogic.unitAction.WAIT
+	node.unit.waiting = True
 #	node.unit.moveTo(node)
         if(gameState.getGameMode().nextUnit == node.unit):
             gameState.getGameMode().chooseNextUnit()
