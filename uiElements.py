@@ -291,11 +291,19 @@ class actionViewer(uiElement):
 						self.names.append(uiElement(-0.72,height,text=str(unitType.cost),textSize=0.0005).name)
 						height = height - 0.04
 
+
+
+
+
+
 		self.names.append(uiElement(-0.88,-0.51,text="summon",textSize=0.0005).name)
-		self.names.append(viewUnitTypeButton(-0.972,-0.55,gameState.theUnitTypes["gatherer"],text="gatherer",textSize=0.0005).name)
-		self.names.append(viewUnitTypeButton(-0.972,-0.59,gameState.theUnitTypes["summoner"],text="summoner",textSize=0.0005).name)
+		self.names.append(startSummoningButton(-0.97,-0.525,gameState.theUnitTypes["gatherer"],textureIndex=texIndex("ADD_BUTTON_SMALL"),width=texWidth("ADD_BUTTON_SMALL"),height=texHeight("ADD_BUTTON_SMALL")).name)
+		self.names.append(viewUnitTypeButton(-0.94,-0.55,gameState.theUnitTypes["gatherer"],text="gatherer",textSize=0.0005).name)
+		self.names.append(startSummoningButton(-0.97,-0.565,gameState.theUnitTypes["summoner"],textureIndex=texIndex("ADD_BUTTON_SMALL"),width=texWidth("ADD_BUTTON_SMALL"),height=texHeight("ADD_BUTTON_SMALL")).name)
+		self.names.append(viewUnitTypeButton(-0.94,-0.59,gameState.theUnitTypes["summoner"],text="summoner",textSize=0.0005).name)
 		if(self.node.city.researchLevel > 0):
-			self.names.append(viewUnitTypeButton(-0.972,-0.63,self.node.city.researchUnitType,text=self.node.city.researchUnitType.name + "(lvl " + str(self.node.city.researchLevel) + ")",textSize=0.0005).name)
+			self.names.append(startSummoningButton(-0.97,-0.605,self.node.city.researchUnitType,textureIndex=texIndex("ADD_BUTTON_SMALL"),width=texWidth("ADD_BUTTON_SMALL"),height=texHeight("ADD_BUTTON_SMALL")).name)
+			self.names.append(viewUnitTypeButton(-0.94,-0.63,self.node.city.researchUnitType,text=self.node.city.researchUnitType.name + "(lvl " + str(self.node.city.researchLevel) + ")",textSize=0.0005).name)
 
 #		else:
 			
