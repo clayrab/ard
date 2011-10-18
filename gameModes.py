@@ -25,7 +25,6 @@
 #mouseover effects
 #music
 #AI
-#after AI remove playerNumber = -1 code which allows control of multiple players via one client...
 #campaign
 #right-justifiable text
 #unit editor
@@ -226,7 +225,7 @@ class playMode(tiledGameMode):
 		self.focusNextUnit = 1
 		if(len(self.nextUnit.movePath) > 0):
 			if(True or len(gameState.getPlayers()) > 1):#multiplayer game
-				if(gameState.getGameMode().nextUnit.player == gameState.getPlayerNumber() or gameState.getPlayerNumber() == -1):
+				if(gameState.getPlayers()[gameState.getGameMode().nextUnit.player-1].isOwnPlayer):
 					self.nextUnit.movePath = self.nextUnit.movePath[1:]
 					gameState.getClient().sendCommand("nodeClick " + str(self.nextUnit.movePath[0].xPos) + " " + str(self.nextUnit.movePath[0].yPos) + "|")
 			elif(len(gameState.getPlayers()) > 0):#multiplayer game
@@ -253,7 +252,7 @@ class playMode(tiledGameMode):
 			self.shiftDown = True
 		if(keycode == "space"):
 			if(True or len(gameState.getPlayers()) > 1):#multiplayer game
-				if(gameState.getGameMode().nextUnit.player == gameState.getPlayerNumber() or gameState.getPlayerNumber() == -1):
+				if(gameState.getPlayers()[gameState.getGameMode().nextUnit.player-1].isOwnPlayer):
 					gameState.getClient().sendCommand("nodeClick " + str(self.nextUnit.node.xPos) + " " + str(self.nextUnit.node.yPos) + "|")
 				
 			elif(len(gameState.getPlayers()) > 0):#multiplayer game
@@ -283,6 +282,7 @@ class playMode(tiledGameMode):
 		server.startServer('')
 		client.startClient('127.0.0.1')
 		gameState.setPlayerNumber(-1)
+		gameState.addPlayer(2).isOwnPlayer = True
 
 		uiElements.uiElement(xPos=-1.0,yPos=1.0,width=2.0,height=texHeight('UI_MAP_EDITOR_TOP_IMAGE'),textureIndex=texIndex('UI_MAP_EDITOR_TOP'))
 		uiElements.uiElement(xPos=-1.0,yPos=1.0-texHeight('UI_MAP_EDITOR_TOP_IMAGE'),width=texWidth('UI_MAP_EDITOR_LEFT_IMAGE'),height=texHeight('UI_MAP_EDITOR_LEFT_IMAGE'),textureIndex=texIndex('UI_MAP_EDITOR_LEFT'))

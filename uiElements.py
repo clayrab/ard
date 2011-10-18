@@ -169,19 +169,12 @@ class startSummoningButton(clickableElement):
 		clickableElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],color=color,mouseOverColor=mouseOverColor,textXPos=textXPos,textYPos=textYPos)
 		self.unitType = unitType
 	def onClick(self):
-		gameState.getClient().sendCommand("startSummoning " + str(actionViewer.theActionViewer.node.xPos) + " " + str(actionViewer.theActionViewer.node.movePath[0].yPos) + " " + self.unitType.name + "|")
+		gameState.getClient().sendCommand("startSummoning " + str(actionViewer.theActionViewer.node.xPos) + " " + str(actionViewer.theActionViewer.node.yPos) + " " + self.unitType.name + "|")
 
 class cancelUnitButton(clickableElement):
-       	def __init__(self,xPos,yPos,node,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,textXPos=0.0,textYPos=0.0):
-		clickableElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],color=color,mouseOverColor=mouseOverColor,textXPos=textXPos,textYPos=textYPos)
-		self.node = node
 	def onClick(self):
-		if(len(self.node.city.unitBuildQueue) > 0):
-			self.node.city.unitBuildQueue.pop()
-		elif(self.node.city.unitBeingBuilt != None):
-			self.node.city.unitBeingBuilt = None
-		actionViewer.theActionViewer.reset()
-
+		gameState.getClient().sendCommand("cancelSummoning " + str(actionViewer.theActionViewer.node.xPos) + " " + str(actionViewer.theActionViewer.node.yPos) + "|")
+		
 class startResearchButton(clickableElement):
        	def __init__(self,xPos,yPos,unitType,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,textXPos=0.0,textYPos=0.0):
 		clickableElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],color=color,mouseOverColor=mouseOverColor,textXPos=textXPos,textYPos=textYPos)
@@ -230,7 +223,7 @@ class skipButton(clickableElement):
        	def __init__(self,xPos,yPos,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,textXPos=0.0,textYPos=0.0):
 		clickableElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],color=color,mouseOverColor=mouseOverColor,textXPos=textXPos,textYPos=textYPos)
 	def onClick(self):
-		if(gameState.getGameMode().nextUnit.player == gameState.getPlayerNumber() or gameState.getPlayerNumber() == -1):
+		if(gameState.getPlayers()[gameState.getGameMode().nextUnit.player-1].isOwnPlayer):
 			gameState.getClient().sendCommand("nodeClick " + str(gameState.getGameMode().nextUnit.node.xPos) + " " + str(gameState.getGameMode().nextUnit.node.yPos) + "|")
 #		unitViewer.reset()
 
@@ -258,6 +251,12 @@ class actionViewer(uiElement):
 			for unit in self.node.city.unitBuildQueue:
 				height = height - 0.04
 				self.names.append(uiElement(-0.972,height,text=str(unit.unitType.name),textSize=0.0005).name)
+			height = height - 0.04
+			if(len(node.city.unitBuildQueue) > 0):
+				self.names.append(cancelUnitButton(-0.972,height,text="cancel " + self.node.city.unitBuildQueue[-1].unitType.name,textSize=0.0005).name)
+			elif(node.city.unitBeingBuilt != None):
+				self.names.append(cancelUnitButton(-0.972,height,text="cancel " + self.node.city.unitBeingBuilt.unitType.name,textSize=0.0005).name)
+
 		elif(not self.node.city.doneResearching):
 			self.names.append(uiElement(-0.88,-0.19,text="research",textSize=0.0005).name)
 			if(self.node.city.researchLevel > 0):
@@ -281,7 +280,6 @@ class actionViewer(uiElement):
 			if(self.node.unit != None and self.node.unit.unitType.name == "summoner"):
 				self.names.append(startSummoningButton(-0.97,-0.605,self.node.city.researchUnitType,textureIndex=texIndex("ADD_BUTTON_SMALL"),width=texWidth("ADD_BUTTON_SMALL"),height=texHeight("ADD_BUTTON_SMALL")).name)
 
-#				self.names.append(cancelUnitButton(-0.972,-0.85,self.node,text="cancel " + self.node.city.unitBuildQueue[-1].unitType.name,textSize=0.0005).name)				
 		if(self.node.unit == gameState.getGameMode().nextUnit):
 			self.names.append(skipButton(-0.964,-0.89,text="skip",textSize=0.0005).name)
 			self.names.append(waitButton(-0.964,-0.93,text="wait",textSize=0.0005).name)

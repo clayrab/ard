@@ -147,8 +147,7 @@ class playModeNode(node):
 		self.aStarParent = None
 	def onLeftClickDown(self):
 		if(True or len(gameState.getPlayers()) > 1):#multiplayer game
-			print "plyrnumber:"+str(gameState.getPlayerNumber())
-			if((gameState.getGameMode().nextUnit.player == gameState.getPlayerNumber()) or gameState.getPlayerNumber() == -1):
+			if(gameState.getPlayers()[gameState.getGameMode().nextUnit.player-1].isOwnPlayer):
 				if(playModeNode.moveMode):
 					print '1'
 					gameState.getGameMode().nextUnit.movePath = gameState.getGameMode().nextUnit.node.movePath[1:]

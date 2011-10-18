@@ -4,6 +4,7 @@ import random
 import gameState
 import gameModes
 import gameLogic
+import uiElements
 
 class Commands:
     @staticmethod
@@ -29,27 +30,34 @@ class Commands:
     @staticmethod
     def nodeClick(args):
         tokens = args.split(" ")
-        node = gameState.getGameMode().map.nodens[int(tokens[1])][int(tokens[0])]
+        node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
        	gameState.getGameMode().nextUnit.moveTo(node)
         gameState.getGameMode().chooseNextUnit()
+    @staticmethod
     def startSummoning(args):
         tokens = args.split(" ")
-        node = gameState.getGameMode().map.nodens[int(tokens[1])][int(tokens[0])]
-        print node        
-	#	actionViewer.theActionViewer.node.city.doneResearching = True
-	#	actionViewer.theActionViewer.node.city.queueUnit(gameLogic.unit(self.unitType,actionViewer.theActionViewer.node.city.player,actionViewer.theActionViewer.node.city.researchLevel,actionViewer.theActionViewer.node.xPos,actionViewer.theActionViewer.node.yPos,actionViewer.theActionViewer.node))
-	#	actionViewer.theActionViewer.node.unit.unitAction = gameLogic.unitAction.WAIT
-	#	if(gameState.getGameMode().nextUnit == actionViewer.theActionViewer.node.unit):
-	#		gameState.getGameMode().chooseNextUnit()
-	#	else:
-	#		actionViewer.theActionViewer.reset()
-	#		unitTypeBuildViewer.destroy()
+        node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
+        unitType = gameState.theUnitTypes[tokens[2]]
+        if(node.unit != None and node.unit.unitType.name == "summoner"):#don't trust the other client...
+            node.city.doneResearching = True
+            node.city.queueUnit(gameLogic.unit(unitType,node.city.player,node.city.researchLevel,node.xPos,node.yPos,node))
+            node.unit.unitAction = gameLogic.unitAction.WAIT
+            if(gameState.getGameMode().nextUnit == node.unit):
+                gameState.getGameMode().chooseNextUnit()
+            elif(False):#need to check if we're the client here...
+                uiElements.actionViewer.theActionViewer.reset()
+                uiElements.unitTypeBuildViewer.destroy()
+    @staticmethod
+    def cancelSummoning(args):
+        tokens = args.split(" ")
+        node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
+        unitType = gameState.theUnitTypes[tokens[2]]
 
-
-
-
-
-        
+        if(len(node.city.unitBuildQueue) > 0):
+            node.city.unitBuildQueue.pop()
+        elif(node.city.unitBeingBuilt != None):
+            node.city.unitBeingBuilt = None
+#        uiElements.actionViewer.theActionViewer.reset()
 
 def doCommand(commandName,args=None):
     commandFunc = getattr(Commands,commandName)
