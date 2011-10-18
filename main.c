@@ -599,7 +599,6 @@ void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long 
       PyObject * pyPlayerNumber = PyObject_GetAttrString(pyUnit,"player");
       long playerNumber = PyLong_AsLong(pyPlayerNumber);
       float healthBarLength = 1.4*PyLong_AsLong(pyHealth)/PyLong_AsLong(pyMaxHealth);
-      glColor3f(255.0, 255.0, 255.0);
 
       glBindTexture(GL_TEXTURE_2D, texturesArray[UNIT_CIRCLE_RED_INDEX+playerNumber-1]);
       glBegin(GL_QUADS);
@@ -612,6 +611,8 @@ void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long 
       glTexCoord2f(0.0,1.0);
       glVertex3f(xPosition-0.7, yPosition+0.7, 0.0);
       glEnd();
+
+      glColor3f(255.0, 255.0, 255.0);
 
       glBindTexture(GL_TEXTURE_2D, texturesArray[MEEPLE_INDEX]);
       glBegin(GL_QUADS);
