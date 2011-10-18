@@ -6,6 +6,8 @@
 
 #gatherer auto pathing
 
+#add + button to research options
+
 #add second resource
 #add second resource to units/cities/city editor
 

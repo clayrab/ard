@@ -179,19 +179,14 @@ class startResearchButton(clickableElement):
        	def __init__(self,xPos,yPos,unitType,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,textXPos=0.0,textYPos=0.0):
 		clickableElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],color=color,mouseOverColor=mouseOverColor,textXPos=textXPos,textYPos=textYPos)
 		self.unitType = unitType
-#		self.node = node
 	def onClick(self):
-		actionViewer.theActionViewer.node.city.researching = True
-		actionViewer.theActionViewer.node.city.researchUnitType = self.unitType
-		actionViewer.theActionViewer.node.unit.unitAction = gameLogic.unitAction.WAIT
-		actionViewer.theActionViewer.node.unit.moveTo(actionViewer.theActionViewer.node)
-		gameState.getGameMode().chooseNextUnit()
+		gameState.getClient().sendCommand("startResearch " + str(actionViewer.theActionViewer.node.xPos) + " " + str(actionViewer.theActionViewer.node.yPos) + " " + self.unitType.name + "|")
+		
 
 class viewResearchButton(clickableElement):
-       	def __init__(self,xPos,yPos,unitType,node,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,textXPos=0.0,textYPos=0.0):
+       	def __init__(self,xPos,yPos,unitType,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,textXPos=0.0,textYPos=0.0):
 		clickableElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],color=color,mouseOverColor=mouseOverColor,textXPos=textXPos,textYPos=textYPos)
 		self.unitType = unitType
-		self.node = node
 	def onClick(self):
 		unitTypeResearchViewer.destroy()
 		unitTypeResearchViewer.theUnitTypeResearchViewer = unitTypeResearchViewer(self.unitType)
@@ -225,7 +220,6 @@ class skipButton(clickableElement):
 	def onClick(self):
 		if(gameState.getPlayers()[gameState.getGameMode().nextUnit.player-1].isOwnPlayer):
 			gameState.getClient().sendCommand("nodeClick " + str(gameState.getGameMode().nextUnit.node.xPos) + " " + str(gameState.getGameMode().nextUnit.node.yPos) + "|")
-#		unitViewer.reset()
 
 class actionViewer(uiElement):
 	theActionViewer = None
@@ -260,7 +254,7 @@ class actionViewer(uiElement):
 		elif(not self.node.city.doneResearching):
 			self.names.append(uiElement(-0.88,-0.19,text="research",textSize=0.0005).name)
 			if(self.node.city.researchLevel > 0):
-				self.names.append(viewResearchButton(-0.964,-0.25,self.node.city.researchUnitType,self.node,text=self.node.city.researchUnitType.name + " lvl " + str(self.node.city.researchLevel+1),textSize=0.0005).name)
+				self.names.append(viewResearchButton(-0.964,-0.25,self.node.city.researchUnitType,text=self.node.city.researchUnitType.name + " lvl " + str(self.node.city.researchLevel+1),textSize=0.0005).name)
 			else:
 				height = -0.25
 				for unitType in self.node.city.unitTypes:

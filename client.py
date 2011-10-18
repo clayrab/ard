@@ -44,20 +44,31 @@ class Commands:
             node.unit.unitAction = gameLogic.unitAction.WAIT
             if(gameState.getGameMode().nextUnit == node.unit):
                 gameState.getGameMode().chooseNextUnit()
-            elif(False):#need to check if we're the client here...
+            elif(uiElements.actionViewer.theActionViewer.node == node):
                 uiElements.actionViewer.theActionViewer.reset()
                 uiElements.unitTypeBuildViewer.destroy()
     @staticmethod
     def cancelSummoning(args):
         tokens = args.split(" ")
         node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
-        unitType = gameState.theUnitTypes[tokens[2]]
-
         if(len(node.city.unitBuildQueue) > 0):
             node.city.unitBuildQueue.pop()
         elif(node.city.unitBeingBuilt != None):
             node.city.unitBeingBuilt = None
-#        uiElements.actionViewer.theActionViewer.reset()
+        if(uiElements.actionViewer.theActionViewer.node == node):
+            uiElements.actionViewer.theActionViewer.reset()
+    @staticmethod
+    def startResearch(args):
+        tokens = args.split(" ")
+        node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
+        unitType = gameState.theUnitTypes[tokens[2]]
+        node.city.researching = True
+	node.city.researchUnitType = unitType
+	node.unit.unitAction = gameLogic.unitAction.WAIT
+#	node.unit.moveTo(node)
+        if(gameState.getGameMode().nextUnit == node.unit):
+            gameState.getGameMode().chooseNextUnit()
+
 
 def doCommand(commandName,args=None):
     commandFunc = getattr(Commands,commandName)
