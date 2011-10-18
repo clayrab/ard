@@ -158,6 +158,51 @@
 #define REMOVE_BUTTON_SMALL_WIDTH 13
 #define REMOVE_BUTTON_SMALL_INDEX 27
 
+#define REMOVE_BUTTON_SMALL_IMAGE "assets/removeButtonSmall.png"
+#define REMOVE_BUTTON_SMALL_HEIGHT 13
+#define REMOVE_BUTTON_SMALL_WIDTH 13
+#define REMOVE_BUTTON_SMALL_INDEX 27
+
+#define UNIT_CIRCLE_RED_IMAGE "assets/unitCircleRed.png"
+#define UNIT_CIRCLE_RED_HEIGHT 40
+#define UNIT_CIRCLE_RED_WIDTH 40
+#define UNIT_CIRCLE_RED_INDEX 28
+
+#define UNIT_CIRCLE_BLUE_IMAGE "assets/unitCircleBlue.png"
+#define UNIT_CIRCLE_BLUE_HEIGHT 40
+#define UNIT_CIRCLE_BLUE_WIDTH 40
+#define UNIT_CIRCLE_BLUE_INDEX 29
+
+#define UNIT_CIRCLE_GREEN_IMAGE "assets/unitCircleBlue.png"
+#define UNIT_CIRCLE_GREEN_HEIGHT 40
+#define UNIT_CIRCLE_GREEN_WIDTH 40
+#define UNIT_CIRCLE_GREEN_INDEX 30
+#define UNIT_CIRCLE_YELLOW_IMAGE "assets/unitCircleBlue.png"
+#define UNIT_CIRCLE_YELLOW_HEIGHT 40
+#define UNIT_CIRCLE_YELLOW_WIDTH 40
+#define UNIT_CIRCLE_YELLOW_INDEX 31
+#define UNIT_CIRCLE_PINK_IMAGE "assets/unitCircleBlue.png"
+#define UNIT_CIRCLE_PINK_HEIGHT 40
+#define UNIT_CIRCLE_PINK_WIDTH 40
+#define UNIT_CIRCLE_PINK_INDEX 32
+#define UNIT_CIRCLE_ORANGE_IMAGE "assets/unitCircleBlue.png"
+#define UNIT_CIRCLE_ORANGE_HEIGHT 40
+#define UNIT_CIRCLE_ORANGE_WIDTH 40
+#define UNIT_CIRCLE_ORANGE_INDEX 33
+#define UNIT_CIRCLE_PURPLE_IMAGE "assets/unitCircleBlue.png"
+#define UNIT_CIRCLE_PURPLE_HEIGHT 40
+#define UNIT_CIRCLE_PURPLE_WIDTH 40
+#define UNIT_CIRCLE_PURPLE_INDEX 34
+#define UNIT_CIRCLE_BROWN_IMAGE "assets/unitCircleBlue.png"
+#define UNIT_CIRCLE_BROWN_HEIGHT 40
+#define UNIT_CIRCLE_BROWN_WIDTH 40
+#define UNIT_CIRCLE_BROWN_INDEX 35
+
+
+
+
+
+
 #define DESERT_TILE_INDEX 0
 #define GRASS_TILE_INDEX 1
 #define MOUNTAIN_TILE_INDEX 2
@@ -489,6 +534,7 @@ void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long 
   glEnd();
   glPopName();
 
+
   if(roadValue == 1){
     textureVertices = vertexArrays[ROAD_TILE_INDEX];
     glBegin(GL_POLYGON);
@@ -550,9 +596,23 @@ void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long 
       char * unitName = PyString_AsString(pyName);
       PyObject * pyHealth = PyObject_GetAttrString(pyUnit,"health");
       PyObject * pyMaxHealth = PyObject_GetAttrString(pyUnitType,"health");
+      PyObject * pyPlayerNumber = PyObject_GetAttrString(pyUnit,"player");
+      long playerNumber = PyLong_AsLong(pyPlayerNumber);
       float healthBarLength = 1.4*PyLong_AsLong(pyHealth)/PyLong_AsLong(pyMaxHealth);
       glColor3f(255.0, 255.0, 255.0);
-    
+
+      glBindTexture(GL_TEXTURE_2D, texturesArray[UNIT_CIRCLE_RED_INDEX+playerNumber-1]);
+      glBegin(GL_QUADS);
+      glTexCoord2f(0.0,0.0);
+      glVertex3f(xPosition-0.7, yPosition-0.7, 0.0);
+      glTexCoord2f(1.0,0.0);
+      glVertex3f(xPosition+0.7, yPosition-0.7, 0.0);
+      glTexCoord2f(1.0,1.0);
+      glVertex3f(xPosition+0.7, yPosition+0.7, 0.0);
+      glTexCoord2f(0.0,1.0);
+      glVertex3f(xPosition-0.7, yPosition+0.7, 0.0);
+      glEnd();
+
       glBindTexture(GL_TEXTURE_2D, texturesArray[MEEPLE_INDEX]);
       glBegin(GL_QUADS);
       glTexCoord2f(0.0,0.0);
@@ -951,6 +1011,14 @@ static void initGL (){
   pngLoad(&texturesArray[SELECTION_BRACKET_INDEX],SELECTION_BRACKET_IMAGE);
   pngLoad(&texturesArray[ADD_BUTTON_SMALL_INDEX],ADD_BUTTON_SMALL_IMAGE);
   pngLoad(&texturesArray[REMOVE_BUTTON_SMALL_INDEX],REMOVE_BUTTON_SMALL_IMAGE);
+  pngLoad(&texturesArray[UNIT_CIRCLE_RED_INDEX],UNIT_CIRCLE_RED_IMAGE);
+  pngLoad(&texturesArray[UNIT_CIRCLE_BLUE_INDEX],UNIT_CIRCLE_BLUE_IMAGE);
+  pngLoad(&texturesArray[UNIT_CIRCLE_GREEN_INDEX],UNIT_CIRCLE_GREEN_IMAGE);
+  pngLoad(&texturesArray[UNIT_CIRCLE_YELLOW_INDEX],UNIT_CIRCLE_YELLOW_IMAGE);
+  pngLoad(&texturesArray[UNIT_CIRCLE_PINK_INDEX],UNIT_CIRCLE_PINK_IMAGE);
+  pngLoad(&texturesArray[UNIT_CIRCLE_ORANGE_INDEX],UNIT_CIRCLE_ORANGE_IMAGE);
+  pngLoad(&texturesArray[UNIT_CIRCLE_PURPLE_INDEX],UNIT_CIRCLE_PURPLE_IMAGE);
+  pngLoad(&texturesArray[UNIT_CIRCLE_BROWN_INDEX],UNIT_CIRCLE_BROWN_IMAGE);
 
   vertexArrays[DESERT_TILE_INDEX] = *desertVertices;
   vertexArrays[GRASS_TILE_INDEX] = *grassVertices;
