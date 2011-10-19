@@ -163,7 +163,7 @@
 #define REMOVE_BUTTON_SMALL_WIDTH 13
 #define REMOVE_BUTTON_SMALL_INDEX 27
 
-#define UNIT_CIRCLE_RED_IMAGE "assets/unitCircleRed.png"
+#define UNIT_CIRCLE_RED_IMAGE "assets/unitCircle.png"
 #define UNIT_CIRCLE_RED_HEIGHT 40
 #define UNIT_CIRCLE_RED_WIDTH 40
 #define UNIT_CIRCLE_RED_INDEX 28
@@ -197,6 +197,11 @@
 #define UNIT_CIRCLE_BROWN_HEIGHT 40
 #define UNIT_CIRCLE_BROWN_WIDTH 40
 #define UNIT_CIRCLE_BROWN_INDEX 35
+
+#define TEST_ALPHA_IMAGE "assets/testAlpha.png"
+#define TEST_ALPHA_HEIGHT 2
+#define TEST_ALPHA_WIDTH 2
+#define TEST_ALPHA_INDEX 36
 
 
 
@@ -976,8 +981,7 @@ static void initGL (){
   glClearColor(0.0, 0.0, 0.0, 0.0); //sets screen clear color
   glEnable(GL_TEXTURE_2D);
   glEnable(GL_BLEND);
-
-  //glDepthMask(GL_TRUE);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);     
   glClear(GL_COLOR_BUFFER_BIT);		
   glEnable(GL_DEPTH_TEST);
   glDepthFunc(GL_ALWAYS);
@@ -1020,6 +1024,7 @@ static void initGL (){
   pngLoad(&texturesArray[UNIT_CIRCLE_ORANGE_INDEX],UNIT_CIRCLE_ORANGE_IMAGE);
   pngLoad(&texturesArray[UNIT_CIRCLE_PURPLE_INDEX],UNIT_CIRCLE_PURPLE_IMAGE);
   pngLoad(&texturesArray[UNIT_CIRCLE_BROWN_INDEX],UNIT_CIRCLE_BROWN_IMAGE);
+  pngLoad(&texturesArray[TEST_ALPHA_INDEX],TEST_ALPHA_IMAGE);
 
   vertexArrays[DESERT_TILE_INDEX] = *desertVertices;
   vertexArrays[GRASS_TILE_INDEX] = *grassVertices;
