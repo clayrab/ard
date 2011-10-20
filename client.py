@@ -27,7 +27,7 @@ class Commands:
     def startGame():
         gameState.setGameMode(gameModes.playMode)
     @staticmethod
-    def nodeClick(args):
+    def moveTo(args):
         tokens = args.split(" ")
         node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
        	gameState.getGameMode().nextUnit.moveTo(node)
@@ -72,8 +72,10 @@ class Commands:
         tokens = args.split(" ")
         node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
         node.unit.waiting = False
-        if(uiElements.unitViewer.unit == node.unit):
-            unitViewer.reset()
+        if(uiElements.unitViewer.theUnitViewer.unit == node.unit):
+            uiElements.unitViewer.reset()
+        if(uiElements.actionViewer.theActionViewer.node == node):
+            uiElements.actionViewer.theActionViewer.reset()
     @staticmethod
     def wait(args):
         tokens = args.split(" ")

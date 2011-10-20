@@ -1,6 +1,14 @@
-#attacking
+#cancel movepath
 #save and resume games
 #fog of war
+
+#how to sync while making ui responsive:
+#have a command queue
+#have server issue chooseNextUnit commands
+#have any command which we want to fix have an 'undo' command.
+#send the originating player as the first arg to each command.
+#run your own commands early. when server sends your own command back, skip it.
+#if you receive a chooseNextUnit command before your own, undo yours, run chooseNextUnit and then redo yours
 
 #gathering
 #gatherer auto pathing
@@ -221,11 +229,12 @@ class playMode(tiledGameMode):
 			if(unit.movementPoints == eligibleUnits[0].movementPoints and not unit.waiting):
 				eligibleUnits.append(unit)
 		self.nextUnit = random.choice(eligibleUnits)
-		gameLogic.selectNode(self.nextUnit.node)
-		self.focusNextUnit = 1
-		if(len(self.nextUnit.movePath) > 0):
-			if(gameState.getPlayers()[gameState.getGameMode().nextUnit.player-1].isOwnPlayer):
-				self.nextUnit.move()
+		if(len(self.nextUnit.movePath) > 0 and gameState.getPlayers()[gameState.getGameMode().nextUnit.player-1].isOwnPlayer):
+			self.nextUnit.move()
+		else:
+			gameLogic.selectNode(self.nextUnit.node)
+			self.focusNextUnit = 1
+
 	def loadSummoners(self):
 		rowCount = 0
 		columnCount = 0
@@ -242,14 +251,8 @@ class playMode(tiledGameMode):
 		if(keycode == "left shift" or keycode == "right shift"):
 			self.shiftDown = True
 		if(keycode == "space"):
-#			if(True or len(gameState.getPlayers()) > 1):#multiplayer game
 			if(gameState.getPlayers()[gameState.getGameMode().nextUnit.player-1].isOwnPlayer):
-				gameState.getClient().sendCommand("nodeClick " + str(self.nextUnit.node.xPos) + " " + str(self.nextUnit.node.yPos) + "|")
-#			elif(len(gameState.getPlayers()) > 0):#multiplayer game
-#				gameState.getClient().sendCommand("nodeClick " + str(self.nextUnit.node.xPos) + " " + str(self.nextUnit.node.yPos) + "|")
-#			else:
-#				self.nextUnit.moveTo(self.nextUnit.node)
-#				self.chooseNextUnit()
+				gameState.getClient().sendCommand("moveTo " + str(self.nextUnit.node.xPos) + " " + str(self.nextUnit.node.yPos) + "|")
 		elif(keycode == "n"):
 			self.focusNextUnit = 1
 			self.selectedNode.selected = False

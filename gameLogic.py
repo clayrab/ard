@@ -63,7 +63,7 @@ class unit:
 		if(self.movePath[0].unit != None and self.movePath[0].unit.player == self.player):#ran into a unit, let the player decide what to do...
 			self.movePath = []
 		else:
-			gameState.getClient().sendCommand("nodeClick " + str(self.movePath[0].xPos) + " " + str(self.movePath[0].yPos) + "|")
+			gameState.getClient().sendCommand("moveTo " + str(self.movePath[0].xPos) + " " + str(self.movePath[0].yPos) + "|")
 			self.movePath = self.movePath[1:]
 	def moveTo(self,node):
 		if(node.unit != None and self.node != node):
@@ -170,12 +170,11 @@ class playModeNode(node):
 		self.aStarHeuristicCost = 0.0
 		self.aStarParent = None
 	def onLeftClickDown(self):
-		if(gameState.getPlayers()[gameState.getGameMode().nextUnit.player-1].isOwnPlayer):
-			if(playModeNode.moveMode):
-				gameState.getGameMode().nextUnit.movePath = gameState.getGameMode().nextUnit.node.movePath
-				gameState.getGameMode().nextUnit.move()
-			else:
-				selectNode(self)
+		if(gameState.getPlayers()[gameState.getGameMode().nextUnit.player-1].isOwnPlayer and playModeNode.moveMode):
+			gameState.getGameMode().nextUnit.movePath = gameState.getGameMode().nextUnit.node.movePath
+			gameState.getGameMode().nextUnit.move()
+		else:
+			selectNode(self)
 	def toggleCursor(self):
 		for node in playModeNode.movePath:
 			node.onMovePath = False
@@ -450,15 +449,22 @@ class map:
 def selectNode(node):
 	if(gameState.getGameMode().selectedNode != None):
 		gameState.getGameMode().selectedNode.selected = False
+		if(gameState.getGameMode().selectedNode.unit != None and len(gameState.getGameMode().selectedNode.unit.movePath) > 0):
+			for pathNode in gameState.getGameMode().selectedNode.unit.movePath:
+				pathNode.onMovePath = False
 	gameState.getGameMode().selectedNode = node
 	node.selected = True
 	uiElements.actionViewer.destroy()
+	uiElements.unitViewer.destroy()
 	uiElements.unitTypeResearchViewer.destroy()
 	uiElements.unitTypeBuildViewer.destroy()
 	if(node.city != None):
 		uiElements.actionViewer.theActionViewer = uiElements.actionViewer(node)
 	if(node.unit != None):
 		uiElements.unitViewer.theUnitViewer = uiElements.unitViewer(node.unit)
+	if(node.unit != None and len(node.unit.movePath) > 0):
+		for pathNode in node.unit.movePath:
+			pathNode.onMovePath = True
 	node.toggleCursor()
 
 
