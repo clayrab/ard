@@ -13,8 +13,8 @@ for fileName in dirList:
 		unitFile = open("units/"+fileName)
 		tokens = unitFile.read().split("\n")
 		tokens[0] = cDefines.defines[tokens[0]+"_INDEX"]
-		tokens[1] = float(tokens[1])
-		tokens[2] = float(tokens[2])
+		tokens[1] = int(tokens[1])
+		tokens[2] = int(tokens[2])
 		tokens[3] = int(tokens[3])
 		tokens[4] = int(tokens[4])
 		tokens[5] = int(tokens[5])

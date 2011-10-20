@@ -17,6 +17,7 @@ class unitType:
 		self.movementSpeed = movementSpeed
 		self.attackSpeed = attackSpeed
 		self.attackPower = attackPower
+		self.armor = armor
 		self.range = range
 		self.health = health
 		self.canFly = canFly
@@ -28,6 +29,22 @@ class unitType:
 		self.attackPowerBonus = attackPowerBonus
 		self.researchCost = researchCost
 		self.researchTime = researchTime
+		if(self.name == "summoner"):
+			print self.name
+			print "attackpower:"+str(self.attackPower)
+			print "armor:"+str(self.armor)
+			print "range:"+str(self.range)
+			print "health:"+str(self.health)
+			print "canFly:"+str(self.canFly)
+			print "canSwim:"+str(self.canSwim)
+			print "cost:"+str(self.cost)
+			print "buildTime:"+str(self.buildTime)
+			print "movementSpeedBonus:"+str(self.movementSpeedBonus)
+			print "armorBonus:"+str(self.armorBonus)
+			print "attackPowerBonus:"+str(self.attackPowerBonus)
+			print "researchCost:"+str(self.researchCost)
+			print "researchTime:"+str(self.researchTime)
+
 class unit:
 	def __init__(self,unitType,player,level,xPos,yPos,node):
 		self.unitType = unitType
@@ -42,18 +59,30 @@ class unit:
 		self.movePath = []
 		self.waiting = False
 		self.level = level
+	def move(self):
+		if(self.movePath[0].unit != None and self.movePath[0].unit.player == self.player):#ran into a unit, let the player decide what to do...
+			self.movePath = []
+		else:
+			gameState.getClient().sendCommand("nodeClick " + str(self.movePath[0].xPos) + " " + str(self.movePath[0].yPos) + "|")
+			self.movePath = self.movePath[1:]
 	def moveTo(self,node):
 		if(node.unit != None and self.node != node):
 			if(node.unit.player != self.player):
-				print 'attack!!??'
+				node.unit.health = node.unit.health - self.unitType.attackPower
 			else:
-				print 'own unit... do nothing or if were on a movepath, recalc movepath and move'
+				if(len(self.movePath) > 0):
+					self.movePath = []
+				#else: the player is trying to move onto their own unit, do nothing
 		else:
 			self.node.unit = None
 			self.node = node
 			node.unit = self
 			if(node.city != None):
 				node.city.player = node.unit.player
+				for neighbor in node.neighbors:
+					if(neighbor.unit != None and neighbor.unit.player != self.player):
+						self.movePath = []
+						#break
        			self.movementPoints = self.movementPoints + self.unitType.movementSpeed
 class city:
 	def __init__(self,name,node,unitTypes=None,costOfOwnership=10):
@@ -141,24 +170,12 @@ class playModeNode(node):
 		self.aStarHeuristicCost = 0.0
 		self.aStarParent = None
 	def onLeftClickDown(self):
-#		if(True or len(gameState.getPlayers()) > 1):#multiplayer game
 		if(gameState.getPlayers()[gameState.getGameMode().nextUnit.player-1].isOwnPlayer):
 			if(playModeNode.moveMode):
-				gameState.getGameMode().nextUnit.movePath = gameState.getGameMode().nextUnit.node.movePath[1:]
-				gameState.getClient().sendCommand("nodeClick " + str(gameState.getGameMode().nextUnit.node.movePath[0].xPos) + " " + str(gameState.getGameMode().nextUnit.node.movePath[0].yPos) + "|")
+				gameState.getGameMode().nextUnit.movePath = gameState.getGameMode().nextUnit.node.movePath
+				gameState.getGameMode().nextUnit.move()
 			else:
 				selectNode(self)
-#		elif(len(gameState.getPlayers()) > 0):#single player network game...
-#			print 'here...'
-#			gameState.getGameMode().nextUnit.movePath = gameState.getGameMode().nextUnit.node.movePath[1:]
-#			gameState.getClient().sendCommand("nodeClick " + str(gameState.getGameMode().nextUnit.node.movePath[0].xPos) + " " + str(gameState.getGameMode().nextUnit.node.movePath[0].yPos) + "|")
-#		else:
-#			if(playModeNode.moveMode):
-#				gameState.getGameMode().nextUnit.movePath = gameState.getGameMode().nextUnit.node.movePath[1:]
-#				gameState.getGameMode().nextUnit.moveTo(gameState.getGameMode().nextUnit.node.movePath[0])
-#				gameState.getGameMode().chooseNextUnit()
-#			else:
-#				selectNode(self)
 	def toggleCursor(self):
 		for node in playModeNode.movePath:
 			node.onMovePath = False
@@ -440,8 +457,8 @@ def selectNode(node):
 	uiElements.unitTypeBuildViewer.destroy()
 	if(node.city != None):
 		uiElements.actionViewer.theActionViewer = uiElements.actionViewer(node)
-#	if(node.unit != None):
-#		uiElements.unitViewer.theUnitViewer = uiElements.unitViewer(node.unit)
+	if(node.unit != None):
+		uiElements.unitViewer.theUnitViewer = uiElements.unitViewer(node.unit)
 	node.toggleCursor()
 
 

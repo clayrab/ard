@@ -9,7 +9,6 @@ import uiElements
 class Commands:
     @staticmethod
     def seedRNG(seed):
-        print seed
         random.seed(seed)
     @staticmethod
     def setMap(mapName):
@@ -103,7 +102,6 @@ class ClientThread(threading.Thread):
     def run(self):
         while(1):
             receivedData = self.socket.recv(1024)
-            print "receivedData: " + receivedData
             for command in receivedData.split("|"):
                 if(len(command) > 0):
                     tokens = command.split(" ",1)
@@ -134,7 +132,6 @@ class Client:
         self.socket.setblocking(0)
     def checkSocket(self):
         receivedData = self.socket.recv(1024)
-        print "receivedData: " + receivedData
         for command in receivedData.split("|"):
             if(len(command) > 0):
                 tokens = command.split(" ",1)
@@ -143,9 +140,7 @@ class Client:
                 else:
                     doCommand(tokens[0])
     def sendCommand(self,command):
-        print 'sending... ' + command
         self.socket.send(command)
-        print 'sent...'
 def startClient(hostIP):
     gameState.setClient(Client(hostIP))
 #    clientThread = ClientThread(hostIP)

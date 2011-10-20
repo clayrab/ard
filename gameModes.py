@@ -1,7 +1,3 @@
-#player colors
-
-#add + button to research options
-
 #attacking
 #save and resume games
 #fog of war
@@ -48,7 +44,7 @@ import server
 import client
 from textureFunctions import texWidth, texHeight, texIndex
 
-print sys.setrecursionlimit(100000)
+sys.setrecursionlimit(100000)
 #need this to allow deep recursion for AStar
 #defaults to 1000... may cause crash on systems where 1000000 is too large...
 
@@ -228,18 +224,8 @@ class playMode(tiledGameMode):
 		gameLogic.selectNode(self.nextUnit.node)
 		self.focusNextUnit = 1
 		if(len(self.nextUnit.movePath) > 0):
-#			if(True or len(gameState.getPlayers()) > 1):#multiplayer game
 			if(gameState.getPlayers()[gameState.getGameMode().nextUnit.player-1].isOwnPlayer):
-				self.nextUnit.movePath = self.nextUnit.movePath[1:]
-				gameState.getClient().sendCommand("nodeClick " + str(self.nextUnit.movePath[0].xPos) + " " + str(self.nextUnit.movePath[0].yPos) + "|")
-#			elif(len(gameState.getPlayers()) > 0):#multiplayer game
-#				self.nextUnit.movePath = self.nextUnit.movePath[1:]
-#				gameState.getClient().sendCommand("nodeClick " + str(self.nextUnit.movePath[0].xPos) + " " + str(self.nextUnit.movePath[0].yPos) + "|")
-#			else:
-#				moveToNode = self.nextUnit.movePath[0]
-#				self.nextUnit.moveTo(self.nextUnit.movePath[0])#self.nextUnit is changed in moveTo
-#				self.nextUnit.movePath = self.nextUnit.movePath[1:]
-#				self.chooseNextUnit()
+				self.nextUnit.move()
 	def loadSummoners(self):
 		rowCount = 0
 		columnCount = 0
@@ -250,6 +236,8 @@ class playMode(tiledGameMode):
 				columnCount = columnCount + 1
 				if(node.playerStartValue != 0):
 					node.addUnit(gameLogic.unit(gameState.theUnitTypes["summoner"],node.playerStartValue,1,rowCount,columnCount,node))
+					if(node.city != None):
+						node.city.player = node.playerStartValue
 	def handleKeyDown(self,keycode):
 		if(keycode == "left shift" or keycode == "right shift"):
 			self.shiftDown = True

@@ -229,7 +229,8 @@ class actionViewer(uiElement):
 			self.names.append(uiElement(-0.964,-0.25,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE')*(float(self.node.city.researchProgress)/gameLogic.researchBuildTime),textureIndex=texIndex('UNIT_BUILD_BAR'),color="FF 00 00").name)
 			if(self.node.city.researchLevel > 0):
 				self.names.append(uiElement(-0.964,-0.32,text="level "+str(self.node.city.researchLevel) + " complete",textSize=0.0005).name)
-				self.names.append(startResearchButton(-0.964,-0.89,self.node.city.researchUnitType,text="research level " + str(self.node.city.researchLevel+1),textSize=0.0005).name)
+				if(self.node.unit != None and self.node.unit.unitType.name == "summoner"):
+					self.names.append(startResearchButton(-0.964,-0.89,self.node.city.researchUnitType,text="research level " + str(self.node.city.researchLevel+1),textSize=0.0005).name)
 		elif(self.node.city.unitBeingBuilt != None):
 			self.names.append(uiElement(-0.972,-0.19,text=self.node.city.unitBeingBuilt.unitType.name,textSize=0.0005).name)
 			self.names.append(uiElement(-0.972,-0.21,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE'),textureIndex=texIndex('UNIT_BUILD_BAR')).name)
@@ -247,12 +248,16 @@ class actionViewer(uiElement):
 		elif(not self.node.city.doneResearching):
 			self.names.append(uiElement(-0.88,-0.19,text="research",textSize=0.0005).name)
 			if(self.node.city.researchLevel > 0):
-				self.names.append(viewResearchButton(-0.964,-0.25,self.node.city.researchUnitType,text=self.node.city.researchUnitType.name + " lvl " + str(self.node.city.researchLevel+1),textSize=0.0005).name)
+				if(self.node.unit != None and self.node.unit.unitType.name == "summoner"):
+					self.names.append(startResearchButton(-0.97,-0.205,self.node.city.researchUnitType,textureIndex=texIndex("ADD_BUTTON_SMALL"),width=texWidth("ADD_BUTTON_SMALL"),height=texHeight("ADD_BUTTON_SMALL")).name)
+				self.names.append(viewResearchButton(-0.94,-0.23,self.node.city.researchUnitType,text=self.node.city.researchUnitType.name + " lvl " + str(self.node.city.researchLevel+1),textSize=0.0005).name)
 			else:
-				height = -0.25
+				height = -0.23
 				for unitType in self.node.city.unitTypes:
 					if(unitType.name != "summoner" and unitType.name != "gatherer"): 
-						self.names.append(viewResearchButton(-0.964,height,unitType,self.node,text=unitType.name,textSize=0.0005).name)
+						if(self.node.unit != None and self.node.unit.unitType.name == "summoner"):
+							self.names.append(startResearchButton(-0.97,height+0.025,unitType,textureIndex=texIndex("ADD_BUTTON_SMALL"),width=texWidth("ADD_BUTTON_SMALL"),height=texHeight("ADD_BUTTON_SMALL")).name)
+						self.names.append(viewResearchButton(-0.94,height,unitType,self.node,text=unitType.name,textSize=0.0005).name)
 						self.names.append(uiElement(-0.72,height,text=str(unitType.cost),textSize=0.0005).name)
 						height = height - 0.04
 		self.names.append(uiElement(-0.88,-0.51,text="summon",textSize=0.0005).name)
@@ -294,6 +299,11 @@ class unitViewer(uiElement):
 		self.names = []
 		self.names.append(uiElement(-0.978,0.79,textXPos=0.01,textYPos=-0.035,height=texHeight('UNIT_VIEWER_BOX'),width=texWidth('UNIT_VIEWER_BOX'),textureIndex=texIndex('UNIT_VIEWER_BOX'),textSize=0.0005).name)	
 		self.names.append(uiElement(-0.96,0.73,text=self.unit.unitType.name,textSize=0.0007).name)
+		self.names.append(uiElement(-0.964,0.72,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE'),textureIndex=texIndex('UNIT_BUILD_BAR')).name)
+		self.names.append(uiElement(-0.964,0.72,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE')*(float(self.unit.health)/self.unit.unitType.health),textureIndex=texIndex('UNIT_BUILD_BAR'),color="FF 00 00").name)
+#self.names.append(uiElement(-0.96,0.695,text=str(self.unit.health)+"/"+str(self.unit.unitType.health),textSize=0.000).name)
+
+
 #		self.names.append(stopWaitingButton(-0.947,0.68,text="move",textSize=0.0005).name)
 #		self.names.append(attackButton(-0.95,0.63,text="attack",textSize=0.0005).name)
 #		self.names.append(waitButton(-0.940,0.58,text="wait",textSize=0.0005).name)

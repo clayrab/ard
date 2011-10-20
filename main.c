@@ -366,13 +366,16 @@ float playerStartVertices[6][2] = {
 };
 float * vertexArrays[8];
 
+
+
 float hexagonVertices[6][2] = {
-  {-SIN60, -COS60},
-  {-SIN60, COS60},
-  {0.0, 1.0},
-  {SIN60, COS60},
-  {SIN60, -COS60},
-  {0.0, -1.0}
+  //cheated these all out by 0.01 so the black background doesn't bleed through
+  {-SIN60-0.01, -COS60-0.01},
+  {-SIN60-0.01, COS60+0.01},
+  {0.01, 1.01},
+  {SIN60+0.01, COS60+0.01},
+  {SIN60+0.01, -COS60-0.01},
+  {0.01, -1.01}
 };
 
 float *textureVertices;
@@ -481,14 +484,15 @@ void convertWinCoordsToMapCoords(int x, int y, GLdouble* posX, GLdouble* posY, G
 /**************************** /mouse hover object selection ********************************/
 
 /************************************* drawing subroutines ***************************************/
+
+
 float translateTilesXToPositionX(int tilesX){
-  return (float)tilesX*-(1.9*SIN60);
-  //pulling the xindex and yindex in a little cause the black lines between tiles to be less harsh
-  //(float)tilesXPosition*-(2.0*SIN60);
+    //return (float)tilesX*-(1.9*SIN60);
+    return (float)tilesX*-(2.0*SIN60);
 }
 float translateTilesYToPositionY(int tilesY){
-  return (float)tilesY*1.4;
-  //(float)tilesYPosition*1.5;
+    //return (float)tilesY*1.4;
+    return (float)tilesY*1.5;
 }
 void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long roadValue,char * cityName,long isSelected, long isOnMovePath, long mapPolarity,long playerStartValue,PyObject * pyUnit, int isNextUnit, long cursorIndex){
   float xPosition = translateTilesXToPositionX(tilesXIndex);
@@ -594,7 +598,7 @@ void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long 
       PyObject * pyMaxHealth = PyObject_GetAttrString(pyUnitType,"health");
       PyObject * pyPlayerNumber = PyObject_GetAttrString(pyUnit,"player");
       long playerNumber = PyLong_AsLong(pyPlayerNumber);
-      float healthBarLength = 1.4*PyLong_AsLong(pyHealth)/PyLong_AsLong(pyMaxHealth);
+      float healthBarLength = 1.5*PyLong_AsLong(pyHealth)/PyLong_AsLong(pyMaxHealth);
 
       glColor3f(255.0, 255.0, 255.0);
 
@@ -609,7 +613,6 @@ void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long 
       glTexCoord2f(0.0,1.0);
       glVertex3f(xPosition-0.7, yPosition+0.7, 0.0);
       glEnd();
-
 
       glBindTexture(GL_TEXTURE_2D, texturesArray[MEEPLE_INDEX]);
       glBegin(GL_QUADS);
@@ -628,9 +631,9 @@ void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long 
       glTexCoord2f(0.0,0.0);
       glVertex3f(xPosition-.75, yPosition-0.2, 0.0);
       glTexCoord2f(1.0,0.0);
-      glVertex3f(xPosition+.65, yPosition-0.2, 0.0);
+      glVertex3f(xPosition+.75, yPosition-0.2, 0.0);
       glTexCoord2f(1.0,1.0);
-      glVertex3f(xPosition+.65, yPosition-0.5, 0.0);
+      glVertex3f(xPosition+.75, yPosition-0.5, 0.0);
       glTexCoord2f(0.0,1.0);
       glVertex3f(xPosition-.75, yPosition-0.5, 0.0);
       glEnd();
@@ -1304,12 +1307,6 @@ static void mainLoop (){
     draw();
     Py_DECREF(theMap);
     Py_DECREF(gameMode);
-
-    PyObject *exc_type, *exc_value, *exc_traceback, *pystring;
-    PyErr_Fetch(&exc_type, &exc_value, &exc_traceback);
-    if(exc_type){
-      printf("exception%d\n",1);
-    }
   }
   gameMode = PyObject_CallMethod(gameMode,"onQuit",NULL);
 }
