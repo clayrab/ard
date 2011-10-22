@@ -52,23 +52,27 @@ class unit:
 		self.xPos = xPos
 		self.yPos = yPos
 		self.node = node
-		self.movementPoints = self.unitType.movementSpeed
-		self.attackPoints = 0.0
+#		self.movementPoints = self.unitType.movementSpeed
+#		self.attackPoints = self.unitType.attackSpeed
+		self.movementPoints = 0
+		self.attackPoints = 0
 		self.buildPoints = self.unitType.buildTime
 		self.health = self.unitType.health
 		self.movePath = []
 		self.waiting = False
 		self.level = level
 	def move(self):
-		if(self.movePath[0].unit != None and self.movePath[0].unit.player == self.player):#ran into a unit, let the player decide what to do...
+		if(self.movePath[0].unit != None and self.movePath[0].unit.player == self.player):#ran into own unit, let the player decide what to do...
 			self.movePath = []
 		else:
+			print 'moveto...'
 			gameState.getClient().sendCommand("moveTo " + str(self.movePath[0].xPos) + " " + str(self.movePath[0].yPos) + "|")
 			self.movePath = self.movePath[1:]
 	def moveTo(self,node):
 		if(node.unit != None and self.node != node):
 			if(node.unit.player != self.player):
 				node.unit.health = node.unit.health - self.unitType.attackPower
+				self.attackPoints = self.attackPoints + self.unitType.attackSpeed
 			else:
 				if(len(self.movePath) > 0):
 					self.movePath = []
@@ -261,7 +265,9 @@ class playModeNode(node):
 					neighbor.open = True
 					neighbor.aStarParent = node
 					neighbor.findAStarHeuristicCost(target)
-					if(neighbor.tileValue == cDefines.defines['MOUNTAIN_TILE_INDEX']):
+					if(neighbor.unit != None):
+						neighbor.aStarKnownCost = node.aStarKnownCost + 999.9
+					elif(neighbor.tileValue == cDefines.defines['MOUNTAIN_TILE_INDEX']):
 						neighbor.aStarKnownCost = node.aStarKnownCost + (cDefines.defines['MOUNTAIN_MOVE_COST']/(1.0+float(neighbor.roadValue)))
 					elif(neighbor.tileValue == cDefines.defines['WATER_TILE_INDEX'] and target.unit.unitType.canSwim == False):
 						neighbor.aStarKnownCost = node.aStarKnownCost + (cDefines.defines['WATER_MOVE_COST']/(1.0+float(neighbor.roadValue)))
@@ -269,8 +275,11 @@ class playModeNode(node):
 						neighbor.aStarKnownCost = node.aStarKnownCost + (cDefines.defines['DESERT_MOVE_COST']/(1.0+float(neighbor.roadValue)))
 					else:
 						neighbor.aStarKnownCost = node.aStarKnownCost + (cDefines.defines['GRASS_MOVE_COST']/(1.0+float(neighbor.roadValue)))
-				else:
-					if(neighbor.tileValue == cDefines.defines['MOUNTAIN_TILE_INDEX']):
+				else:#calculate whether new known path is shorter than old known path
+					if(neighbor.unit != None):
+						if(neighbor.aStarKnownCost > node.aStarKnownCost + 999.9):
+							   neighbor.aStarKnownCost = node.aStarKnownCost + 999.9
+					elif(neighbor.tileValue == cDefines.defines['MOUNTAIN_TILE_INDEX']):
 						if(neighbor.aStarKnownCost > node.aStarKnownCost + (cDefines.defines['MOUNTAIN_MOVE_COST']/(1.0+float(neighbor.roadValue)))):
 							   neighbor.aStarKnownCost = node.aStarKnownCost + (cDefines.defines['MOUNTAIN_MOVE_COST']/(1.0+float(neighbor.roadValue)))
 					elif(neighbor.tileValue == cDefines.defines['WATER_TILE_INDEX'] and target.unit.unitType.canSwim == False):

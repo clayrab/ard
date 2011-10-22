@@ -274,7 +274,7 @@ class actionViewer(uiElement):
 			if(self.node.unit == gameState.getGameMode().nextUnit):
 				self.names.append(skipButton(-0.964,-0.89,text="skip",textSize=0.0005).name)
 				self.names.append(waitButton(-0.964,-0.93,text="wait",textSize=0.0005).name)
-			elif(self.node.unit.waiting and not self.node.city.researching and self.node.city.unitBeingBuild == None):
+			elif(self.node.unit.waiting and not self.node.city.researching and self.node.city.unitBeingBuilt == None):
 				self.names.append(stopWaitingButton(-0.964,-0.93,text="wake",textSize=0.0005).name)
 			
 	@staticmethod
@@ -299,10 +299,21 @@ class unitViewer(uiElement):
 		self.unit = unit
 		self.names = []
 		self.names.append(uiElement(-0.978,0.79,textXPos=0.01,textYPos=-0.035,height=texHeight('UNIT_VIEWER_BOX'),width=texWidth('UNIT_VIEWER_BOX'),textureIndex=texIndex('UNIT_VIEWER_BOX'),textSize=0.0005).name)	
+
 		self.names.append(uiElement(-0.96,0.73,text=self.unit.unitType.name,textSize=0.0007).name)
+
 		self.names.append(uiElement(-0.964,0.72,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE'),textureIndex=texIndex('UNIT_BUILD_BAR')).name)
 		self.names.append(uiElement(-0.964,0.72,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE')*(float(self.unit.health)/self.unit.unitType.health),textureIndex=texIndex('UNIT_BUILD_BAR'),color="FF 00 00").name)
 		self.names.append(uiElement(-0.96,0.695,text=str(self.unit.health)+"/"+str(self.unit.unitType.health),textSize=0.0005).name)
+
+		self.names.append(uiElement(-0.964,0.675,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE'),textureIndex=texIndex('UNIT_BUILD_BAR')).name)
+		self.names.append(uiElement(-0.964,0.675,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE')*(0.0-self.unit.movementPoints/self.unit.unitType.movementSpeed),textureIndex=texIndex('UNIT_BUILD_BAR'),color="FF 00 00").name)
+		self.names.append(uiElement(-0.96,0.650,text="00/00",textSize=0.0005).name)
+
+		self.names.append(uiElement(-0.964,0.630,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE'),textureIndex=texIndex('UNIT_BUILD_BAR')).name)
+		self.names.append(uiElement(-0.964,0.630,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE')*(0.0-self.unit.attackPoints/self.unit.unitType.attackSpeed),textureIndex=texIndex('UNIT_BUILD_BAR'),color="FF 00 00").name)
+		self.names.append(uiElement(-0.96,0.605,text="00/00",textSize=0.0005).name)
+
 		if(self.unit.waiting):
 			if(self.unit.node.city.unitBeingBuilt != None):
 				self.names.append(uiElement(-0.96,0.565,text="summoning",textSize=0.0005).name)

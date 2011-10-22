@@ -78,6 +78,7 @@ class Commands:
             uiElements.actionViewer.theActionViewer.reset()
     @staticmethod
     def wait(args):
+        print 'wait'
         tokens = args.split(" ")
         node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
         node.unit.waiting = True

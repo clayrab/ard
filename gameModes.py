@@ -1,3 +1,8 @@
+#big bug with attacking/chooseNextUnit 
+#port units to dicts {'jack': 4098, 'sape': 4139}
+#show move speed and attack speed?
+#encircle map with mountains, clip at edge
+#attack cursor.
 #cancel movepath
 #save and resume games
 #fog of war
@@ -207,18 +212,21 @@ class playMode(tiledGameMode):
 		while(self.units[0].movementPoints > 0.0 or (self.units[0].waiting)):
 			self.orderUnits()
 			for unit in self.units:
-#				if(unit.node.roadValue == 1):
-#					unit.movementPoints = unit.movementPoints - 2.0
-				if(unit.node.tileValue == cDefines.defines['MOUNTAIN_TILE_INDEX']):
-					unit.movementPoints = unit.movementPoints - ((1.0+float(unit.node.roadValue))/cDefines.defines['MOUNTAIN_MOVE_COST'])
-				elif(unit.node.tileValue == cDefines.defines['WATER_TILE_INDEX'] and unit.canSwim == False):
-					unit.movementPoints = unit.movementPoints - ((1.0+float(unit.node.roadValue))/cDefines.defines['WATER_MOVE_COST'])
-				elif(unit.node.tileValue == cDefines.defines['DESERT_TILE_INDEX']):
-					unit.movementPoints = unit.movementPoints - ((1.0+float(unit.node.roadValue))/cDefines.defines['DESERT_MOVE_COST'])
+				if(unit.attackPoints > 0.0):
+					unit.attackPoints = unit.attackPoints - unit.unitType.attackSpeed
 				else:
-					unit.movementPoints = unit.movementPoints - ((1.0+float(unit.node.roadValue))/cDefines.defines['GRASS_MOVE_COST'])
-			if(unit.movementPoints < 0.0):
-				unit.movementPoints = 0.0#for waiting units
+#					if(unit.node.roadValue == 1):
+#					unit.movementPoints = unit.movementPoints - 2.0
+					if(unit.node.tileValue == cDefines.defines['MOUNTAIN_TILE_INDEX']):
+						unit.movementPoints = unit.movementPoints - ((1.0+float(unit.node.roadValue))/cDefines.defines['MOUNTAIN_MOVE_COST'])
+					elif(unit.node.tileValue == cDefines.defines['WATER_TILE_INDEX'] and unit.canSwim == False):
+						unit.movementPoints = unit.movementPoints - ((1.0+float(unit.node.roadValue))/cDefines.defines['WATER_MOVE_COST'])
+					elif(unit.node.tileValue == cDefines.defines['DESERT_TILE_INDEX']):
+						unit.movementPoints = unit.movementPoints - ((1.0+float(unit.node.roadValue))/cDefines.defines['DESERT_MOVE_COST'])
+					else:
+						unit.movementPoints = unit.movementPoints - ((1.0+float(unit.node.roadValue))/cDefines.defines['GRASS_MOVE_COST'])
+					if(unit.movementPoints < 0.0):
+						unit.movementPoints = 0.0#for waiting units
 			for row in self.map.nodes:
 				for node in row:
 					if(node.city != None):
@@ -252,7 +260,10 @@ class playMode(tiledGameMode):
 			self.shiftDown = True
 		if(keycode == "space"):
 			if(gameState.getPlayers()[gameState.getGameMode().nextUnit.player-1].isOwnPlayer):
-				gameState.getClient().sendCommand("moveTo " + str(self.nextUnit.node.xPos) + " " + str(self.nextUnit.node.yPos) + "|")
+				gameState.getClient().sendCommand("wait " + str(self.nextUnit.node.xPos) + " " + str(self.nextUnit.node.yPos) + "|")
+
+
+			#	gameState.getClient().sendCommand("moveTo " + str(self.nextUnit.node.xPos) + " " + str(self.nextUnit.node.yPos) + "|")
 		elif(keycode == "n"):
 			self.focusNextUnit = 1
 			self.selectedNode.selected = False

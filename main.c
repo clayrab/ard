@@ -974,6 +974,7 @@ static void initGL (){
   glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);//default values anyway, so not needed but w/e
   glInitNames(); //init names stack	
   glClearColor(0.0, 0.0, 0.0, 0.0); //sets screen clear color
+  //glClearColor(1.0, 1.0, 1.0, 1.0); //sets screen clear color
   glEnable(GL_TEXTURE_2D);
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);     
