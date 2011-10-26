@@ -65,7 +65,6 @@ class unit:
 		if(self.movePath[0].unit != None and self.movePath[0].unit.player == self.player):#ran into own unit, let the player decide what to do...
 			self.movePath = []
 		else:
-			print 'moveto...'
 			gameState.getClient().sendCommand("moveTo " + str(self.movePath[0].xPos) + " " + str(self.movePath[0].yPos) + "|")
 			self.movePath = self.movePath[1:]
 	def moveTo(self,node):

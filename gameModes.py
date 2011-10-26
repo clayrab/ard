@@ -1,7 +1,6 @@
-#big bug with attacking/chooseNextUnit 
-#port units to dicts {'jack': 4098, 'sape': 4139}
-#show move speed and attack speed?
+#port units to dicts eg{'jack': 4098, 'sape': 4139}
 #encircle map with mountains, clip at edge
+#show move speed and attack speed?
 #attack cursor.
 #cancel movepath
 #save and resume games
@@ -206,7 +205,7 @@ class playMode(tiledGameMode):
 		self.focusNextUnit = 0
 		return self.focusNextUnitTemp
 	def orderUnits(self):
-		self.units.sort(key=lambda unit: 1000.0 if (unit.waiting) else unit.movementPoints)
+		self.units.sort(key=lambda unit: 1000.0 if (unit.waiting or (unit.attackPoints > 0.0)) else unit.movementPoints)
 	def chooseNextUnit(self):
 		self.orderUnits()
 		while(self.units[0].movementPoints > 0.0 or (self.units[0].waiting)):
@@ -260,9 +259,7 @@ class playMode(tiledGameMode):
 			self.shiftDown = True
 		if(keycode == "space"):
 			if(gameState.getPlayers()[gameState.getGameMode().nextUnit.player-1].isOwnPlayer):
-				gameState.getClient().sendCommand("wait " + str(self.nextUnit.node.xPos) + " " + str(self.nextUnit.node.yPos) + "|")
-
-
+				gameState.getClient().sendCommand("moveTo " + str(self.nextUnit.node.xPos) + " " + str(self.nextUnit.node.yPos) + "|")
 			#	gameState.getClient().sendCommand("moveTo " + str(self.nextUnit.node.xPos) + " " + str(self.nextUnit.node.yPos) + "|")
 		elif(keycode == "n"):
 			self.focusNextUnit = 1

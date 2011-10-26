@@ -78,7 +78,6 @@ class Commands:
             uiElements.actionViewer.theActionViewer.reset()
     @staticmethod
     def wait(args):
-        print 'wait'
         tokens = args.split(" ")
         node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
         node.unit.waiting = True
@@ -86,6 +85,11 @@ class Commands:
             gameState.getGameMode().chooseNextUnit()
         elif(uiElements.unitViewer.unit == node.unit):
             unitViewer.reset()
+    @staticmethod
+    def skip(args):
+        print 'skip'
+        tokens = args.split(" ")
+        
 
 
 
