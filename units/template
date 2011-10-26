@@ -14,3 +14,35 @@ armor bonus
 attack power bonus
 research cost
 research time
+
+
+
+the units I deleted:
+Deleting       units/black_mage
+Deleting       units/centaur
+Deleting       units/chocobo
+Deleting       units/djinn
+Deleting       units/dwarf
+Deleting       units/elf
+Deleting       units/elf_archer
+Deleting       units/fire_elemental
+Deleting       units/giant
+Deleting       units/giant_bat
+Deleting       units/giant_spider
+Deleting       units/goblin
+Deleting       units/griffin
+Deleting       units/hydra
+Deleting       units/merman
+Deleting       units/minotaur
+Deleting       units/murlock
+Deleting       units/orc
+Deleting       units/pixie
+Deleting       units/purple_worm
+Deleting       units/skeleton
+Deleting       units/skeleton_archer
+Deleting       units/treant
+Deleting       units/unicorn
+Deleting       units/vampire
+Deleting       units/water_elemental
+Deleting       units/white_mage
+Deleting       units/wolf
