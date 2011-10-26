@@ -1,4 +1,3 @@
-#port units to dicts eg{'jack': 4098, 'sape': 4139}
 #encircle map with mountains, clip at edge
 #show move speed and attack speed?
 #attack cursor.

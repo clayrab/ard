@@ -10,29 +10,8 @@ import json
 unitTypesList = []
 dirList=os.listdir("units")
 for fileName in dirList:
-	if((not fileName.startswith(".")) and (not fileName.startswith("_")) and (not fileName.startswith("s")) and fileName != "template"):
-		unitFile = open("units/"+fileName)
-		tokens = unitFile.read().split("\n")
-		tokens[0] = cDefines.defines[tokens[0]+"_INDEX"]
-		tokens[1] = int(tokens[1])
-		tokens[2] = int(tokens[2])
-		tokens[3] = int(tokens[3])
-		tokens[4] = int(tokens[4])
-		tokens[5] = int(tokens[5])
-		tokens[6] = int(tokens[6])
-		tokens[7] = bool(int(tokens[7]))
-		tokens[8] = bool(int(tokens[8]))
-		tokens[9] = int(int(tokens[9]))
-		tokens[10] = int(tokens[10])
-		tokens[11] = int(tokens[11])
-		tokens[12] = int(tokens[12])
-		tokens[13] = int(tokens[13])
-		tokens[14] = int(tokens[14])
-		tokens[15] = int(tokens[15])
-		unitTypesList.append(gameLogic.unitType(fileName.replace("_"," "),tokens[0],tokens[1],tokens[2],tokens[3],tokens[4],tokens[5],tokens[6],tokens[7],tokens[8],tokens[9],tokens[10],tokens[11],tokens[12],tokens[13],tokens[14],tokens[15]))
-
-for fileName in dirList:
-	if((not fileName.startswith(".")) and (fileName.startswith("_")) and fileName != "template" and (not fileName.endswith("~"))):
+	if((not fileName.startswith(".")) and fileName != "template" and (not fileName.endswith("~"))):
+		print fileName
 		unitFile = open("units/"+fileName)
 		obj = json.load(unitFile)
 		unitTypesList.append(gameLogic.unitType(fileName.replace("_"," ").strip(),cDefines.defines[obj['textureName']+"_INDEX"],obj['movementSpeed'],obj['attackSpeed'],obj['attackPower'],obj['armor'],obj['range'],obj['health'],bool(obj['canFly']),bool(obj['canSwim']),obj['cost'],obj['buildTime'],obj['movementSpeedBonus'],obj['armorBonus'],obj['attackPowerBonus'],obj['researchCost'],obj['researchTime']))

@@ -29,7 +29,7 @@ class unitType:
 		self.attackPowerBonus = attackPowerBonus
 		self.researchCost = researchCost
 		self.researchTime = researchTime
-		if(self.name == "summoner"):
+		if(self.name == "archer"):
 			print self.name
 			print "attackpower:"+str(self.attackPower)
 			print "armor:"+str(self.armor)
