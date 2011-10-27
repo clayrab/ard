@@ -1,3 +1,7 @@
+#move gameplay viewport back to entire window. make UI less intrusive, small elements at the corners
+#moving mouse too fast doens't scroll properly
+#scroll left broken
+#some C optimization... make lists, reduce mallocs in draw loop, etc
 #encircle map with mountains, clip at edge
 #show move speed and attack speed?
 #attack cursor.

@@ -357,9 +357,9 @@ class map:
 		self.translateZ = 0-cDefines.defines['initZoom']
 		self.load()
 	def getWidth(self):
-		return len(self.nodes)
-	def getHeight(self):
 		return len(self.nodes[0])
+	def getHeight(self):
+		return len(self.nodes)
 	def load(self):
 		mapFile = open('maps/' + gameState.getMapName() + ".map",'r')
 		self.nodes = []

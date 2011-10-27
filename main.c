@@ -236,11 +236,12 @@ int moveRight = 0;
 int previousTick = 0;
 int deltaTicks = 0;
 
-float translateX = -20.0;
-float translateY = 15.0;
+float translateX = 0.0;
+float translateY = 0.0;
 float scrollSpeed = 0.10;
 
-GLdouble convertedX,convertedY,convertedZ;
+GLdouble convertedBottomLeftX,convertedBottomLeftY,convertedBottomLeftZ;
+GLdouble convertedTopRightX,convertedTopRightY,convertedTopRightZ;
 float newTranslateX,newTranslateY;
 
 PyObject * gameModule;
@@ -452,54 +453,48 @@ void processTheHits(GLint hitsCount, GLuint buffer[]){
 }
 
 //float glMouseCoords[3];
-//void convertWinCoordsToMapCoords(int x, int y){
-void convertWinCoordsToMapCoords(int x, int y, GLdouble* posX, GLdouble* posY, GLdouble* posZ){
+//void convertWindowCoordsToViewportCoords(int x, int y){
+void convertWindowCoordsToViewportCoords(int x, int y, GLdouble* posX, GLdouble* posY, GLdouble* posZ){
   //TODO: THIS SEEMS OFF BECAUSE OF THE EXTRA SPACE TAKEN BY THE UI ON THE SIDES
   GLint viewport[4];
   GLdouble modelview[16];
   GLdouble projection[16];
   GLfloat winX, winY, winZ;
-  //  GLdouble posX, posY, posZ;
-
   glGetDoublev( GL_MODELVIEW_MATRIX, modelview );
   glGetDoublev( GL_PROJECTION_MATRIX, projection );
-  glGetIntegerv( GL_VIEWPORT, viewport );
-
+  glGetIntegerv(GL_VIEWPORT,viewport);//returns four values: the x and y window coordinates of the viewport, followed by its width and height.
   winX = (float)x;
   winY = (float)viewport[3] - (float)y;
-  
-
+  printf("viewport height: %f\n",(float)viewport[3]);
+  printf("y: %d\n",y);
+  printf("winY: %f\n",winY);
+  //winY = (float)y;
   PyObject * pyTranslateZ = PyObject_GetAttrString(theMap,"translateZ");
   double transZ = PyFloat_AsDouble(pyTranslateZ);
   //Py_DECREF(pyTranslateZ);//TODO: This causes a SegFault????
-
   winZ = (float)((minZoom-transZ)/maxZoom);
   gluUnProject( winX, winY, winZ, modelview, projection, viewport, posX, posY, posZ);
-  
-  //  glMouseCoords[0] = posX;
-  //  glMouseCoords[1] = posY;
-  //  glMouseCoords[2] = posZ;
-  //  return glMouseCoords;
 }
 /**************************** /mouse hover object selection ********************************/
 
 /************************************* drawing subroutines ***************************************/
 
 
-float translateTilesXToPositionX(int tilesX){
-    //return (float)tilesX*-(1.9*SIN60);
-    return (float)tilesX*-(2.0*SIN60);
+float translateTilesXToPositionX(int tileX,int tileY,long mapPolarity){
+  //return (float)tilesX*-(1.9*SIN60);
+  float returnVal = (float)tileX*-(2.0*SIN60);
+  if(abs(tileY)%2 == mapPolarity){
+    returnVal += SIN60;
+  }
+  return returnVal;
 }
-float translateTilesYToPositionY(int tilesY){
-    //return (float)tilesY*1.4;
-    return (float)tilesY*1.5;
+float translateTilesYToPositionY(int tileY){
+    //return (float)tileY*1.4;
+    return (float)tileY*1.5;
 }
 void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long roadValue,char * cityName,long isSelected, long isOnMovePath, long mapPolarity,long playerStartValue,PyObject * pyUnit, int isNextUnit, long cursorIndex){
-  float xPosition = translateTilesXToPositionX(tilesXIndex);
+  float xPosition = translateTilesXToPositionX(tilesXIndex,tilesYIndex,mapPolarity);
   float yPosition = translateTilesYToPositionY(tilesYIndex);
-  if(abs(tilesYIndex)%2 == mapPolarity){
-    xPosition += SIN60;
-  }
   textureVertices = vertexArrays[tileValue];
   if(name == selectedName){
     glColor3f(0.8f, 0.8f, 0.8f);
@@ -710,7 +705,7 @@ void drawTilesText(){
 }
 void drawTiles(){
   
-  int rowNumber = 0;
+  int rowNumber = -1;
   PyObject * node;
   PyObject * row;
 
@@ -721,7 +716,7 @@ void drawTiles(){
   rowIterator = PyObject_GetIter(mapIterator);
   while (row = PyIter_Next(rowIterator)) {
     int colNumber = 0;
-    rowNumber = rowNumber - 1;
+    rowNumber = rowNumber + 1;
     PyObject * nodeIterator = PyObject_GetIter(row);
     while(node = PyIter_Next(nodeIterator)) {
       glBindTexture(GL_TEXTURE_2D, tilesTexture);
@@ -975,6 +970,8 @@ static void initGL (){
   glInitNames(); //init names stack	
   glClearColor(0.0, 0.0, 0.0, 0.0); //sets screen clear color
   //glClearColor(1.0, 1.0, 1.0, 1.0); //sets screen clear color
+  //glClearColor(123.0/255.0,126.0/255.0,125.0/255.0,1.0);//grey that matches the UI...
+
   glEnable(GL_TEXTURE_2D);
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);     
@@ -1170,67 +1167,76 @@ static void handleInput(){
     }
   }
 }
-void doScrolling(){
-    pyMapWidth = PyObject_CallMethod(theMap,"getWidth",NULL);//New reference
-    pyMapHeight = PyObject_CallMethod(theMap,"getHeight",NULL);//New reference
-    mapWidth = PyLong_AsLong(pyMapWidth);
-    mapHeight = PyLong_AsLong(pyMapHeight);
-    convertWinCoordsToMapCoords(0.0,0.0,&convertedX,&convertedY,&convertedZ);
-    if(clickScroll > 0){
-      newTranslateX = translateX + mouseMapPosX - mouseMapPosXPrevious;
-      newTranslateY = translateY + mouseMapPosY - mouseMapPosYPrevious;
-      if(!((convertedX > translateTilesXToPositionX(-mapHeight) && newTranslateX < translateX) || (convertedX < 0.0 && newTranslateX > translateX))){
-	translateX = newTranslateX;
+void doTranslate(){
+  mouseMapPosXPrevious = mouseMapPosX;
+  mouseMapPosYPrevious = mouseMapPosY;
+  pyMapWidth = PyObject_CallMethod(theMap,"getWidth",NULL);//New reference
+  pyMapHeight = PyObject_CallMethod(theMap,"getHeight",NULL);//New reference
+  mapWidth = PyLong_AsLong(pyMapWidth);
+  mapHeight = PyLong_AsLong(pyMapHeight);
+  convertWindowCoordsToViewportCoords(mouseX,mouseY-UI_MAP_EDITOR_TOP_IMAGE_HEIGHT,&mouseMapPosX,&mouseMapPosY,&mouseMapPosZ);
+  convertWindowCoordsToViewportCoords(UI_MAP_EDITOR_LEFT_IMAGE_WIDTH,SCREEN_HEIGHT-UI_MAP_EDITOR_TOP_IMAGE_HEIGHT-UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT,&convertedBottomLeftX,&convertedBottomLeftY,&convertedBottomLeftZ);
+  convertWindowCoordsToViewportCoords(SCREEN_WIDTH-UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH,0.0,&convertedTopRightX,&convertedTopRightY,&convertedTopRightZ);
+  float mapRightOffset = translateTilesXToPositionX(mapWidth+1,0,0);
+  float mapTopOffset = translateTilesYToPositionY(mapHeight);
+  /*  printf("screen topright %f,%f\n",convertedTopRightX,convertedTopRightY);
+  printf("screen bottomleft %f,%f\n",convertedBottomLeftX,convertedBottomLeftY);
+  printf("translate %f,%f\n",translateX,translateY);
+  printf("%f\n",translateTilesYToPositionY(mapHeight));//setting translateY to this number will focus on it
+  printf("mouse %d:%f\t%d:%f\n",mouseX,mouseMapPosX,mouseY,mouseMapPosY);
+  */
+  if(clickScroll > 0){
+    translateX = translateX + mouseMapPosX - mouseMapPosXPrevious;
+    translateY = translateY + mouseMapPosY - mouseMapPosYPrevious;
+  }else{
+      if(moveRight > 0){// && translateX > -10.0){
+	translateX -= scrollSpeed*deltaTicks;
       }
-      if(!((convertedY > 0.0 && newTranslateY < translateY) || (convertedY < translateTilesYToPositionY(-mapWidth) && newTranslateY > translateY))){
-	translateY = newTranslateY;
+      if(moveRight < 0){// && translateX < 10.0){
+	translateX += scrollSpeed*deltaTicks;
       }
-    }else{
-      if(convertedX < translateTilesXToPositionX(-mapHeight)){
-	if(moveRight > 0){// && translateX > -10.0){
-	  translateX -= scrollSpeed*deltaTicks;
-	}
-      }
-      if(convertedX > 0.0){
-	if(moveRight < 0){// && translateX < 10.0){
-	  translateX += scrollSpeed*deltaTicks;
-	}
-      }
-      if(convertedY < 0.0){
-	if(moveUp > 0){// && translateY > -10.0){
+      if(moveUp > 0){// && translateY > -10.0){
 	  translateY -= scrollSpeed*deltaTicks;
-	}
       }
-      if(convertedY > translateTilesYToPositionY(-mapWidth)){
-	if(moveUp < 0){// && translateY < 10.0){
-	  translateY += scrollSpeed*deltaTicks;
-	}
+      if(moveUp < 0){// && translateY < 10.0){
+	translateY += scrollSpeed*deltaTicks;
       }
-    }
-    //    Py_DECREF(pyMapWidth);//TODO: SEG FAULT????
-    //    Py_DECREF(pyMapHeight);//TODO: SEG FAULT????
-
+  }
+  //When zooming, this will adjust translateX/Y so that not too much off-map area is shown. Also, when scrolling, this will stop the user from scrolling into off-map areas.
+  if(translateX - mapRightOffset < convertedTopRightX && translateX + (2.0*SIN60) > convertedBottomLeftX){
+    translateX = (convertedTopRightX + mapRightOffset + convertedBottomLeftX + (2.0*SIN60))/2.0;
+  }else if(translateX - mapRightOffset < convertedTopRightX){
+    translateX = convertedTopRightX + mapRightOffset;
+  }else if(translateX - (2.0*SIN60) > convertedBottomLeftX){
+    translateX = convertedBottomLeftX + (2.0*SIN60);
+  }
+  if(convertedTopRightY - translateY > mapTopOffset && translateY > convertedBottomLeftY+2.0){
+    translateY = (convertedTopRightY - mapTopOffset+convertedBottomLeftY+2.0)/2.0;
+  }else if(convertedTopRightY - translateY > mapTopOffset){
+    translateY = convertedTopRightY - mapTopOffset;
+  }else if(translateY > convertedBottomLeftY+2.0){
+    translateY = convertedBottomLeftY+2.0;
+  }
+  glTranslatef(translateX,translateY,mouseMapPosZ);
+  //    Py_DECREF(pyMapWidth);//TODO: SEG FAULT????
+  //    Py_DECREF(pyMapHeight);//TODO: SEG FAULT????
 }
 static void draw(){
   PyObject_CallMethod(gameMode,"onDraw",NULL);//New reference
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		
+  glViewport(UI_MAP_EDITOR_LEFT_IMAGE_WIDTH,UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT,SCREEN_WIDTH - UI_MAP_EDITOR_LEFT_IMAGE_WIDTH - UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH, SCREEN_HEIGHT - UI_MAP_EDITOR_TOP_IMAGE_HEIGHT - UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT);
   theCursorIndex = -1;
     
   //game board projection time
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-  doScrolling();
   gluPerspective(45.0f,screenRatio,minZoom,maxZoom+1.0);
   //draw the game board
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
-  mouseMapPosXPrevious = mouseMapPosX;
-  mouseMapPosYPrevious = mouseMapPosY;
-  
-  convertWinCoordsToMapCoords(mouseX,mouseY,&mouseMapPosX,&mouseMapPosY,&mouseMapPosZ);
+  doTranslate();
   //glTranslatef(mouseMapPosX,mouseMapPosY,translateZ);//for some reason we need mouseMapPosZ instead of translateZ
-  glTranslatef(translateX,translateY,mouseMapPosZ);
 
   GLint viewport[4];
   glSelectBuffer(BUFSIZE,selectBuf);
@@ -1240,7 +1246,6 @@ static void draw(){
   glPushMatrix();
   glLoadIdentity();
   //glViewport(0.0,0.0,SCREEN_WIDTH, SCREEN_HEIGHT);
-  glViewport(UI_MAP_EDITOR_LEFT_IMAGE_WIDTH,UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT,SCREEN_WIDTH - UI_MAP_EDITOR_LEFT_IMAGE_WIDTH - UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH, SCREEN_HEIGHT - UI_MAP_EDITOR_TOP_IMAGE_HEIGHT - UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT);
   glGetIntegerv(GL_VIEWPORT,viewport);
   gluPickMatrix(mouseX,viewport[3]+UI_MAP_EDITOR_TOP_IMAGE_HEIGHT+UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT-mouseY,5,5,viewport);
   gluPerspective(45.0f,screenRatio,minZoom,maxZoom+1.0);
