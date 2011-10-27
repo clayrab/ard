@@ -1189,15 +1189,11 @@ void doTranslate(){
       }
   }
   //When zooming, this will adjust translateX/Y so that not too much off-map area is shown. Also, when scrolling, this will stop the user from scrolling into off-map areas.
-  int foo = 0;
   if(translateX - mapRightOffset < convertedTopRightX && translateX - (2.0*SIN60) > convertedBottomLeftX){
     translateX = (convertedTopRightX + mapRightOffset + convertedBottomLeftX + (2.0*SIN60))/2.0;
-    foo = 1;
   }else if(translateX - mapRightOffset < convertedTopRightX){
-    foo = 2;
     translateX = convertedTopRightX + mapRightOffset;
   }else if(translateX - (2.0*SIN60) > convertedBottomLeftX){
-    foo = 3;
     translateX = convertedBottomLeftX + (2.0*SIN60);
   }
   if(convertedTopRightY - translateY > mapTopOffset && translateY > convertedBottomLeftY+2.0){

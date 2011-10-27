@@ -29,7 +29,7 @@ class unitType:
 		self.attackPowerBonus = attackPowerBonus
 		self.researchCost = researchCost
 		self.researchTime = researchTime
-		if(self.name == "archer"):
+		if(self.name == "_archer"):
 			print self.name
 			print "attackpower:"+str(self.attackPower)
 			print "armor:"+str(self.armor)
@@ -173,6 +173,7 @@ class playModeNode(node):
 		self.aStarHeuristicCost = 0.0
 		self.aStarParent = None
 	def onLeftClickDown(self):
+		print str(self.xPos) + " " + str(self.yPos)
 		if(gameState.getPlayers()[gameState.getGameMode().nextUnit.player-1].isOwnPlayer and playModeNode.moveMode):
 			gameState.getGameMode().nextUnit.movePath = gameState.getGameMode().nextUnit.node.movePath
 			gameState.getGameMode().nextUnit.move()
@@ -388,22 +389,22 @@ class map:
 							if(xPos > 0):#add neighbor to the left
 								newNode.neighbors.append(newRow[len(newRow)-1])
 								newRow[len(newRow)-1].neighbors.append(newNode)
-							if(yPos > 0):#add neighbors above
-								if(not (xPos == 0 and (self.polarity+yPos)%2 == 0)):#has top left neighbor
+							if(yPos > 0):#add neighbors below
+								if(not (xPos == 0 and (self.polarity+yPos)%2 == 0)):#has bottom left neighbor
 									if((self.polarity+yPos)%2 == 0):
+										newNode.neighbors.append(self.nodes[yPos-1][xPos])
+										self.nodes[yPos-1][xPos].neighbors.append(newNode)
+									else:
 										newNode.neighbors.append(self.nodes[yPos-1][xPos-1])
 										self.nodes[yPos-1][xPos-1].neighbors.append(newNode)
-									else:
-										newNode.neighbors.append(self.nodes[yPos-1][xPos])
-										self.nodes[yPos-1][xPos].neighbors.append(newNode)
 								
-								if(not (xPos == len(self.nodes[0])-1 and (self.polarity+yPos)%2 == 1)):#has top right neighbor
+								if(not (xPos == len(self.nodes[0])-1 and (self.polarity+yPos)%2 == 0)):#has bottom right neighbor
 									if((self.polarity+yPos)%2 == 0):
-										newNode.neighbors.append(self.nodes[yPos-1][xPos])
-										self.nodes[yPos-1][xPos].neighbors.append(newNode)
-									else:
 										newNode.neighbors.append(self.nodes[yPos-1][xPos+1])
 										self.nodes[yPos-1][xPos+1].neighbors.append(newNode)
+									else:
+										newNode.neighbors.append(self.nodes[yPos-1][xPos])
+										self.nodes[yPos-1][xPos].neighbors.append(newNode)
 							newRow.append(newNode)
 					self.nodes.append(newRow)
 		                elif(line.startswith("*")):#city
