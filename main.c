@@ -242,7 +242,6 @@ float scrollSpeed = 0.10;
 
 GLdouble convertedBottomLeftX,convertedBottomLeftY,convertedBottomLeftZ;
 GLdouble convertedTopRightX,convertedTopRightY,convertedTopRightZ;
-float newTranslateX,newTranslateY;
 
 PyObject * gameModule;
 PyObject * gameState;
@@ -281,7 +280,7 @@ GLuint cursorPointerTexture;
 GLuint cursorHandTexture;
 */
 GLdouble mouseMapPosX, mouseMapPosY, mouseMapPosZ;
-GLdouble mouseMapPosXPrevious, mouseMapPosYPrevious;
+GLdouble mouseMapPosXPrevious, mouseMapPosYPrevious, mouseMapPosZPrevious = -initZoom;
 
 int mouseX = 0;
 int mouseY = 0;
@@ -465,10 +464,6 @@ void convertWindowCoordsToViewportCoords(int x, int y, GLdouble* posX, GLdouble*
   glGetIntegerv(GL_VIEWPORT,viewport);//returns four values: the x and y window coordinates of the viewport, followed by its width and height.
   winX = (float)x;
   winY = (float)viewport[3] - (float)y;
-  printf("viewport height: %f\n",(float)viewport[3]);
-  printf("y: %d\n",y);
-  printf("winY: %f\n",winY);
-  //winY = (float)y;
   PyObject * pyTranslateZ = PyObject_GetAttrString(theMap,"translateZ");
   double transZ = PyFloat_AsDouble(pyTranslateZ);
   //Py_DECREF(pyTranslateZ);//TODO: This causes a SegFault????
@@ -1179,7 +1174,7 @@ void doTranslate(){
   convertWindowCoordsToViewportCoords(SCREEN_WIDTH-UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH,0.0,&convertedTopRightX,&convertedTopRightY,&convertedTopRightZ);
   float mapRightOffset = translateTilesXToPositionX(mapWidth+1,0,0);
   float mapTopOffset = translateTilesYToPositionY(mapHeight);
-  /*  printf("screen topright %f,%f\n",convertedTopRightX,convertedTopRightY);
+  /*printf("screen topright %f,%f\n",convertedTopRightX,convertedTopRightY);
   printf("screen bottomleft %f,%f\n",convertedBottomLeftX,convertedBottomLeftY);
   printf("translate %f,%f\n",translateX,translateY);
   printf("%f\n",translateTilesYToPositionY(mapHeight));//setting translateY to this number will focus on it
@@ -1203,11 +1198,15 @@ void doTranslate(){
       }
   }
   //When zooming, this will adjust translateX/Y so that not too much off-map area is shown. Also, when scrolling, this will stop the user from scrolling into off-map areas.
-  if(translateX - mapRightOffset < convertedTopRightX && translateX + (2.0*SIN60) > convertedBottomLeftX){
+  int foo = 0;
+  if(translateX - mapRightOffset < convertedTopRightX && translateX - (2.0*SIN60) > convertedBottomLeftX){
     translateX = (convertedTopRightX + mapRightOffset + convertedBottomLeftX + (2.0*SIN60))/2.0;
+    foo = 1;
   }else if(translateX - mapRightOffset < convertedTopRightX){
+    foo = 2;
     translateX = convertedTopRightX + mapRightOffset;
   }else if(translateX - (2.0*SIN60) > convertedBottomLeftX){
+    foo = 3;
     translateX = convertedBottomLeftX + (2.0*SIN60);
   }
   if(convertedTopRightY - translateY > mapTopOffset && translateY > convertedBottomLeftY+2.0){
@@ -1216,6 +1215,10 @@ void doTranslate(){
     translateY = convertedTopRightY - mapTopOffset;
   }else if(translateY > convertedBottomLeftY+2.0){
     translateY = convertedBottomLeftY+2.0;
+  }
+  if(mouseMapPosZ != mouseMapPosZPrevious){
+    mouseMapPosZ = mouseMapPosZPrevious + ((mouseMapPosZ-mouseMapPosZPrevious)/30.0);
+    mouseMapPosZPrevious = mouseMapPosZ;
   }
   glTranslatef(translateX,translateY,mouseMapPosZ);
   //    Py_DECREF(pyMapWidth);//TODO: SEG FAULT????
@@ -1236,7 +1239,6 @@ static void draw(){
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
   doTranslate();
-  //glTranslatef(mouseMapPosX,mouseMapPosY,translateZ);//for some reason we need mouseMapPosZ instead of translateZ
 
   GLint viewport[4];
   glSelectBuffer(BUFSIZE,selectBuf);
