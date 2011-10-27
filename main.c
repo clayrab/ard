@@ -22,7 +22,7 @@
 #define minZoom 10.0
 #define initZoom 30.0
 
-#define zoomSpeed 0.3
+#define zoomSpeed 30.0
 
 #define SCREEN_WIDTH 1280
 #define SCREEN_HEIGHT 800
@@ -1077,15 +1077,6 @@ static void handleInput(){
       }else if(event.button.button == SDL_BUTTON_WHEELDOWN){
 	PyObject_CallMethod(gameMode,"handleScrollDown","(ii)",selectedName,deltaTicks);//New reference
       }
-      /*      if(event.button.button == SDL_BUTTON_WHEELUP){
-	translateZ = translateZ + zoomSpeed*deltaTicks;
-      }else if(event.button.button == SDL_BUTTON_WHEELDOWN){
-	translateZ = translateZ - zoomSpeed*deltaTicks;
-      }
-      if(translateZ > -10.0-minZoom){
-	translateZ = -10.0-minZoom;
-	}*/
-
 
       if(event.button.button == SDL_BUTTON_MIDDLE){
 	//	clickScroll = 1;
@@ -1217,7 +1208,8 @@ void doTranslate(){
     translateY = convertedBottomLeftY+2.0;
   }
   if(mouseMapPosZ != mouseMapPosZPrevious){
-    mouseMapPosZ = mouseMapPosZPrevious + ((mouseMapPosZ-mouseMapPosZPrevious)/30.0);
+    mouseMapPosZ = mouseMapPosZPrevious + ((mouseMapPosZ-mouseMapPosZPrevious)/zoomSpeed);
+    //    printf("%f %f\n",mouseMapPosZ,mouseMapPosZPrevious);
     mouseMapPosZPrevious = mouseMapPosZ;
   }
   glTranslatef(translateX,translateY,mouseMapPosZ);
