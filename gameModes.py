@@ -147,15 +147,15 @@ class tiledGameMode(gameMode):
 			self.elementsDict[name].onScrollUp()
 		else:
 			self.map.translateZ = self.map.translateZ + zoomSpeed*deltaTicks;
-			if(self.map.translateZ > (-10.0-cDefines.defines['minZoom'])):
-				self.map.translateZ = -10.0-cDefines.defines['minZoom']
+			if(self.map.translateZ > (0.0-cDefines.defines['minZoom'])):
+				self.map.translateZ = 0.0-cDefines.defines['minZoom']
 	def handleScrollDown(self,name,deltaTicks):
 		if(name in self.elementsDict and hasattr(self.elementsDict[name],"onScrollDown")):
 			self.elementsDict[name].onScrollDown()
 		else:
 			self.map.translateZ = self.map.translateZ - zoomSpeed*deltaTicks;
-			if(self.map.translateZ < (10.0-cDefines.defines['maxZoom'])):
-				self.map.translateZ = 10.0-cDefines.defines['maxZoom']
+			if(self.map.translateZ < (0.0-cDefines.defines['maxZoom'])):
+				self.map.translateZ = 0.0-cDefines.defines['maxZoom']
 	def handleMouseOver(self,name,isLeftMouseDown):
 		#TODO: keeping track of mousedOverObject might not be necessary any more since I added previousMousedoverName to the C code
 		if(isLeftMouseDown > 0):#allows onLeftClickDown to be called for tiles when the mouse is dragged over them
