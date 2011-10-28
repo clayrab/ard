@@ -6,16 +6,14 @@
 #run your own commands early. when server sends your own command back, skip it.
 #if you receive a chooseNextUnit command before your own, undo yours, run chooseNextUnit and then redo yours
 
-
-#make zoomspeed and focusspeed non-framerate dependant
-#show move speed and attack speed?
 #attack cursor.
 #cancel movepath
 #save and resume games
 #fog of war
+#make zoomspeed and focusspeed non-framerate dependant
+#show move speed and attack speed?
 #move gameplay viewport back to entire window. make UI less intrusive, small elements at the corners, encircle map with mountains
-#some C optimization... make lists, reduce mallocs in draw loop, etc
-#close unit files
+#some C optimization inside drawTile() and maybe draw()... make lists, reduce mallocs in draw loop, etc
 #gathering
 #gatherer auto pathing
 #add second resource

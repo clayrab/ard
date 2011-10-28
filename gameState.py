@@ -14,6 +14,7 @@ for fileName in dirList:
 		unitFile = open("units/"+fileName)
 		obj = json.load(unitFile)
 		unitTypesList.append(gameLogic.unitType(fileName.replace("_"," ").strip(),cDefines.defines[obj['textureName']+"_INDEX"],obj['movementSpeed'],obj['attackSpeed'],obj['attackPower'],obj['armor'],obj['range'],obj['health'],bool(obj['canFly']),bool(obj['canSwim']),obj['cost'],obj['buildTime'],obj['movementSpeedBonus'],obj['armorBonus'],obj['attackPowerBonus'],obj['researchCost'],obj['researchTime']))
+		unitFile.close()
 
 theUnitTypes = {}
 for unitType in unitTypesList:

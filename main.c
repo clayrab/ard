@@ -456,7 +456,7 @@ void processTheHits(GLint hitsCount, GLuint buffer[]){
 
 //float glMouseCoords[3];
 //void convertWindowCoordsToViewportCoords(int x, int y){
-void convertWindowCoordsToViewportCoords(int x, int y, GLdouble* posX, GLdouble* posY, GLdouble* posZ){
+void convertWindowCoordsToViewportCoords(int x, int y, float z, GLdouble* posX, GLdouble* posY, GLdouble* posZ){
   //TODO: THIS SEEMS OFF BECAUSE OF THE EXTRA SPACE TAKEN BY THE UI ON THE SIDES
   GLint viewport[4];
   GLdouble modelview[16];
@@ -467,10 +467,7 @@ void convertWindowCoordsToViewportCoords(int x, int y, GLdouble* posX, GLdouble*
   glGetIntegerv(GL_VIEWPORT,viewport);//returns four values: the x and y window coordinates of the viewport, followed by its width and height.
   winX = (float)x;
   winY = (float)viewport[3] - (float)y;
-  PyObject * pyTranslateZ = PyObject_GetAttrString(theMap,"translateZ");
-  double transZ = PyFloat_AsDouble(pyTranslateZ);
-  //Py_DECREF(pyTranslateZ);//TODO: This causes a SegFault????
-  winZ = (float)((minZoom-transZ)/maxZoom);
+  winZ = (float)((minZoom-z)/maxZoom);
   gluUnProject( winX, winY, winZ, modelview, projection, viewport, posX, posY, posZ);
 }
 /**************************** /mouse hover object selection ********************************/
@@ -1163,9 +1160,11 @@ void doTranslate(){
   pyMapHeight = PyObject_CallMethod(theMap,"getHeight",NULL);//New reference
   mapWidth = PyLong_AsLong(pyMapWidth);
   mapHeight = PyLong_AsLong(pyMapHeight);
-  convertWindowCoordsToViewportCoords(mouseX,mouseY-UI_MAP_EDITOR_TOP_IMAGE_HEIGHT,&mouseMapPosX,&mouseMapPosY,&mouseMapPosZ);
-  convertWindowCoordsToViewportCoords(UI_MAP_EDITOR_LEFT_IMAGE_WIDTH,SCREEN_HEIGHT-UI_MAP_EDITOR_TOP_IMAGE_HEIGHT-UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT,&convertedBottomLeftX,&convertedBottomLeftY,&convertedBottomLeftZ);
-  convertWindowCoordsToViewportCoords(SCREEN_WIDTH-UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH,0.0,&convertedTopRightX,&convertedTopRightY,&convertedTopRightZ);
+  PyObject * pyTranslateZ = PyObject_GetAttrString(theMap,"translateZ");
+  double transZ = PyFloat_AsDouble(pyTranslateZ);
+  convertWindowCoordsToViewportCoords(UI_MAP_EDITOR_LEFT_IMAGE_WIDTH,SCREEN_HEIGHT-UI_MAP_EDITOR_TOP_IMAGE_HEIGHT-UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT,mouseMapPosZ,&convertedBottomLeftX,&convertedBottomLeftY,&convertedBottomLeftZ);
+  convertWindowCoordsToViewportCoords(SCREEN_WIDTH-UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH,0.0,mouseMapPosZ,&convertedTopRightX,&convertedTopRightY,&convertedTopRightZ);
+  convertWindowCoordsToViewportCoords(mouseX,mouseY-UI_MAP_EDITOR_TOP_IMAGE_HEIGHT,transZ,&mouseMapPosX,&mouseMapPosY,&mouseMapPosZ);
   float mapRightOffset = translateTilesXToPositionX(mapWidth+1,0,0);
   float mapTopOffset = translateTilesYToPositionY(mapHeight);
   //printf("screen topright %f,%f\n",convertedTopRightX,convertedTopRightY);
@@ -1222,13 +1221,18 @@ void doTranslate(){
   }
   if(translateY < convertedTopRightY - mapTopOffset && translateY > convertedBottomLeftY+2.0){
     translateY = (convertedTopRightY-mapTopOffset+convertedBottomLeftY+2.0)/2.0;
-  }else{
-  if(translateY < convertedTopRightY - mapTopOffset){
+  }else if(translateY < convertedTopRightY - mapTopOffset){
     translateY = convertedTopRightY-mapTopOffset;
-  }
-  if(translateY > convertedBottomLeftY+2.0){
+    if(translateY > convertedBottomLeftY+2.0){
+      //prevents shaking issue that occurs when the map is slightly larger than viewable area
+      translateY = (convertedTopRightY-mapTopOffset+convertedBottomLeftY+2.0)/2.0;
+    }
+  }else if(translateY > convertedBottomLeftY+2.0){
     translateY = convertedBottomLeftY+2.0;
-  }
+    if(translateY < convertedTopRightY - mapTopOffset){
+      //prevents shaking issue that occurs when the map is slightly larger than viewable area
+      translateY = (convertedTopRightY-mapTopOffset+convertedBottomLeftY+2.0)/2.0;
+    }
   }
   glTranslatef(translateX,translateY,mouseMapPosZ);
   //    Py_DECREF(pyMapWidth);//TODO: SEG FAULT????
