@@ -1210,14 +1210,15 @@ void doTranslate(){
   }else if(translateX - mapRightOffset < convertedTopRightX){
     translateX = convertedTopRightX + mapRightOffset;
     if(translateX - (2.0*SIN60) > convertedBottomLeftX){
+      //prevents shaking issue that occurs when the map is slightly larger than viewable area
       translateX = (convertedTopRightX + mapRightOffset + convertedBottomLeftX + (2.0*SIN60))/2.0;
     }
   }else if(translateX - (2.0*SIN60) > convertedBottomLeftX){
     translateX = convertedBottomLeftX + (2.0*SIN60);
     if(translateX - mapRightOffset < convertedTopRightX){
+      //prevents shaking issue that occurs when the map is slightly larger than viewable area
       translateX = (convertedTopRightX + mapRightOffset + convertedBottomLeftX + (2.0*SIN60))/2.0;
     }
-    
   }
   if(translateY < convertedTopRightY - mapTopOffset && translateY > convertedBottomLeftY+2.0){
     translateY = (convertedTopRightY-mapTopOffset+convertedBottomLeftY+2.0)/2.0;
