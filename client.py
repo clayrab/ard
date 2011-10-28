@@ -138,7 +138,7 @@ class Client:
                 else:
                     doCommand(tokens[0])
     def sendCommand(self,command):
-        
+        print command
 
 
         self.socket.send(command)

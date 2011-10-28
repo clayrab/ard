@@ -1,8 +1,8 @@
 #how to sync while making ui responsive:
+#send the originating player as the first arg to each command.
 #have a command queue
 #have server issue chooseNextUnit commands
 #have any command which we want to fix have an 'undo' command.
-#send the originating player as the first arg to each command.
 #run your own commands early. when server sends your own command back, skip it.
 #if you receive a chooseNextUnit command before your own, undo yours, run chooseNextUnit and then redo yours
 
@@ -62,7 +62,7 @@ def printTraceBack(excType,excValue,tb=None):
 	if(tb!=None):
 		traceback.print_tb(tb)
 
-zoomSpeed = 0.3
+zoomSpeed = 0.2
 class gameMode:
 	sortedElements = []
 	def __init__(self):
@@ -157,6 +157,7 @@ class tiledGameMode(gameMode):
 			if(self.map.translateZ < (0.0-cDefines.defines['maxZoom'])):
 				self.map.translateZ = 0.0-cDefines.defines['maxZoom']
 	def handleMouseOver(self,name,isLeftMouseDown):
+#		print name
 		#TODO: keeping track of mousedOverObject might not be necessary any more since I added previousMousedoverName to the C code
 		if(isLeftMouseDown > 0):#allows onLeftClickDown to be called for tiles when the mouse is dragged over them
 			if(hasattr(gameState.getGameMode(),"selectedButton")):
