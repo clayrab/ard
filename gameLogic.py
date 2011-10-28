@@ -173,7 +173,6 @@ class playModeNode(node):
 		self.aStarHeuristicCost = 0.0
 		self.aStarParent = None
 	def onLeftClickDown(self):
-		print str(self.xPos) + " " + str(self.yPos)
 		if(gameState.getPlayers()[gameState.getGameMode().nextUnit.player-1].isOwnPlayer and playModeNode.moveMode):
 			gameState.getGameMode().nextUnit.movePath = gameState.getGameMode().nextUnit.node.movePath
 			gameState.getGameMode().nextUnit.move()
@@ -189,7 +188,8 @@ class playModeNode(node):
 		else:
 			self.cursorIndex = cDefines.defines['CURSOR_MOVE_INDEX']
 			playModeNode.moveMode = True
-			self.aStarSearch()
+			if(len(self.neighbors) > 0):
+				self.aStarSearch()
 	def aStarSearch(self):
 		#start at end point so we can just track back and insert into an array in order
 		self.findAStarHeuristicCost(gameState.getGameMode().nextUnit.node)
@@ -390,14 +390,13 @@ class map:
 								newNode.neighbors.append(newRow[len(newRow)-1])
 								newRow[len(newRow)-1].neighbors.append(newNode)
 							if(yPos > 0):#add neighbors below
-								if(not (xPos == 0 and (self.polarity+yPos)%2 == 0)):#has bottom left neighbor
+								if(not (xPos == 0 and (self.polarity+yPos)%2 == 1)):#has bottom left neighbor
 									if((self.polarity+yPos)%2 == 0):
 										newNode.neighbors.append(self.nodes[yPos-1][xPos])
 										self.nodes[yPos-1][xPos].neighbors.append(newNode)
 									else:
 										newNode.neighbors.append(self.nodes[yPos-1][xPos-1])
 										self.nodes[yPos-1][xPos-1].neighbors.append(newNode)
-								
 								if(not (xPos == len(self.nodes[0])-1 and (self.polarity+yPos)%2 == 0)):#has bottom right neighbor
 									if((self.polarity+yPos)%2 == 0):
 										newNode.neighbors.append(self.nodes[yPos-1][xPos+1])
@@ -423,6 +422,18 @@ class map:
 					self.nodes[int(coords[1])][int(coords[0])].city = city(cityName,self.nodes[int(coords[1])][int(coords[0])],unitTypes,costOfOwnership)
 			count = count + 1
 		mapFile.close()
+#		fauxRowTop = []
+#		fauxRowBottom = []
+#		fauxXPos = -1
+#		for node in self.nodes[0]:
+#			fauxXPos = fauxXPos + 1
+#			fauxRowTop.append(self.nodeType(fauxXPos,-1,cDefines.defines['MOUNTAIN_TILE_INDEX'],0,None))
+#			fauxRowBottom.append(self.nodeType(fauxXPos,-1,cDefines.defines['MOUNTAIN_TILE_INDEX'],0,None))
+#		self.nodes.append(fauxRowTop)
+#		self.polarity = 1 if self.polarity == 0 else 0
+#		self.nodes.insert(0,fauxRowBottom)
+
+
 	def save(self):
 		mapFile = open('maps/' + gameState.getMapName() + ".map",'w')
 		yPos = 0

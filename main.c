@@ -22,7 +22,8 @@
 #define minZoom 10.0
 #define initZoom 30.0
 
-#define zoomSpeed 30.0
+#define zoomSpeed 30.0//lower is faster
+#define focusSpeed 15.0//lower is faster
 
 #define SCREEN_WIDTH 1280
 #define SCREEN_HEIGHT 800
@@ -224,10 +225,10 @@
 float screenRatio;
 static SDL_Surface *gScreen;
 
-
-int foo = 0;
 int clickScroll = 0;
 long focusNextUnit = 0;
+float focusXPos, focusYPos;
+int isFocusing = 0;
 int leftButtonDown = 0;
 
 int done = 0;    
@@ -238,6 +239,8 @@ int deltaTicks = 0;
 
 float translateX = 0.0;
 float translateY = 0.0;
+float translateXPrev = 0.0;
+float translateYPrev = 0.0;
 float scrollSpeed = 0.10;
 
 GLdouble convertedBottomLeftX,convertedBottomLeftY,convertedBottomLeftZ;
@@ -503,12 +506,9 @@ void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long 
     glColor3f(0.5f, 0.5f, 0.5f);    
   }
   if(isNextUnit == 1){
-    glColor3f(0.7f, 0.7f, 0.7f);    
-    if(focusNextUnit){
-      translateX = -xPosition;
-      translateY = -yPosition;
-      focusNextUnit = 0;
-    }
+    glColor3f(0.7f, 0.7f, 0.7f);
+    focusXPos = xPosition;
+    focusYPos = yPosition;
   }
   if(isSelected == 1 && isNextUnit == 1){
     glColor3f(0.3f, 0.3f, 0.3f);    
@@ -1046,6 +1046,9 @@ static void handleInput(){
     PyObject * pyFocusNextUnit;
     pyFocusNextUnit = PyObject_CallMethod(gameMode,"getFocusNextUnit",NULL);
     focusNextUnit = PyLong_AsLong(pyFocusNextUnit);
+    if(focusNextUnit){
+      isFocusing = 1;
+    }
   }
   //SDL_Delay(20);//for framerate testing...
   while(SDL_PollEvent(&event)){
@@ -1188,6 +1191,17 @@ void doTranslate(){
 	translateY += scrollSpeed*deltaTicks;
       }
   }
+  if(isFocusing){
+    if(!focusNextUnit && translateXPrev == translateX && translateYPrev == translateY){//this indicates the auto-scrolling code is not allowing us to move any more
+      isFocusing = 0;
+    }
+    translateXPrev = translateX;
+    translateYPrev = translateY;
+    translateX = translateX-((translateX+focusXPos)/focusSpeed);
+    translateY = translateY-((translateY+focusYPos)/focusSpeed);
+  }
+
+
   //When zooming, this will adjust translateX/Y so that not too much off-map area is shown. Also, when scrolling, this will stop the user from scrolling into off-map areas.
   if(translateX - mapRightOffset < convertedTopRightX && translateX - (2.0*SIN60) > convertedBottomLeftX){
     translateX = (convertedTopRightX + mapRightOffset + convertedBottomLeftX + (2.0*SIN60))/2.0;

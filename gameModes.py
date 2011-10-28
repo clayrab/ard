@@ -1,12 +1,3 @@
-#encircle map with mountains
-#show move speed and attack speed?
-#attack cursor.
-#cancel movepath
-#save and resume games
-#fog of war
-#move gameplay viewport back to entire window. make UI less intrusive, small elements at the corners
-#some C optimization... make lists, reduce mallocs in draw loop, etc
-
 #how to sync while making ui responsive:
 #have a command queue
 #have server issue chooseNextUnit commands
@@ -14,18 +5,23 @@
 #send the originating player as the first arg to each command.
 #run your own commands early. when server sends your own command back, skip it.
 #if you receive a chooseNextUnit command before your own, undo yours, run chooseNextUnit and then redo yours
-#moving mouse too fast doens't scroll properly?
 
+
+#make zoomspeed and focusspeed non-framerate dependant
+#show move speed and attack speed?
+#attack cursor.
+#cancel movepath
+#save and resume games
+#fog of war
+#move gameplay viewport back to entire window. make UI less intrusive, small elements at the corners, encircle map with mountains
+#some C optimization... make lists, reduce mallocs in draw loop, etc
+#close unit files
 #gathering
 #gatherer auto pathing
-
 #add second resource
 #add second resource to units/cities/city editor
-
 #icons for each unit
-
 #make sure text edit boxes only allow chars and not shift/enter
-
 #move research unit type view over top of the actionViewer
 
 #server:

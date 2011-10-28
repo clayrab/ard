@@ -85,15 +85,6 @@ class Commands:
             gameState.getGameMode().chooseNextUnit()
         elif(uiElements.unitViewer.unit == node.unit):
             unitViewer.reset()
-    @staticmethod
-    def skip(args):
-        print 'skip'
-        tokens = args.split(" ")
-        
-
-
-
-
 
 def doCommand(commandName,args=None):
     commandFunc = getattr(Commands,commandName)
@@ -147,6 +138,9 @@ class Client:
                 else:
                     doCommand(tokens[0])
     def sendCommand(self,command):
+        
+
+
         self.socket.send(command)
 def startClient(hostIP):
     gameState.setClient(Client(hostIP))
