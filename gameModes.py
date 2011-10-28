@@ -253,6 +253,13 @@ class playMode(tiledGameMode):
 					if(node.city != None):
 						node.city.player = node.playerStartValue
 	def handleKeyDown(self,keycode):
+		if(keycode == "t"):
+			self.map.translateZ = -35.1
+			print keycode
+		if(keycode == "r"):
+			self.map.translateZ = -33.3
+			print keycode
+			
 		if(keycode == "left shift" or keycode == "right shift"):
 			self.shiftDown = True
 		if(keycode == "space"):

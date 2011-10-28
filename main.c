@@ -1168,12 +1168,12 @@ void doTranslate(){
   convertWindowCoordsToViewportCoords(SCREEN_WIDTH-UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH,0.0,&convertedTopRightX,&convertedTopRightY,&convertedTopRightZ);
   float mapRightOffset = translateTilesXToPositionX(mapWidth+1,0,0);
   float mapTopOffset = translateTilesYToPositionY(mapHeight);
-  /*printf("screen topright %f,%f\n",convertedTopRightX,convertedTopRightY);
-  printf("screen bottomleft %f,%f\n",convertedBottomLeftX,convertedBottomLeftY);
-  printf("translate %f,%f\n",translateX,translateY);
-  printf("%f\n",translateTilesYToPositionY(mapHeight));//setting translateY to this number will focus on it
-  printf("mouse %d:%f\t%d:%f\n",mouseX,mouseMapPosX,mouseY,mouseMapPosY);
-  */
+  //printf("screen topright %f,%f\n",convertedTopRightX,convertedTopRightY);
+  //printf("screen bottomleft %f,%f\n",convertedBottomLeftX,convertedBottomLeftY);
+  //printf("translate %f,%f\n",translateX,translateY);
+  //printf("%f\n",translateTilesYToPositionY(mapHeight));//setting translateY to this number will focus on it
+  //printf("mouse %d:%f\t%d:%f\n",mouseX,mouseMapPosX,mouseY,mouseMapPosY);
+  
   if(clickScroll > 0){
     translateX = translateX + mouseMapPosX - mouseMapPosXPrevious;
     translateY = translateY + mouseMapPosY - mouseMapPosYPrevious;
@@ -1200,27 +1200,34 @@ void doTranslate(){
     translateX = translateX-((translateX+focusXPos)/focusSpeed);
     translateY = translateY-((translateY+focusYPos)/focusSpeed);
   }
-
-
-  //When zooming, this will adjust translateX/Y so that not too much off-map area is shown. Also, when scrolling, this will stop the user from scrolling into off-map areas.
+  if(mouseMapPosZ != mouseMapPosZPrevious){
+    mouseMapPosZ = mouseMapPosZPrevious + ((mouseMapPosZ-mouseMapPosZPrevious)/zoomSpeed);
+    mouseMapPosZPrevious = mouseMapPosZ;
+  }
+  //The following code will adjust translateX/Y so that no off-map area is shown
   if(translateX - mapRightOffset < convertedTopRightX && translateX - (2.0*SIN60) > convertedBottomLeftX){
     translateX = (convertedTopRightX + mapRightOffset + convertedBottomLeftX + (2.0*SIN60))/2.0;
   }else if(translateX - mapRightOffset < convertedTopRightX){
     translateX = convertedTopRightX + mapRightOffset;
+    if(translateX - (2.0*SIN60) > convertedBottomLeftX){
+      translateX = (convertedTopRightX + mapRightOffset + convertedBottomLeftX + (2.0*SIN60))/2.0;
+    }
   }else if(translateX - (2.0*SIN60) > convertedBottomLeftX){
     translateX = convertedBottomLeftX + (2.0*SIN60);
+    if(translateX - mapRightOffset < convertedTopRightX){
+      translateX = (convertedTopRightX + mapRightOffset + convertedBottomLeftX + (2.0*SIN60))/2.0;
+    }
+    
   }
-  if(convertedTopRightY - translateY > mapTopOffset && translateY > convertedBottomLeftY+2.0){
-    translateY = (convertedTopRightY - mapTopOffset+convertedBottomLeftY+2.0)/2.0;
-  }else if(convertedTopRightY - translateY > mapTopOffset){
-    translateY = convertedTopRightY - mapTopOffset;
-  }else if(translateY > convertedBottomLeftY+2.0){
+  if(translateY < convertedTopRightY - mapTopOffset && translateY > convertedBottomLeftY+2.0){
+    translateY = (convertedTopRightY-mapTopOffset+convertedBottomLeftY+2.0)/2.0;
+  }else{
+  if(translateY < convertedTopRightY - mapTopOffset){
+    translateY = convertedTopRightY-mapTopOffset;
+  }
+  if(translateY > convertedBottomLeftY+2.0){
     translateY = convertedBottomLeftY+2.0;
   }
-  if(mouseMapPosZ != mouseMapPosZPrevious){
-    mouseMapPosZ = mouseMapPosZPrevious + ((mouseMapPosZ-mouseMapPosZPrevious)/zoomSpeed);
-    //    printf("%f %f\n",mouseMapPosZ,mouseMapPosZPrevious);
-    mouseMapPosZPrevious = mouseMapPosZ;
   }
   glTranslatef(translateX,translateY,mouseMapPosZ);
   //    Py_DECREF(pyMapWidth);//TODO: SEG FAULT????
