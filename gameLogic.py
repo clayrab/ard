@@ -65,7 +65,9 @@ class unit:
 		if(self.movePath[0].unit != None and self.movePath[0].unit.player == self.player):#ran into own unit, let the player decide what to do...
 			self.movePath = []
 		else:
-			gameState.getClient().sendCommand("moveTo " + str(self.movePath[0].xPos) + " " + str(self.movePath[0].yPos) + "|")
+			gameState.getClient().sendCommand("moveTo",str(self.movePath[0].xPos) + " " + str(self.movePath[0].yPos))
+			gameState.getClient().sendCommand("chooseNextUnit")
+
 			self.movePath = self.movePath[1:]
 	def moveTo(self,node):
 		if(node.unit != None and self.node != node):
@@ -104,12 +106,20 @@ class city:
 		self.researchLevel = 0
 		self.researchProgress = 0
 		self.unitBeingBuilt = None
+		self.cancelledUnits = []
 		self.unitBuildQueue = []
 		self.player = 0
 	def queueUnit(self,unit):
 		self.unitBuildQueue.append(unit)
 		if(self.unitBeingBuilt == None):
 			self.buildNextUnit()
+	def unqueueUnit(self):
+		print self.unitBuildQueue
+		if(len(self.unitBuildQueue) > 0):
+			self.unitBuildQueue = self.unitBuildQueue[:-1:]
+		else:
+			self.unitBeingBuilt = None
+		print self.unitBuildQueue		
 	def buildNextUnit(self):
 		if(len(self.unitBuildQueue) > 0):
 			self.unitBeingBuilt = self.unitBuildQueue[0]
@@ -173,6 +183,8 @@ class playModeNode(node):
 		self.aStarHeuristicCost = 0.0
 		self.aStarParent = None
 	def onLeftClickDown(self):
+		print "player " + str(gameState.getGameMode().nextUnit.player)
+		print gameState.getPlayers()
 		if(gameState.getPlayers()[gameState.getGameMode().nextUnit.player-1].isOwnPlayer and playModeNode.moveMode):
 			gameState.getGameMode().nextUnit.movePath = gameState.getGameMode().nextUnit.node.movePath
 			gameState.getGameMode().nextUnit.move()
@@ -292,7 +304,6 @@ class playModeNode(node):
 						if(neighbor.aStarKnownCost > node.aStarKnownCost + (cDefines.defines['GRASS_MOVE_COST']/(1.0+float(neighbor.roadValue)))):
 							   neighbor.aStarKnownCost = node.aStarKnownCost + (cDefines.defines['GRASS_MOVE_COST']/(1.0+float(neighbor.roadValue)))
 		count = count + 1
-#		print "count:"+str(count)
 		playModeNode.aStarSearchRecurse(target,count)
 	def onMouseOver(self):
 		if(gameState.getGameMode().nextUnit.node.neighbors.count(self) > 0):

@@ -15,7 +15,7 @@ class NetworkPlayer:
         self.playerNumber = NetworkPlayer.nextPlayerNumber
         NetworkPlayer.nextPlayerNumber = NetworkPlayer.nextPlayerNumber + 1
     def dispatchCommand(self,command):
-        self.requestHandler.wfile.write(command)
+        self.requestHandler.wfile.write(command + "|")
             
 class RequestHandler(SocketServer.StreamRequestHandler):
     def handle(self):
@@ -31,15 +31,15 @@ class RequestHandler(SocketServer.StreamRequestHandler):
             if(server.acceptingConnections):
                 SocketServer.StreamRequestHandler.setup(self)
                 self.player = gameState.addNetworkPlayer(self)
-                self.player.dispatchCommand("setPlayerNumber " + str(self.player.playerNumber) + "|")
+                self.player.dispatchCommand("setPlayerNumber -1 " + str(self.player.playerNumber))
                 if(gameState.getMapName() != None):
-                    self.player.dispatchCommand("setMap " + gameState.getMapName() + "|")
+                    self.player.dispatchCommand("setMap -1 " + gameState.getMapName())
                 seed = time.time() * 256
                 for player in gameState.getNetworkPlayers():
-                    player.dispatchCommand("seedRNG " + str(seed) + "|")
-                    self.player.dispatchCommand("addPlayer " + str(player.playerNumber) + "|")
+                    player.dispatchCommand("seedRNG -1 " + str(seed))
+                    self.player.dispatchCommand("addPlayer -1 " + str(player.playerNumber))
                     if(player.playerNumber != self.player.playerNumber):
-                        player.dispatchCommand("addPlayer " + str(self.player.playerNumber) + "|")
+                        player.dispatchCommand("addPlayer -1 " + str(self.player.playerNumber))
                 print str(self.client_address) + " connected."
             else:
             #TODO: send command to client indicating game has started or host is no longer accepting connections...
@@ -57,9 +57,9 @@ class Server(SocketServer.ThreadingMixIn,SocketServer.TCPServer):
 
 def setMap(mapName):
     with server.acceptingConnectionsLock:    
-        gameState.setMapName(mapName)#need this incase host's client doesn't recieve new mapname before another player connects
+        gameState.setMapName(mapName)#need this in case host's client doesn't recieve new mapname before another player connects
         for player in gameState.getNetworkPlayers():
-            player.dispatchCommand("setMap " + mapName + "|")
+            player.dispatchCommand("setMap -1 " + mapName)
 
 def startAcceptingConnections():
     with server.acceptingConnectionsLock:
@@ -67,7 +67,8 @@ def startAcceptingConnections():
 def stopAcceptingConnections():
     with server.acceptingConnectionsLock:
         server.acceptingConnections = False
-        
+
+serverStarted = False        
 def shutdownServer():
     global server
     if(server != None):
@@ -80,3 +81,4 @@ def startServer(serverIP):
         serverThread = threading.Thread(target=server.serve_forever)
         serverThread.daemon = True
         serverThread.start()
+        serverStarted = True

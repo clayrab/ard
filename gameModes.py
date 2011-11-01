@@ -1,16 +1,9 @@
-#how to sync while making ui responsive:
-#send the originating player as the first arg to each command.
-#have a command queue
-#have server issue chooseNextUnit commands
-#have any command which we want to fix have an 'undo' command.
-#run your own commands early. when server sends your own command back, skip it.
-#if you receive a chooseNextUnit command before your own, undo yours, run chooseNextUnit and then redo yours
-
+#remove movePath calculation when not current player
 #attack cursor.
 #cancel movepath
 #save and resume games
 #fog of war
-#make zoomspeed and focusspeed non-framerate dependant
+#make zoomspeed(in main.c) and focusspeed non-framerate dependant
 #show move speed and attack speed?
 #move gameplay viewport back to entire window. make UI less intrusive, small elements at the corners, encircle map with mountains
 #some C optimization inside drawTile() and maybe draw()... make lists, reduce mallocs in draw loop, etc
@@ -105,13 +98,8 @@ class gameMode:
 			self.elementWithFocus.onKeyUp(keycode)
 	def onQuit(self):
 		if(gameState.getClient() != None):
-			print 'shutting down client...'
 			gameState.getClient().socket.close()
-			print 'done shutting down client'
-		
-		print 'shutting down server...'
 		server.shutdownServer()
-		print 'done shutting down'
 	def onDraw(self):
 		if(gameState.getClient() != None):
 			if(hasattr(gameState.getClient(),"checkSocket")):
@@ -126,7 +114,6 @@ class tiledGameMode(gameMode):
 	def handleMouseMovement(self,name,mouseX,mouseY):
 		self.mouseX = mouseX
 		self.mouseY = mouseY
-#		raise NameError('HiThere')
 		if(self.elementsDict.has_key(name)):
 			if(hasattr(self.elementsDict[name],"onMouseMovement")):
 				self.elementsDict[name].onMouseMovement()
@@ -157,7 +144,6 @@ class tiledGameMode(gameMode):
 			if(self.map.translateZ < (0.0-cDefines.defines['maxZoom'])):
 				self.map.translateZ = 0.0-cDefines.defines['maxZoom']
 	def handleMouseOver(self,name,isLeftMouseDown):
-#		print name
 		#TODO: keeping track of mousedOverObject might not be necessary any more since I added previousMousedoverName to the C code
 		if(isLeftMouseDown > 0):#allows onLeftClickDown to be called for tiles when the mouse is dragged over them
 			if(hasattr(gameState.getGameMode(),"selectedButton")):
@@ -263,8 +249,9 @@ class playMode(tiledGameMode):
 			self.shiftDown = True
 		if(keycode == "space"):
 			if(gameState.getPlayers()[gameState.getGameMode().nextUnit.player-1].isOwnPlayer):
-				gameState.getClient().sendCommand("moveTo " + str(self.nextUnit.node.xPos) + " " + str(self.nextUnit.node.yPos) + "|")
-			#	gameState.getClient().sendCommand("moveTo " + str(self.nextUnit.node.xPos) + " " + str(self.nextUnit.node.yPos) + "|")
+				gameState.getClient().sendCommand("moveTo",str(self.nextUnit.node.xPos) + " " + str(self.nextUnit.node.yPos))
+				gameState.getClient().sendCommand("chooseNextUnit")
+			#	gameState.getClient().sendCommand("moveTo",str(self.nextUnit.node.xPos) + " " + str(self.nextUnit.node.yPos))
 		elif(keycode == "n"):
 			self.focusNextUnit = 1
 			self.selectedNode.selected = False
@@ -283,11 +270,11 @@ class playMode(tiledGameMode):
 			self.mousedOverObject.onKeyUp(keycode)
 
 	def addUIElements(self):
-		server.startServer('')
-		client.startClient('127.0.0.1')
-		gameState.setPlayerNumber(-1)
-		gameState.addPlayer(2).isOwnPlayer = True
-
+		if(gameState.getClient() == None):#single player game
+			server.startServer('')
+			client.startClient('127.0.0.1')
+			gameState.setPlayerNumber(-2)
+			gameState.addPlayer(2).isOwnPlayer = True
 		uiElements.uiElement(xPos=-1.0,yPos=1.0,width=2.0,height=texHeight('UI_MAP_EDITOR_TOP_IMAGE'),textureIndex=texIndex('UI_MAP_EDITOR_TOP'))
 		uiElements.uiElement(xPos=-1.0,yPos=1.0-texHeight('UI_MAP_EDITOR_TOP_IMAGE'),width=texWidth('UI_MAP_EDITOR_LEFT_IMAGE'),height=texHeight('UI_MAP_EDITOR_LEFT_IMAGE'),textureIndex=texIndex('UI_MAP_EDITOR_LEFT'))
 		uiElements.uiElement(xPos=1.0-texWidth('UI_MAP_EDITOR_RIGHT_IMAGE'),yPos=1.0-texHeight('UI_MAP_EDITOR_TOP_IMAGE'),width=texWidth('UI_MAP_EDITOR_RIGHT_IMAGE'),height=texHeight('UI_MAP_EDITOR_RIGHT_IMAGE'),textureIndex=texIndex('UI_MAP_EDITOR_RIGHT'))
@@ -480,12 +467,8 @@ class hostLANGameScreenMode(gameMode):
 				self.playerElementNames.append(uiElements.uiElement(-0.85,height,text="player " + str(player.playerNumber)).name)
 			height = height - 0.1
 	def addUIElements(self):
-		print 'starting server...'
 		server.startServer('')
-		print 'server started...'
-		print 'starting client...'
 		client.startClient('127.0.0.1')
-		print 'client started'
 		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])	
 		uiElements.uiElement(-0.15,0.9,text="lan game")
 		uiElements.uiElement(-0.85,0.8,text="players")

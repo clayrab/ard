@@ -808,9 +808,8 @@ void calculateTranslation(){
       }
   }
   if(isFocusing){
-    printf("%f %f %f %f\n",translateXPrev,translateX,translateYPrev,translateY);
+    //printf("%f %f %f %f\n",translateXPrev,translateX,translateYPrev,translateY);
     if(!focusNextUnit && abs(50.0*(translateXPrev - translateX)) == 0 && abs(50.0*(translateYPrev - translateY)) == 0){//this indicates the auto-scrolling code is not allowing us to move any more
-      printf("done focusing...%d\n",1);
       isFocusing = 0;
     }
     translateXPrev = translateX;
@@ -1262,6 +1261,7 @@ static void handleInput(){
 }
 static void draw(){
   PyObject_CallMethod(gameMode,"onDraw",NULL);//New reference
+  printPyStackTrace();
   glClearDepth(1.1);
   //this needs to be done before glClear...
   //when the mouse is under the pixel this breaks, so we test three points and find any two that match

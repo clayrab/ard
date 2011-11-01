@@ -169,19 +169,22 @@ class startSummoningButton(clickableElement):
 		clickableElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],color=color,mouseOverColor=mouseOverColor,textXPos=textXPos,textYPos=textYPos)
 		self.unitType = unitType
 	def onClick(self):
-		gameState.getClient().sendCommand("startSummoning " + str(actionViewer.theActionViewer.node.xPos) + " " + str(actionViewer.theActionViewer.node.yPos) + " " + self.unitType.name + "|")
+		gameState.getClient().sendCommand("startSummoning",str(actionViewer.theActionViewer.node.xPos) + " " + str(actionViewer.theActionViewer.node.yPos) + " " + self.unitType.name)
+		if(actionViewer.theActionViewer.node.unit == gameState.getGameMode().nextUnit):
+			gameState.getClient().sendCommand("chooseNextUnit")
 
 class cancelUnitButton(clickableElement):
 	def onClick(self):
-		gameState.getClient().sendCommand("cancelSummoning " + str(actionViewer.theActionViewer.node.xPos) + " " + str(actionViewer.theActionViewer.node.yPos) + "|")
+		gameState.getClient().sendCommand("cancelSummoning",str(actionViewer.theActionViewer.node.xPos) + " " + str(actionViewer.theActionViewer.node.yPos))
 		
 class startResearchButton(clickableElement):
        	def __init__(self,xPos,yPos,unitType,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,textXPos=0.0,textYPos=0.0):
 		clickableElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],color=color,mouseOverColor=mouseOverColor,textXPos=textXPos,textYPos=textYPos)
 		self.unitType = unitType
 	def onClick(self):
-		gameState.getClient().sendCommand("startResearch " + str(actionViewer.theActionViewer.node.xPos) + " " + str(actionViewer.theActionViewer.node.yPos) + " " + self.unitType.name + "|")
-		
+		gameState.getClient().sendCommand("startResearch",str(actionViewer.theActionViewer.node.xPos) + " " + str(actionViewer.theActionViewer.node.yPos) + " " + self.unitType.name)
+		if(gameState.getGameMode().nextUnit == actionViewer.theActionViewer.node.unit):
+			gameState.getClient().sendCommand("chooseNextUnit")
 
 class viewResearchButton(clickableElement):
        	def __init__(self,xPos,yPos,unitType,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,textXPos=0.0,textYPos=0.0):
@@ -201,18 +204,20 @@ class viewUnitTypeButton(clickableElement):
 
 class stopWaitingButton(clickableElement):
 	def onClick(self):
-		gameState.getClient().sendCommand("stopWaiting " + str(actionViewer.theActionViewer.node.xPos) + " " + str(actionViewer.theActionViewer.node.yPos) + "|")
+		gameState.getClient().sendCommand("stopWaiting",str(actionViewer.theActionViewer.node.xPos) + " " + str(actionViewer.theActionViewer.node.yPos))
 		
 class waitButton(clickableElement):
 	def onClick(self):
-		gameState.getClient().sendCommand("wait " + str(actionViewer.theActionViewer.node.xPos) + " " + str(actionViewer.theActionViewer.node.yPos) + "|")
-
+		gameState.getClient().sendCommand("wait",str(actionViewer.theActionViewer.node.xPos) + " " + str(actionViewer.theActionViewer.node.yPos))
+		if(gameState.getGameMode().nextUnit == actionViewer.theActionViewer.node.unit):
+			gameState.getClient().sendCommand("chooseNextUnit")
 class skipButton(clickableElement):
        	def __init__(self,xPos,yPos,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,textXPos=0.0,textYPos=0.0):
 		clickableElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],color=color,mouseOverColor=mouseOverColor,textXPos=textXPos,textYPos=textYPos)
 	def onClick(self):
 		if(gameState.getPlayers()[gameState.getGameMode().nextUnit.player-1].isOwnPlayer):
-			gameState.getClient().sendCommand("moveTo " + str(gameState.getGameMode().nextUnit.node.xPos) + " " + str(gameState.getGameMode().nextUnit.node.yPos) + "|")
+			gameState.getClient().sendCommand("moveTo",str(gameState.getGameMode().nextUnit.node.xPos) + " " + str(gameState.getGameMode().nextUnit.node.yPos))
+			gameState.getClient().sendCommand("chooseNextUnit")
 
 class actionViewer(uiElement):
 	theActionViewer = None
@@ -274,7 +279,7 @@ class actionViewer(uiElement):
 			if(self.node.unit == gameState.getGameMode().nextUnit):
 				self.names.append(skipButton(-0.964,-0.89,text="skip",textSize=0.0005).name)
 				self.names.append(waitButton(-0.964,-0.93,text="wait",textSize=0.0005).name)
-			elif(self.node.unit.waiting and not self.node.city.researching and self.node.city.unitBeingBuilt == None):
+			elif(self.node.unit != None and self.node.unit.waiting and not self.node.city.researching and self.node.city.unitBeingBuilt == None):
 				self.names.append(stopWaitingButton(-0.964,-0.93,text="wake",textSize=0.0005).name)
 			
 	@staticmethod
@@ -753,6 +758,7 @@ class mapEditSelectButton(menuButton):
 
 class mapPlaySelectButton(menuButton):
 	def onClick(self):
+		
 		gameState.setMapName(self.text)
 		gameState.setGameMode(self.gameMode)
 
@@ -781,7 +787,7 @@ class startButton(menuButton):
 		if(gameState.getMapName() != None):
 			server.stopAcceptingConnections()
 			for player in gameState.getNetworkPlayers():
-				player.dispatchCommand("startGame|")
+				player.dispatchCommand("startGame -1")
 		else:
 			#TODO: show host a friendly message
 			print 'choose a map!!'
