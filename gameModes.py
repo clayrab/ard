@@ -1,5 +1,4 @@
-#remove movePath calculation when not current player
-#attack cursor.
+#attack cursor
 #cancel movepath
 #save and resume games
 #fog of war

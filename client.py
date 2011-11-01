@@ -196,9 +196,10 @@ class Client:
                         # log functionality, so that commands are always 'undone'
                         # and then 'redone' when a chooseNextUnit command is sent.
                         # I am leaving it commented out for now and will put it
-                        # back before 'shipping'.
+                        # back before 'shipping'
                         ##########################################################
                         #self.commandLog = self.commandLog[:-1:]
+                        print "commandLog: " + str(self.commandLog)
 
     def sendCommand(self,command,argsString=""):
         if(command != "chooseNextUnit"):

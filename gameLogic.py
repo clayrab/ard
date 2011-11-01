@@ -114,12 +114,10 @@ class city:
 		if(self.unitBeingBuilt == None):
 			self.buildNextUnit()
 	def unqueueUnit(self):
-		print self.unitBuildQueue
 		if(len(self.unitBuildQueue) > 0):
 			self.unitBuildQueue = self.unitBuildQueue[:-1:]
 		else:
 			self.unitBeingBuilt = None
-		print self.unitBuildQueue		
 	def buildNextUnit(self):
 		if(len(self.unitBuildQueue) > 0):
 			self.unitBeingBuilt = self.unitBuildQueue[0]
@@ -183,8 +181,6 @@ class playModeNode(node):
 		self.aStarHeuristicCost = 0.0
 		self.aStarParent = None
 	def onLeftClickDown(self):
-		print "player " + str(gameState.getGameMode().nextUnit.player)
-		print gameState.getPlayers()
 		if(gameState.getPlayers()[gameState.getGameMode().nextUnit.player-1].isOwnPlayer and playModeNode.moveMode):
 			gameState.getGameMode().nextUnit.movePath = gameState.getGameMode().nextUnit.node.movePath
 			gameState.getGameMode().nextUnit.move()
@@ -194,14 +190,15 @@ class playModeNode(node):
 		for node in playModeNode.movePath:
 			node.onMovePath = False
 		playModeNode.movePath = []
-		if((gameState.getGameMode().nextUnit.node == self) or (playModeNode.isNeighbor and gameState.getGameMode().shiftDown) or ((not playModeNode.isNeighbor) and (not gameState.getGameMode().shiftDown))):
-			self.cursorIndex = -1
-			playModeNode.moveMode = False
-		else:
-			self.cursorIndex = cDefines.defines['CURSOR_MOVE_INDEX']
-			playModeNode.moveMode = True
-			if(len(self.neighbors) > 0):
-				self.aStarSearch()
+		if(gameState.getGameMode().nextUnit.player == gameState.getPlayerNumber() or gameState.getPlayerNumber() == -2):
+			if((gameState.getGameMode().nextUnit.node == self) or (playModeNode.isNeighbor and gameState.getGameMode().shiftDown) or ((not playModeNode.isNeighbor) and (not gameState.getGameMode().shiftDown))):
+				self.cursorIndex = -1
+				playModeNode.moveMode = False
+			else:
+				self.cursorIndex = cDefines.defines['CURSOR_MOVE_INDEX']
+				playModeNode.moveMode = True
+				if(len(self.neighbors) > 0):
+					self.aStarSearch()
 	def aStarSearch(self):
 		#start at end point so we can just track back and insert into an array in order
 		self.findAStarHeuristicCost(gameState.getGameMode().nextUnit.node)
