@@ -8,6 +8,11 @@ import random
 researchBuildTime = 100
 unitBuildSpeed = 0.1
 
+class MODES:
+	MOVE_MODE = 0
+	ATTACK_MODE = 1
+	SELECT_MODE = 2
+
 cityNames = ["Eshnunna","Tutub","Der","Sippar","Sippar-Amnanum","Kutha","Jemde Nasr","Kish","Babilim","Borsippa","Mashkan-shapir","Dilbat","Nippur","Marad","Adab","Isin","Kisurra","Shuruppak","Bad-tibira","Zabalam","Umma","Girsu","Lagash","Urum","Uruk","Larsa","Ur","Kuara","Eridu","Akshak","Akkad","Urfa","Shanidar cave","Urkesh","Shekhna","Arbid","Harran","Chagar Bazar","Kahat","el Fakhariya (Washukanni?)","Arslan Tash","Carchemish","Til Barsip","Nabada","Nagar","Telul eth-Thalathat","Tepe Gawra","Tell Arpachiyah","Shibaniba","Tarbisu","Ninua","Qatara","Dur Sharrukin","Tell Shemshara","Arbil","Imgur-Enlil","Nimrud","Emar","Arrapha","Kar-Tukulti-Ninurta","Ashur","Nuzi","al-Fakhar","Terqa","Mari","Haradum","Nerebtum","Agrab","Dur-Kurigalzu","Shaduppum","Seleucia","Ctesiphon","Zenobia","Zalabiye","Hasanlu","Takht-i-Suleiman","Behistun","Godin Tepe","Chogha Mish","Tepe Sialk","Susa","Kabnak","Dur Untash","Pasargadai","Naqsh-e Rustam","Parsa","Anshan","Konar Sandal","Tepe Yahya","Miletus","Sfard","Nicaea","Sapinuwa","Yazilikaya","Alaca Hoyuk","Masat Hoyuk","Hattusa","Ilios","Kanesh","Arslantepe","Sam'al","Beycesultan","Adana","Karatepe","Tarsus","Sultantepe","Attalia","Acre","Adoraim","Alalah","Aleppo","Al-Sinnabra","Aphek","Arad Rabbah","Ashdod","Ashkelon","Baalbek","Batroun","Beersheba","Beth Shean","Bet Shemesh","Bethany","Bet-el","Bezer","Byblos","Capernaum","Dan","Dimashq","Deir Alla","Dhiban","Dor","Ebla","En Gedi","Enfeh","Ekron","Et-Tell","Gath","Gezer","Gibeah","Gilgal Refaim","Gubla","Hamath","Hazor","Hebron","Herodion","Jezreel","Kadesh Barnea","Kedesh","Kumidi","Lachish","Megiddo","Qatna","Qumran","Rabat Amon","Samaria","Sarepta","Sharuhen","Shiloh","Sidon","Tadmor","Tirzah","Tyros","Ugarit","Umm el-Marra"]
 
 class unitType:
@@ -69,15 +74,18 @@ class unit:
 			gameState.getClient().sendCommand("chooseNextUnit")
 
 			self.movePath = self.movePath[1:]
+	def attack(self,node):
+		gameState.getClient().sendCommand("attackTo",str(node.xPos) + " " + str(node.yPos))
+		gameState.getClient().sendCommand("chooseNextUnit")
+	def attackTo(self,node):
+		node.unit.health = node.unit.health - self.unitType.attackPower
+		self.attackPoints = self.attackPoints + self.unitType.attackSpeed
 	def moveTo(self,node):
 		if(node.unit != None and self.node != node):
-			if(node.unit.player != self.player):
-				node.unit.health = node.unit.health - self.unitType.attackPower
-				self.attackPoints = self.attackPoints + self.unitType.attackSpeed
-			else:
+			if(node.unit.player == self.player):
 				if(len(self.movePath) > 0):
 					self.movePath = []
-				#else: the player is trying to move onto their own unit, do nothing
+#				#else: the player is trying to move onto their own unit, do nothing
 		else:
 			self.node.unit = None
 			self.node = node
@@ -88,7 +96,7 @@ class unit:
 					if(neighbor.unit != None and neighbor.unit.player != self.player):
 						self.movePath = []
 						#break
-       			self.movementPoints = self.movementPoints + self.unitType.movementSpeed
+			self.movementPoints = self.movementPoints + self.unitType.movementSpeed
 class city:
 	def __init__(self,name,node,unitTypes=None,costOfOwnership=10):
 		if(unitTypes == None):
@@ -169,7 +177,7 @@ class node:
 
 class playModeNode(node):
 	isNeighbor = False
-	moveMode = False
+	mode = MODES.SELECT_MODE
 	openNodes = []
 	closedNodes = []
 	movePath = []
@@ -181,7 +189,10 @@ class playModeNode(node):
 		self.aStarHeuristicCost = 0.0
 		self.aStarParent = None
 	def onLeftClickDown(self):
-		if(gameState.getPlayers()[gameState.getGameMode().nextUnit.player-1].isOwnPlayer and playModeNode.moveMode):
+#		if(gameState.getPlayers()[gameState.getGameMode().nextUnit.player-1].isOwnPlayer and playModeNode.mode == MODES.MOVE_MODE):
+		if(playModeNode.mode == MODES.ATTACK_MODE):
+			gameState.getGameMode().nextUnit.attack(self)
+		elif(playModeNode.mode == MODES.MOVE_MODE):
 			gameState.getGameMode().nextUnit.movePath = gameState.getGameMode().nextUnit.node.movePath
 			gameState.getGameMode().nextUnit.move()
 		else:
@@ -191,14 +202,18 @@ class playModeNode(node):
 			node.onMovePath = False
 		playModeNode.movePath = []
 		if(gameState.getGameMode().nextUnit.player == gameState.getPlayerNumber() or gameState.getPlayerNumber() == -2):
-			if((gameState.getGameMode().nextUnit.node == self) or (playModeNode.isNeighbor and gameState.getGameMode().shiftDown) or ((not playModeNode.isNeighbor) and (not gameState.getGameMode().shiftDown))):
+			if(self.unit != None and playModeNode.isNeighbor and self.unit.player != gameState.getGameMode().nextUnit.player):
+				self.cursorIndex = cDefines.defines['CURSOR_ATTACK_INDEX']
+
+				playModeNode.mode = MODES.ATTACK_MODE
+				
+			elif((gameState.getGameMode().nextUnit.node == self) or (playModeNode.isNeighbor and gameState.getGameMode().shiftDown) or ((not playModeNode.isNeighbor) and (not gameState.getGameMode().shiftDown))):
 				self.cursorIndex = -1
-				playModeNode.moveMode = False
+				playModeNode.mode = MODES.SELECT_MODE
 			else:
 				self.cursorIndex = cDefines.defines['CURSOR_MOVE_INDEX']
-				playModeNode.moveMode = True
-				if(len(self.neighbors) > 0):
-					self.aStarSearch()
+				playModeNode.mode = MODES.MOVE_MODE
+				self.aStarSearch()
 	def aStarSearch(self):
 		#start at end point so we can just track back and insert into an array in order
 		self.findAStarHeuristicCost(gameState.getGameMode().nextUnit.node)

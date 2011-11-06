@@ -63,16 +63,17 @@
 #define CURSOR_MOVE_INDEX 8
 
 #define CURSOR_WIDTH 32
-#define CURSOR_HEIGHT 29
+#define CURSOR_HEIGHT 32
 
 #define PLAYER_START_BUTTON_IMAGE "assets/playerStartButton.png"
-#define PLAYER_START_BUTTON_INDEX 9
 #define PLAYER_START_BUTTON_WIDTH 13
 #define PLAYER_START_BUTTON_HEIGHT 14
+#define PLAYER_START_BUTTON_INDEX 9
+
 #define PLAYER_START_IMAGE "assets/playerStart.png"
-#define PLAYER_START_INDEX 10
 #define PLAYER_START_WIDTH 13
 #define PLAYER_START_HEIGHT 14
+#define PLAYER_START_INDEX 10
 
 #define UI_SCROLLABLE_IMAGE "assets/scrollableElement.png"
 #define UI_SCROLLABLE_IMAGE_HEIGHT 404
@@ -198,6 +199,10 @@
 #define UNIT_CIRCLE_BROWN_HEIGHT 40
 #define UNIT_CIRCLE_BROWN_WIDTH 40
 #define UNIT_CIRCLE_BROWN_INDEX 35
+
+#define CURSOR_ATTACK_IMAGE "assets/cursors/swordIcon.png"
+#define CURSOR_ATTACK_INDEX 36
+
 
 
 #define DESERT_TILE_INDEX 0
@@ -1115,6 +1120,7 @@ static void initGL (){
   pngLoad(&texturesArray[UNIT_CIRCLE_ORANGE_INDEX],UNIT_CIRCLE_ORANGE_IMAGE);
   pngLoad(&texturesArray[UNIT_CIRCLE_PURPLE_INDEX],UNIT_CIRCLE_PURPLE_IMAGE);
   pngLoad(&texturesArray[UNIT_CIRCLE_BROWN_INDEX],UNIT_CIRCLE_BROWN_IMAGE);
+  pngLoad(&texturesArray[CURSOR_ATTACK_INDEX],CURSOR_ATTACK_IMAGE);
 
   vertexArrays[DESERT_TILE_INDEX] = *desertVertices;
   vertexArrays[GRASS_TILE_INDEX] = *grassVertices;

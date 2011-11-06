@@ -4,7 +4,6 @@
 #fog of war
 #make zoomspeed(in main.c) and focusspeed non-framerate dependant
 #show move speed and attack speed?
-#move gameplay viewport back to entire window. make UI less intrusive, small elements at the corners, encircle map with mountains
 #some C optimization inside drawTile() and maybe draw()... make lists, reduce mallocs in draw loop, etc
 #gathering
 #gatherer auto pathing
@@ -13,6 +12,7 @@
 #icons for each unit
 #make sure text edit boxes only allow chars and not shift/enter
 #move research unit type view over top of the actionViewer
+#move gameplay viewport back to entire window. make UI less intrusive, small elements at the corners, encircle map with mountains
 
 #server:
 #room for finding games

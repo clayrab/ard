@@ -44,6 +44,17 @@ class Commands:
     def moveToRedo(args):
         tokens = args.split(" ")
     @staticmethod
+    def attackTo(args):
+        tokens = args.split(" ")
+        node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
+       	gameState.getGameMode().nextUnit.attackTo(node)
+    @staticmethod
+    def attackToUndo(args):
+        tokens = args.split(" ")
+    @staticmethod
+    def attackToRedo(args):
+        tokens = args.split(" ")
+    @staticmethod
     def startSummoning(args):
         tokens = args.split(" ")
         node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
