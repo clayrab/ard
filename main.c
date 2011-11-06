@@ -647,7 +647,7 @@ void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long 
       glEnd();
 
       unitNamesXs[unitNamesCount] = xPosition+1.0;
-      unitNamesYs[unitNamesCount] = yPosition-1.0;
+      unitNamesYs[unitNamesCount] = yPosition-1.3;
       strcpy(unitNames[unitNamesCount],unitName);
       unitNamesCount = unitNamesCount + 1;
       

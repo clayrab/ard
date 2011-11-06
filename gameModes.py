@@ -1,4 +1,3 @@
-#attack cursor
 #cancel movepath
 #save and resume games
 #fog of war

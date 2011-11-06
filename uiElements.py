@@ -152,7 +152,7 @@ class newMapNameInputElement(textInputElement):
 			textInputElement.onKeyDown(self,keycode)
 
 class hostIPInputElement(textInputElement):
-	def __init__(self,xPos,yPos,gameMode,width=0.0,height=0.0,text="192.168.1.5",textSize=0.001,textureIndex=-1,textColor='FF FF FF',textXPos=0.0,textYPos=0.0):
+	def __init__(self,xPos,yPos,gameMode,width=0.0,height=0.0,text="192.168.1.4",textSize=0.001,textureIndex=-1,textColor='FF FF FF',textXPos=0.0,textYPos=0.0):
 		textInputElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textSize=textSize,textColor=textColor,textXPos=textXPos,textYPos=textYPos)
 		self.gameMode = gameMode
 	def onKeyDown(self,keycode):
@@ -211,6 +211,13 @@ class waitButton(clickableElement):
 		gameState.getClient().sendCommand("wait",str(actionViewer.theActionViewer.node.xPos) + " " + str(actionViewer.theActionViewer.node.yPos))
 		if(gameState.getGameMode().nextUnit == actionViewer.theActionViewer.node.unit):
 			gameState.getClient().sendCommand("chooseNextUnit")
+
+class cancelMovementButton(clickableElement):
+	def onClick(self):
+		for pathNode in unitViewer.theUnitViewer.unit.movePath:
+			pathNode.onMovePath = False
+		unitViewer.theUnitViewer.unit.movePath = []
+
 class skipButton(clickableElement):
        	def __init__(self,xPos,yPos,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,textXPos=0.0,textYPos=0.0):
 		clickableElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],color=color,mouseOverColor=mouseOverColor,textXPos=textXPos,textYPos=textYPos)
@@ -311,13 +318,14 @@ class unitViewer(uiElement):
 		self.names.append(uiElement(-0.964,0.72,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE')*(float(self.unit.health)/self.unit.unitType.health),textureIndex=texIndex('UNIT_BUILD_BAR'),color="FF 00 00").name)
 		self.names.append(uiElement(-0.96,0.695,text=str(self.unit.health)+"/"+str(self.unit.unitType.health),textSize=0.0005).name)
 
-		self.names.append(uiElement(-0.964,0.675,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE'),textureIndex=texIndex('UNIT_BUILD_BAR')).name)
-		self.names.append(uiElement(-0.964,0.675,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE')*(0.0-self.unit.movementPoints/self.unit.unitType.movementSpeed),textureIndex=texIndex('UNIT_BUILD_BAR'),color="FF 00 00").name)
-		self.names.append(uiElement(-0.96,0.650,text="00/00",textSize=0.0005).name)
+		self.names.append(cancelMovementButton(-0.964,0.565,text="cancel move",textSize=0.0005).name)
+#		self.names.append(uiElement(-0.964,0.675,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE'),textureIndex=texIndex('UNIT_BUILD_BAR')).name)
+#		self.names.append(uiElement(-0.964,0.675,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE')*(0.0-self.unit.movementPoints/self.unit.unitType.movementSpeed),textureIndex=texIndex('UNIT_BUILD_BAR'),color="FF 00 00").name)
+#		self.names.append(uiElement(-0.96,0.650,text="00/00",textSize=0.0005).name)
 
-		self.names.append(uiElement(-0.964,0.630,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE'),textureIndex=texIndex('UNIT_BUILD_BAR')).name)
-		self.names.append(uiElement(-0.964,0.630,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE')*(0.0-self.unit.attackPoints/self.unit.unitType.attackSpeed),textureIndex=texIndex('UNIT_BUILD_BAR'),color="FF 00 00").name)
-		self.names.append(uiElement(-0.96,0.605,text="00/00",textSize=0.0005).name)
+#		self.names.append(uiElement(-0.964,0.630,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE'),textureIndex=texIndex('UNIT_BUILD_BAR')).name)
+#		self.names.append(uiElement(-0.964,0.630,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE')*(0.0-self.unit.attackPoints/self.unit.unitType.attackSpeed),textureIndex=texIndex('UNIT_BUILD_BAR'),color="FF 00 00").name)
+#		self.names.append(uiElement(-0.96,0.605,text="00/00",textSize=0.0005).name)
 
 		if(self.unit.waiting):
 			if(self.unit.node.city.unitBeingBuilt != None):
