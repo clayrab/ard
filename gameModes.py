@@ -1,31 +1,31 @@
-#cancel movepath
 #save and resume games
 #fog of war
-#make zoomspeed(in main.c) and focusspeed non-framerate dependant
-#show move speed and attack speed?
-#some C optimization inside drawTile() and maybe draw()... make lists, reduce mallocs in draw loop, etc
 #gathering
 #gatherer auto pathing
-#add second resource
-#add second resource to units/cities/city editor
+#add resources
+#add resources to units/cities/city editor
 #icons for each unit
 #make sure text edit boxes only allow chars and not shift/enter
-#move research unit type view over top of the actionViewer
-#move gameplay viewport back to entire window. make UI less intrusive, small elements at the corners, encircle map with mountains
-
-#server:
-#room for finding games
-#room for each game
 
 #check new/edited city names for duplicates
 #uiElements startingManaSelector???
 
+#polish:
+#some C optimization inside drawTile() and maybe draw()... make lists, reduce mallocs in draw loop, etc
+make zoomspeed(in main.c) and focusspeed non-framerate dependant
+#show move speed and attack speed?
+#move gameplay viewport back to entire window. make UI less intrusive, small elements at the corners, encircle map with mountains
 #sound effects
 #mouseover effects
 #music
 #AI
 #campaign
 #right-justifiable text
+
+#server:
+#room for finding games
+#room for each game
+
 #unit editor
 
 import sys
