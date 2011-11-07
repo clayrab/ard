@@ -1,9 +1,9 @@
-#save and resume games
-#fog of war
 #gathering
 #gatherer auto pathing
 #add resources
 #add resources to units/cities/city editor
+#save and resume games
+#fog of war
 #icons for each unit
 #make sure text edit boxes only allow chars and not shift/enter
 
