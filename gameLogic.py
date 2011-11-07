@@ -12,9 +12,17 @@ class MODES:
 	MOVE_MODE = 0
 	ATTACK_MODE = 1
 	SELECT_MODE = 2
+	GATHER_MODE = 3
 
 cityNames = ["Eshnunna","Tutub","Der","Sippar","Sippar-Amnanum","Kutha","Jemde Nasr","Kish","Babilim","Borsippa","Mashkan-shapir","Dilbat","Nippur","Marad","Adab","Isin","Kisurra","Shuruppak","Bad-tibira","Zabalam","Umma","Girsu","Lagash","Urum","Uruk","Larsa","Ur","Kuara","Eridu","Akshak","Akkad","Urfa","Shanidar cave","Urkesh","Shekhna","Arbid","Harran","Chagar Bazar","Kahat","el Fakhariya (Washukanni?)","Arslan Tash","Carchemish","Til Barsip","Nabada","Nagar","Telul eth-Thalathat","Tepe Gawra","Tell Arpachiyah","Shibaniba","Tarbisu","Ninua","Qatara","Dur Sharrukin","Tell Shemshara","Arbil","Imgur-Enlil","Nimrud","Emar","Arrapha","Kar-Tukulti-Ninurta","Ashur","Nuzi","al-Fakhar","Terqa","Mari","Haradum","Nerebtum","Agrab","Dur-Kurigalzu","Shaduppum","Seleucia","Ctesiphon","Zenobia","Zalabiye","Hasanlu","Takht-i-Suleiman","Behistun","Godin Tepe","Chogha Mish","Tepe Sialk","Susa","Kabnak","Dur Untash","Pasargadai","Naqsh-e Rustam","Parsa","Anshan","Konar Sandal","Tepe Yahya","Miletus","Sfard","Nicaea","Sapinuwa","Yazilikaya","Alaca Hoyuk","Masat Hoyuk","Hattusa","Ilios","Kanesh","Arslantepe","Sam'al","Beycesultan","Adana","Karatepe","Tarsus","Sultantepe","Attalia","Acre","Adoraim","Alalah","Aleppo","Al-Sinnabra","Aphek","Arad Rabbah","Ashdod","Ashkelon","Baalbek","Batroun","Beersheba","Beth Shean","Bet Shemesh","Bethany","Bet-el","Bezer","Byblos","Capernaum","Dan","Dimashq","Deir Alla","Dhiban","Dor","Ebla","En Gedi","Enfeh","Ekron","Et-Tell","Gath","Gezer","Gibeah","Gilgal Refaim","Gubla","Hamath","Hazor","Hebron","Herodion","Jezreel","Kadesh Barnea","Kedesh","Kumidi","Lachish","Megiddo","Qatna","Qumran","Rabat Amon","Samaria","Sarepta","Sharuhen","Shiloh","Sidon","Tadmor","Tirzah","Tyros","Ugarit","Umm el-Marra"]
 
+
+class Player:
+	def __init__(self,playerNumber):
+		self.playerNumber = playerNumber
+		self.isOwnPlayer = False
+		self.greenWood = 0
+		self.blueWood = 0
 class unitType:
 	def __init__(self,name,textureIndex,movementSpeed,attackSpeed,attackPower,armor,range,health,canFly,canSwim,cost,buildTime,movementSpeedBonus,armorBonus,attackPowerBonus,researchCost,researchTime):
 		self.name = name
@@ -66,14 +74,14 @@ class unit:
 		self.movePath = []
 		self.waiting = False
 		self.level = level
+		self.gatheringNode = None
 	def move(self):
 		if(self.movePath[0].unit != None and self.movePath[0].unit.player == self.player):#ran into own unit, let the player decide what to do...
 			self.movePath = []
 		else:
 			gameState.getClient().sendCommand("moveTo",str(self.movePath[0].xPos) + " " + str(self.movePath[0].yPos))
-			gameState.getClient().sendCommand("chooseNextUnit")
-
 			self.movePath = self.movePath[1:]
+			gameState.getClient().sendCommand("chooseNextUnit")
 	def moveTo(self,node):
 		node.onMovePath = False
 		if(node.unit != None and self.node != node):
@@ -91,6 +99,8 @@ class unit:
 					if(neighbor.unit != None and neighbor.unit.player != self.player):
 						self.movePath = []
 						#break
+			if(node.unit.gatheringNode == node):
+				self.waiting = True
 			self.movementPoints = self.movementPoints + self.unitType.movementSpeed
 	def attack(self,node):
 		gameState.getClient().sendCommand("attackTo",str(node.xPos) + " " + str(node.yPos))
@@ -142,7 +152,6 @@ class city:
 				if(self.researchUnitType != None):
 					self.researchProgress = self.researchProgress + 1
 					if(self.researchProgress >= researchBuildTime):
-						print 'done'
 						self.researchLevel = self.researchLevel + 1
 						self.researchProgress = 0
 						self.node.unit.waiting = False#wake up summoner
@@ -196,7 +205,9 @@ class playModeNode(node):
 	def onLeftClickDown(self):
 		if(playModeNode.mode == MODES.ATTACK_MODE):
 			gameState.getGameMode().nextUnit.attack(self)
-		elif(playModeNode.mode == MODES.MOVE_MODE):
+		elif(playModeNode.mode == MODES.MOVE_MODE or playModeNode.mode == MODES.GATHER_MODE):
+			if(playModeNode.mode == MODES.GATHER_MODE):
+				uiElements.unitViewer.theUnitViewer.unit.gatheringNode = self
 			if(uiElements.unitViewer.theUnitViewer.unit == gameState.getGameMode().nextUnit):
 				uiElements.unitViewer.theUnitViewer.unit.movePath = uiElements.unitViewer.theUnitViewer.unit.node.movePath
 				uiElements.unitViewer.theUnitViewer.unit.move()
@@ -216,6 +227,10 @@ class playModeNode(node):
 			if((gameState.getGameMode().nextUnit.player == gameState.getPlayerNumber() or gameState.getPlayerNumber() == -2) and (gameState.getGameMode().nextUnit == uiElements.unitViewer.theUnitViewer.unit) and (self.unit != None and playModeNode.isNeighbor and self.unit.player != uiElements.unitViewer.theUnitViewer.unit.player)):
 				self.cursorIndex = cDefines.defines['CURSOR_ATTACK_INDEX']
 				playModeNode.mode = MODES.ATTACK_MODE
+			elif(uiElements.unitViewer.theUnitViewer.unit.unitType.name == "gatherer" and self.tileValue == cDefines.defines['FOREST_TILE_INDEX'] and self.unit != uiElements.unitViewer.theUnitViewer.unit):
+				self.cursorIndex = cDefines.defines['CURSOR_GATHER_INDEX']
+				playModeNode.mode = MODES.GATHER_MODE
+				self.aStarSearch()
 			elif((uiElements.unitViewer.theUnitViewer.unit.node == self) or (playModeNode.isNeighbor and gameState.getGameMode().shiftDown) or ((not playModeNode.isNeighbor) and (not gameState.getGameMode().shiftDown))):
 				self.cursorIndex = -1
 				playModeNode.mode = MODES.SELECT_MODE

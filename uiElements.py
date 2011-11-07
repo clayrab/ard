@@ -327,14 +327,16 @@ class unitViewer(uiElement):
 #		self.names.append(uiElement(-0.964,0.630,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE')*(0.0-self.unit.attackPoints/self.unit.unitType.attackSpeed),textureIndex=texIndex('UNIT_BUILD_BAR'),color="FF 00 00").name)
 #		self.names.append(uiElement(-0.96,0.605,text="00/00",textSize=0.0005).name)
 
-		if(self.unit.waiting):
+		if(self.unit.waiting and self.unit.unitType.name == "summoner" and self.unit.node.city != None):
 			if(self.unit.node.city.unitBeingBuilt != None):
 				self.names.append(uiElement(-0.96,0.565,text="summoning",textSize=0.0005).name)
 			elif(self.unit.node.city.researching):
 				self.names.append(uiElement(-0.96,0.565,text="researching",textSize=0.0005).name)
 			else:
 				self.names.append(uiElement(-0.96,0.565,text="waiting",textSize=0.0005).name)
-		
+		if(self.unit.waiting and self.unit.unitType.name == "gatherer" and self.unit.gatheringNode == self.unit.node):
+			self.names.append(uiElement(-0.96,0.565,text="gathering",textSize=0.0005).name)
+			
 	@staticmethod
 	def destroy():
 		if(unitViewer.theUnitViewer != None):

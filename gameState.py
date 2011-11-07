@@ -63,27 +63,22 @@ def getPlayerNumber():
 	global thePlayerNumber
 	return thePlayerNumber
 
-class Player:
-	def __init__(self,playerNumber):
-		self.playerNumber = playerNumber
-		self.isOwnPlayer = False
-
-thePlayersLock = threading.Lock()
+#thePlayersLock = threading.Lock()
 thePlayers = []
 def addPlayer(playerNumber):
-       	player = Player(playerNumber)
-	with thePlayersLock:
-		thePlayers.append(player)		
+       	player = gameLogic.Player(playerNumber)
+#	with thePlayersLock:
+       	thePlayers.append(player)		
 	return player
 def removePlayer(playerNumber):
-	with thePlayersLock:
-		for aPlayer in theNetworkPlayers:
-			if(aPlayer.playerNumber == player.playerNumber):
-				theNetworkPlayers.remove(player)
+#	with thePlayersLock:
+	for aPlayer in thePlayers:
+		if(aPlayer.playerNumber == player.playerNumber):
+			thePlayers.remove(player)
 def getPlayers():
 	playersCopy = []
-	with thePlayersLock:
-		playersCopy = copy.copy(thePlayers)
+#	with thePlayersLock:
+	playersCopy = copy.copy(thePlayers)
 	return playersCopy
 
 networkPlayersLock = threading.Lock()

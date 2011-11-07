@@ -192,6 +192,7 @@ class Client:
             receivedData = self.socket.recv(1024)
         except:
             receivedData = ''
+        print receivedData
         for command in receivedData.split("|"):
             if(len(command) > 0):
                 tokens = command.split(" ",2)
@@ -216,7 +217,7 @@ class Client:
                         #print "commandLog: " + str(self.commandLog)
 
     def sendCommand(self,command,argsString=""):
-        if(command != "chooseNextUnit"):
+        if(command != "chooseNextUnit" or gameState.getPlayerNumber() == -2):
             self.commandLog.append((command,argsString))
             if(argsString != ""):
                 doCommand(command,argsString)

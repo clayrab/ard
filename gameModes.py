@@ -12,7 +12,7 @@
 
 #polish:
 #some C optimization inside drawTile() and maybe draw()... make lists, reduce mallocs in draw loop, etc
-make zoomspeed(in main.c) and focusspeed non-framerate dependant
+#make zoomspeed(in main.c) and focusspeed non-framerate dependant
 #show move speed and attack speed?
 #move gameplay viewport back to entire window. make UI less intrusive, small elements at the corners, encircle map with mountains
 #sound effects
@@ -21,6 +21,7 @@ make zoomspeed(in main.c) and focusspeed non-framerate dependant
 #AI
 #campaign
 #right-justifiable text
+#add odd/even columns. i.e. every other column will get a new node with you hit +
 
 #server:
 #room for finding games
@@ -176,6 +177,9 @@ class playMode(tiledGameMode):
 		self.selectedNode = None
 		tiledGameMode.__init__(self)
 		self.shiftDown = False
+		self.blueWoodUIElem = None
+		self.greenWoodUIElem = None
+		self.players = []
 	def loadMap(self):
 		self.map = gameLogic.map(gameLogic.playModeNode)
 		self.loadSummoners()
@@ -192,6 +196,8 @@ class playMode(tiledGameMode):
 		while(self.units[0].movementPoints > 0.0 or (self.units[0].waiting)):
 			self.orderUnits()
 			for unit in self.units:
+				if(unit.unitType.name == "gatherer" and unit.gatheringNode == unit.node):
+					self.players[unit.player-1].greenWood = self.players[unit.player-1].greenWood + 1
 				if(unit.attackPoints > 0.0):
 					unit.attackPoints = unit.attackPoints - unit.unitType.attackSpeed
 				else:
@@ -267,16 +273,30 @@ class playMode(tiledGameMode):
 		if(hasattr(self.mousedOverObject,"onKeyUp")):
 			self.mousedOverObject.onKeyUp(keycode)
 
+	def onDraw(self):
+		index = gameState.getPlayerNumber()-1
+		if(gameState.getPlayerNumber() == -2):
+			if(self.selectedNode != None and self.selectedNode.unit != None):
+				index = self.selectedNode.unit.player-1
+			else:
+				index = self.nextUnit.player-1
+		self.greenWoodUIElem.text = str(self.players[index].greenWood)
+		self.blueWoodUIElem.text = str(self.players[index].blueWood)
+		
 	def addUIElements(self):
 		if(gameState.getClient() == None):#single player game
 			server.startServer('')
 			client.startClient('127.0.0.1')
 			gameState.setPlayerNumber(-2)
+			gameState.addPlayer(1).isOwnPlayer = True
 			gameState.addPlayer(2).isOwnPlayer = True
 		uiElements.uiElement(xPos=-1.0,yPos=1.0,width=2.0,height=texHeight('UI_MAP_EDITOR_TOP_IMAGE'),textureIndex=texIndex('UI_MAP_EDITOR_TOP'))
 		uiElements.uiElement(xPos=-1.0,yPos=1.0-texHeight('UI_MAP_EDITOR_TOP_IMAGE'),width=texWidth('UI_MAP_EDITOR_LEFT_IMAGE'),height=texHeight('UI_MAP_EDITOR_LEFT_IMAGE'),textureIndex=texIndex('UI_MAP_EDITOR_LEFT'))
 		uiElements.uiElement(xPos=1.0-texWidth('UI_MAP_EDITOR_RIGHT_IMAGE'),yPos=1.0-texHeight('UI_MAP_EDITOR_TOP_IMAGE'),width=texWidth('UI_MAP_EDITOR_RIGHT_IMAGE'),height=texHeight('UI_MAP_EDITOR_RIGHT_IMAGE'),textureIndex=texIndex('UI_MAP_EDITOR_RIGHT'))
 		uiElements.uiElement(xPos=-1.0,yPos=-1.0+texHeight('UI_MAP_EDITOR_BOTTOM_IMAGE'),width=2.0,height=texHeight('UI_MAP_EDITOR_BOTTOM_IMAGE'),textureIndex=texIndex('UI_MAP_EDITOR_BOTTOM'))
+		self.players = gameState.getPlayers()
+		self.greenWoodUIElem = uiElements.uiElement(0.86,0.93,text=str(self.players[0].greenWood),textSize=0.0005)
+		self.blueWoodUIElem = uiElements.uiElement(0.92,0.93,text=str(self.players[0].blueWood),textSize=0.0005)
 		gameLogic.selectNode(self.nextUnit.node)
 
 class mapEditorMode(tiledGameMode):	

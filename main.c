@@ -203,6 +203,9 @@
 #define CURSOR_ATTACK_IMAGE "assets/cursors/swordIcon.png"
 #define CURSOR_ATTACK_INDEX 36
 
+#define CURSOR_GATHER_IMAGE "assets/cursors/gatherCursor.png"
+#define CURSOR_GATHER_INDEX 37
+
 
 
 #define DESERT_TILE_INDEX 0
@@ -509,15 +512,15 @@ void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long 
     glColor3f(1.0f, 1.0f, 1.0f);
   }
   if(isSelected == 1){
-    glColor3f(0.5f, 0.5f, 0.5f);    
+    glColor3f(0.6f, 0.6f, 0.6f);    
   }
   if(isNextUnit == 1){
-    glColor3f(0.7f, 0.7f, 0.7f);
+    glColor3f(0.3f, 0.3f, 0.3f);
     focusXPos = xPosition;
     focusYPos = yPosition;
   }
   if(isSelected == 1 && isNextUnit == 1){
-    glColor3f(0.3f, 0.3f, 0.3f);    
+    glColor3f(0.2f, 0.2f, 0.2f);    
   }
   glPushName(name);	
   glBegin(GL_POLYGON);
@@ -1121,6 +1124,7 @@ static void initGL (){
   pngLoad(&texturesArray[UNIT_CIRCLE_PURPLE_INDEX],UNIT_CIRCLE_PURPLE_IMAGE);
   pngLoad(&texturesArray[UNIT_CIRCLE_BROWN_INDEX],UNIT_CIRCLE_BROWN_IMAGE);
   pngLoad(&texturesArray[CURSOR_ATTACK_INDEX],CURSOR_ATTACK_IMAGE);
+  pngLoad(&texturesArray[CURSOR_GATHER_INDEX],CURSOR_GATHER_IMAGE);
 
   vertexArrays[DESERT_TILE_INDEX] = *desertVertices;
   vertexArrays[GRASS_TILE_INDEX] = *grassVertices;
