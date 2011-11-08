@@ -206,23 +206,21 @@
 #define CURSOR_GATHER_IMAGE "assets/cursors/gatherCursor.png"
 #define CURSOR_GATHER_INDEX 37
 
-
-
 #define DESERT_TILE_INDEX 0
 #define GRASS_TILE_INDEX 1
 #define MOUNTAIN_TILE_INDEX 2
 #define FOREST_TILE_INDEX 3
-#define WATER_TILE_INDEX 4
-#define ROAD_TILE_INDEX 5
-#define CITY_TILE_INDEX 6
-#define PLAYER_START_TILE_INDEX 7//REMOVE THIS
+#define BLUE_FOREST_TILE_INDEX 4
+#define WATER_TILE_INDEX 5
+#define ROAD_TILE_INDEX 6
+#define CITY_TILE_INDEX 7
+#define PLAYER_START_TILE_INDEX 8//REMOVE THIS
 
 #define DESERT_MOVE_COST 2.0
 #define GRASS_MOVE_COST 1.0
 #define MOUNTAIN_MOVE_COST 10.0
 #define FOREST_MOVE_COST 1.0
 #define WATER_MOVE_COST 10.0
-//ROADS HALF THE COST OF ALL MOVEMENT
 
 #define SIN60 0.8660
 #define COS60 0.5
@@ -314,14 +312,6 @@ float desertVertices[6][2] = {
   {(754.0/1280),1.0-(66.0/1280)},
   {(726.0/1280),1.0-(82.0/1280)}
 };
-/*float forestVertices[6][2] = {
-  {(699.0/1280),1.0-(262.0/1280)},
-  {(699.0/1280),1.0-(230.0/1280)},
-  {(726.0/1280),1.0-(214.0/1280)},
-  {(754.0/1280),1.0-(230.0/1280)},
-  {(754.0/1280),1.0-(262.0/1280)},
-  {(726.0/1280),1.0-(278.0/1280)}
-  };*/
 float forestVertices[6][2] = {
   {(643.0/1280),1.0-(360.0/1280)},
   {(643.0/1280),1.0-(328.0/1280)},
@@ -329,6 +319,14 @@ float forestVertices[6][2] = {
   {(696.0/1280),1.0-(328.0/1280)},
   {(696.0/1280),1.0-(360.0/1280)},
   {(670.0/1280),1.0-(376.0/1280)}
+};
+float blueForestVertices[6][2] = {
+  {(643.0/1280),1.0-(458.0/1280)},
+  {(643.0/1280),1.0-(426.0/1280)},
+  {(670.0/1280),1.0-(410.0/1280)},
+  {(696.0/1280),1.0-(426.0/1280)},
+  {(696.0/1280),1.0-(458.0/1280)},
+  {(670.0/1280),1.0-(474.0/1280)}
 };
 float grassVertices[6][2] = {
   {(699.0/1280),1.0-(360.0/1280)},
@@ -379,7 +377,7 @@ float playerStartVertices[6][2] = {
   {(638.0/1280),1.0-(556.0/1280)},
   {(610.0/1280),1.0-(572.0/1280)}
 };
-float * vertexArrays[8];
+float * vertexArrays[9];
 
 
 
@@ -1130,6 +1128,7 @@ static void initGL (){
   vertexArrays[GRASS_TILE_INDEX] = *grassVertices;
   vertexArrays[MOUNTAIN_TILE_INDEX] = *mountainVertices;
   vertexArrays[FOREST_TILE_INDEX] = *forestVertices;
+  vertexArrays[BLUE_FOREST_TILE_INDEX] = *blueForestVertices;
   vertexArrays[WATER_TILE_INDEX] = *waterVertices;
   vertexArrays[ROAD_TILE_INDEX] = *roadVertices;
   vertexArrays[CITY_TILE_INDEX] = *cityVertices;
