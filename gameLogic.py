@@ -122,11 +122,17 @@ class city:
 		self.unitTypes.append(gameState.theUnitTypes["summoner"])
 		self.unitTypes.append(gameState.theUnitTypes["gatherer"])	
 		self.unitTypes.extend(unitTypes)
+		self.researchProgress = {}
+		for unitType in unitTypes:
+			self.researchProgress[unitType] = [0,0]
 		self.researching = False
-		self.doneResearching = False
+
 		self.researchUnitType = None
-		self.researchLevel = 0
-		self.researchProgress = 0
+#		self.researchLevel = 0
+#		self.researchProgress = 0
+
+
+
 		self.unitBeingBuilt = None
 		self.cancelledUnits = []
 		self.unitBuildQueue = []
@@ -150,10 +156,11 @@ class city:
 		if(self.node.unit != None and self.node.unit.unitType.name == "summoner"):
 			if(self.researching):
 				if(self.researchUnitType != None):
-					self.researchProgress = self.researchProgress + 1
-					if(self.researchProgress >= researchBuildTime):
-						self.researchLevel = self.researchLevel + 1
-						self.researchProgress = 0
+					researchTuple = self.researchProgress[self.researchUnitType]
+					researchTuple[1] = researchTuple[1] + 1
+					if(researchTuple[1] >= researchBuildTime):
+						researchTuple[0] = researchTuple[0] + 1
+						researchTuple[1] = 0
 						self.node.unit.waiting = False#wake up summoner
 						self.researching = False
 			else:
@@ -468,8 +475,7 @@ class map:
 						unitTypeStrings = tokens[2].strip().split(",")
 						for unitTypeString in unitTypeStrings:
 							unitTypeTokens = unitTypeString.split("|")
-							theUnitType = copy.copy(gameState.theUnitTypes[unitTypeTokens[0]])
-							theUnitType.cost = unitTypeTokens[1]
+							theUnitType = gameState.theUnitTypes[unitTypeTokens[0]]
 							unitTypes.append(theUnitType)
 					costOfOwnership = tokens[3]
 					self.nodes[int(coords[1])][int(coords[0])].city = city(cityName,self.nodes[int(coords[1])][int(coords[0])],unitTypes,costOfOwnership)

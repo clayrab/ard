@@ -1,12 +1,16 @@
-#gathering
+#change research logic
 
-#add resources to units/cities/city editor
+#gathering/resources
+
+#timed moves
 
 #save and resume games
 #fog of war
 #icons for each unit
-#make sure text edit boxes only allow chars and not shift/enter
 
+############# PLAYABLE AT THIS POINT ##############
+
+#make sure text edit boxes only allow chars and not shift/enter
 #check new/edited city names for duplicates
 #uiElements startingManaSelector???
 

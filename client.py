@@ -60,8 +60,7 @@ class Commands:
         node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
         unitType = gameState.theUnitTypes[tokens[2]]
         if(node.unit != None and node.unit.unitType.name == "summoner"):#don't trust the other client...
-            node.city.doneResearching = True
-            node.city.queueUnit(gameLogic.unit(unitType,node.city.player,node.city.researchLevel,node.xPos,node.yPos,node))
+            node.city.queueUnit(gameLogic.unit(unitType,node.city.player,node.city.researchProgress[unitType][0],node.xPos,node.yPos,node))
             node.unit.waiting = True
             if(uiElements.actionViewer.theActionViewer.node == node):
                 uiElements.actionViewer.theActionViewer.reset()
@@ -79,7 +78,7 @@ class Commands:
         node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
         unitType = gameState.theUnitTypes[tokens[2]]
         if(node.unit != None and node.unit.unitType.name == "summoner"):
-            node.city.queueUnit(gameLogic.unit(unitType,node.city.player,node.city.researchLevel,node.xPos,node.yPos,node))
+            node.city.queueUnit(gameLogic.unit(unitType,node.city.player,node.city.researchProgress[unitType][0],node.xPos,node.yPos,node))
     @staticmethod
     def cancelSummoning(args):
         tokens = args.split(" ")
@@ -120,12 +119,14 @@ class Commands:
         tokens = args.split(" ")
         node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
         unitType = gameState.theUnitTypes[tokens[2]]
+        node.city.researching = False
         node.city.researchUnitType = None
     @staticmethod
     def startResearchRedo(args):
         tokens = args.split(" ")
         node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
         unitType = gameState.theUnitTypes[tokens[2]]
+        node.city.researching = True
 	node.city.researchUnitType = unitType
     @staticmethod
     def stopWaiting(args):
