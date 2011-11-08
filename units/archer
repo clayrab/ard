@@ -7,11 +7,13 @@
 "health":100,
 "canFly":0,
 "canSwim":0,
-"cost":100,
+"costGreen":100,
+"costBlue":10,
 "buildTime":10,
 "movementSpeedBonus":0,
 "armorBonus":1,
 "attackPowerBonus":1,
-"researchCost":80,
-"researchTime":90}
+"researchCostGreen":100,
+"researchCostBlue":40,
+"researchTime":100}
 

@@ -1,23 +1,4 @@
-texture name
-movement speed
-attack speed
-attack power
-armor
-range
-health
-can fly
-can swim
-cost
-build time
-movement speed bonus
-armor bonus
-attack power bonus
-research cost
-research time
-
-
-
-the units I deleted:
+xthe units I deleted:
 Deleting       units/black_mage
 Deleting       units/centaur
 Deleting       units/chocobo

@@ -1,6 +1,7 @@
-#change research logic
-
-#gathering/resources
+#research cost
+#build cost
+#research time
+#build time
 
 #timed moves
 

@@ -274,7 +274,7 @@ class actionViewer(uiElement):
 						if(self.node.unit != None and self.node.unit.unitType.name == "summoner"):
 							self.names.append(startResearchButton(-0.97,height+0.025,unitType,textureIndex=texIndex("ADD_BUTTON_SMALL"),width=texWidth("ADD_BUTTON_SMALL"),height=texHeight("ADD_BUTTON_SMALL")).name)
 						self.names.append(viewResearchButton(-0.94,height,unitType,self.node,text=unitType.name + " lvl " + str(self.node.city.researchProgress[unitType][0]+1),textSize=0.0005).name)
-						self.names.append(uiElement(-0.72,height,text=str(unitType.cost),textSize=0.0005).name)
+						self.names.append(uiElement(-0.72,height,text=str(unitType.costGreen),textSize=0.0005).name)
 						height = height - 0.04
 			self.names.append(uiElement(-0.88,-0.51,text="summon",textSize=0.0005).name)
 			self.names.append(viewUnitTypeButton(-0.94,-0.55,gameState.theUnitTypes["gatherer"],text="gatherer",textSize=0.0005).name)
@@ -460,9 +460,10 @@ class cityEditor(uiElement):
 		self.names.append(cityNameInputElement(-0.972,0.746,width=texWidth('UI_TEXT_INPUT_IMAGE'),height=texHeight('UI_TEXT_INPUT_IMAGE'),text=self.city.name,textSize=0.0005,textColor='00 00 00',textureIndex=texIndex('UI_TEXT_INPUT'),textYPos=-0.035,textXPos=0.01).name)
 		self.names.append(cityCostField(-0.972,0.66,width=texWidth('UI_TEXT_INPUT_IMAGE'),height=texHeight('UI_TEXT_INPUT_IMAGE'),text=str(self.city.costOfOwnership),textSize=0.0005,textColor='00 00 00',mouseOverColor='00 00 00',textureIndex=texIndex('UI_TEXT_INPUT'),textYPos=-0.035,textXPos=0.01).name)
 		height = 0.56
+		print self.city.unitTypes
 		for unitType in self.city.unitTypes:
 			self.names.append(uiElement(-0.95,height,text=unitType.name,textSize=0.0005).name)
-			self.names.append(uiElement(-0.75,height,text=str(unitType.cost),textSize=0.0005).name)
+			self.names.append(uiElement(-0.75,height,text=str(unitType.costGreen),textSize=0.0005).name)
 			if(unitType.name != "summoner" and unitType.name != "gatherer"):
 				self.names.append(removeUnitTypeButton(-0.97,height+0.03,unitType,textureIndex=texIndex("REMOVE_BUTTON_SMALL"),width=texWidth("REMOVE_BUTTON_SMALL"),height=texHeight("REMOVE_BUTTON_SMALL")).name)
 			height = height - 0.04
@@ -658,11 +659,12 @@ class cityCostSelector(scrollableTextFieldsElement):
 
 class unitCostSelector(scrollableTextFieldsElement):
 	def __init__(self,xPos,yPos,textFields,unitCostField,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,yPositionOffset=-0.04,yOffset=-0.041,numFields=25,scrollSpeed=1):
+		text="DELETEME"
 		scrollableTextFieldsElement.__init__(self,xPos,yPos,textFields,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,color=color,mouseOverColor=mouseOverColor)
 		self.unitCostField = unitCostField
 	def handleClick(self,textFieldElem):
 		self.unitCostField.text = textFieldElem.text
-		self.unitCostField.unitType.cost = int(textFieldElem.text)
+		self.unitCostField.unitType.costGreen = int(textFieldElem.text)
 		self.destroy()
 
 class startingManaSelector(scrollableTextFieldsElement):
@@ -672,7 +674,7 @@ class startingManaSelector(scrollableTextFieldsElement):
 	def handleClick(self,textFieldElem):
 		self.startingManaField.text = textFieldElem.text
 		#TODO: Save this data to the map and update save/load
-#		self.unitCostField.unitType.cost = int(textFieldElem.text)
+#		self.unitCostField.unitType.costGreen = int(textFieldElem.text)
 		self.destroy()
 
 class playerStartLocationButton(clickableElement):
@@ -700,12 +702,12 @@ class deleteCityButton(clickableElement):
 
 class addUnitTypeButton(clickableElement):	
 	def onClick(self):
-		unitTypes = gameState.theUnitTypes.copy()
+#		unitTypes = gameState.theUnitTypes.copy()
 #		del unitTypes["summoner"]
 #		del unitTypes[gameState.theUnitTypes["summo"]]
-		for unitType in cityEditor.theCityEditor.city.unitTypes:
-			del unitTypes[unitType.name]
-		unitTypeSelector(self.xPosition,self.yPosition-0.06,unitTypes.values(),text="select unit",textSize=0.0005,textureIndex=cDefines.defines['UI_SCROLLABLE_INDEX'],width=(2.0*cDefines.defines['UI_SCROLLABLE_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_SCROLLABLE_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']))
+#		for unitType in cityEditor.theCityEditor.city.unitTypes:
+#			del unitTypes[unitType.name]
+		unitTypeSelector(self.xPosition,self.yPosition-0.06,gameState.theUnitTypes.values(),text="select unit",textSize=0.0005,textureIndex=cDefines.defines['UI_SCROLLABLE_INDEX'],width=(2.0*cDefines.defines['UI_SCROLLABLE_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_SCROLLABLE_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']))
 
 class removeUnitTypeButton(clickableElement):
 	def __init__(self,xPos,yPos,unitType,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None):

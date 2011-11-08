@@ -14,7 +14,7 @@ class MODES:
 	SELECT_MODE = 2
 	GATHER_MODE = 3
 
-cityNames = ["Eshnunna","Tutub","Der","Sippar","Sippar-Amnanum","Kutha","Jemde Nasr","Kish","Babilim","Borsippa","Mashkan-shapir","Dilbat","Nippur","Marad","Adab","Isin","Kisurra","Shuruppak","Bad-tibira","Zabalam","Umma","Girsu","Lagash","Urum","Uruk","Larsa","Ur","Kuara","Eridu","Akshak","Akkad","Urfa","Shanidar cave","Urkesh","Shekhna","Arbid","Harran","Chagar Bazar","Kahat","el Fakhariya (Washukanni?)","Arslan Tash","Carchemish","Til Barsip","Nabada","Nagar","Telul eth-Thalathat","Tepe Gawra","Tell Arpachiyah","Shibaniba","Tarbisu","Ninua","Qatara","Dur Sharrukin","Tell Shemshara","Arbil","Imgur-Enlil","Nimrud","Emar","Arrapha","Kar-Tukulti-Ninurta","Ashur","Nuzi","al-Fakhar","Terqa","Mari","Haradum","Nerebtum","Agrab","Dur-Kurigalzu","Shaduppum","Seleucia","Ctesiphon","Zenobia","Zalabiye","Hasanlu","Takht-i-Suleiman","Behistun","Godin Tepe","Chogha Mish","Tepe Sialk","Susa","Kabnak","Dur Untash","Pasargadai","Naqsh-e Rustam","Parsa","Anshan","Konar Sandal","Tepe Yahya","Miletus","Sfard","Nicaea","Sapinuwa","Yazilikaya","Alaca Hoyuk","Masat Hoyuk","Hattusa","Ilios","Kanesh","Arslantepe","Sam'al","Beycesultan","Adana","Karatepe","Tarsus","Sultantepe","Attalia","Acre","Adoraim","Alalah","Aleppo","Al-Sinnabra","Aphek","Arad Rabbah","Ashdod","Ashkelon","Baalbek","Batroun","Beersheba","Beth Shean","Bet Shemesh","Bethany","Bet-el","Bezer","Byblos","Capernaum","Dan","Dimashq","Deir Alla","Dhiban","Dor","Ebla","En Gedi","Enfeh","Ekron","Et-Tell","Gath","Gezer","Gibeah","Gilgal Refaim","Gubla","Hamath","Hazor","Hebron","Herodion","Jezreel","Kadesh Barnea","Kedesh","Kumidi","Lachish","Megiddo","Qatna","Qumran","Rabat Amon","Samaria","Sarepta","Sharuhen","Shiloh","Sidon","Tadmor","Tirzah","Tyros","Ugarit","Umm el-Marra"]
+cityNames = ["Eshnunna","Tutub","Der","Sippar","Sippar-Amnanum","Kutha","Jemde Nasr","Kish","Babilim","Borsippa","Mashkan-shapir","Dilbat","Nippur","Marad","Adab","Isin","Kisurra","Shuruppak","Bad-tibira","Zabalam","Umma","Girsu","Lagash","Urum","Uruk","Larsa","Ur","Kuara","Eridu","Akshak","Akkad","Urfa","Shanidar cave","Urkesh","Shekhna","Arbid","Harran","Chagar Bazar","Kahat","El Fakhariya","Arslan Tash","Carchemish","Til Barsip","Nabada","Nagar","Telul eth-Thalathat","Tepe Gawra","Tell Arpachiyah","Shibaniba","Tarbisu","Ninua","Qatara","Dur Sharrukin","Tell Shemshara","Arbil","Imgur-Enlil","Nimrud","Emar","Arrapha","Kar-Tukulti-Ninurta","Ashur","Nuzi","al-Fakhar","Terqa","Mari","Haradum","Nerebtum","Agrab","Dur-Kurigalzu","Shaduppum","Seleucia","Ctesiphon","Zenobia","Zalabiye","Hasanlu","Takht-i-Suleiman","Behistun","Godin Tepe","Chogha Mish","Tepe Sialk","Susa","Kabnak","Dur Untash","Pasargadai","Naqsh-e Rustam","Parsa","Anshan","Konar Sandal","Tepe Yahya","Miletus","Sfard","Nicaea","Sapinuwa","Yazilikaya","Alaca Hoyuk","Masat Hoyuk","Hattusa","Ilios","Kanesh","Arslantepe","Sam'al","Beycesultan","Adana","Karatepe","Tarsus","Sultantepe","Attalia","Acre","Adoraim","Alalah","Aleppo","Al-Sinnabra","Aphek","Arad Rabbah","Ashdod","Ashkelon","Baalbek","Batroun","Beersheba","Beth Shean","Bet Shemesh","Bethany","Bet-el","Bezer","Byblos","Capernaum","Dan","Dimashq","Deir Alla","Dhiban","Dor","Ebla","En Gedi","Enfeh","Ekron","Et-Tell","Gath","Gezer","Gibeah","Gilgal Refaim","Gubla","Hamath","Hazor","Hebron","Herodion","Jezreel","Kadesh Barnea","Kedesh","Kumidi","Lachish","Megiddo","Qatna","Qumran","Rabat Amon","Samaria","Sarepta","Sharuhen","Shiloh","Sidon","Tadmor","Tirzah","Tyros","Ugarit","Umm el-Marra"]
 
 
 class Player:
@@ -24,7 +24,7 @@ class Player:
 		self.greenWood = 0
 		self.blueWood = 0
 class unitType:
-	def __init__(self,name,textureIndex,movementSpeed,attackSpeed,attackPower,armor,range,health,canFly,canSwim,cost,buildTime,movementSpeedBonus,armorBonus,attackPowerBonus,researchCost,researchTime):
+	def __init__(self,name,textureIndex,movementSpeed,attackSpeed,attackPower,armor,range,health,canFly,canSwim,costGreen,costBlue,buildTime,movementSpeedBonus,armorBonus,attackPowerBonus,researchCostGreen,researchCostBlue,researchTime):
 		self.name = name
 		self.textureIndex = textureIndex
 		self.movementSpeed = movementSpeed
@@ -35,12 +35,14 @@ class unitType:
 		self.health = health
 		self.canFly = canFly
 		self.canSwim = canSwim
-		self.cost = cost
+		self.costGreen = costGreen
+		self.costBlue = costBlue
 		self.buildTime = buildTime
 		self.movementSpeedBonus = movementSpeedBonus
 		self.armorBonus = armorBonus
 		self.attackPowerBonus = attackPowerBonus
-		self.researchCost = researchCost
+		self.researchCostGreen = researchCostGreen
+		self.researchCostBlue = researchCostBlue
 		self.researchTime = researchTime
 		if(self.name == "_archer"):
 			print self.name
@@ -126,13 +128,7 @@ class city:
 		for unitType in unitTypes:
 			self.researchProgress[unitType] = [0,0]
 		self.researching = False
-
 		self.researchUnitType = None
-#		self.researchLevel = 0
-#		self.researchProgress = 0
-
-
-
 		self.unitBeingBuilt = None
 		self.cancelledUnits = []
 		self.unitBuildQueue = []
@@ -474,8 +470,7 @@ class map:
 					if(len(tokens[2].strip()) != 0):
 						unitTypeStrings = tokens[2].strip().split(",")
 						for unitTypeString in unitTypeStrings:
-							unitTypeTokens = unitTypeString.split("|")
-							theUnitType = gameState.theUnitTypes[unitTypeTokens[0]]
+							theUnitType = gameState.theUnitTypes[unitTypeString]
 							unitTypes.append(theUnitType)
 					costOfOwnership = tokens[3]
 					self.nodes[int(coords[1])][int(coords[0])].city = city(cityName,self.nodes[int(coords[1])][int(coords[0])],unitTypes,costOfOwnership)
@@ -510,7 +505,8 @@ class map:
 				if(node.city != None):
 					unitTypes = ""
 					for unitType in node.city.unitTypes:
-						unitTypes = unitTypes + "," + unitType.name + "|" + str(unitType.cost)
+						if(unitType.name != "summoner" and unitType.name != "gatherer"):
+							unitTypes = unitTypes + "," + unitType.name
 					unitTypes = unitTypes[1:]
 					cityLines.append("*" + str(xPos-1) + "," + str(yPos-1) + ":" + node.city.name + ":" + unitTypes + ":" + str(node.city.costOfOwnership) + "\n")
 			nodeLines.append(line + "\n")
