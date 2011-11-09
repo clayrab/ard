@@ -1,7 +1,10 @@
-#save and resume games
 #fog of war
+
 #icons for each unit
-#icons for green and blue wood
+#save and resume games
+
+#cancel movement if any enemy is seen
+#limited time to move
 
 ############# PLAYABLE AT THIS POINT ##############
 
@@ -10,8 +13,7 @@
 #uiElements startingManaSelector???
 
 #polish:
-#cancel movement if any enemy is seen
-#limited time to move
+#icons for green and blue wood
 #some C optimization inside drawTile() and maybe draw()... make lists, reduce mallocs in draw loop, etc
 #make zoomspeed(in main.c) and focusspeed non-framerate dependant
 #show move speed and attack speed?
