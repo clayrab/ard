@@ -224,11 +224,11 @@ class playModeNode(node):
 		for node in playModeNode.movePath:
 			node.onMovePath = False
 		playModeNode.movePath = []
-		if(uiElements.unitViewer.theUnitViewer != None):
+		if(uiElements.unitViewer.theUnitViewer != None and gameState.getGameMode().getPlayerNumber() == gameState.getGameMode().nextUnit.player):
 			for node in uiElements.unitViewer.theUnitViewer.unit.movePath:
 				node.onMovePath = True
 			print gameState.getPlayerNumber()
-			if((gameState.getGameMode().nextUnit.player == gameState.getPlayerNumber() or gameState.getPlayerNumber() == -2) and (gameState.getGameMode().nextUnit == uiElements.unitViewer.theUnitViewer.unit) and (self.unit != None and playModeNode.isNeighbor and self.unit.player != uiElements.unitViewer.theUnitViewer.unit.player)):
+			if((gameState.getGameMode().nextUnit == uiElements.unitViewer.theUnitViewer.unit) and (self.unit != None and playModeNode.isNeighbor and self.unit.player != uiElements.unitViewer.theUnitViewer.unit.player)):
 				self.cursorIndex = cDefines.defines['CURSOR_ATTACK_INDEX']
 				playModeNode.mode = MODES.ATTACK_MODE
 			elif(uiElements.unitViewer.theUnitViewer.unit.unitType.name == "gatherer" and (self.tileValue == cDefines.defines['FOREST_TILE_INDEX'] or self.tileValue == cDefines.defines['BLUE_FOREST_TILE_INDEX']) and self.unit != uiElements.unitViewer.theUnitViewer.unit):
