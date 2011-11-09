@@ -227,6 +227,7 @@ class playModeNode(node):
 		if(uiElements.unitViewer.theUnitViewer != None):
 			for node in uiElements.unitViewer.theUnitViewer.unit.movePath:
 				node.onMovePath = True
+			print gameState.getPlayerNumber()
 			if((gameState.getGameMode().nextUnit.player == gameState.getPlayerNumber() or gameState.getPlayerNumber() == -2) and (gameState.getGameMode().nextUnit == uiElements.unitViewer.theUnitViewer.unit) and (self.unit != None and playModeNode.isNeighbor and self.unit.player != uiElements.unitViewer.theUnitViewer.unit.player)):
 				self.cursorIndex = cDefines.defines['CURSOR_ATTACK_INDEX']
 				playModeNode.mode = MODES.ATTACK_MODE
