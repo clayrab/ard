@@ -179,10 +179,6 @@ class Client:
         self.socket.connect((hostIP,8080))
         self.socket.setblocking(0)
         self.commandLog = []
-        ##################################################################
-        # all code related to delayedCommands is for testing the Undo/Redo
-        # commands and must be removed before shipping!!!
-        ##################################################################
         self.delayedCommands = []
     def sendDelayedCommands(self):
         for command in self.delayedCommands:
@@ -193,7 +189,6 @@ class Client:
             receivedData = self.socket.recv(1024)
         except:
             receivedData = ''
-        print receivedData
         for command in receivedData.split("|"):
             if(len(command) > 0):
                 tokens = command.split(" ",2)
@@ -202,7 +197,6 @@ class Client:
                         for command in self.commandLog:
                             doCommand(command[0]+"Undo",command[1])
                     doCommand("chooseNextUnit")
-                    self.sendDelayedCommands()
                     if(len(self.commandLog) > 0):
                         for command in self.commandLog:
                             doCommand(command[0]+"Redo",command[1])
@@ -224,11 +218,7 @@ class Client:
                 doCommand(command,argsString)
             else:
                 doCommand(command)
-        if(gameState.getPlayerNumber() == 1 and command == "startSummoning" and False):
-            print 'delaying ' + command
-            self.delayedCommands.append(command + " " + str(gameState.getPlayerNumber()) + " " + argsString + "|")
-        else:
-            self.socket.send(command + " " + str(gameState.getPlayerNumber()) + " " + argsString + "|")
+        self.socket.send(command + " " + str(gameState.getPlayerNumber()) + " " + argsString + "|")
 def startClient(hostIP):
     gameState.setClient(Client(hostIP))
 #    clientThread = ClientThread(hostIP)

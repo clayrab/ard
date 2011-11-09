@@ -280,17 +280,18 @@ class playMode(tiledGameMode):
 			self.shiftDown = False
 		if(hasattr(self.mousedOverObject,"onKeyUp")):
 			self.mousedOverObject.onKeyUp(keycode)
-
-	def onDraw(self):
-		index = gameState.getPlayerNumber()-1
+	def getPlayerNumber(self):#TODO: GET RID OF THIS ONCE AI IS DONE AND REPLACE WITH GAMESTATE VERSION
+		number = gameState.getPlayerNumber()
 		if(gameState.getPlayerNumber() == -2):
 			if(self.selectedNode != None and self.selectedNode.unit != None):
-				index = self.selectedNode.unit.player-1
+				number = self.selectedNode.unit.player
 			else:
-				index = self.nextUnit.player-1
-		self.greenWoodUIElem.text = str(self.players[index].greenWood)
-		self.blueWoodUIElem.text = str(self.players[index].blueWood)
-		
+				number = self.nextUnit.player
+		return number
+	def onDraw(self):
+		self.greenWoodUIElem.text = str(self.players[self.getPlayerNumber()-1].greenWood)
+		self.blueWoodUIElem.text = str(self.players[self.getPlayerNumber()-1].blueWood)
+		gameMode.onDraw(self)
 	def addUIElements(self):
 		if(gameState.getClient() == None):#single player game
 			server.startServer('')

@@ -17,7 +17,7 @@
 #
 #!
 #
-*21,1:Qumran:swordsman:10
+*21,1:Qumran:swordsman,archer:10
 
 *1,2:Bet-el:ogre:10
 
@@ -31,5 +31,5 @@
 
 *21,15:Bezer:ogre:10
 
-*1,16:Shibaniba:swordsman:10
+*1,16:Shibaniba:swordsman,archer:10
 
