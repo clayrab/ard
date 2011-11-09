@@ -253,48 +253,31 @@ class actionViewer(uiElement):
 				height = height - 0.04
 				if(len(node.city.unitBuildQueue) > 0):
 					self.names.append(cancelUnitButton(-0.972,height,text="cancel " + self.node.city.unitBuildQueue[-1].unitType.name,textSize=0.0005).name)
-				elif(node.city.unitBeingBuilt != None):
-					self.names.append(cancelUnitButton(-0.972,height,text="cancel " + self.node.city.unitBeingBuilt.unitType.name,textSize=0.0005).name)
-
-#			elif(not self.node.city.doneResearching):
 			else:
 				self.names.append(uiElement(-0.9,-0.19,text="research",textSize=0.0007).name)
 				height = -0.23
 				for unitType in self.node.city.unitTypes:
 					if(unitType.name != "summoner" and unitType.name != "gatherer"): 
-						if(self.node.unit != None and self.node.unit.unitType.name == "summoner"):
+						if(self.node.unit != None and self.node.unit.unitType.name == "summoner" and self.node.unit.player == gameState.getGameMode().getPlayerNumber() and gameState.getGameMode().players[gameState.getGameMode().getPlayerNumber()-1].greenWood >= unitType.researchCostGreen and gameState.getGameMode().players[gameState.getGameMode().getPlayerNumber()-1].blueWood >= unitType.researchCostBlue):
 							self.names.append(startResearchButton(-0.97,height+0.025,unitType,textureIndex=texIndex("ADD_BUTTON_SMALL"),width=texWidth("ADD_BUTTON_SMALL"),height=texHeight("ADD_BUTTON_SMALL")).name)
 						self.names.append(viewResearchButton(-0.94,height,unitType,self.node,text=unitType.name + " lvl " + str(self.node.city.researchProgress[unitType][0]+1),textSize=0.0005).name)
 						
-						self.names.append(uiElement(-0.9,height-0.04,text=str(unitType.researchCostGreen),textSize=0.0005).name)
-						self.names.append(uiElement(-0.8,height-0.04,text=str(unitType.researchCostBlue),textSize=0.0005).name)
+						self.names.append(uiElement(-0.93,height-0.04,text=str(unitType.researchCostGreen),textSize=0.0005).name)
+						self.names.append(uiElement(-0.83,height-0.04,text=str(unitType.researchCostBlue),textSize=0.0005).name)
+						self.names.append(uiElement(-0.73,height-0.04,text=str(unitType.researchTime),textSize=0.0005).name)
 						height = height - 0.08
 			self.names.append(uiElement(-0.9,-0.51,text="summon",textSize=0.0007).name)
-			self.names.append(viewUnitTypeButton(-0.94,-0.55,gameState.theUnitTypes["gatherer"],text="gatherer",textSize=0.0005).name)
-			self.names.append(uiElement(-0.9,-0.59,text=str(gameState.theUnitTypes["gatherer"].costGreen),textSize=0.0005).name)
-			self.names.append(uiElement(-0.8,-0.59,text=str(gameState.theUnitTypes["gatherer"].costBlue),textSize=0.0005).name)
-			if(self.node.unit != None and self.node.unit.unitType.name == "summoner" and self.node.unit.player == gameState.getGameMode().getPlayerNumber()):
-				
-				self.names.append(startSummoningButton(-0.97,-0.525,gameState.theUnitTypes["gatherer"],textureIndex=texIndex("ADD_BUTTON_SMALL"),width=texWidth("ADD_BUTTON_SMALL"),height=texHeight("ADD_BUTTON_SMALL")).name)
-
-			self.names.append(viewUnitTypeButton(-0.94,-0.63,gameState.theUnitTypes["summoner"],text="summoner",textSize=0.0005).name)
-			if(self.node.unit != None and self.node.unit.unitType.name == "summoner"):
-				self.names.append(startSummoningButton(-0.97,-0.605,gameState.theUnitTypes["summoner"],textureIndex=texIndex("ADD_BUTTON_SMALL"),width=texWidth("ADD_BUTTON_SMALL"),height=texHeight("ADD_BUTTON_SMALL")).name)
-				self.names.append(uiElement(-0.9,-0.67,text=str(gameState.theUnitTypes["summoner"].costGreen),textSize=0.0005).name)
-				self.names.append(uiElement(-0.8,-0.67,text=str(gameState.theUnitTypes["summoner"].costBlue),textSize=0.0005).name)
-				
-#			if(self.node.city.researchLevel > 0):
-			height = -0.71
+			height = -0.55
 			for unitType in self.node.city.researchProgress:
 				if(self.node.city.researchProgress[unitType][0] > 0):
 					
 					self.names.append(viewUnitTypeButton(-0.94,height,unitType,text=unitType.name + "(lvl " + str(self.node.city.researchProgress[unitType][0]) + ")",textSize=0.0005).name)
-					self.names.append(uiElement(-0.9,height-0.04,text=str(unitType.costGreen),textSize=0.0005).name)
-					self.names.append(uiElement(-0.8,height-0.04,text=str(unitType.costBlue),textSize=0.0005).name)
-					
-					if(self.node.unit != None and self.node.unit.unitType.name == "summoner"):
+					self.names.append(uiElement(-0.93,height-0.04,text=str(unitType.costGreen),textSize=0.0005).name)
+					self.names.append(uiElement(-0.83,height-0.04,text=str(unitType.costBlue),textSize=0.0005).name)
+					self.names.append(uiElement(-0.73,height-0.04,text=str(unitType.buildTime),textSize=0.0005).name)
+					if(self.node.unit != None and self.node.unit.unitType.name == "summoner" and self.node.unit.player == gameState.getGameMode().getPlayerNumber() and gameState.getGameMode().players[gameState.getGameMode().getPlayerNumber()-1].greenWood >= unitType.costGreen and gameState.getGameMode().players[gameState.getGameMode().getPlayerNumber()-1].blueWood >= unitType.costBlue):
 						self.names.append(startSummoningButton(-0.97,height+0.028,unitType,textureIndex=texIndex("ADD_BUTTON_SMALL"),width=texWidth("ADD_BUTTON_SMALL"),height=texHeight("ADD_BUTTON_SMALL")).name)
-				height = height - 0.08
+					height = height - 0.08
 
 			if(self.node.unit == gameState.getGameMode().nextUnit):
 				self.names.append(skipButton(-0.964,-0.89,text="skip",textSize=0.0005).name)
@@ -465,7 +448,6 @@ class cityEditor(uiElement):
 		self.names.append(cityNameInputElement(-0.972,0.746,width=texWidth('UI_TEXT_INPUT_IMAGE'),height=texHeight('UI_TEXT_INPUT_IMAGE'),text=self.city.name,textSize=0.0005,textColor='00 00 00',textureIndex=texIndex('UI_TEXT_INPUT'),textYPos=-0.035,textXPos=0.01).name)
 		self.names.append(cityCostField(-0.972,0.66,width=texWidth('UI_TEXT_INPUT_IMAGE'),height=texHeight('UI_TEXT_INPUT_IMAGE'),text=str(self.city.costOfOwnership),textSize=0.0005,textColor='00 00 00',mouseOverColor='00 00 00',textureIndex=texIndex('UI_TEXT_INPUT'),textYPos=-0.035,textXPos=0.01).name)
 		height = 0.56
-		print self.city.unitTypes
 		for unitType in self.city.unitTypes:
 			self.names.append(uiElement(-0.95,height,text=unitType.name,textSize=0.0005).name)
 			self.names.append(uiElement(-0.75,height,text=str(unitType.costGreen),textSize=0.0005).name)

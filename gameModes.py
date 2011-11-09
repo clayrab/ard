@@ -1,13 +1,7 @@
-#research cost
-#build cost
-#research time
-#build time
-
-#timed moves
-
 #save and resume games
 #fog of war
 #icons for each unit
+#icons for green and blue wood
 
 ############# PLAYABLE AT THIS POINT ##############
 
@@ -16,6 +10,8 @@
 #uiElements startingManaSelector???
 
 #polish:
+#cancel movement if any enemy is seen
+#limited time to move
 #some C optimization inside drawTile() and maybe draw()... make lists, reduce mallocs in draw loop, etc
 #make zoomspeed(in main.c) and focusspeed non-framerate dependant
 #show move speed and attack speed?
@@ -304,8 +300,8 @@ class playMode(tiledGameMode):
 		uiElements.uiElement(xPos=1.0-texWidth('UI_MAP_EDITOR_RIGHT_IMAGE'),yPos=1.0-texHeight('UI_MAP_EDITOR_TOP_IMAGE'),width=texWidth('UI_MAP_EDITOR_RIGHT_IMAGE'),height=texHeight('UI_MAP_EDITOR_RIGHT_IMAGE'),textureIndex=texIndex('UI_MAP_EDITOR_RIGHT'))
 		uiElements.uiElement(xPos=-1.0,yPos=-1.0+texHeight('UI_MAP_EDITOR_BOTTOM_IMAGE'),width=2.0,height=texHeight('UI_MAP_EDITOR_BOTTOM_IMAGE'),textureIndex=texIndex('UI_MAP_EDITOR_BOTTOM'))
 		self.players = gameState.getPlayers()
-		self.greenWoodUIElem = uiElements.uiElement(0.86,0.93,text=str(self.players[0].greenWood),textSize=0.0005)
-		self.blueWoodUIElem = uiElements.uiElement(0.92,0.93,text=str(self.players[0].blueWood),textSize=0.0005)
+		self.greenWoodUIElem = uiElements.uiElement(0.80,0.93,text=str(self.players[0].greenWood),textSize=0.0005)
+		self.blueWoodUIElem = uiElements.uiElement(0.90,0.93,text=str(self.players[0].blueWood),textSize=0.0005)
 		gameLogic.selectNode(self.nextUnit.node)
 
 class mapEditorMode(tiledGameMode):	

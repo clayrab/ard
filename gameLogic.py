@@ -5,8 +5,10 @@ import copy
 import uiElements
 import random
 
-researchBuildTime = 100
-unitBuildSpeed = 0.1
+#researchBuildTime = 100
+#unitBuildSpeed = 0.1
+startingGreenWood = 200
+startingBlueWood = 0
 
 class MODES:
 	MOVE_MODE = 0
@@ -21,8 +23,8 @@ class Player:
 	def __init__(self,playerNumber):
 		self.playerNumber = playerNumber
 		self.isOwnPlayer = False
-		self.greenWood = 0
-		self.blueWood = 0
+		self.greenWood = startingGreenWood
+		self.blueWood = startingBlueWood
 class unitType:
 	def __init__(self,name,textureIndex,movementSpeed,attackSpeed,attackPower,armor,range,health,canFly,canSwim,costGreen,costBlue,buildTime,movementSpeedBonus,armorBonus,attackPowerBonus,researchCostGreen,researchCostBlue,researchTime):
 		self.name = name
@@ -124,9 +126,12 @@ class city:
 		self.unitTypes.append(gameState.theUnitTypes["summoner"])
 		self.unitTypes.append(gameState.theUnitTypes["gatherer"])	
 		self.unitTypes.extend(unitTypes)
+		print unitTypes
 		self.researchProgress = {}
 		for unitType in unitTypes:
 			self.researchProgress[unitType] = [0,0]
+		self.researchProgress[gameState.theUnitTypes["summoner"]] = [1,0]
+		self.researchProgress[gameState.theUnitTypes["gatherer"]] = [1,0]
 		self.researching = False
 		self.researchUnitType = None
 		self.unitBeingBuilt = None
@@ -152,16 +157,15 @@ class city:
 		if(self.node.unit != None and self.node.unit.unitType.name == "summoner"):
 			if(self.researching):
 				if(self.researchUnitType != None):
-					researchTuple = self.researchProgress[self.researchUnitType]
-					researchTuple[1] = researchTuple[1] + 1
-					if(researchTuple[1] >= researchBuildTime):
-						researchTuple[0] = researchTuple[0] + 1
-						researchTuple[1] = 0
+					self.researchProgress[self.researchUnitType][1] = self.researchProgress[self.researchUnitType][1] + 1
+					if(self.researchProgress[self.researchUnitType][1] >= self.researchUnitType.researchTime):
+						self.researchProgress[self.researchUnitType][0] = self.researchProgress[self.researchUnitType][0] + 1
+						self.researchProgress[self.researchUnitType][1] = 0
 						self.node.unit.waiting = False#wake up summoner
 						self.researching = False
 			else:
 				if(self.unitBeingBuilt != None):
-					self.unitBeingBuilt.buildPoints = self.unitBeingBuilt.buildPoints - unitBuildSpeed
+					self.unitBeingBuilt.buildPoints = self.unitBeingBuilt.buildPoints - 1
 					if(self.unitBeingBuilt.buildPoints <= 0.0):
 						self.node.addUnit(self.unitBeingBuilt)
 						self.unitBeingBuilt = None
@@ -227,7 +231,6 @@ class playModeNode(node):
 		if(uiElements.unitViewer.theUnitViewer != None and gameState.getGameMode().getPlayerNumber() == gameState.getGameMode().nextUnit.player):
 			for node in uiElements.unitViewer.theUnitViewer.unit.movePath:
 				node.onMovePath = True
-			print gameState.getPlayerNumber()
 			if((gameState.getGameMode().nextUnit == uiElements.unitViewer.theUnitViewer.unit) and (self.unit != None and playModeNode.isNeighbor and self.unit.player != uiElements.unitViewer.theUnitViewer.unit.player)):
 				self.cursorIndex = cDefines.defines['CURSOR_ATTACK_INDEX']
 				playModeNode.mode = MODES.ATTACK_MODE

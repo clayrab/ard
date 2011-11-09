@@ -9,11 +9,11 @@
 "canSwim":0,
 "costGreen":100,
 "costBlue":10,
-"buildTime":10,
+"buildTime":15,
 "movementSpeedBonus":0,
 "armorBonus":1,
 "attackPowerBonus":1,
 "researchCostGreen":100,
 "researchCostBlue":40,
-"researchTime":100}
+"researchTime":70}
 
