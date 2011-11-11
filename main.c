@@ -227,7 +227,6 @@
 
 #define BUFSIZE 512
 
-
 float screenRatio;
 static SDL_Surface *gScreen;
 
@@ -285,13 +284,6 @@ char unitNames[MAX_UNITS][MAX_UNIT_NAME_LENGTH];
 int unitNamesCount = 0;
 
 GLuint tilesTexture;
-/*GLuint uiTexture;
-GLuint uiTopTexture;
-GLuint uiBottomTexture;
-GLuint tileSelectBoxTexture;
-GLuint cursorPointerTexture;
-GLuint cursorHandTexture;
-*/
 GLdouble mouseMapPosX, mouseMapPosY, mouseMapPosZ;
 GLdouble mouseMapPosXPrevious, mouseMapPosYPrevious, mouseMapPosZPrevious = -initZoom;
 
@@ -302,7 +294,6 @@ int selectedName = -1;//the mousedover object's 'name'
 int previousClickedName = -2;
 int previousMousedoverName = -2;
 int theCursorIndex = -1;
-
 
 float desertVertices[6][2] = {
   {(699.0/1280),1.0-(66.0/1280)},
@@ -336,7 +327,6 @@ float grassVertices[6][2] = {
   {(754.0/1280),1.0-(360.0/1280)},
   {(726.0/1280),1.0-(376.0/1280)}
 };
-
 float mountainVertices[6][2] = {
   {(699.0/1280),1.0-(556.0/1280)},
   {(699.0/1280),1.0-(524.0/1280)},
@@ -378,8 +368,6 @@ float playerStartVertices[6][2] = {
   {(610.0/1280),1.0-(572.0/1280)}
 };
 float * vertexArrays[9];
-
-
 
 float hexagonVertices[6][2] = {
   //cheated these all out by 0.01 so the black background doesn't bleed through
@@ -483,8 +471,6 @@ void convertWindowCoordsToViewportCoords(int x, int y, float z, GLdouble* posX, 
 /**************************** /mouse hover object selection ********************************/
 
 /************************************* drawing subroutines ***************************************/
-
-
 float translateTilesXToPositionX(int tileX,int tileY,long mapPolarity){
   //return (float)tilesX*-(1.9*SIN60);
   float returnVal = (float)tileX*-(2.0*SIN60);
@@ -497,29 +483,32 @@ float translateTilesYToPositionY(int tileY){
     //return (float)tileY*1.4;
     return (float)tileY*1.5;
 }
-void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long roadValue,char * cityName,long isSelected, long isOnMovePath, long mapPolarity,long playerStartValue,PyObject * pyUnit, int isNextUnit, long cursorIndex){
+void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long roadValue,char * cityName,long isSelected, long isOnMovePath, long isVisible, long mapPolarity,long playerStartValue,PyObject * pyUnit, int isNextUnit, long cursorIndex){
   float xPosition = translateTilesXToPositionX(tilesXIndex,tilesYIndex,mapPolarity);
   float yPosition = translateTilesYToPositionY(tilesYIndex);
   textureVertices = vertexArrays[tileValue];
+  float shading = 1.0;
+  if(!isVisible){
+    shading = shading - 0.5;
+  }
   if(name == selectedName){
-    glColor3f(0.8f, 0.8f, 0.8f);
+    shading = shading - 0.1;
     if(cursorIndex >= 0){
       theCursorIndex = (int)cursorIndex;
     }
-  }else{
-    glColor3f(1.0f, 1.0f, 1.0f);
   }
+  //else{
+  //  glColor3f(1.0f, 1.0f, 1.0f);
+  //}
   if(isSelected == 1){
-    glColor3f(0.6f, 0.6f, 0.6f);    
+    shading = shading - 0.1;
   }
   if(isNextUnit == 1){
-    glColor3f(0.3f, 0.3f, 0.3f);
+    shading = shading - 0.2;
     focusXPos = xPosition;
     focusYPos = yPosition;
   }
-  if(isSelected == 1 && isNextUnit == 1){
-    glColor3f(0.2f, 0.2f, 0.2f);    
-  }
+  glColor3f(shading,shading,shading);
   glPushName(name);	
   glBegin(GL_POLYGON);
   glTexCoord2f(*(textureVertices+0),*(textureVertices+1)); glVertex3f(hexagonVertices[0][0]+xPosition, hexagonVertices[0][1]+yPosition, 0.0);
@@ -530,8 +519,6 @@ void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long 
   glTexCoord2f(*(textureVertices+10),*(textureVertices+11)); glVertex3f(hexagonVertices[5][0]+xPosition, hexagonVertices[5][1]+yPosition, 0.0);
   glEnd();
   glPopName();
-
-
   if(roadValue == 1){
     textureVertices = vertexArrays[ROAD_TILE_INDEX];
     glBegin(GL_POLYGON);
@@ -573,7 +560,6 @@ void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long 
     glTexCoord2f(*(textureVertices+8),*(textureVertices+9)); glVertex3f(hexagonVertices[4][0]+xPosition, hexagonVertices[4][1]+yPosition, 0.0);
     glTexCoord2f(*(textureVertices+10),*(textureVertices+11)); glVertex3f(hexagonVertices[5][0]+xPosition, hexagonVertices[5][1]+yPosition, 0.0);
     glEnd();
-
     char playerStartVal[2];
     sprintf(playerStartVal,"%ld",playerStartValue);
     glColor3f(1.0,1.0,1.0);
@@ -584,9 +570,8 @@ void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long 
     drawText(playerStartVal);
     glPopMatrix();
   }
-  
 
-  if(pyUnit != NULL && pyUnit != Py_None){
+  if(pyUnit != NULL && pyUnit != Py_None && isVisible){
       PyObject * pyUnitType = PyObject_GetAttrString(pyUnit,"unitType");
       PyObject * pyUnitTextureIndex = PyObject_GetAttrString(pyUnitType,"textureIndex");
       PyObject * pyName = PyObject_GetAttrString(pyUnitType,"name");
@@ -731,6 +716,7 @@ void drawTiles(){
       PyObject * pyUnit = PyObject_GetAttrString(node,"unit");
       PyObject * pyIsSelected = PyObject_GetAttrString(node,"selected");//New reference
       PyObject * pyIsOnMovePath = PyObject_GetAttrString(node,"onMovePath");//New reference
+      PyObject * pyIsVisible = PyObject_GetAttrString(node,"visible");//New reference
       long longName = PyLong_AsLong(nodeName);
       long longValue = PyLong_AsLong(nodeValue);
       long longRoadValue = PyLong_AsLong(roadValue);
@@ -755,6 +741,7 @@ void drawTiles(){
       long playerStartValue = PyLong_AsLong(pyPlayerStartValue);
       long isSelected = PyLong_AsLong(pyIsSelected);
       long isOnMovePath = PyLong_AsLong(pyIsOnMovePath);
+      long isVisible = PyLong_AsLong(pyIsVisible);
 
       Py_DECREF(nodeName);
       Py_DECREF(nodeValue);
@@ -763,8 +750,10 @@ void drawTiles(){
       Py_DECREF(pyCursorIndex);
       Py_DECREF(pyPlayerStartValue);
       Py_DECREF(pyIsSelected);
+      Py_DECREF(pyIsOnMovePath);
+      Py_DECREF(pyIsVisible);
       Py_DECREF(node);
-      drawTile(colNumber,rowNumber,longName,longValue,longRoadValue,cityName,isSelected,isOnMovePath,longPolarity,playerStartValue,pyUnit,isNextUnit,cursorIndex);
+      drawTile(colNumber,rowNumber,longName,longValue,longRoadValue,cityName,isSelected,isOnMovePath,isVisible,longPolarity,playerStartValue,pyUnit,isNextUnit,cursorIndex);
       Py_DECREF(pyUnit);
       colNumber = colNumber - 1;
     }
@@ -1057,14 +1046,10 @@ void drawUI(){
     drawText(frameRate);
     glPopMatrix();
   }
-  
-
-
 }
 /************************************* /drawing subroutines ***************************************/
 
 /************************************** opengl init **************************************/
-
 static void initGL (){
   /** needs to be called on screen resize **/
   //unneeded with sdl?
@@ -1135,7 +1120,6 @@ static void initGL (){
   vertexArrays[PLAYER_START_TILE_INDEX] = *playerStartVertices;
   
   screenRatio = (GLfloat)SCREEN_WIDTH/(GLfloat)SCREEN_HEIGHT;
-  
 }
 static void initPython(){
   //http://docs.python.org/release/2.6.6/c-api/index.html
@@ -1236,7 +1220,6 @@ static void handleInput(){
 	       || event.key.keysym.sym == 304//leftshift
 	       || (event.key.keysym.sym >= 273 && event.key.keysym.sym <= 276)//arrow keys
 	       ){
-
 	if((event.key.keysym.mod & KMOD_CAPS | event.key.keysym.mod & KMOD_LSHIFT | event.key.keysym.mod & KMOD_RSHIFT) && (event.key.keysym.sym > 0x60 && event.key.keysym.sym <= 0x7A)){
 	  char * key = SDL_GetKeyName(event.key.keysym.sym);
 	  char capsKey[2];

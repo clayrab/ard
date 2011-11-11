@@ -88,6 +88,10 @@ class unit:
 			gameState.getClient().sendCommand("chooseNextUnit")
 	def moveTo(self,node):
 		node.onMovePath = False
+		for neighb in self.node.getNeighbors(5):
+			neighb.stopViewing(self)
+		for neighb in node.getNeighbors(5):
+			neighb.startViewing(self)
 		if(node.unit != None and self.node != node):
 			if(node.unit.player == self.player):
 				if(len(self.movePath) > 0):
@@ -209,6 +213,15 @@ class playModeNode(node):
 		self.aStarKnownCost = 0.0
 		self.aStarHeuristicCost = 0.0
 		self.aStarParent = None
+		self.visible = False
+		self.viewingUnits = []
+	def startViewing(self,unit):
+		self.viewingUnits.append(unit)
+		self.visible = True
+	def stopViewing(self,unit):
+		self.viewingUnits.remove(unit)
+		if(len(self.viewingUnits) <= 0):
+			self.visible = False
 	def onLeftClickDown(self):
 		if(playModeNode.mode == MODES.ATTACK_MODE):
 			gameState.getGameMode().nextUnit.attack(self)
@@ -250,15 +263,25 @@ class playModeNode(node):
 		else:
 			self.cursorIndex = -1
 			playModeNode.mode = MODES.SELECT_MODE			
+	def getNeighbors(self,distance):
+		neighbs = []
+		for xDelta in range(0-distance,distance):
+			for yDelta in range(0-distance,distance):
+				if((self.yPos + yDelta >= 0) and (self.yPos + yDelta < len(gameState.getGameMode().map.nodes))):
+					if((self.xPos + xDelta >= 0) and (self.xPos + xDelta < len(gameState.getGameMode().map.nodes[self.yPos + yDelta]))):
+						if(self.findDistance(gameState.getGameMode().map.nodes[self.yPos + yDelta][self.xPos + xDelta]) < 5.0):
+							neighbs.append(gameState.getGameMode().map.nodes[self.yPos + yDelta][self.xPos + xDelta])
+		return neighbs
 	def aStarSearch(self):
 		#start at end point so we can just track back and insert into an array in order
 		self.findAStarHeuristicCost(uiElements.unitViewer.theUnitViewer.unit.node)
 		playModeNode.openNodes.append(self)
 		playModeNode.aStarSearchRecurse(uiElements.unitViewer.theUnitViewer.unit.node)
 	def findAStarHeuristicCost(self,target):
-		#This is just a heuristic that guesses the cost to the target by assuming everything is grass
 		#current 'heuristic' is just the distance assuming everything is grass
 		#I might want to change this to assume that everything is mountain... or somewhere in between... gotta think about it.
+		self.aStarHeuristicCost = self.findDistance(target)
+	def findDistance(self,target):
 		#'even row' means map polarity = 0 and row # is even OR map polarity = 0 and row # is odd...
 		#polarity 0 means 'even' rows are to the left
 		#polarity 1 means 'even' rows are to the right
@@ -266,24 +289,24 @@ class playModeNode(node):
 		#if moving from even to odd row right gives you free x at 3,5,7...
 		#if moving from odd to even row right gives you free x at 1,3,5...
 		#if moving from odd to even row left gives you free x at 3,5,7...
-		heuristicCost = float(abs(self.xPos - target.xPos))
+		distance = float(abs(self.xPos - target.xPos))
 		if(abs(self.yPos-target.yPos)%2 == 1):#one row is even, other is odd...
 			if(self.yPos%2 == gameState.getGameMode().map.polarity):#self is even...
 				if(self.xPos > target.xPos):
-					heuristicCost = heuristicCost - (abs(self.yPos-target.yPos)+1)/2
+					distance = distance - (abs(self.yPos-target.yPos))/2
 				else:
-					heuristicCost = heuristicCost - (abs(self.yPos-target.yPos)-1)/2
+					distance = distance - (abs(self.yPos-target.yPos)+1)/2
 			else:#self is odd
 				if(self.xPos > target.xPos):
-					heuristicCost = heuristicCost - (abs(self.yPos-target.yPos)-1)/2
+					distance = distance - (abs(self.yPos-target.yPos)+1)/2
 				else:
-					heuristicCost = heuristicCost - (abs(self.yPos-target.yPos)+1)/2
+					distance = distance - (abs(self.yPos-target.yPos))/2
 		else:
-			heuristicCost = heuristicCost - abs(self.yPos-target.yPos)/2
-		if(heuristicCost < 0.0):
-			heuristicCost = 0.0
-		heuristicCost = heuristicCost + abs(self.yPos - target.yPos)
-		self.aStarHeuristicCost = heuristicCost
+			distance = distance - abs(self.yPos-target.yPos)/2
+		if(distance < 0.0):
+			distance = 0.0
+		distance = distance + abs(self.yPos - target.yPos)
+		return distance
 	@staticmethod
 	def aStarSearchRecurse(target,count=0):
 		#TODO: remove count from here since it's really just for debugging purposes...

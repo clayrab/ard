@@ -245,6 +245,8 @@ class playMode(tiledGameMode):
 				columnCount = columnCount + 1
 				if(node.playerStartValue != 0):
 					node.addUnit(gameLogic.unit(gameState.theUnitTypes["summoner"],node.playerStartValue,1,rowCount,columnCount,node))
+					for neighb in node.getNeighbors(5):
+						neighb.startViewing(node.unit)
 					if(node.city != None):
 						node.city.player = node.playerStartValue
 	def handleKeyDown(self,keycode):
