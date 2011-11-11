@@ -245,6 +245,8 @@ class playMode(tiledGameMode):
 				columnCount = columnCount + 1
 				if(node.playerStartValue != 0):
 					node.addUnit(gameLogic.unit(gameState.theUnitTypes["summoner"],node.playerStartValue,1,rowCount,columnCount,node))
+					print gameState.getPlayerNumber()
+					print self.node.isOwnUnit
 					for neighb in node.getNeighbors(5):
 						neighb.startViewing(node.unit)
 					if(node.city != None):
