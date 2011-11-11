@@ -227,8 +227,10 @@ class playModeNode(node):
 				self.visible = False
 	def onLeftClickDown(self):
 		if(playModeNode.mode == MODES.ATTACK_MODE):
+			gameState.getGameMode().nextUnit.waiting = False
 			gameState.getGameMode().nextUnit.attack(self)
 		elif(playModeNode.mode == MODES.MOVE_MODE or playModeNode.mode == MODES.GATHER_MODE):
+			gameState.getGameMode().nextUnit.waiting = False
 			if(playModeNode.mode == MODES.GATHER_MODE):
 				uiElements.unitViewer.theUnitViewer.unit.gatheringNode = self
 			if(uiElements.unitViewer.theUnitViewer.unit == gameState.getGameMode().nextUnit):

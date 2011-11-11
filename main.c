@@ -18,7 +18,7 @@
 #include "libpngGL.h"
 #include "fonts.h"
 
-#define maxZoom 50.0
+#define maxZoom 35.0
 #define minZoom 10.0
 #define initZoom 30.0
 
@@ -206,6 +206,16 @@
 #define CURSOR_GATHER_IMAGE "assets/cursors/gatherCursor.png"
 #define CURSOR_GATHER_INDEX 37
 
+#define ARCHER_IMAGE "assets/archer.png"
+#define ARCHER_IMAGE_HEIGHT 88
+#define ARCHER_IMAGE_WIDTH 51
+#define ARCHER_INDEX 38
+
+#define SWORDSMAN_IMAGE "assets/swordsman.png"
+#define SWORDSMAN_IMAGE_HEIGHT 100
+#define SWORDSMAN_IMAGE_WIDTH 70
+#define SWORDSMAN_INDEX 39
+
 #define DESERT_TILE_INDEX 0
 #define GRASS_TILE_INDEX 1
 #define MOUNTAIN_TILE_INDEX 2
@@ -273,16 +283,16 @@ long mapHeight;
 #define MAX_UNITS 400
 #define MAX_UNIT_NAME_LENGTH 50
 
-float cityNamesXs[MAX_CITIES];
+/*float cityNamesXs[MAX_CITIES];
 float cityNamesYs[MAX_CITIES];
 char cityNames[MAX_CITIES][MAX_CITY_NAME_LENGTH];
 int cityNamesCount = 0;
-
-float unitNamesXs[MAX_UNITS];
+*/
+/*float unitNamesXs[MAX_UNITS];
 float unitNamesYs[MAX_UNITS];
 char unitNames[MAX_UNITS][MAX_UNIT_NAME_LENGTH];
 int unitNamesCount = 0;
-
+*/
 GLuint tilesTexture;
 GLdouble mouseMapPosX, mouseMapPosY, mouseMapPosZ;
 GLdouble mouseMapPosXPrevious, mouseMapPosYPrevious, mouseMapPosZPrevious = -initZoom;
@@ -413,17 +423,17 @@ static void printAttributes (){
     printf (desc[i], value);
   } 
 }
-static void createSurface(int fullscreen){//DEPRECATED
+/*static void createSurface(){//DEPRECATED
   Uint32 flags = 0;
   flags = SDL_OPENGL;
   if(fullscreen)
-    flags |= SDL_FULLSCREEN;
+    //  flags |= SDL_FULLSCREEN;
   gScreen = SDL_SetVideoMode (SCREEN_WIDTH, SCREEN_HEIGHT, 0, flags);
   if (gScreen == NULL) {
     fprintf (stderr, "Couldn't set OpenGL video mode: %s\n",
 	     SDL_GetError());
   }
-}
+  }*/
 /****************************** /SDL STUFF ********************************/
 
 /**************************** mouse hover object selection ********************************/
@@ -542,11 +552,11 @@ void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long 
     glTexCoord2f(*(textureVertices+10),*(textureVertices+11)); glVertex3f(hexagonVertices[5][0]+xPosition, hexagonVertices[5][1]+yPosition, 0.0);
     glEnd();
 
-    cityNamesXs[cityNamesCount] = xPosition;
+    /*    cityNamesXs[cityNamesCount] = xPosition;
     cityNamesYs[cityNamesCount] = yPosition;
     strcpy(cityNames[cityNamesCount],cityName);
     cityNamesCount = cityNamesCount + 1;
-
+    */
   }
 
   PyObject * playableMode = PyObject_GetAttrString(gameMode, "units");//if the mode has units, it's playable
@@ -580,6 +590,7 @@ void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long 
       PyObject * pyMaxHealth = PyObject_GetAttrString(pyUnitType,"health");
       PyObject * pyPlayerNumber = PyObject_GetAttrString(pyUnit,"player");
       long playerNumber = PyLong_AsLong(pyPlayerNumber);
+      long unitTextureIndex = PyLong_AsLong(pyUnitTextureIndex);
       float healthBarLength = 1.5*PyLong_AsLong(pyHealth)/PyLong_AsLong(pyMaxHealth);
 
       glColor3f(255.0, 255.0, 255.0);
@@ -596,47 +607,47 @@ void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long 
       glVertex3f(xPosition-0.7, yPosition+0.7, 0.0);
       glEnd();
 
-      glBindTexture(GL_TEXTURE_2D, texturesArray[MEEPLE_INDEX]);
+      glBindTexture(GL_TEXTURE_2D, texturesArray[unitTextureIndex]);
       glBegin(GL_QUADS);
       glTexCoord2f(0.0,0.0);
-      glVertex3f(xPosition-0.5, yPosition-0.5, 0.0);
+      glVertex3f(xPosition-0.5, yPosition-0.715, 0.0);
       glTexCoord2f(1.0,0.0);
-      glVertex3f(xPosition+0.5, yPosition-0.5, 0.0);
+      glVertex3f(xPosition+0.5, yPosition-0.715, 0.0);
       glTexCoord2f(1.0,1.0);
-      glVertex3f(xPosition+0.5, yPosition+0.5, 0.0);
+      glVertex3f(xPosition+0.5, yPosition+0.715, 0.0);
       glTexCoord2f(0.0,1.0);
-      glVertex3f(xPosition-0.5, yPosition+0.5, 0.0);
+      glVertex3f(xPosition-0.5, yPosition+0.715, 0.0);
       glEnd();
 
       glBindTexture(GL_TEXTURE_2D, texturesArray[HEALTH_BAR_INDEX]);
       glBegin(GL_QUADS);
       glTexCoord2f(0.0,0.0);
-      glVertex3f(xPosition-.75, yPosition-0.2, 0.0);
+      glVertex3f(xPosition-.75, yPosition+1.05, 0.001);
       glTexCoord2f(1.0,0.0);
-      glVertex3f(xPosition+.75, yPosition-0.2, 0.0);
+      glVertex3f(xPosition+.75, yPosition+1.05, 0.001);
       glTexCoord2f(1.0,1.0);
-      glVertex3f(xPosition+.75, yPosition-0.5, 0.0);
+      glVertex3f(xPosition+.75, yPosition+0.85, 0.001);
       glTexCoord2f(0.0,1.0);
-      glVertex3f(xPosition-.75, yPosition-0.5, 0.0);
+      glVertex3f(xPosition-.75, yPosition+0.85, 0.001);
       glEnd();
  
       glBegin(GL_QUADS);
       glColor3f(255.0, 0.0, 0.0);
       glTexCoord2f(0.0,0.0);
-      glVertex3f(xPosition-.75, yPosition-0.2, 0.0);
+      glVertex3f(xPosition-.75, yPosition+1.05, 0.001);
       glTexCoord2f(1.0,0.0);
-      glVertex3f(xPosition-.75+healthBarLength, yPosition-0.2, 0.0);
+      glVertex3f(xPosition-.75+healthBarLength, yPosition+1.05, 0.001);
       glTexCoord2f(1.0,1.0);
-      glVertex3f(xPosition-.75+healthBarLength, yPosition-0.5, 0.0);
+      glVertex3f(xPosition-.75+healthBarLength, yPosition+0.85, 0.001);
       glTexCoord2f(0.0,1.0);
-      glVertex3f(xPosition-.75, yPosition-0.5, 0.0);
+      glVertex3f(xPosition-.75, yPosition+0.85, 0.001);
       glEnd();
 
-      unitNamesXs[unitNamesCount] = xPosition+1.0;
+      /*      unitNamesXs[unitNamesCount] = xPosition+1.0;
       unitNamesYs[unitNamesCount] = yPosition-1.3;
       strcpy(unitNames[unitNamesCount],unitName);
       unitNamesCount = unitNamesCount + 1;
-      
+      */
       Py_DECREF(pyUnitType);
       Py_DECREF(pyUnitTextureIndex);
       Py_DECREF(pyName);
@@ -658,7 +669,7 @@ void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long 
   }
 }
 void drawTilesText(){
-  int i,j,cityNameLength,unitNameLength = 0;
+  /*  int i,j,cityNameLength,unitNameLength = 0;
   for(i=0; i<cityNamesCount; i++){
     for(j=0; j<MAX_CITY_NAME_LENGTH; j++){
       if(cityNames[i][j] == 0){
@@ -668,13 +679,13 @@ void drawTilesText(){
     }
     glColor3f(1.0,1.0,1.0);
     glPushMatrix();
-    glTranslatef(cityNamesXs[i]-(0.3*j),cityNamesYs[i]+0.5,0.0);
-    glScalef(0.02,0.02,0.0);
+    glTranslatef(cityNamesXs[i]-(0.18*cityNameLength),cityNamesYs[i]+0.5,0.0);
+    glScalef(0.010,0.010,0.0);
     drawText(cityNames[i]);
     glPopMatrix();
   }
-  cityNamesCount = 0;
-  for(i=0; i<unitNamesCount; i++){
+  cityNamesCount = 0;*/
+  /*  for(i=0; i<unitNamesCount; i++){
     for(j=0; j<MAX_UNIT_NAME_LENGTH; j++){
       if(unitNames[i][j] == 0){
 	unitNameLength = j;
@@ -688,7 +699,7 @@ void drawTilesText(){
     drawText(unitNames[i]);
     glPopMatrix();
   }
-  unitNamesCount = 0;
+  unitNamesCount = 0;*/
 }
 void drawTiles(){
   
@@ -721,15 +732,12 @@ void drawTiles(){
       long longValue = PyLong_AsLong(nodeValue);
       long longRoadValue = PyLong_AsLong(roadValue);
       long cursorIndex = PyLong_AsLong(pyCursorIndex);
-      long longCityValue = 0;
       PyObject * pyCityName;
-      char * cityName = "";
+      char * cityName = "";//TODO: REMOVE ME
       if(pyCity != Py_None){
 	pyCityName = PyObject_GetAttrString(pyCity,"name");
 	cityName = PyString_AsString(pyCityName);
-	longCityValue = 1;
       }
-
       int isNextUnit = 0;
       PyObject * nextUnit = PyObject_GetAttrString(gameMode,"nextUnit");
       PyObject * unit = PyObject_GetAttrString(node,"unit");
@@ -1068,7 +1076,7 @@ static void initGL (){
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);     
   glClear(GL_COLOR_BUFFER_BIT);
-  glDepthFunc(GL_ALWAYS);
+  glDepthFunc(GL_LEQUAL);
 
   char file[100] = TILES_IMAGE;
 
@@ -1110,6 +1118,8 @@ static void initGL (){
   pngLoad(&texturesArray[UNIT_CIRCLE_BROWN_INDEX],UNIT_CIRCLE_BROWN_IMAGE);
   pngLoad(&texturesArray[CURSOR_ATTACK_INDEX],CURSOR_ATTACK_IMAGE);
   pngLoad(&texturesArray[CURSOR_GATHER_INDEX],CURSOR_GATHER_IMAGE);
+  pngLoad(&texturesArray[ARCHER_INDEX],ARCHER_IMAGE);
+  pngLoad(&texturesArray[SWORDSMAN_INDEX],SWORDSMAN_IMAGE);
 
   vertexArrays[DESERT_TILE_INDEX] = *desertVertices;
   vertexArrays[GRASS_TILE_INDEX] = *grassVertices;
