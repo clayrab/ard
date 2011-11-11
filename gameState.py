@@ -35,6 +35,8 @@ def setGameMode(gameModeType):
     if(hasattr(theGameMode,"loadMap")):
         theGameMode.loadMap()
     theGameMode.addUIElements()
+    if(hasattr(theGameMode,"startGame")):
+        theGameMode.startGame()
 def getGameMode():
     global theGameMode
     return theGameMode

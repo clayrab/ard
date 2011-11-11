@@ -733,10 +733,12 @@ void drawTiles(){
       int isNextUnit = 0;
       PyObject * nextUnit = PyObject_GetAttrString(gameMode,"nextUnit");
       PyObject * unit = PyObject_GetAttrString(node,"unit");
-      if(unit != Py_None){
-	if(unit == nextUnit){
+      PyObject * pyPlayerNumber = PyObject_CallMethod(gameState,"getPlayerNumber",NULL);//New reference
+      PyObject * pyUnitPlayer = PyObject_GetAttrString(unit,"player");
+      long playerNumber = PyLong_AsLong(pyPlayerNumber);
+      long unitPlayer = PyLong_AsLong(pyUnitPlayer);
+      if(unit != Py_None && unit == nextUnit && (playerNumber == unitPlayer || playerNumber == -2)){
 	  isNextUnit = 1;
-	}
       }
       long playerStartValue = PyLong_AsLong(pyPlayerStartValue);
       long isSelected = PyLong_AsLong(pyIsSelected);

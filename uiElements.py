@@ -278,8 +278,7 @@ class actionViewer(uiElement):
 					if(self.node.unit != None and self.node.unit.unitType.name == "summoner" and self.node.unit.player == gameState.getGameMode().getPlayerNumber() and gameState.getGameMode().players[gameState.getGameMode().getPlayerNumber()-1].greenWood >= unitType.costGreen and gameState.getGameMode().players[gameState.getGameMode().getPlayerNumber()-1].blueWood >= unitType.costBlue):
 						self.names.append(startSummoningButton(-0.97,height+0.028,unitType,textureIndex=texIndex("ADD_BUTTON_SMALL"),width=texWidth("ADD_BUTTON_SMALL"),height=texHeight("ADD_BUTTON_SMALL")).name)
 					height = height - 0.08
-
-			if(self.node.unit == gameState.getGameMode().nextUnit):
+			if(self.node.unit == gameState.getGameMode().nextUnit and (gameState.getPlayerNumber() == node.unit.player or gameState.getPlayerNumber() == -2)):
 				self.names.append(skipButton(-0.964,-0.89,text="skip",textSize=0.0005).name)
 				self.names.append(waitButton(-0.964,-0.93,text="wait",textSize=0.0005).name)
 			elif(self.node.unit != None and self.node.unit.waiting and not self.node.city.researching and self.node.city.unitBeingBuilt == None):

@@ -216,12 +216,15 @@ class playModeNode(node):
 		self.visible = False
 		self.viewingUnits = []
 	def startViewing(self,unit):
-		self.viewingUnits.append(unit)
-		self.visible = True
+		if(gameState.getPlayerNumber() == unit.player or gameState.getPlayerNumber() == -2):
+			self.viewingUnits.append(unit)
+			self.visible = True
 	def stopViewing(self,unit):
-		self.viewingUnits.remove(unit)
-		if(len(self.viewingUnits) <= 0):
-			self.visible = False
+		if(gameState.getPlayerNumber() == unit.player or gameState.getPlayerNumber() == -2):
+			if(unit in self.viewingUnits):
+				self.viewingUnits.remove(unit)
+			if(len(self.viewingUnits) <= 0):
+				self.visible = False
 	def onLeftClickDown(self):
 		if(playModeNode.mode == MODES.ATTACK_MODE):
 			gameState.getGameMode().nextUnit.attack(self)
@@ -562,7 +565,7 @@ def selectNode(node):
 	uiElements.unitTypeBuildViewer.destroy()
 	if(node.city != None):
 		uiElements.actionViewer.theActionViewer = uiElements.actionViewer(node)
-	if(node.unit != None):
+	if(node.unit != None and (gameState.getPlayerNumber() == node.unit.player or gameState.getPlayerNumber() == -2)):
 		uiElements.unitViewer.theUnitViewer = uiElements.unitViewer(node.unit)
 	if(node.unit != None and len(node.unit.movePath) > 0):
 		for pathNode in node.unit.movePath:

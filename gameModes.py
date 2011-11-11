@@ -1,5 +1,3 @@
-#fog of war
-
 #icons for each unit
 #save and resume games
 
@@ -185,9 +183,6 @@ class playMode(tiledGameMode):
 		self.players = []
 	def loadMap(self):
 		self.map = gameLogic.map(gameLogic.playModeNode)
-		self.loadSummoners()
-		self.orderUnits()
-		self.chooseNextUnit()
 	def getFocusNextUnit(self):
 		self.focusNextUnitTemp = self.focusNextUnit
 		self.focusNextUnit = 0
@@ -231,7 +226,7 @@ class playMode(tiledGameMode):
 		self.nextUnit = random.choice(eligibleUnits)
 		if(len(self.nextUnit.movePath) > 0 and gameState.getPlayers()[gameState.getGameMode().nextUnit.player-1].isOwnPlayer):
 			self.nextUnit.move()
-		else:
+		elif(gameState.getPlayerNumber() == self.nextUnit.player or gameState.getPlayerNumber() == -2):
 			gameLogic.selectNode(self.nextUnit.node)
 			self.focusNextUnit = 1
 
@@ -245,27 +240,18 @@ class playMode(tiledGameMode):
 				columnCount = columnCount + 1
 				if(node.playerStartValue != 0):
 					node.addUnit(gameLogic.unit(gameState.theUnitTypes["summoner"],node.playerStartValue,1,rowCount,columnCount,node))
-					print gameState.getPlayerNumber()
-					print self.node.isOwnUnit
-					for neighb in node.getNeighbors(5):
-						neighb.startViewing(node.unit)
+					if(gameState.getPlayerNumber() == node.playerStartValue or gameState.getPlayerNumber() == -2):
+						for neighb in node.getNeighbors(5):
+							neighb.startViewing(node.unit)
 					if(node.city != None):
 						node.city.player = node.playerStartValue
 	def handleKeyDown(self,keycode):
-		if(keycode == "t"):
-			self.map.translateZ = -35.1
-			print keycode
-		if(keycode == "r"):
-			self.map.translateZ = -33.3
-			print keycode
-			
 		if(keycode == "left shift" or keycode == "right shift"):
 			self.shiftDown = True
 		if(keycode == "space"):
 			if(gameState.getPlayers()[gameState.getGameMode().nextUnit.player-1].isOwnPlayer):
 				gameState.getClient().sendCommand("moveTo",str(self.nextUnit.node.xPos) + " " + str(self.nextUnit.node.yPos))
 				gameState.getClient().sendCommand("chooseNextUnit")
-			#	gameState.getClient().sendCommand("moveTo",str(self.nextUnit.node.xPos) + " " + str(self.nextUnit.node.yPos))
 		elif(keycode == "n"):
 			self.focusNextUnit = 1
 			self.selectedNode.selected = False
@@ -308,7 +294,10 @@ class playMode(tiledGameMode):
 		self.players = gameState.getPlayers()
 		self.greenWoodUIElem = uiElements.uiElement(0.80,0.93,text=str(self.players[0].greenWood),textSize=0.0005)
 		self.blueWoodUIElem = uiElements.uiElement(0.90,0.93,text=str(self.players[0].blueWood),textSize=0.0005)
-		gameLogic.selectNode(self.nextUnit.node)
+	def startGame(self):
+		self.loadSummoners()
+		self.orderUnits()
+		self.chooseNextUnit()
 
 class mapEditorMode(tiledGameMode):	
 	def __init__(self):
