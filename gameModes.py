@@ -1,7 +1,6 @@
 #remove viewing when unit dies
 #put cancelmovement button with skip/wait
-#level actually do something... lol
-#attacking from distance
+#level actually do something...
 #save and resume games
 
 #cancel movement if any enemy is seen
