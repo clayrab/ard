@@ -19,7 +19,7 @@
 #include "fonts.h"
 
 #define maxZoom 35.0
-#define minZoom 10.0
+#define minZoom 1.0
 #define initZoom 30.0
 
 #define zoomSpeed 30.0//lower is faster
@@ -27,6 +27,8 @@
 
 #define SCREEN_WIDTH 1280
 #define SCREEN_HEIGHT 800
+//#define SCREEN_WIDTH 1920
+//#define SCREEN_HEIGHT 1200
 
 #define TILES_IMAGE "assets/tiles2.png"
 #define UI_IMAGE "assets/UI.png"
@@ -165,39 +167,27 @@
 #define REMOVE_BUTTON_SMALL_WIDTH 13
 #define REMOVE_BUTTON_SMALL_INDEX 27
 
-#define UNIT_CIRCLE_RED_IMAGE "assets/unitCircleRed.png"
+#define UNIT_CIRCLE_RED_IMAGE "assets/selectionBoxRed.png"
 #define UNIT_CIRCLE_RED_HEIGHT 40
 #define UNIT_CIRCLE_RED_WIDTH 40
 #define UNIT_CIRCLE_RED_INDEX 28
 
-#define UNIT_CIRCLE_BLUE_IMAGE "assets/unitCircleBlue.png"
+#define UNIT_CIRCLE_BLUE_IMAGE "assets/selectionBoxBlue.png"
 #define UNIT_CIRCLE_BLUE_HEIGHT 40
 #define UNIT_CIRCLE_BLUE_WIDTH 40
 #define UNIT_CIRCLE_BLUE_INDEX 29
 
-#define UNIT_CIRCLE_GREEN_IMAGE "assets/unitCircleBlue.png"
-#define UNIT_CIRCLE_GREEN_HEIGHT 40
-#define UNIT_CIRCLE_GREEN_WIDTH 40
+#define UNIT_CIRCLE_GREEN_IMAGE "assets/selectionBoxBlue.png"
 #define UNIT_CIRCLE_GREEN_INDEX 30
-#define UNIT_CIRCLE_YELLOW_IMAGE "assets/unitCircleBlue.png"
-#define UNIT_CIRCLE_YELLOW_HEIGHT 40
-#define UNIT_CIRCLE_YELLOW_WIDTH 40
+#define UNIT_CIRCLE_YELLOW_IMAGE "assets/selectionBoxBlue.png"
 #define UNIT_CIRCLE_YELLOW_INDEX 31
-#define UNIT_CIRCLE_PINK_IMAGE "assets/unitCircleBlue.png"
-#define UNIT_CIRCLE_PINK_HEIGHT 40
-#define UNIT_CIRCLE_PINK_WIDTH 40
+#define UNIT_CIRCLE_PINK_IMAGE "assets/selectionBoxBlue.png"
 #define UNIT_CIRCLE_PINK_INDEX 32
-#define UNIT_CIRCLE_ORANGE_IMAGE "assets/unitCircleBlue.png"
-#define UNIT_CIRCLE_ORANGE_HEIGHT 40
-#define UNIT_CIRCLE_ORANGE_WIDTH 40
+#define UNIT_CIRCLE_ORANGE_IMAGE "assets/selectionBoxBlue.png"
 #define UNIT_CIRCLE_ORANGE_INDEX 33
-#define UNIT_CIRCLE_PURPLE_IMAGE "assets/unitCircleBlue.png"
-#define UNIT_CIRCLE_PURPLE_HEIGHT 40
-#define UNIT_CIRCLE_PURPLE_WIDTH 40
+#define UNIT_CIRCLE_PURPLE_IMAGE "assets/selectionBoxBlue.png"
 #define UNIT_CIRCLE_PURPLE_INDEX 34
-#define UNIT_CIRCLE_BROWN_IMAGE "assets/unitCircleBlue.png"
-#define UNIT_CIRCLE_BROWN_HEIGHT 40
-#define UNIT_CIRCLE_BROWN_WIDTH 40
+#define UNIT_CIRCLE_BROWN_IMAGE "assets/selectionBoxBlue.png"
 #define UNIT_CIRCLE_BROWN_INDEX 35
 
 #define CURSOR_ATTACK_IMAGE "assets/cursors/swordIcon.png"
@@ -207,14 +197,19 @@
 #define CURSOR_GATHER_INDEX 37
 
 #define ARCHER_IMAGE "assets/archer.png"
-#define ARCHER_IMAGE_HEIGHT 88
-#define ARCHER_IMAGE_WIDTH 51
 #define ARCHER_INDEX 38
 
 #define SWORDSMAN_IMAGE "assets/swordsman.png"
-#define SWORDSMAN_IMAGE_HEIGHT 100
-#define SWORDSMAN_IMAGE_WIDTH 70
 #define SWORDSMAN_INDEX 39
+
+#define SELECTION_BOX_IMAGE "assets/selectionBox.png"
+#define SELECTION_BOX_INDEX 40
+
+#define SUMMONER_IMAGE "assets/summoner.png"
+#define SUMMONER_INDEX 41
+
+#define CITY_IMAGE "assets/city.png"
+#define CITY_INDEX 42
 
 #define DESERT_TILE_INDEX 0
 #define GRASS_TILE_INDEX 1
@@ -507,19 +502,14 @@ void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long 
       theCursorIndex = (int)cursorIndex;
     }
   }
-  //else{
-  //  glColor3f(1.0f, 1.0f, 1.0f);
-  //}
   if(isSelected == 1){
     shading = shading - 0.1;
   }
-  if(isNextUnit == 1){
-    shading = shading - 0.2;
-    focusXPos = xPosition;
-    focusYPos = yPosition;
-  }
+  
+  glBindTexture(GL_TEXTURE_2D, tilesTexture);
+
   glColor3f(shading,shading,shading);
-  glPushName(name);	
+  glPushName(name);
   glBegin(GL_POLYGON);
   glTexCoord2f(*(textureVertices+0),*(textureVertices+1)); glVertex3f(hexagonVertices[0][0]+xPosition, hexagonVertices[0][1]+yPosition, 0.0);
   glTexCoord2f(*(textureVertices+2),*(textureVertices+3)); glVertex3f(hexagonVertices[1][0]+xPosition, hexagonVertices[1][1]+yPosition, 0.0);
@@ -539,24 +529,6 @@ void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long 
     glTexCoord2f(*(textureVertices+8),*(textureVertices+9)); glVertex3f(hexagonVertices[4][0]+xPosition, hexagonVertices[4][1]+yPosition, 0.0);
     glTexCoord2f(*(textureVertices+10),*(textureVertices+11)); glVertex3f(hexagonVertices[5][0]+xPosition, hexagonVertices[5][1]+yPosition, 0.0);
     glEnd();
-  }
-  if(cityName[0]!=0){
-
-    textureVertices = vertexArrays[CITY_TILE_INDEX];
-    glBegin(GL_POLYGON);
-    glTexCoord2f(*(textureVertices+0),*(textureVertices+1)); glVertex3f(hexagonVertices[0][0]+xPosition, hexagonVertices[0][1]+yPosition, 0.0);
-    glTexCoord2f(*(textureVertices+2),*(textureVertices+3)); glVertex3f(hexagonVertices[1][0]+xPosition, hexagonVertices[1][1]+yPosition, 0.0);
-    glTexCoord2f(*(textureVertices+4),*(textureVertices+5)); glVertex3f(hexagonVertices[2][0]+xPosition, hexagonVertices[2][1]+yPosition, 0.0);
-    glTexCoord2f(*(textureVertices+6),*(textureVertices+7)); glVertex3f(hexagonVertices[3][0]+xPosition, hexagonVertices[3][1]+yPosition, 0.0);
-    glTexCoord2f(*(textureVertices+8),*(textureVertices+9)); glVertex3f(hexagonVertices[4][0]+xPosition, hexagonVertices[4][1]+yPosition, 0.0);
-    glTexCoord2f(*(textureVertices+10),*(textureVertices+11)); glVertex3f(hexagonVertices[5][0]+xPosition, hexagonVertices[5][1]+yPosition, 0.0);
-    glEnd();
-
-    /*    cityNamesXs[cityNamesCount] = xPosition;
-    cityNamesYs[cityNamesCount] = yPosition;
-    strcpy(cityNames[cityNamesCount],cityName);
-    cityNamesCount = cityNamesCount + 1;
-    */
   }
 
   PyObject * playableMode = PyObject_GetAttrString(gameMode, "units");//if the mode has units, it's playable
@@ -593,30 +565,45 @@ void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long 
       long unitTextureIndex = PyLong_AsLong(pyUnitTextureIndex);
       float healthBarLength = 1.5*PyLong_AsLong(pyHealth)/PyLong_AsLong(pyMaxHealth);
 
-      glColor3f(255.0, 255.0, 255.0);
-
-      glBindTexture(GL_TEXTURE_2D, texturesArray[UNIT_CIRCLE_RED_INDEX+playerNumber-1]);
-      glBegin(GL_QUADS);
-      glTexCoord2f(0.0,0.0);
-      glVertex3f(xPosition-0.7, yPosition-0.7, 0.0);
-      glTexCoord2f(1.0,0.0);
-      glVertex3f(xPosition+0.7, yPosition-0.7, 0.0);
-      glTexCoord2f(1.0,1.0);
-      glVertex3f(xPosition+0.7, yPosition+0.7, 0.0);
-      glTexCoord2f(0.0,1.0);
-      glVertex3f(xPosition-0.7, yPosition+0.7, 0.0);
-      glEnd();
+      glColor3f(1.0,1.0,1.0);
+      if(isNextUnit == 1){
+	glBindTexture(GL_TEXTURE_2D, texturesArray[SELECTION_BOX_INDEX]);
+	glBegin(GL_QUADS);
+	glTexCoord2f(0.0,0.0);
+	glVertex3f(xPosition-0.9, yPosition-1.0, 0.0);
+	glTexCoord2f(1.0,0.0);
+	glVertex3f(xPosition+0.78, yPosition-1.0, 0.0);
+	glTexCoord2f(1.0,1.0);
+	glVertex3f(xPosition+0.78, yPosition+1.0, 0.0);
+	glTexCoord2f(0.0,1.0);
+	glVertex3f(xPosition-0.9, yPosition+1.0, 0.0);
+	glEnd();
+	focusXPos = xPosition;
+	focusYPos = yPosition;
+      }else{
+	glBindTexture(GL_TEXTURE_2D, texturesArray[UNIT_CIRCLE_RED_INDEX+playerNumber-1]);
+	glBegin(GL_QUADS);
+	glTexCoord2f(0.0,0.0);
+	glVertex3f(xPosition-0.9, yPosition-1.0, 0.0);
+	glTexCoord2f(1.0,0.0);
+	glVertex3f(xPosition+0.78, yPosition-1.0, 0.0);
+	glTexCoord2f(1.0,1.0);
+	glVertex3f(xPosition+0.78, yPosition+1.0, 0.0);
+	glTexCoord2f(0.0,1.0);
+	glVertex3f(xPosition-0.9, yPosition+1.0, 0.0);
+	glEnd();
+      }
 
       glBindTexture(GL_TEXTURE_2D, texturesArray[unitTextureIndex]);
       glBegin(GL_QUADS);
       glTexCoord2f(0.0,0.0);
-      glVertex3f(xPosition-0.5, yPosition-0.715, 0.0);
+      glVertex3f(xPosition-0.6, yPosition-0.75, 0.0);
       glTexCoord2f(1.0,0.0);
-      glVertex3f(xPosition+0.5, yPosition-0.715, 0.0);
+      glVertex3f(xPosition+0.6, yPosition-0.75, 0.0);
       glTexCoord2f(1.0,1.0);
-      glVertex3f(xPosition+0.5, yPosition+0.715, 0.0);
+      glVertex3f(xPosition+0.6, yPosition+0.75, 0.0);
       glTexCoord2f(0.0,1.0);
-      glVertex3f(xPosition-0.5, yPosition+0.715, 0.0);
+      glVertex3f(xPosition-0.6, yPosition+0.75, 0.0);
       glEnd();
 
       glBindTexture(GL_TEXTURE_2D, texturesArray[HEALTH_BAR_INDEX]);
@@ -654,9 +641,28 @@ void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long 
       Py_DECREF(pyHealth);
       Py_DECREF(pyMaxHealth);
   }
+  if(cityName[0]!=0){
+    glColor3f(1.0f, 1.0f, 1.0f);
+    glBindTexture(GL_TEXTURE_2D, texturesArray[CITY_INDEX]);
+    glBegin(GL_POLYGON);
+    glTexCoord2f(0.0,0.0);
+    glVertex3f(xPosition-0.6, yPosition-0.75, 0.0);
+    glTexCoord2f(1.0,0.0);
+    glVertex3f(xPosition+0.6, yPosition-0.75, 0.0);
+    glTexCoord2f(1.0,1.0);
+    glVertex3f(xPosition+0.6, yPosition+0.75, 0.0);
+    glTexCoord2f(0.0,1.0);
+    glVertex3f(xPosition-0.6, yPosition+0.75, 0.0);
+    glEnd();
+
+    /*    cityNamesXs[cityNamesCount] = xPosition;
+    cityNamesYs[cityNamesCount] = yPosition;
+    strcpy(cityNames[cityNamesCount],cityName);
+    cityNamesCount = cityNamesCount + 1;
+    */
+  }
   if(isOnMovePath){
     glBindTexture(GL_TEXTURE_2D, texturesArray[WALK_ICON_INDEX]);
-    //    glPushMatrix();
     glColor3f(1.0f, 0.0f, 0.0f);
     glBegin(GL_QUADS);
     glTexCoord2f(0.0,0.0); glVertex3f(xPosition+0.5,yPosition-0.5,0.0);
@@ -664,7 +670,6 @@ void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long 
     glTexCoord2f(1.0,1.0); glVertex3f(xPosition-0.5,yPosition+0.5,0.0);
     glTexCoord2f(0.0,1.0); glVertex3f(xPosition+0.5,yPosition+0.5,0.0);
     glEnd();
-    //    glPopMatrix();
     glBindTexture(GL_TEXTURE_2D, tilesTexture);
   }
 }
@@ -717,7 +722,6 @@ void drawTiles(){
     rowNumber = rowNumber + 1;
     PyObject * nodeIterator = PyObject_GetIter(row);
     while(node = PyIter_Next(nodeIterator)) {
-      glBindTexture(GL_TEXTURE_2D, tilesTexture);
       PyObject * nodeName = PyObject_GetAttrString(node,"name");//New reference
       PyObject * nodeValue = PyObject_CallMethod(node,"getValue",NULL);//New reference
       PyObject * roadValue = PyObject_GetAttrString(node,"roadValue");//New reference
@@ -1120,6 +1124,9 @@ static void initGL (){
   pngLoad(&texturesArray[CURSOR_GATHER_INDEX],CURSOR_GATHER_IMAGE);
   pngLoad(&texturesArray[ARCHER_INDEX],ARCHER_IMAGE);
   pngLoad(&texturesArray[SWORDSMAN_INDEX],SWORDSMAN_IMAGE);
+  pngLoad(&texturesArray[SELECTION_BOX_INDEX],SELECTION_BOX_IMAGE);
+  pngLoad(&texturesArray[SUMMONER_INDEX],SUMMONER_IMAGE);
+  pngLoad(&texturesArray[CITY_INDEX],CITY_IMAGE);
 
   vertexArrays[DESERT_TILE_INDEX] = *desertVertices;
   vertexArrays[GRASS_TILE_INDEX] = *grassVertices;

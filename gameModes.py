@@ -1,10 +1,12 @@
-
-#icons for each unit
+#remove viewing when unit dies
+#put cancelmovement button with skip/wait
+#level actually do something... lol
 #attacking from distance
 #save and resume games
 
 #cancel movement if any enemy is seen
 #limited time to move
+#icons for each unit
 
 ############# PLAYABLE AT THIS POINT ##############
 
@@ -136,8 +138,8 @@ class tiledGameMode(gameMode):
 			self.elementsDict[name].onScrollUp()
 		else:
 			self.map.translateZ = self.map.translateZ + zoomSpeed*deltaTicks;
-			if(self.map.translateZ > (-1.0-cDefines.defines['minZoom'])):
-				self.map.translateZ = -1.0-cDefines.defines['minZoom']
+			if(self.map.translateZ > (-15.0-cDefines.defines['minZoom'])):
+				self.map.translateZ = -15.0-cDefines.defines['minZoom']
 	def handleScrollDown(self,name,deltaTicks):
 		if(name in self.elementsDict and hasattr(self.elementsDict[name],"onScrollDown")):
 			self.elementsDict[name].onScrollDown()
@@ -251,14 +253,8 @@ class playMode(tiledGameMode):
 		if(keycode == "left shift" or keycode == "right shift"):
 			self.shiftDown = True
 		if(keycode == "space"):
-			if(gameState.getPlayers()[gameState.getGameMode().nextUnit.player-1].isOwnPlayer):
-				gameState.getClient().sendCommand("moveTo",str(self.nextUnit.node.xPos) + " " + str(self.nextUnit.node.yPos))
-				gameState.getClient().sendCommand("chooseNextUnit")
-		elif(keycode == "n"):
+			gameLogic.selectNode(self.nextUnit.node)
 			self.focusNextUnit = 1
-			self.selectedNode.selected = False
-			self.selectedNode = self.nextUnit.node
-			self.nextUnit.node.selected = True
 		else:
 			if(hasattr(self.mousedOverObject,"onKeyDown")):
 				self.mousedOverObject.onKeyDown(keycode)

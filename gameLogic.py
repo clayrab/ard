@@ -7,8 +7,10 @@ import random
 
 #researchBuildTime = 100
 #unitBuildSpeed = 0.1
-startingGreenWood = 200
-startingBlueWood = 0
+#startingGreenWood = 200
+#startingBlueWood = 0
+startingGreenWood = 2000
+startingBlueWood = 1000
 
 class MODES:
 	MOVE_MODE = 0
@@ -238,18 +240,20 @@ class playModeNode(node):
 				uiElements.unitViewer.theUnitViewer.unit.move()
 			else:
 				uiElements.unitViewer.theUnitViewer.unit.movePath = uiElements.unitViewer.theUnitViewer.unit.node.movePath
-				for node in uiElements.unitViewer.theUnitViewer.unit.movePath:
-					node.onMovePath = True
+			for node in uiElements.unitViewer.theUnitViewer.unit.movePath:
+				node.onMovePath = True
 		else:
 			selectNode(self)
 	def toggleCursor(self):
 		for node in playModeNode.movePath:
 			node.onMovePath = False
 		playModeNode.movePath = []
-		if(uiElements.unitViewer.theUnitViewer != None and gameState.getGameMode().getPlayerNumber() == gameState.getGameMode().nextUnit.player):
+		if(uiElements.unitViewer.theUnitViewer != None):
 			for node in uiElements.unitViewer.theUnitViewer.unit.movePath:
 				node.onMovePath = True
-			if((gameState.getGameMode().nextUnit == uiElements.unitViewer.theUnitViewer.unit) and (self.unit != None and playModeNode.isNeighbor and self.unit.player != uiElements.unitViewer.theUnitViewer.unit.player)):
+
+		if(uiElements.unitViewer.theUnitViewer != None and gameState.getGameMode().getPlayerNumber() == gameState.getGameMode().nextUnit.player):
+			if((gameState.getGameMode().nextUnit == uiElements.unitViewer.theUnitViewer.unit) and (self.unit != None and self.unit.player != uiElements.unitViewer.theUnitViewer.unit.player) and self.findDistance(uiElements.unitViewer.theUnitViewer.unit.node) <= uiElements.unitViewer.theUnitViewer.unit.unitType.range):
 				self.cursorIndex = cDefines.defines['CURSOR_ATTACK_INDEX']
 				playModeNode.mode = MODES.ATTACK_MODE
 			elif(uiElements.unitViewer.theUnitViewer.unit.unitType.name == "gatherer" and (self.tileValue == cDefines.defines['FOREST_TILE_INDEX'] or self.tileValue == cDefines.defines['BLUE_FOREST_TILE_INDEX']) and self.unit != uiElements.unitViewer.theUnitViewer.unit):
@@ -266,8 +270,15 @@ class playModeNode(node):
 				playModeNode.mode = MODES.MOVE_MODE
 				self.aStarSearch()
 		else:
-			self.cursorIndex = -1
-			playModeNode.mode = MODES.SELECT_MODE			
+			if(uiElements.unitViewer.theUnitViewer != None and gameState.getGameMode().shiftDown and uiElements.unitViewer.theUnitViewer != None and uiElements.unitViewer.theUnitViewer.unit != None):
+				for node in uiElements.unitViewer.theUnitViewer.unit.movePath:
+					node.onMovePath = False
+				self.cursorIndex = cDefines.defines['CURSOR_MOVE_INDEX']
+				playModeNode.mode = MODES.MOVE_MODE
+				self.aStarSearch()
+			else:
+				self.cursorIndex = -1
+				playModeNode.mode = MODES.SELECT_MODE			
 	def getNeighbors(self,distance):
 		neighbs = []
 		for xDelta in range(0-distance,distance):
@@ -565,7 +576,7 @@ def selectNode(node):
 	uiElements.unitViewer.destroy()
 	uiElements.unitTypeResearchViewer.destroy()
 	uiElements.unitTypeBuildViewer.destroy()
-	if(node.city != None):
+	if(node.unit != None or node.city != None):
 		uiElements.actionViewer.theActionViewer = uiElements.actionViewer(node)
 	if(node.unit != None and (gameState.getPlayerNumber() == node.unit.player or gameState.getPlayerNumber() == -2)):
 		uiElements.unitViewer.theUnitViewer = uiElements.unitViewer(node.unit)
