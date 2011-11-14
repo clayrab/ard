@@ -1,7 +1,9 @@
+#summon buttons need height fixed
 #remove viewing when unit dies
 #put cancelmovement button with skip/wait
 #level actually do something...
 #save and resume games
+#slow things down so that if every unit is waiting it's not a disaster
 
 #cancel movement if any enemy is seen
 #limited time to move
@@ -190,11 +192,19 @@ class playMode(tiledGameMode):
 		self.focusNextUnitTemp = self.focusNextUnit
 		self.focusNextUnit = 0
 		return self.focusNextUnitTemp
+	def unitComparater(self,unit):
+		if (unit.waiting or (unit.attackPoints > 0.0)):
+			return 1000.0
+		else:
+			return unit.movementPoints
 	def orderUnits(self):
-		self.units.sort(key=lambda unit: 1000.0 if (unit.waiting or (unit.attackPoints > 0.0)) else unit.movementPoints)
+		self.units.sort(key=self.unitComparater)
 	def chooseNextUnit(self):
+		if(len(self.units) <= 1):
+			   print 'DANGER, ONLY ONE UNIT ON THE BOARD, THE GAME SHOULD HAVE ENDED, THIS WILL CAUSE AN INFINITE LOOP'
+			   return
 		self.orderUnits()
-		while(self.units[0].movementPoints > 0.0 or (self.units[0].waiting)):
+		while(self.units[0].movementPoints > 0.0 or self.units[0].attackPoints > 0.0 or (self.units[0].waiting)):
 			self.orderUnits()
 			for unit in self.units:
 				if(unit.unitType.name == "gatherer" and unit.gatheringNode == unit.node):
@@ -208,13 +218,13 @@ class playMode(tiledGameMode):
 #					if(unit.node.roadValue == 1):
 #					unit.movementPoints = unit.movementPoints - 2.0
 					if(unit.node.tileValue == cDefines.defines['MOUNTAIN_TILE_INDEX']):
-						unit.movementPoints = unit.movementPoints - ((1.0+float(unit.node.roadValue))/cDefines.defines['MOUNTAIN_MOVE_COST'])
+						unit.movementPoints = unit.movementPoints - ((float(unit.unitType.movementSpeed)+float(unit.node.roadValue))/cDefines.defines['MOUNTAIN_MOVE_COST'])
 					elif(unit.node.tileValue == cDefines.defines['WATER_TILE_INDEX'] and unit.canSwim == False):
-						unit.movementPoints = unit.movementPoints - ((1.0+float(unit.node.roadValue))/cDefines.defines['WATER_MOVE_COST'])
+						unit.movementPoints = unit.movementPoints - ((float(unit.unitType.movementSpeed)+float(unit.node.roadValue))/cDefines.defines['WATER_MOVE_COST'])
 					elif(unit.node.tileValue == cDefines.defines['DESERT_TILE_INDEX']):
-						unit.movementPoints = unit.movementPoints - ((1.0+float(unit.node.roadValue))/cDefines.defines['DESERT_MOVE_COST'])
+						unit.movementPoints = unit.movementPoints - ((float(unit.unitType.movementSpeed)+float(unit.node.roadValue))/cDefines.defines['DESERT_MOVE_COST'])
 					else:
-						unit.movementPoints = unit.movementPoints - ((1.0+float(unit.node.roadValue))/cDefines.defines['GRASS_MOVE_COST'])
+						unit.movementPoints = unit.movementPoints - ((float(unit.unitType.movementSpeed)+float(unit.node.roadValue))/cDefines.defines['GRASS_MOVE_COST'])
 					if(unit.movementPoints < 0.0):
 						unit.movementPoints = 0.0#for waiting units
 			for row in self.map.nodes:
@@ -224,8 +234,14 @@ class playMode(tiledGameMode):
 		eligibleUnits = []
 		eligibleUnits.append(self.units[0])
 		for unit in self.units[1:]:
-			if(unit.movementPoints == eligibleUnits[0].movementPoints and not unit.waiting):
+			if((unit.movementPoints == eligibleUnits[0].movementPoints) and (not unit.waiting) and (unit.attackPoints <= 0.0)):
 				eligibleUnits.append(unit)
+		for unit in self.units:
+			print "**************"
+			print unit.player
+			print unit.attackPoints
+			print unit.movementPoints
+		print "*******************************"
 		self.nextUnit = random.choice(eligibleUnits)
 		if(len(self.nextUnit.movePath) > 0 and gameState.getPlayers()[gameState.getGameMode().nextUnit.player-1].isOwnPlayer):
 			self.nextUnit.move()

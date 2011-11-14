@@ -1,6 +1,6 @@
 {"textureName":"SWORDSMAN",
-"movementSpeed":10,
-"attackSpeed":1,
+"movementSpeed":12,
+"attackSpeed":12,
 "attackPower":5,
 "armor":0,
 "range":1,

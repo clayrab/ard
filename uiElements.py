@@ -281,7 +281,7 @@ class actionViewer(uiElement):
 		if(self.node.unit == gameState.getGameMode().nextUnit and (gameState.getPlayerNumber() == self.node.unit.player or gameState.getPlayerNumber() == -2)):
 			self.names.append(skipButton(-0.964,-0.89,text="skip",textSize=0.0005).name)
 			self.names.append(waitButton(-0.964,-0.93,text="wait",textSize=0.0005).name)
-		elif(self.node.unit != None and self.node.unit.waiting and not self.node.city.researching and self.node.city.unitBeingBuilt == None):
+		elif(self.node.unit != None and self.node.unit.waiting):
 			self.names.append(stopWaitingButton(-0.964,-0.93,text="wake",textSize=0.0005).name)
 			
 	@staticmethod

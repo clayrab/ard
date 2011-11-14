@@ -111,13 +111,13 @@ class unit:
 						#break
 			if(node.unit.gatheringNode == node):
 				self.waiting = True
-			self.movementPoints = self.movementPoints + self.unitType.movementSpeed
+			self.movementPoints = self.movementPoints + 100.0
 	def attack(self,node):
 		gameState.getClient().sendCommand("attackTo",str(node.xPos) + " " + str(node.yPos))
 		gameState.getClient().sendCommand("chooseNextUnit")
 	def attackTo(self,node):
 		node.unit.health = node.unit.health - self.unitType.attackPower
-		self.attackPoints = self.attackPoints + self.unitType.attackSpeed
+		self.attackPoints = self.attackPoints + 100.0
 		if(node.unit.health < 0.0):
 			gameState.getGameMode().units.remove(node.unit)
 			node.unit = None
@@ -132,7 +132,6 @@ class city:
 		self.unitTypes.append(gameState.theUnitTypes["summoner"])
 		self.unitTypes.append(gameState.theUnitTypes["gatherer"])	
 		self.unitTypes.extend(unitTypes)
-		print unitTypes
 		self.researchProgress = {}
 		for unitType in unitTypes:
 			self.researchProgress[unitType] = [0,0]
@@ -261,7 +260,7 @@ class playModeNode(node):
 				playModeNode.mode = MODES.GATHER_MODE
 				self.aStarSearch()
 			elif((uiElements.unitViewer.theUnitViewer.unit.node == self) or (playModeNode.isNeighbor and gameState.getGameMode().shiftDown) or ((not playModeNode.isNeighbor) and (not gameState.getGameMode().shiftDown))):
-				self.cursorIndex = -1
+				self.cursorIndex = cDefines.defines['CURSOR_POINTER_INDEX']
 				playModeNode.mode = MODES.SELECT_MODE
 			else:
 				for node in uiElements.unitViewer.theUnitViewer.unit.movePath:
@@ -583,6 +582,8 @@ def selectNode(node):
 	if(node.unit != None and len(node.unit.movePath) > 0):
 		for pathNode in node.unit.movePath:
 			pathNode.onMovePath = True
-	node.toggleCursor()
+	if(hasattr(gameState.getGameMode().mousedOverObject,"toggleCursor")):
+		   gameState.getGameMode().mousedOverObject.toggleCursor()
+#	node.toggleCursor()
 
 
