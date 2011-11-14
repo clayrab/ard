@@ -164,6 +164,11 @@ class hostIPInputElement(textInputElement):
 		else:
 			textInputElement.onKeyDown(self,keycode)
 
+class startGatheringButton(clickableElement):
+	def onClick(self):
+		actionViewer.theActionViewer.node.unit.gatheringNode = actionViewer.theActionViewer.node
+		actionViewer.theActionViewer.node.unit.waiting = True
+
 class startSummoningButton(clickableElement):
        	def __init__(self,xPos,yPos,unitType,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,textXPos=0.0,textYPos=0.0):
 		clickableElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],color=color,mouseOverColor=mouseOverColor,textXPos=textXPos,textYPos=textYPos)
@@ -222,9 +227,8 @@ class skipButton(clickableElement):
        	def __init__(self,xPos,yPos,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,textXPos=0.0,textYPos=0.0):
 		clickableElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],color=color,mouseOverColor=mouseOverColor,textXPos=textXPos,textYPos=textYPos)
 	def onClick(self):
-		if(gameState.getPlayers()[gameState.getGameMode().nextUnit.player-1].isOwnPlayer):
-			gameState.getClient().sendCommand("moveTo",str(gameState.getGameMode().nextUnit.node.xPos) + " " + str(gameState.getGameMode().nextUnit.node.yPos))
-			gameState.getClient().sendCommand("chooseNextUnit")
+		gameState.getClient().sendCommand("moveTo",str(gameState.getGameMode().nextUnit.node.xPos) + " " + str(gameState.getGameMode().nextUnit.node.yPos))
+		gameState.getClient().sendCommand("chooseNextUnit")
 
 class actionViewer(uiElement):
 	theActionViewer = None
@@ -244,10 +248,11 @@ class actionViewer(uiElement):
 #				self.names.append(uiElement(-0.964,-0.32,text="level "+str(self.node.city.researchLevel) + " complete",textSize=0.0005).name)
 			else:
 				if(self.node.city.unitBeingBuilt != None):
-					self.names.append(uiElement(-0.972,-0.19,text=self.node.city.unitBeingBuilt.unitType.name,textSize=0.0005).name)
-					self.names.append(uiElement(-0.972,-0.21,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE'),textureIndex=texIndex('UNIT_BUILD_BAR')).name)
-					self.names.append(uiElement(-0.972,-0.21,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE')*(self.node.city.unitBeingBuilt.unitType.buildTime-self.node.city.unitBeingBuilt.buildPoints)/self.node.city.unitBeingBuilt.unitType.buildTime,textureIndex=texIndex('UNIT_BUILD_BAR'),color="FF 00 00").name)
-					height = -0.25
+					height = -0.55
+					self.names.append(uiElement(-0.972,height,text=self.node.city.unitBeingBuilt.unitType.name,textSize=0.0005).name)
+					self.names.append(uiElement(-0.972,height-0.02,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE'),textureIndex=texIndex('UNIT_BUILD_BAR')).name)
+					self.names.append(uiElement(-0.972,height-0.02,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE')*(self.node.city.unitBeingBuilt.unitType.buildTime-self.node.city.unitBeingBuilt.buildPoints)/self.node.city.unitBeingBuilt.unitType.buildTime,textureIndex=texIndex('UNIT_BUILD_BAR'),color="FF 00 00").name)
+					height = height - 0.06
 					for unit in self.node.city.unitBuildQueue:
 						height = height - 0.04
 						self.names.append(uiElement(-0.972,height,text=str(unit.unitType.name),textSize=0.0005).name)
@@ -255,34 +260,29 @@ class actionViewer(uiElement):
 					if(len(node.city.unitBuildQueue) > 0):
 						self.names.append(cancelUnitButton(-0.972,height,text="cancel " + self.node.city.unitBuildQueue[-1].unitType.name,textSize=0.0005).name)
 				else:
-					self.names.append(uiElement(-0.9,-0.19,text="research",textSize=0.0007).name)
-					height = -0.23
+					height = -0.55					
+					self.names.append(uiElement(-0.9,-0.51,text="research",textSize=0.0007).name)
 					for unitType in self.node.city.unitTypes:
 						if(unitType.name != "summoner" and unitType.name != "gatherer"): 
 							if(self.node.unit != None and self.node.unit.unitType.name == "summoner" and self.node.unit.player == gameState.getGameMode().getPlayerNumber() and gameState.getGameMode().players[gameState.getGameMode().getPlayerNumber()-1].greenWood >= unitType.researchCostGreen and gameState.getGameMode().players[gameState.getGameMode().getPlayerNumber()-1].blueWood >= unitType.researchCostBlue):
-								self.names.append(startResearchButton(-0.97,height+0.025,unitType,textureIndex=texIndex("ADD_BUTTON_SMALL"),width=texWidth("ADD_BUTTON_SMALL"),height=texHeight("ADD_BUTTON_SMALL")).name)
-							self.names.append(viewResearchButton(-0.94,height,unitType,self.node,text=unitType.name + " lvl " + str(self.node.city.researchProgress[unitType][0]+1),textSize=0.0005).name)
+								self.names.append(startResearchButton(-0.68,height+0.025,unitType,textureIndex=texIndex("ADD_BUTTON_SMALL"),width=texWidth("ADD_BUTTON_SMALL"),height=texHeight("ADD_BUTTON_SMALL")).name)
+							self.names.append(viewResearchButton(-0.965,height,unitType,self.node,text=unitType.name + " lvl " + str(self.node.city.researchProgress[unitType][0]+1),textSize=0.0005).name)
 							self.names.append(uiElement(-0.93,height-0.04,text=str(unitType.researchCostGreen),textSize=0.0005).name)
 							self.names.append(uiElement(-0.83,height-0.04,text=str(unitType.researchCostBlue),textSize=0.0005).name)
 							self.names.append(uiElement(-0.73,height-0.04,text=str(unitType.researchTime),textSize=0.0005).name)
 							height = height - 0.08
-				self.names.append(uiElement(-0.9,-0.51,text="summon",textSize=0.0007).name)
-				height = -0.55
+				self.names.append(uiElement(-0.9,-0.19,text="summon",textSize=0.0007).name)
+				height = -0.23
 				for unitType in self.node.city.researchProgress:
 					if(self.node.city.researchProgress[unitType][0] > 0):
 						
-						self.names.append(viewUnitTypeButton(-0.94,height,unitType,text=unitType.name + "(lvl " + str(self.node.city.researchProgress[unitType][0]) + ")",textSize=0.0005).name)
+						self.names.append(viewUnitTypeButton(-0.965,height,unitType,text=unitType.name + "(lvl " + str(self.node.city.researchProgress[unitType][0]) + ")",textSize=0.0005).name)
 						self.names.append(uiElement(-0.93,height-0.04,text=str(unitType.costGreen),textSize=0.0005).name)
 						self.names.append(uiElement(-0.83,height-0.04,text=str(unitType.costBlue),textSize=0.0005).name)
 						self.names.append(uiElement(-0.73,height-0.04,text=str(unitType.buildTime),textSize=0.0005).name)
 						if(self.node.unit != None and self.node.unit.unitType.name == "summoner" and self.node.unit.player == gameState.getGameMode().getPlayerNumber() and gameState.getGameMode().players[gameState.getGameMode().getPlayerNumber()-1].greenWood >= unitType.costGreen and gameState.getGameMode().players[gameState.getGameMode().getPlayerNumber()-1].blueWood >= unitType.costBlue):
-							self.names.append(startSummoningButton(-0.97,height+0.028,unitType,textureIndex=texIndex("ADD_BUTTON_SMALL"),width=texWidth("ADD_BUTTON_SMALL"),height=texHeight("ADD_BUTTON_SMALL")).name)
-					height = height - 0.08
-		if(self.node.unit == gameState.getGameMode().nextUnit and (gameState.getPlayerNumber() == self.node.unit.player or gameState.getPlayerNumber() == -2)):
-			self.names.append(skipButton(-0.964,-0.89,text="skip",textSize=0.0005).name)
-			self.names.append(waitButton(-0.964,-0.93,text="wait",textSize=0.0005).name)
-		elif(self.node.unit != None and self.node.unit.waiting):
-			self.names.append(stopWaitingButton(-0.964,-0.93,text="wake",textSize=0.0005).name)
+							self.names.append(startSummoningButton(-0.68,height+0.028,unitType,textureIndex=texIndex("ADD_BUTTON_SMALL"),width=texWidth("ADD_BUTTON_SMALL"),height=texHeight("ADD_BUTTON_SMALL")).name)
+						height = height - 0.08
 			
 	@staticmethod
 	def destroy():
@@ -306,31 +306,33 @@ class unitViewer(uiElement):
 		self.unit = unit
 		self.names = []
 		self.names.append(uiElement(-0.978,0.79,textXPos=0.01,textYPos=-0.035,height=texHeight('UNIT_VIEWER_BOX'),width=texWidth('UNIT_VIEWER_BOX'),textureIndex=texIndex('UNIT_VIEWER_BOX'),textSize=0.0005).name)	
-
 		self.names.append(uiElement(-0.96,0.73,text=self.unit.unitType.name,textSize=0.0007).name)
-
 		self.names.append(uiElement(-0.964,0.72,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE'),textureIndex=texIndex('UNIT_BUILD_BAR')).name)
 		self.names.append(uiElement(-0.964,0.72,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE')*(float(self.unit.health)/self.unit.unitType.health),textureIndex=texIndex('UNIT_BUILD_BAR'),color="FF 00 00").name)
 		self.names.append(uiElement(-0.96,0.695,text=str(self.unit.health)+"/"+str(self.unit.unitType.health),textSize=0.0005).name)
+		height = 0.565
+		if(len(self.unit.movePath) > 0):
+			self.names.append(cancelMovementButton(-0.964,height,text="cancel move",textSize=0.0005).name)
+			height = height + 0.04
+		elif(self.unit == gameState.getGameMode().nextUnit and (gameState.getPlayerNumber() == self.unit.player or gameState.getPlayerNumber() == -2)):
+			self.names.append(skipButton(-0.964,height,text="skip",textSize=0.0005).name)
+			height = height + 0.04
 
-		self.names.append(cancelMovementButton(-0.964,0.565,text="cancel move",textSize=0.0005).name)
-#		self.names.append(uiElement(-0.964,0.675,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE'),textureIndex=texIndex('UNIT_BUILD_BAR')).name)
-#		self.names.append(uiElement(-0.964,0.675,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE')*(0.0-self.unit.movementPoints/self.unit.unitType.movementSpeed),textureIndex=texIndex('UNIT_BUILD_BAR'),color="FF 00 00").name)
-#		self.names.append(uiElement(-0.96,0.650,text="00/00",textSize=0.0005).name)
-
-#		self.names.append(uiElement(-0.964,0.630,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE'),textureIndex=texIndex('UNIT_BUILD_BAR')).name)
-#		self.names.append(uiElement(-0.964,0.630,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE')*(0.0-self.unit.attackPoints/self.unit.unitType.attackSpeed),textureIndex=texIndex('UNIT_BUILD_BAR'),color="FF 00 00").name)
-#		self.names.append(uiElement(-0.96,0.605,text="00/00",textSize=0.0005).name)
-
+		if(self.unit.unitType.name == "gatherer"):
+			if(self.unit.gatheringNode == self.unit.node):
+				self.names.append(uiElement(-0.96,height,text="gathering",textSize=0.0005).name)
+				height = height + 0.04
+			elif(self.unit.node.tileValue == cDefines.defines['FOREST_TILE_INDEX'] or self.unit.node.tileValue == cDefines.defines['BLUE_FOREST_TILE_INDEX']):
+				self.names.append(startGatheringButton(-0.96,height,text="start gathering",textSize=0.0005).name)
+				height = height + 0.04
 		if(self.unit.waiting and self.unit.unitType.name == "summoner" and self.unit.node.city != None):
 			if(self.unit.node.city.unitBeingBuilt != None):
-				self.names.append(uiElement(-0.96,0.565,text="summoning",textSize=0.0005).name)
+				self.names.append(uiElement(-0.96,height,text="summoning",textSize=0.0005).name)
 			elif(self.unit.node.city.researching):
-				self.names.append(uiElement(-0.96,0.565,text="researching",textSize=0.0005).name)
+				self.names.append(uiElement(-0.96,height,text="researching",textSize=0.0005).name)
 			else:
-				self.names.append(uiElement(-0.96,0.565,text="waiting",textSize=0.0005).name)
-		if(self.unit.waiting and self.unit.unitType.name == "gatherer" and self.unit.gatheringNode == self.unit.node):
-			self.names.append(uiElement(-0.96,0.565,text="gathering",textSize=0.0005).name)
+				self.names.append(uiElement(-0.96,height,text="waiting",textSize=0.0005).name)
+			
 			
 	@staticmethod
 	def destroy():

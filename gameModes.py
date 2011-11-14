@@ -1,43 +1,46 @@
-#summon buttons need height fixed
-#remove viewing when unit dies
-#put cancelmovement button with skip/wait
+#double attack power when attacking from mountain
+#slow down summoner
+
 #level actually do something...
 #save and resume games
-#slow things down so that if every unit is waiting it's not a disaster
 
-#cancel movement if any enemy is seen
-#limited time to move
 #icons for each unit
 
 ############# PLAYABLE AT THIS POINT ##############
 
+#DESIGN OPTIONS
+#cancel movement if any enemy is seen?
+#limited time to move?
+#show move speed and attack speed?
+
+#BUGS
 #make sure text edit boxes only allow chars and not shift/enter
 #check new/edited city names for duplicates
 #uiElements startingManaSelector???
 
-#polish:
+#POLISH
 #icons for green and blue wood
 #some C optimization inside drawTile() and maybe draw()... make lists, reduce mallocs in draw loop, etc
 #make zoomspeed(in main.c) and focusspeed non-framerate dependant
-#show move speed and attack speed?
 #move gameplay viewport back to entire window. make UI less intrusive, small elements at the corners, encircle map with mountains
+#right-justifiable text
+#add odd/even columns. i.e. every other column will get a new node with you hit +
+
+#MISSING FEATURES
 #sound effects
 #mouseover effects
 #music
 #AI
 #campaign
-#right-justifiable text
-#add odd/even columns. i.e. every other column will get a new node with you hit +
-
 #server:
-#room for finding games
-#room for each game
-
+# room for finding games
+# room for each game
 #unit editor
 
 import sys
 import os
 import random
+import math
 import copy
 import time
 import traceback
@@ -53,14 +56,12 @@ from textureFunctions import texWidth, texHeight, texIndex
 sys.setrecursionlimit(100000)
 #need this to allow deep recursion for AStar
 #defaults to 1000... may cause crash on systems where 1000000 is too large...
-
 def printTraceBack(excType,excValue,tb=None):
 	print excType
 	print excValue
 	if(tb!=None):
 		traceback.print_tb(tb)
 
-zoomSpeed = 0.2
 class gameMode:
 	sortedElements = []
 	def __init__(self):
@@ -138,18 +139,17 @@ class tiledGameMode(gameMode):
 		if(name in self.elementsDict and hasattr(self.elementsDict[name],"onScrollUp")):
 			self.elementsDict[name].onScrollUp()
 		else:
-			self.map.translateZ = self.map.translateZ + zoomSpeed*deltaTicks;
-			if(self.map.translateZ > (-15.0-cDefines.defines['minZoom'])):
-				self.map.translateZ = -15.0-cDefines.defines['minZoom']
+			self.map.translateZ = self.map.translateZ + gameLogic.zoomSpeed*deltaTicks;
+			if(self.map.translateZ > (-10.0-cDefines.defines['minZoom'])):
+				self.map.translateZ = -10.0-cDefines.defines['minZoom']
 	def handleScrollDown(self,name,deltaTicks):
 		if(name in self.elementsDict and hasattr(self.elementsDict[name],"onScrollDown")):
 			self.elementsDict[name].onScrollDown()
 		else:
-			self.map.translateZ = self.map.translateZ - zoomSpeed*deltaTicks;
+			self.map.translateZ = self.map.translateZ - gameLogic.zoomSpeed*deltaTicks;
 			if(self.map.translateZ < (1.0-cDefines.defines['maxZoom'])):
 				self.map.translateZ = 1.0-cDefines.defines['maxZoom']
 	def handleMouseOver(self,name,isLeftMouseDown):
-		#TODO: keeping track of mousedOverObject might not be necessary any more since I added previousMousedoverName to the C code
 		if(isLeftMouseDown > 0):#allows onLeftClickDown to be called for tiles when the mouse is dragged over them
 			if(hasattr(gameState.getGameMode(),"selectedButton")):
 				if(gameState.getGameMode().selectedButton != None):
@@ -209,9 +209,9 @@ class playMode(tiledGameMode):
 			for unit in self.units:
 				if(unit.unitType.name == "gatherer" and unit.gatheringNode == unit.node):
 					if(unit.node.tileValue == cDefines.defines['FOREST_TILE_INDEX']):
-						self.players[unit.player-1].greenWood = self.players[unit.player-1].greenWood + 1
+						self.players[unit.player-1].greenWood = self.players[unit.player-1].greenWood + gameLogic.resourceCollectionRate
 					elif(unit.node.tileValue == cDefines.defines['BLUE_FOREST_TILE_INDEX']):
-						self.players[unit.player-1].blueWood = self.players[unit.player-1].blueWood + 1
+						self.players[unit.player-1].blueWood = self.players[unit.player-1].blueWood + gameLogic.resourceCollectionRate
 				if(unit.attackPoints > 0.0):
 					unit.attackPoints = unit.attackPoints - unit.unitType.attackSpeed
 				else:
@@ -236,12 +236,6 @@ class playMode(tiledGameMode):
 		for unit in self.units[1:]:
 			if((unit.movementPoints == eligibleUnits[0].movementPoints) and (not unit.waiting) and (unit.attackPoints <= 0.0)):
 				eligibleUnits.append(unit)
-		for unit in self.units:
-			print "**************"
-			print unit.player
-			print unit.attackPoints
-			print unit.movementPoints
-		print "*******************************"
 		self.nextUnit = random.choice(eligibleUnits)
 		if(len(self.nextUnit.movePath) > 0 and gameState.getPlayers()[gameState.getGameMode().nextUnit.player-1].isOwnPlayer):
 			self.nextUnit.move()
@@ -259,11 +253,8 @@ class playMode(tiledGameMode):
 				columnCount = columnCount + 1
 				if(node.playerStartValue != 0):
 					node.addUnit(gameLogic.unit(gameState.theUnitTypes["summoner"],node.playerStartValue,1,rowCount,columnCount,node))
-					if(gameState.getPlayerNumber() == node.playerStartValue or gameState.getPlayerNumber() == -2):
-						for neighb in node.getNeighbors(5):
-							neighb.startViewing(node.unit)
-					if(node.city != None):
-						node.city.player = node.playerStartValue
+					node.addUnit(gameLogic.unit(gameState.theUnitTypes["gatherer"],node.playerStartValue,1,rowCount,columnCount,node))
+					node.addUnit(gameLogic.unit(gameState.theUnitTypes["gatherer"],node.playerStartValue,1,rowCount,columnCount,node))
 	def handleKeyDown(self,keycode):
 		if(keycode == "left shift" or keycode == "right shift"):
 			self.shiftDown = True
@@ -290,8 +281,8 @@ class playMode(tiledGameMode):
 				number = self.nextUnit.player
 		return number
 	def onDraw(self):
-		self.greenWoodUIElem.text = str(self.players[self.getPlayerNumber()-1].greenWood)
-		self.blueWoodUIElem.text = str(self.players[self.getPlayerNumber()-1].blueWood)
+		self.greenWoodUIElem.text = str(int(math.floor(self.players[self.getPlayerNumber()-1].greenWood)))
+		self.blueWoodUIElem.text = str(int(math.floor(self.players[self.getPlayerNumber()-1].blueWood)))
 		gameMode.onDraw(self)
 	def addUIElements(self):
 		if(gameState.getClient() == None):#single player game

@@ -7,10 +7,13 @@ import random
 
 #researchBuildTime = 100
 #unitBuildSpeed = 0.1
-#startingGreenWood = 200
-#startingBlueWood = 0
-startingGreenWood = 2000
-startingBlueWood = 1000
+startingGreenWood = 200.0
+startingBlueWood = 0.0
+#startingGreenWood = 2000.0
+#startingBlueWood = 1000.0
+initiativeActionDepletion = 100.0
+resourceCollectionRate = 0.25
+zoomSpeed = 0.2
 
 class MODES:
 	MOVE_MODE = 0
@@ -83,7 +86,12 @@ class unit:
 		self.gatheringNode = None
 	def move(self):
 		if(self.movePath[0].unit != None and self.movePath[0].unit.player == self.player):#ran into own unit, let the player decide what to do...
+			for node in self.movePath:
+				node.onMovePath = False
 			self.movePath = []
+			
+			selectNode(self.node)
+			gameState.getGameMode().focusNextUnit = 1
 		else:
 			gameState.getClient().sendCommand("moveTo",str(self.movePath[0].xPos) + " " + str(self.movePath[0].yPos))
 			self.movePath = self.movePath[1:]
@@ -111,16 +119,20 @@ class unit:
 						#break
 			if(node.unit.gatheringNode == node):
 				self.waiting = True
-			self.movementPoints = self.movementPoints + 100.0
+			self.movementPoints = self.movementPoints + initiativeActionDepletion
 	def attack(self,node):
 		gameState.getClient().sendCommand("attackTo",str(node.xPos) + " " + str(node.yPos))
 		gameState.getClient().sendCommand("chooseNextUnit")
 	def attackTo(self,node):
 		node.unit.health = node.unit.health - self.unitType.attackPower
-		self.attackPoints = self.attackPoints + 100.0
+		self.attackPoints = self.attackPoints + initiativeActionDepletion
 		if(node.unit.health < 0.0):
+			for neighb in node.getNeighbors(5):
+				neighb.stopViewing(node.unit)
 			gameState.getGameMode().units.remove(node.unit)
 			node.unit = None
+
+			
 class city:
 	def __init__(self,name,node,unitTypes=None,costOfOwnership=10):
 		if(unitTypes == None):
@@ -198,6 +210,12 @@ class node:
 			self.unit = unit
 			unit.node = self
 			gameState.getGameMode().units.append(unit)
+			if(gameState.getPlayerNumber() == self.playerStartValue or gameState.getPlayerNumber() == -2):
+				for neighb in self.getNeighbors(5):
+					neighb.startViewing(self.unit)
+			if(self.city != None):
+				self.city.player = self.unit.player
+
 		else:
 			(random.choice(self.neighbors)).addUnit(unit)
 
@@ -229,9 +247,11 @@ class playModeNode(node):
 	def onLeftClickDown(self):
 		if(playModeNode.mode == MODES.ATTACK_MODE):
 			gameState.getGameMode().nextUnit.waiting = False
+			gameState.getGameMode().nextUnit.gatheringNode = None
 			gameState.getGameMode().nextUnit.attack(self)
 		elif(playModeNode.mode == MODES.MOVE_MODE or playModeNode.mode == MODES.GATHER_MODE):
-			gameState.getGameMode().nextUnit.waiting = False
+			uiElements.unitViewer.theUnitViewer.unit.waiting = False
+			uiElements.unitViewer.theUnitViewer.unit.gatheringNode = None
 			if(playModeNode.mode == MODES.GATHER_MODE):
 				uiElements.unitViewer.theUnitViewer.unit.gatheringNode = self
 			if(uiElements.unitViewer.theUnitViewer.unit == gameState.getGameMode().nextUnit):
@@ -239,6 +259,7 @@ class playModeNode(node):
 				uiElements.unitViewer.theUnitViewer.unit.move()
 			else:
 				uiElements.unitViewer.theUnitViewer.unit.movePath = uiElements.unitViewer.theUnitViewer.unit.node.movePath
+				uiElements.unitViewer.theUnitViewer.reset()
 			for node in uiElements.unitViewer.theUnitViewer.unit.movePath:
 				node.onMovePath = True
 		else:
@@ -255,11 +276,11 @@ class playModeNode(node):
 			if((gameState.getGameMode().nextUnit == uiElements.unitViewer.theUnitViewer.unit) and (self.unit != None and self.unit.player != uiElements.unitViewer.theUnitViewer.unit.player) and self.findDistance(uiElements.unitViewer.theUnitViewer.unit.node) <= uiElements.unitViewer.theUnitViewer.unit.unitType.range):
 				self.cursorIndex = cDefines.defines['CURSOR_ATTACK_INDEX']
 				playModeNode.mode = MODES.ATTACK_MODE
-			elif(uiElements.unitViewer.theUnitViewer.unit.unitType.name == "gatherer" and (self.tileValue == cDefines.defines['FOREST_TILE_INDEX'] or self.tileValue == cDefines.defines['BLUE_FOREST_TILE_INDEX']) and self.unit != uiElements.unitViewer.theUnitViewer.unit):
+			elif(uiElements.unitViewer.theUnitViewer.unit.unitType.name == "gatherer" and (not gameState.getGameMode().shiftDown) and (self.tileValue == cDefines.defines['FOREST_TILE_INDEX'] or self.tileValue == cDefines.defines['BLUE_FOREST_TILE_INDEX']) and self.unit != uiElements.unitViewer.theUnitViewer.unit):
 				self.cursorIndex = cDefines.defines['CURSOR_GATHER_INDEX']
 				playModeNode.mode = MODES.GATHER_MODE
 				self.aStarSearch()
-			elif((uiElements.unitViewer.theUnitViewer.unit.node == self) or (playModeNode.isNeighbor and gameState.getGameMode().shiftDown) or ((not playModeNode.isNeighbor) and (not gameState.getGameMode().shiftDown))):
+			elif((uiElements.unitViewer.theUnitViewer.unit.node == self) or (gameState.getGameMode().shiftDown) or (self.unit != None) or (gameState.getGameMode().selectedNode == None ) or (gameState.getGameMode().selectedNode != None and gameState.getGameMode().selectedNode.unit == None)):
 				self.cursorIndex = cDefines.defines['CURSOR_POINTER_INDEX']
 				playModeNode.mode = MODES.SELECT_MODE
 			else:

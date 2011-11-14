@@ -18,9 +18,9 @@
 #include "libpngGL.h"
 #include "fonts.h"
 
-#define maxZoom 35.0
+#define maxZoom 25.0
 #define minZoom 1.0
-#define initZoom 30.0
+#define initZoom 20.0
 
 #define zoomSpeed 30.0//lower is faster
 #define focusSpeed 15.0//lower is faster
@@ -210,6 +210,9 @@
 
 #define CITY_IMAGE "assets/city.png"
 #define CITY_INDEX 42
+
+#define GATHERER_IMAGE "assets/gatherer.png"
+#define GATHERER_INDEX 43
 
 #define DESERT_TILE_INDEX 0
 #define GRASS_TILE_INDEX 1
@@ -1127,6 +1130,7 @@ static void initGL (){
   pngLoad(&texturesArray[SELECTION_BOX_INDEX],SELECTION_BOX_IMAGE);
   pngLoad(&texturesArray[SUMMONER_INDEX],SUMMONER_IMAGE);
   pngLoad(&texturesArray[CITY_INDEX],CITY_IMAGE);
+  pngLoad(&texturesArray[GATHERER_INDEX],GATHERER_IMAGE);
 
   vertexArrays[DESERT_TILE_INDEX] = *desertVertices;
   vertexArrays[GRASS_TILE_INDEX] = *grassVertices;
