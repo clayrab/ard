@@ -1,5 +1,3 @@
-#memory leaks
-
 #save and resume games
 #icons for each unit
 
