@@ -44,6 +44,15 @@ class Commands:
     def moveToRedo(args):
         tokens = args.split(" ")
     @staticmethod
+    def skip():
+       	gameState.getGameMode().nextUnit.skip()
+    @staticmethod
+    def skipUndo(args):
+        tokens = args.split(" ")
+    @staticmethod
+    def skipRedo(args):
+        tokens = args.split(" ")
+    @staticmethod
     def attackTo(args):
         tokens = args.split(" ")
         node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
@@ -60,7 +69,7 @@ class Commands:
         node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
         unitType = gameState.theUnitTypes[tokens[2]]
         if(node.unit != None and node.unit.unitType.name == "summoner"):#don't trust the other client...
-            node.city.queueUnit(gameLogic.unit(unitType,node.city.player,node.city.researchProgress[unitType][0],node.xPos,node.yPos,node))
+            node.city.queueUnit(gameLogic.unit(unitType,node.city.player,node.xPos,node.yPos,node))
             node.unit.waiting = True
             gameState.getGameMode().players[node.unit.player-1].greenWood = gameState.getGameMode().players[node.unit.player-1].greenWood - unitType.costGreen
             gameState.getGameMode().players[node.unit.player-1].blueWood = gameState.getGameMode().players[node.unit.player-1].blueWood - unitType.costBlue
@@ -80,7 +89,7 @@ class Commands:
         node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
         unitType = gameState.theUnitTypes[tokens[2]]
         if(node.unit != None and node.unit.unitType.name == "summoner"):
-            node.city.queueUnit(gameLogic.unit(unitType,node.city.player,node.city.researchProgress[unitType][0],node.xPos,node.yPos,node))
+            node.city.queueUnit(gameLogic.unit(unitType,node.city.player,node.xPos,node.yPos,node))
     @staticmethod
     def cancelSummoning(args):
         tokens = args.split(" ")

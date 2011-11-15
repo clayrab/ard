@@ -227,7 +227,8 @@ class skipButton(clickableElement):
        	def __init__(self,xPos,yPos,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,textXPos=0.0,textYPos=0.0):
 		clickableElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],color=color,mouseOverColor=mouseOverColor,textXPos=textXPos,textYPos=textYPos)
 	def onClick(self):
-		gameState.getClient().sendCommand("moveTo",str(gameState.getGameMode().nextUnit.node.xPos) + " " + str(gameState.getGameMode().nextUnit.node.yPos))
+		gameState.getClient().sendCommand("skip")
+#,str(gameState.getGameMode().nextUnit.node.xPos) + " " + str(gameState.getGameMode().nextUnit.node.yPos))
 		gameState.getClient().sendCommand("chooseNextUnit")
 
 class actionViewer(uiElement):
@@ -306,10 +307,11 @@ class unitViewer(uiElement):
 		self.unit = unit
 		self.names = []
 		self.names.append(uiElement(-0.978,0.79,textXPos=0.01,textYPos=-0.035,height=texHeight('UNIT_VIEWER_BOX'),width=texWidth('UNIT_VIEWER_BOX'),textureIndex=texIndex('UNIT_VIEWER_BOX'),textSize=0.0005).name)	
-		self.names.append(uiElement(-0.96,0.73,text=self.unit.unitType.name,textSize=0.0007).name)
-		self.names.append(uiElement(-0.964,0.72,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE'),textureIndex=texIndex('UNIT_BUILD_BAR')).name)
-		self.names.append(uiElement(-0.964,0.72,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE')*(float(self.unit.health)/self.unit.unitType.health),textureIndex=texIndex('UNIT_BUILD_BAR'),color="FF 00 00").name)
-		self.names.append(uiElement(-0.96,0.695,text=str(self.unit.health)+"/"+str(self.unit.unitType.health),textSize=0.0005).name)
+		self.names.append(uiElement(-0.96,0.69,text=self.unit.unitType.name,textSize=0.0005).name)
+		self.names.append(uiElement(-0.96,0.65,text="lvl " + str(self.unit.level),textSize=0.0005).name)
+		self.names.append(uiElement(-0.964,0.76,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE'),textureIndex=texIndex('UNIT_BUILD_BAR')).name)
+		self.names.append(uiElement(-0.964,0.76,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE')*(float(self.unit.health)/self.unit.unitType.health),textureIndex=texIndex('UNIT_BUILD_BAR'),color="FF 00 00").name)
+		self.names.append(uiElement(-0.96,0.735,text=str(self.unit.health)+"/"+str(self.unit.unitType.health),textSize=0.0005).name)
 		height = 0.565
 		if(len(self.unit.movePath) > 0):
 			self.names.append(cancelMovementButton(-0.964,height,text="cancel move",textSize=0.0005).name)

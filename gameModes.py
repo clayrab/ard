@@ -1,9 +1,6 @@
-#double attack power when attacking from mountain
-#slow down summoner
+#memory leaks
 
-#level actually do something...
 #save and resume games
-
 #icons for each unit
 
 ############# PLAYABLE AT THIS POINT ##############
@@ -19,6 +16,7 @@
 #uiElements startingManaSelector???
 
 #POLISH
+#existing movePath and new movePath need to be distinguishable
 #icons for green and blue wood
 #some C optimization inside drawTile() and maybe draw()... make lists, reduce mallocs in draw loop, etc
 #make zoomspeed(in main.c) and focusspeed non-framerate dependant
@@ -32,6 +30,7 @@
 #music
 #AI
 #campaign
+
 #server:
 # room for finding games
 # room for each game
@@ -183,15 +182,17 @@ class playMode(tiledGameMode):
 		self.selectedNode = None
 		tiledGameMode.__init__(self)
 		self.shiftDown = False
+		self.focusing = False
 		self.blueWoodUIElem = None
 		self.greenWoodUIElem = None
 		self.players = []
 	def loadMap(self):
 		self.map = gameLogic.map(gameLogic.playModeNode)
 	def getFocusNextUnit(self):
-		self.focusNextUnitTemp = self.focusNextUnit
-		self.focusNextUnit = 0
-		return self.focusNextUnitTemp
+		return self.focusNextUnit
+#		self.focusNextUnitTemp = self.focusNextUnit
+#		self.focusNextUnit = 0
+#		return self.focusNextUnitTemp
 	def unitComparater(self,unit):
 		if (unit.waiting or (unit.attackPoints > 0.0)):
 			return 1000.0
@@ -218,13 +219,13 @@ class playMode(tiledGameMode):
 #					if(unit.node.roadValue == 1):
 #					unit.movementPoints = unit.movementPoints - 2.0
 					if(unit.node.tileValue == cDefines.defines['MOUNTAIN_TILE_INDEX']):
-						unit.movementPoints = unit.movementPoints - ((float(unit.unitType.movementSpeed)+float(unit.node.roadValue))/cDefines.defines['MOUNTAIN_MOVE_COST'])
+						unit.movementPoints = unit.movementPoints - ((float(unit.getMovementSpeed())+float(unit.node.roadValue))/cDefines.defines['MOUNTAIN_MOVE_COST'])
 					elif(unit.node.tileValue == cDefines.defines['WATER_TILE_INDEX'] and unit.canSwim == False):
-						unit.movementPoints = unit.movementPoints - ((float(unit.unitType.movementSpeed)+float(unit.node.roadValue))/cDefines.defines['WATER_MOVE_COST'])
+						unit.movementPoints = unit.movementPoints - ((float(unit.getMovementSpeed())+float(unit.node.roadValue))/cDefines.defines['WATER_MOVE_COST'])
 					elif(unit.node.tileValue == cDefines.defines['DESERT_TILE_INDEX']):
-						unit.movementPoints = unit.movementPoints - ((float(unit.unitType.movementSpeed)+float(unit.node.roadValue))/cDefines.defines['DESERT_MOVE_COST'])
+						unit.movementPoints = unit.movementPoints - ((float(unit.getMovementSpeed())+float(unit.node.roadValue))/cDefines.defines['DESERT_MOVE_COST'])
 					else:
-						unit.movementPoints = unit.movementPoints - ((float(unit.unitType.movementSpeed)+float(unit.node.roadValue))/cDefines.defines['GRASS_MOVE_COST'])
+						unit.movementPoints = unit.movementPoints - ((float(unit.getMovementSpeed())+float(unit.node.roadValue))/cDefines.defines['GRASS_MOVE_COST'])
 					if(unit.movementPoints < 0.0):
 						unit.movementPoints = 0.0#for waiting units
 			for row in self.map.nodes:
@@ -237,12 +238,16 @@ class playMode(tiledGameMode):
 			if((unit.movementPoints == eligibleUnits[0].movementPoints) and (not unit.waiting) and (unit.attackPoints <= 0.0)):
 				eligibleUnits.append(unit)
 		self.nextUnit = random.choice(eligibleUnits)
+		gameLogic.selectNode(self.nextUnit.node)
+		self.focusNextUnit = 1
+	def onDoneFocusing(self):
+		self.focusNextUnit = 0
+		
 		if(len(self.nextUnit.movePath) > 0 and gameState.getPlayers()[gameState.getGameMode().nextUnit.player-1].isOwnPlayer):
 			self.nextUnit.move()
-		elif(gameState.getPlayerNumber() == self.nextUnit.player or gameState.getPlayerNumber() == -2):
-			gameLogic.selectNode(self.nextUnit.node)
-			self.focusNextUnit = 1
-
+		elif(hasattr(gameState.getGameMode().mousedOverObject,"toggleCursor")):
+			gameState.getGameMode().mousedOverObject.toggleCursor()
+			
 	def loadSummoners(self):
 		rowCount = 0
 		columnCount = 0
@@ -252,9 +257,9 @@ class playMode(tiledGameMode):
 			for node in row:
 				columnCount = columnCount + 1
 				if(node.playerStartValue != 0):
-					node.addUnit(gameLogic.unit(gameState.theUnitTypes["summoner"],node.playerStartValue,1,rowCount,columnCount,node))
-					node.addUnit(gameLogic.unit(gameState.theUnitTypes["gatherer"],node.playerStartValue,1,rowCount,columnCount,node))
-					node.addUnit(gameLogic.unit(gameState.theUnitTypes["gatherer"],node.playerStartValue,1,rowCount,columnCount,node))
+					node.addUnit(gameLogic.unit(gameState.theUnitTypes["summoner"],node.playerStartValue,rowCount,columnCount,node))
+					node.addUnit(gameLogic.unit(gameState.theUnitTypes["gatherer"],node.playerStartValue,rowCount,columnCount,node))
+					node.addUnit(gameLogic.unit(gameState.theUnitTypes["gatherer"],node.playerStartValue,rowCount,columnCount,node))
 	def handleKeyDown(self,keycode):
 		if(keycode == "left shift" or keycode == "right shift"):
 			self.shiftDown = True

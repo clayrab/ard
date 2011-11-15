@@ -7,13 +7,14 @@ import random
 
 #researchBuildTime = 100
 #unitBuildSpeed = 0.1
-startingGreenWood = 200.0
+startingGreenWood = 250.0
 startingBlueWood = 0.0
 #startingGreenWood = 2000.0
 #startingBlueWood = 1000.0
 initiativeActionDepletion = 100.0
-resourceCollectionRate = 0.25
+resourceCollectionRate = 0.1
 zoomSpeed = 0.2
+mountainAttackBonueMultiplier = 1.0
 
 class MODES:
 	MOVE_MODE = 0
@@ -66,9 +67,8 @@ class unitType:
 			print "attackPowerBonus:"+str(self.attackPowerBonus)
 			print "researchCost:"+str(self.researchCost)
 			print "researchTime:"+str(self.researchTime)
-
 class unit:
-	def __init__(self,unitType,player,level,xPos,yPos,node):
+	def __init__(self,unitType,player,xPos,yPos,node):
 		self.unitType = unitType
 		self.player = player
 		self.xPos = xPos
@@ -78,16 +78,23 @@ class unit:
 #		self.attackPoints = self.unitType.attackSpeed
 		self.movementPoints = 0
 		self.attackPoints = 0
-		self.buildPoints = self.unitType.buildTime
+		self.buildPoints = self.unitType.buildTime	
 		self.health = self.unitType.health
 		self.movePath = []
 		self.waiting = False
-		self.level = level
+		self.level = node.city.researchProgress[self.unitType][0]
+		self.originCity = node.city
 		self.gatheringNode = None
+	def getAttackPower(self):
+		return self.unitType.attackPower + (self.unitType.attackPowerBonus*(self.level-1))
+	def getMovementSpeed(self):
+		return self.unitType.movementSpeed + (self.unitType.movementSpeedBonus*(self.level-1))
+	def getArmor(self):
+		return self.unitType.armor + (self.unitType.armorBonus*(self.level-1))
 	def move(self):
+		for node in self.movePath:
+			node.onMovePath = False
 		if(self.movePath[0].unit != None and self.movePath[0].unit.player == self.player):#ran into own unit, let the player decide what to do...
-			for node in self.movePath:
-				node.onMovePath = False
 			self.movePath = []
 			
 			selectNode(self.node)
@@ -124,14 +131,21 @@ class unit:
 		gameState.getClient().sendCommand("attackTo",str(node.xPos) + " " + str(node.yPos))
 		gameState.getClient().sendCommand("chooseNextUnit")
 	def attackTo(self,node):
-		node.unit.health = node.unit.health - self.unitType.attackPower
+		multiplier = 1.0
+		if(self.node.tileValue == cDefines.defines['MOUNTAIN_TILE_INDEX']):
+			multiplier = multiplier + mountainAttackBonusMultiplier
+		damage = ((self.getAttackPower()-node.unit.getArmor())*multiplier)
+		if(damage < 0):
+			damage = 0
+		node.unit.health = node.unit.health - damage
 		self.attackPoints = self.attackPoints + initiativeActionDepletion
 		if(node.unit.health < 0.0):
 			for neighb in node.getNeighbors(5):
 				neighb.stopViewing(node.unit)
 			gameState.getGameMode().units.remove(node.unit)
 			node.unit = None
-
+	def skip(self):
+		self.attackPoints = self.attackPoints + initiativeActionDepletion
 			
 class city:
 	def __init__(self,name,node,unitTypes=None,costOfOwnership=10):
@@ -180,6 +194,9 @@ class city:
 						self.researchProgress[self.researchUnitType][1] = 0
 						self.node.unit.waiting = False#wake up summoner
 						self.researching = False
+						for unit in gameState.getGameMode().units:
+							if(unit.unitType == self.researchUnitType and unit.originCity == self):
+								unit.level = unit.level + 1
 			else:
 				if(self.unitBeingBuilt != None):
 					self.unitBeingBuilt.buildPoints = self.unitBeingBuilt.buildPoints - 1
@@ -215,7 +232,6 @@ class node:
 					neighb.startViewing(self.unit)
 			if(self.city != None):
 				self.city.player = self.unit.player
-
 		else:
 			(random.choice(self.neighbors)).addUnit(unit)
 
@@ -271,7 +287,10 @@ class playModeNode(node):
 		if(uiElements.unitViewer.theUnitViewer != None):
 			for node in uiElements.unitViewer.theUnitViewer.unit.movePath:
 				node.onMovePath = True
-
+		if(gameState.getGameMode().focusNextUnit == 1):
+			self.cursorIndex = cDefines.defines['CURSOR_POINTER_INDEX']
+			playModeNode.mode = MODES.SELECT_MODE
+			return;
 		if(uiElements.unitViewer.theUnitViewer != None and gameState.getGameMode().getPlayerNumber() == gameState.getGameMode().nextUnit.player):
 			if((gameState.getGameMode().nextUnit == uiElements.unitViewer.theUnitViewer.unit) and (self.unit != None and self.unit.player != uiElements.unitViewer.theUnitViewer.unit.player) and self.findDistance(uiElements.unitViewer.theUnitViewer.unit.node) <= uiElements.unitViewer.theUnitViewer.unit.unitType.range):
 				self.cursorIndex = cDefines.defines['CURSOR_ATTACK_INDEX']

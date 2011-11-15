@@ -242,6 +242,7 @@ int clickScroll = 0;
 long focusNextUnit = 0;
 float focusXPos, focusYPos;
 int isFocusing = 0;
+int considerDoneFocusing = 0;
 int leftButtonDown = 0;
 
 int done = 0;    
@@ -273,6 +274,7 @@ PyObject * UIElementsIterator;
 PyObject * rowIterator;
 PyObject * pyMapWidth;
 PyObject * pyMapHeight;
+PyObject * pyObj;
 long mapWidth;
 long mapHeight;
 
@@ -821,8 +823,12 @@ void calculateTranslation(){
   }
   if(isFocusing){
     //printf("%f %f %f %f\n",translateXPrev,translateX,translateYPrev,translateY);
-    if(!focusNextUnit && abs(50.0*(translateXPrev - translateX)) == 0 && abs(50.0*(translateYPrev - translateY)) == 0){//this indicates the auto-scrolling code is not allowing us to move any more
+    if((considerDoneFocusing == 1) && abs(50.0*(translateXPrev - translateX)) == 0 && abs(50.0*(translateYPrev - translateY)) == 0){//this indicates the auto-scrolling code is not allowing us to move any more
       isFocusing = 0;
+      considerDoneFocusing = 0;
+      PyObject_CallMethod(gameMode,"onDoneFocusing",NULL);//New reference
+    }else if(abs(50.0*(translateXPrev - translateX)) == 0 && abs(50.0*(translateYPrev - translateY)) == 0){//this indicates the auto-scrolling code is not allowing us to move any more
+      considerDoneFocusing = 1;
     }
     translateXPrev = translateX;
     translateYPrev = translateY;
@@ -1009,10 +1015,14 @@ void drawUIElement(PyObject * uiElement){
 void drawUI(){
 
   //TODO: make sure CallMethod does not create a new reference and fix these two calls if it does
-  UIElementsIterator = PyObject_GetIter(PyObject_CallMethod(gameMode,"getUIElementsIterator",NULL));//New reference
+  pyObj = PyObject_CallMethod(gameMode,"getUIElementsIterator",NULL);
+  UIElementsIterator = PyObject_GetIter(pyObj);//New reference
   while (uiElement = PyIter_Next(UIElementsIterator)) {
     drawUIElement(uiElement);
   }
+
+  Py_DECREF(pyObj);
+  Py_DECREF(UIElementsIterator);
 
   GLint buf;
   glGetIntegerv(GL_RENDER_MODE,&buf);
