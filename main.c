@@ -489,13 +489,12 @@ void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long 
     shading = shading - 0.5;
   }
   if(name == selectedName){
-    shading = shading - 0.1;
+    shading = shading - 0.4;
     if(cursorIndex >= 0){
       theCursorIndex = (int)cursorIndex;
     }
-  }
-  if(isSelected == 1){
-    shading = shading - 0.1;
+  }else if(isSelected == 1){
+    shading = shading - 0.4;
   }
   
   glBindTexture(GL_TEXTURE_2D, tilesTexture);
@@ -1246,18 +1245,18 @@ static void handleInput(){
       pyObj = PyObject_CallMethod(gameMode,"handleMouseMovement","(iii)",selectedName,mouseX,mouseY);
       printPyStackTrace();
       if(mouseX == 0){
-	moveRight = -1;
+	//moveRight = -1;
       }else if(mouseX >= SCREEN_WIDTH-1){
-	moveRight = 1;
+	//moveRight = 1;
       }else{
-	moveRight = 0;
+	//moveRight = 0;
       }
       if(mouseY == 0){
-	moveUp = 1;
+	//moveUp = 1;
       }else if(mouseY >= SCREEN_HEIGHT-1){
-	moveUp = -1;
+	//moveUp = -1;
       }else{
-	moveUp = 0;
+	//moveUp = 0;
       }
       if(pyObj != NULL){
 	Py_DECREF(pyObj);

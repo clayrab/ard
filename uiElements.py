@@ -167,7 +167,10 @@ class hostIPInputElement(textInputElement):
 class startGatheringButton(clickableElement):
 	def onClick(self):
 		gameState.getClient().sendCommand("gatherTo",str(actionViewer.theActionViewer.node.xPos) + " " + str(actionViewer.theActionViewer.node.yPos) + " " + str(actionViewer.theActionViewer.node.xPos) + " " + str(actionViewer.theActionViewer.node.yPos))
-		gameState.getClient().sendCommand("startWaiting",str(actionViewer.theActionViewer.node.xPos) + " " + str(actionViewer.theActionViewer.node.yPos))
+		gameState.getClient().sendCommand("wait",str(actionViewer.theActionViewer.node.xPos) + " " + str(actionViewer.theActionViewer.node.yPos))
+		gameState.getClient().sendCommand("chooseNextUnit")
+		if(unitViewer.theUnitViewer != None):
+			unitViewer.theUnitViewer.reset()
 
 class startSummoningButton(clickableElement):
        	def __init__(self,xPos,yPos,unitType,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,textXPos=0.0,textYPos=0.0):
@@ -322,18 +325,18 @@ class unitViewer(uiElement):
 
 		if(self.unit.unitType.name == "gatherer"):
 			if(self.unit.gatheringNode == self.unit.node):
-				self.names.append(uiElement(-0.96,height,text="gathering",textSize=0.0005).name)
+				self.names.append(uiElement(-0.964,height,text="gathering",textSize=0.0005).name)
 				height = height + 0.04
 			elif(self.unit.node.tileValue == cDefines.defines['FOREST_TILE_INDEX'] or self.unit.node.tileValue == cDefines.defines['BLUE_FOREST_TILE_INDEX']):
-				self.names.append(startGatheringButton(-0.96,height,text="start gathering",textSize=0.0005).name)
+				self.names.append(startGatheringButton(-0.964,height,text="start gathering",textSize=0.0005).name)
 				height = height + 0.04
 		if(self.unit.waiting and self.unit.unitType.name == "summoner" and self.unit.node.city != None):
 			if(self.unit.node.city.unitBeingBuilt != None):
-				self.names.append(uiElement(-0.96,height,text="summoning",textSize=0.0005).name)
+				self.names.append(uiElement(-0.964,height,text="summoning",textSize=0.0005).name)
 			elif(self.unit.node.city.researching):
-				self.names.append(uiElement(-0.96,height,text="researching",textSize=0.0005).name)
+				self.names.append(uiElement(-0.964,height,text="researching",textSize=0.0005).name)
 			else:
-				self.names.append(uiElement(-0.96,height,text="waiting",textSize=0.0005).name)
+				self.names.append(uiElement(-0.964,height,text="waiting",textSize=0.0005).name)
 			
 			
 	@staticmethod

@@ -7,7 +7,7 @@
 "health":100,
 "canFly":0,
 "canSwim":0,
-"costGreen":500,
+"costGreen":400,
 "costBlue":0,
 "buildTime":200,
 "movementSpeedBonus":0,

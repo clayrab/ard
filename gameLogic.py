@@ -12,15 +12,15 @@ startingBlueWood = 0.0
 #startingGreenWood = 2000.0
 #startingBlueWood = 1000.0
 initiativeActionDepletion = 100.0
-resourceCollectionRate = 0.1
+resourceCollectionRate = 0.15
 zoomSpeed = 0.2
-mountainAttackBonueMultiplier = 1.0
+mountainAttackBonusMultiplier = 1.0
 
 class MODES:
 	MOVE_MODE = 0
 	ATTACK_MODE = 1
 	SELECT_MODE = 2
-	GATHER_MODE = 3
+#	GATHER_MODE = 3
 
 cityNames = ["Eshnunna","Tutub","Der","Sippar","Sippar-Amnanum","Kutha","Jemde Nasr","Kish","Babilim","Borsippa","Mashkan-shapir","Dilbat","Nippur","Marad","Adab","Isin","Kisurra","Shuruppak","Bad-tibira","Zabalam","Umma","Girsu","Lagash","Urum","Uruk","Larsa","Ur","Kuara","Eridu","Akshak","Akkad","Urfa","Shanidar cave","Urkesh","Shekhna","Arbid","Harran","Chagar Bazar","Kahat","El Fakhariya","Arslan Tash","Carchemish","Til Barsip","Nabada","Nagar","Telul eth-Thalathat","Tepe Gawra","Tell Arpachiyah","Shibaniba","Tarbisu","Ninua","Qatara","Dur Sharrukin","Tell Shemshara","Arbil","Imgur-Enlil","Nimrud","Emar","Arrapha","Kar-Tukulti-Ninurta","Ashur","Nuzi","al-Fakhar","Terqa","Mari","Haradum","Nerebtum","Agrab","Dur-Kurigalzu","Shaduppum","Seleucia","Ctesiphon","Zenobia","Zalabiye","Hasanlu","Takht-i-Suleiman","Behistun","Godin Tepe","Chogha Mish","Tepe Sialk","Susa","Kabnak","Dur Untash","Pasargadai","Naqsh-e Rustam","Parsa","Anshan","Konar Sandal","Tepe Yahya","Miletus","Sfard","Nicaea","Sapinuwa","Yazilikaya","Alaca Hoyuk","Masat Hoyuk","Hattusa","Ilios","Kanesh","Arslantepe","Sam'al","Beycesultan","Adana","Karatepe","Tarsus","Sultantepe","Attalia","Acre","Adoraim","Alalah","Aleppo","Al-Sinnabra","Aphek","Arad Rabbah","Ashdod","Ashkelon","Baalbek","Batroun","Beersheba","Beth Shean","Bet Shemesh","Bethany","Bet-el","Bezer","Byblos","Capernaum","Dan","Dimashq","Deir Alla","Dhiban","Dor","Ebla","En Gedi","Enfeh","Ekron","Et-Tell","Gath","Gezer","Gibeah","Gilgal Refaim","Gubla","Hamath","Hazor","Hebron","Herodion","Jezreel","Kadesh Barnea","Kedesh","Kumidi","Lachish","Megiddo","Qatna","Qumran","Rabat Amon","Samaria","Sarepta","Sharuhen","Shiloh","Sidon","Tadmor","Tirzah","Tyros","Ugarit","Umm el-Marra"]
 
@@ -31,6 +31,7 @@ class Player:
 		self.isOwnPlayer = False
 		self.greenWood = startingGreenWood
 		self.blueWood = startingBlueWood
+		self.hasUnits = True
 class unitType:
 	def __init__(self,name,textureIndex,movementSpeed,attackSpeed,attackPower,armor,range,health,canFly,canSwim,costGreen,costBlue,buildTime,movementSpeedBonus,armorBonus,attackPowerBonus,researchCostGreen,researchCostBlue,researchTime):
 		self.name = name
@@ -96,9 +97,8 @@ class unit:
 	def move(self):
 		for node in self.movePath:
 			node.onMovePath = False
-		if(self.movePath[0].unit != None and self.movePath[0].unit.player == self.player):#ran into own unit, let the player decide what to do...
+		if(self.movePath[0].unit != None):#ran into own unit
 			self.movePath = []
-			
 			selectNode(self.node)
 			gameState.getGameMode().focusNextUnit = 1
 		else:
@@ -107,6 +107,7 @@ class unit:
 			gameState.getClient().sendCommand("chooseNextUnit")
 	def moveTo(self,node):
 		self.waiting = False
+		self.gatheringNode = None
 		node.onMovePath = False
 		for neighb in self.node.getNeighbors(5):
 			neighb.stopViewing(self)
@@ -255,11 +256,11 @@ class playModeNode(node):
 		self.visible = False
 		self.viewingUnits = []
 	def startViewing(self,unit):
-		if(gameState.getPlayerNumber() == unit.player or gameState.getPlayerNumber() == -2):
+		if(gameState.getPlayerNumber() == unit.player or gameState.getPlayerNumber() == -2 or True):
 			self.viewingUnits.append(unit)
 			self.visible = True
 	def stopViewing(self,unit):
-		if(gameState.getPlayerNumber() == unit.player or gameState.getPlayerNumber() == -2):
+		if(gameState.getPlayerNumber() == unit.player or gameState.getPlayerNumber() == -2 or True):
 			if(unit in self.viewingUnits):
 				self.viewingUnits.remove(unit)
 			if(len(self.viewingUnits) <= 0):
@@ -267,13 +268,13 @@ class playModeNode(node):
 	def onLeftClickDown(self):
 		if(playModeNode.mode == MODES.ATTACK_MODE):
 #			gameState.getGameMode().nextUnit.waiting = False
-			gameState.getGameMode().nextUnit.gatheringNode = None
+#			gameState.getGameMode().nextUnit.gatheringNode = None
 			gameState.getGameMode().nextUnit.attack(self)
-		elif(playModeNode.mode == MODES.MOVE_MODE or playModeNode.mode == MODES.GATHER_MODE):
+		elif(playModeNode.mode == MODES.MOVE_MODE):
 #			uiElements.unitViewer.theUnitViewer.unit.waiting = False
-			uiElements.unitViewer.theUnitViewer.unit.gatheringNode = None
-			if(playModeNode.mode == MODES.GATHER_MODE):
-				uiElements.unitViewer.theUnitViewer.unit.gather(self)
+#			uiElements.unitViewer.theUnitViewer.unit.gatheringNode = None
+#			if(playModeNode.mode == MODES.GATHER_MODE):
+#				uiElements.unitViewer.theUnitViewer.unit.gather(self)
 			if(uiElements.unitViewer.theUnitViewer.unit == gameState.getGameMode().nextUnit):
 				uiElements.unitViewer.theUnitViewer.unit.movePath = uiElements.unitViewer.theUnitViewer.unit.node.movePath
 				uiElements.unitViewer.theUnitViewer.unit.move()
@@ -301,11 +302,11 @@ class playModeNode(node):
 			if((gameState.getGameMode().nextUnit == uiElements.unitViewer.theUnitViewer.unit) and (self.unit != None and self.unit.player != uiElements.unitViewer.theUnitViewer.unit.player) and self.findDistance(uiElements.unitViewer.theUnitViewer.unit.node) <= uiElements.unitViewer.theUnitViewer.unit.unitType.range):
 				self.cursorIndex = cDefines.defines['CURSOR_ATTACK_INDEX']
 				playModeNode.mode = MODES.ATTACK_MODE
-			elif(uiElements.unitViewer.theUnitViewer.unit.unitType.name == "gatherer" and (not gameState.getGameMode().shiftDown) and (self.tileValue == cDefines.defines['FOREST_TILE_INDEX'] or self.tileValue == cDefines.defines['BLUE_FOREST_TILE_INDEX']) and self.unit != uiElements.unitViewer.theUnitViewer.unit):
-				self.cursorIndex = cDefines.defines['CURSOR_GATHER_INDEX']
-				playModeNode.mode = MODES.GATHER_MODE
-				self.aStarSearch()
-			elif((uiElements.unitViewer.theUnitViewer.unit.node == self) or (gameState.getGameMode().shiftDown) or (self.unit != None) or (gameState.getGameMode().selectedNode == None ) or (gameState.getGameMode().selectedNode != None and gameState.getGameMode().selectedNode.unit == None)):
+#			elif(uiElements.unitViewer.theUnitViewer.unit.unitType.name == "gatherer" and (not gameState.getGameMode().shiftDown) and (self.tileValue == cDefines.defines['FOREST_TILE_INDEX'] or self.tileValue == cDefines.defines['BLUE_FOREST_TILE_INDEX']) and self.unit != uiElements.unitViewer.theUnitViewer.unit):
+#				self.cursorIndex = cDefines.defines['CURSOR_GATHER_INDEX']
+#				playModeNode.mode = MODES.GATHER_MODE
+#				self.aStarSearch()
+			elif((uiElements.unitViewer.theUnitViewer.unit.node == self) or (playModeNode.isNeighbor and gameState.getGameMode().shiftDown) or ((not playModeNode.isNeighbor) and (not gameState.getGameMode().shiftDown)) or (self.unit != None) or (gameState.getGameMode().selectedNode == None) or (gameState.getGameMode().selectedNode != None and gameState.getGameMode().selectedNode.unit == None)):
 				self.cursorIndex = cDefines.defines['CURSOR_POINTER_INDEX']
 				playModeNode.mode = MODES.SELECT_MODE
 			else:

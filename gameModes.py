@@ -199,6 +199,20 @@ class playMode(tiledGameMode):
 	def orderUnits(self):
 		self.units.sort(key=self.unitComparater)
 	def chooseNextUnit(self):
+		winner = None
+		for player in self.players:
+			player.hasUnits = False
+		for unit in self.units:
+			self.players[unit.player-1].hasUnits = True
+		for player in self.players:
+			if(winner != None and player.hasUnits):
+				winner = None
+				break
+			if(player.hasUnits):
+				winner = player
+		if(winner != None):
+			print 'Winner: ' + winner.playerNumber
+			return
 		if(len(self.units) <= 1):
 			   print 'DANGER, ONLY ONE UNIT ON THE BOARD, THE GAME SHOULD HAVE ENDED, THIS WILL CAUSE AN INFINITE LOOP'
 			   return
@@ -235,6 +249,8 @@ class playMode(tiledGameMode):
 		for unit in self.units[1:]:
 			if((unit.movementPoints == eligibleUnits[0].movementPoints) and (not unit.waiting) and (unit.attackPoints <= 0.0)):
 				eligibleUnits.append(unit)
+		for unit in eligibleUnits:
+			print "elg: " + str(unit.node.xPos) + " " + str(unit.node.yPos)
 		self.nextUnit = random.choice(eligibleUnits)
 		gameLogic.selectNode(self.nextUnit.node)
 		self.focusNextUnit = 1
@@ -259,7 +275,7 @@ class playMode(tiledGameMode):
 				if(node.playerStartValue != 0):
 					node.addUnit(gameLogic.unit(gameState.theUnitTypes["summoner"],node.playerStartValue,rowCount,columnCount,node))
 					node.addUnit(gameLogic.unit(gameState.theUnitTypes["gatherer"],node.playerStartValue,rowCount,columnCount,node))
-					node.addUnit(gameLogic.unit(gameState.theUnitTypes["gatherer"],node.playerStartValue,rowCount,columnCount,node))
+
 	def handleKeyDown(self,keycode):
 		if(keycode == "left shift" or keycode == "right shift"):
 			self.shiftDown = True

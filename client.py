@@ -167,7 +167,7 @@ class Commands:
         tokens = args.split(" ")
         node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
         node.unit.waiting = False
-        if(uiElements.unitViewer.theUnitViewer.unit == node.unit):
+        if(uiElements.unitViewer.theUnitViewer != None and uiElements.unitViewer.theUnitViewer.unit == node.unit):
             uiElements.unitViewer.reset()
         if(uiElements.actionViewer.theActionViewer.node == node):
             uiElements.actionViewer.theActionViewer.reset()
