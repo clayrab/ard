@@ -43,6 +43,24 @@ class Commands:
     @staticmethod
     def moveToRedo(args):
         tokens = args.split(" ")
+
+    @staticmethod
+    def gatherTo(args):
+        tokens = args.split(" ")
+        unitNode = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
+        node = gameState.getGameMode().map.nodes[int(tokens[3])][int(tokens[2])]
+        unitNode.unit.gatheringNode = node
+    @staticmethod
+    def gatherToUndo(args):
+        tokens = args.split(" ")
+        node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
+        node.unit.gatheringNode = None
+    @staticmethod
+    def gatherToRedo(args):
+        tokens = args.split(" ")
+        node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
+        node.unit.gatheringNode = node
+
     @staticmethod
     def skip():
        	gameState.getGameMode().nextUnit.skip()
@@ -180,6 +198,7 @@ class Commands:
         node.unit.waiting = True
 
 def doCommand(commandName,args=None):
+    print commandName + " " + str(args)
     commandFunc = getattr(Commands,commandName)
     if(commandFunc != None):
         if(args != None and args != ''):

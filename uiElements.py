@@ -166,8 +166,8 @@ class hostIPInputElement(textInputElement):
 
 class startGatheringButton(clickableElement):
 	def onClick(self):
-		actionViewer.theActionViewer.node.unit.gatheringNode = actionViewer.theActionViewer.node
-		actionViewer.theActionViewer.node.unit.waiting = True
+		gameState.getClient().sendCommand("gatherTo",str(actionViewer.theActionViewer.node.xPos) + " " + str(actionViewer.theActionViewer.node.yPos) + " " + str(actionViewer.theActionViewer.node.xPos) + " " + str(actionViewer.theActionViewer.node.yPos))
+		gameState.getClient().sendCommand("startWaiting",str(actionViewer.theActionViewer.node.xPos) + " " + str(actionViewer.theActionViewer.node.yPos))
 
 class startSummoningButton(clickableElement):
        	def __init__(self,xPos,yPos,unitType,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,textXPos=0.0,textYPos=0.0):

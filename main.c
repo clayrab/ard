@@ -1282,6 +1282,7 @@ static void handleInput(){
 	leftButtonDown = 1;
 	if(PyObject_HasAttrString(gameMode,"handleLeftClickDown")){
 	  pyObj = PyObject_CallMethod(gameMode,"handleLeftClickDown","i",selectedName);//New reference
+	  printPyStackTrace();
 	  Py_DECREF(pyObj);
 	}
 	previousClickedName = selectedName;
@@ -1300,6 +1301,7 @@ static void handleInput(){
 	if(PyObject_HasAttrString(gameMode,"handleLeftClickUp")){
 	  pyObj = PyObject_CallMethod(gameMode,"handleLeftClickUp","i",selectedName);//New reference
 	  Py_DECREF(pyObj);
+	  printPyStackTrace();
 	}
 	leftButtonDown = 0;
       }
@@ -1368,7 +1370,6 @@ static void draw(){
   if(pyObj != NULL){
     Py_DECREF(pyObj);
   }
-
   printPyStackTrace();
   glClearDepth(1.1);
   //this needs to be done before glClear...

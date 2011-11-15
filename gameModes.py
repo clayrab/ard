@@ -203,7 +203,7 @@ class playMode(tiledGameMode):
 			   print 'DANGER, ONLY ONE UNIT ON THE BOARD, THE GAME SHOULD HAVE ENDED, THIS WILL CAUSE AN INFINITE LOOP'
 			   return
 		self.orderUnits()
-		while(self.units[0].movementPoints > 0.0 or self.units[0].attackPoints > 0.0 or (self.units[0].waiting)):
+		while(self.units[0].movementPoints > 0.0 or self.units[0].attackPoints > 0.0 or self.units[0].waiting):
 			self.orderUnits()
 			for unit in self.units:
 				if(unit.unitType.name == "gatherer" and unit.gatheringNode == unit.node):
@@ -238,9 +238,11 @@ class playMode(tiledGameMode):
 		self.nextUnit = random.choice(eligibleUnits)
 		gameLogic.selectNode(self.nextUnit.node)
 		self.focusNextUnit = 1
+		if(hasattr(gameState.getGameMode().mousedOverObject,"toggleCursor")):
+			gameState.getGameMode().mousedOverObject.toggleCursor()
+			
 	def onDoneFocusing(self):
 		self.focusNextUnit = 0
-		
 		if(len(self.nextUnit.movePath) > 0 and gameState.getPlayers()[gameState.getGameMode().nextUnit.player-1].isOwnPlayer):
 			self.nextUnit.move()
 		elif(hasattr(gameState.getGameMode().mousedOverObject,"toggleCursor")):
@@ -471,7 +473,7 @@ class joiningLANGameScreenMode(gameMode):
 		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])
 		uiElements.uiElement(-0.15,0.9,text="lan game")
 		uiElements.uiElement(-0.85,0.8,text="players")
-		self.mapNameElement = uiElements.uiElement(-0.85,-0.1,text="choose map")
+		self.mapNameElement = uiElements.uiElement(-0.85,-0.1,text="map")
 		#uiElements.menuButton(-0.45,0.0,newGameScreenMode,text="back")
 
 class hostLANGameScreenMode(gameMode):

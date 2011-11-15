@@ -71,8 +71,8 @@ class unit:
 	def __init__(self,unitType,player,xPos,yPos,node):
 		self.unitType = unitType
 		self.player = player
-		self.xPos = xPos
-		self.yPos = yPos
+#		self.xPos = xPos
+#		self.yPos = yPos
 		self.node = node
 #		self.movementPoints = self.unitType.movementSpeed
 #		self.attackPoints = self.unitType.attackSpeed
@@ -91,6 +91,8 @@ class unit:
 		return self.unitType.movementSpeed + (self.unitType.movementSpeedBonus*(self.level-1))
 	def getArmor(self):
 		return self.unitType.armor + (self.unitType.armorBonus*(self.level-1))
+	def gather(self,node):
+		gameState.getClient().sendCommand("gatherTo",str(self.node.xPos) + " " + str(self.node.yPos) + " " + str(node.xPos) + " " + str(node.yPos))
 	def move(self):
 		for node in self.movePath:
 			node.onMovePath = False
@@ -104,6 +106,7 @@ class unit:
 			self.movePath = self.movePath[1:]
 			gameState.getClient().sendCommand("chooseNextUnit")
 	def moveTo(self,node):
+		self.waiting = False
 		node.onMovePath = False
 		for neighb in self.node.getNeighbors(5):
 			neighb.stopViewing(self)
@@ -131,6 +134,7 @@ class unit:
 		gameState.getClient().sendCommand("attackTo",str(node.xPos) + " " + str(node.yPos))
 		gameState.getClient().sendCommand("chooseNextUnit")
 	def attackTo(self,node):
+		self.waiting = False
 		multiplier = 1.0
 		if(self.node.tileValue == cDefines.defines['MOUNTAIN_TILE_INDEX']):
 			multiplier = multiplier + mountainAttackBonusMultiplier
@@ -262,19 +266,21 @@ class playModeNode(node):
 				self.visible = False
 	def onLeftClickDown(self):
 		if(playModeNode.mode == MODES.ATTACK_MODE):
-			gameState.getGameMode().nextUnit.waiting = False
+#			gameState.getGameMode().nextUnit.waiting = False
 			gameState.getGameMode().nextUnit.gatheringNode = None
 			gameState.getGameMode().nextUnit.attack(self)
 		elif(playModeNode.mode == MODES.MOVE_MODE or playModeNode.mode == MODES.GATHER_MODE):
-			uiElements.unitViewer.theUnitViewer.unit.waiting = False
+#			uiElements.unitViewer.theUnitViewer.unit.waiting = False
 			uiElements.unitViewer.theUnitViewer.unit.gatheringNode = None
 			if(playModeNode.mode == MODES.GATHER_MODE):
-				uiElements.unitViewer.theUnitViewer.unit.gatheringNode = self
+				uiElements.unitViewer.theUnitViewer.unit.gather(self)
 			if(uiElements.unitViewer.theUnitViewer.unit == gameState.getGameMode().nextUnit):
 				uiElements.unitViewer.theUnitViewer.unit.movePath = uiElements.unitViewer.theUnitViewer.unit.node.movePath
 				uiElements.unitViewer.theUnitViewer.unit.move()
 			else:
 				uiElements.unitViewer.theUnitViewer.unit.movePath = uiElements.unitViewer.theUnitViewer.unit.node.movePath
+				gameState.getClient().sendCommand("stopWaiting",str(uiElements.actionViewer.theActionViewer.node.xPos) + " " + str(uiElements.actionViewer.theActionViewer.node.yPos))
+
 				uiElements.unitViewer.theUnitViewer.reset()
 			for node in uiElements.unitViewer.theUnitViewer.unit.movePath:
 				node.onMovePath = True
