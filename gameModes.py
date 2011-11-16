@@ -1,3 +1,4 @@
+#remove init.pyc
 #disable scrolling during autoscrolling
 #save and resume games
 #icons for each unit

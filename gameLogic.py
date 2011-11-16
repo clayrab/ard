@@ -54,6 +54,7 @@ class unitType:
 		self.researchCostGreen = researchCostGreen
 		self.researchCostBlue = researchCostBlue
 		self.researchTime = researchTime
+		print self.name
 		if(self.name == "_archer"):
 			print self.name
 			print "attackpower:"+str(self.attackPower)
