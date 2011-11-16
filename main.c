@@ -1501,7 +1501,7 @@ int main(int argc, char **argv){
     fprintf(stderr, "Couldn't initialize SDL: %s\n",SDL_GetError());
     exit(1);
   }
-  SDL_GL_SetAttribute (SDL_GL_DEPTH_SIZE, 16);
+  //  SDL_GL_SetAttribute (SDL_GL_DEPTH_SIZE, 16);
   //  SDL_GL_SetAttribute (SDL_GL_DOUBLEBUFFER, 1);
   Uint32 flags = SDL_OPENGL;
   //flags |= SDL_FULLSCREEN;
@@ -1513,8 +1513,8 @@ int main(int argc, char **argv){
     exit(2);
   }
   int * value;
-  SDL_GL_GetAttribute(SDL_GL_DEPTH_SIZE,value);
-  printf("depth size: %d\n",*value);
+  //  SDL_GL_GetAttribute(SDL_GL_DEPTH_SIZE,value);
+  //printf("depth size: %d\n",*value);
   printf("1");
   SDL_ShowCursor(0);
   printf("2");
