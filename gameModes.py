@@ -274,9 +274,8 @@ class playMode(tiledGameMode):
 				columnCount = columnCount + 1
 				if(node.playerStartValue != 0):
 					node.addUnit(gameLogic.unit(gameState.theUnitTypes["summoner"],node.playerStartValue,rowCount,columnCount,node,1))
-					node.addUnit(gameLogic.unit(gameState.theUnitTypes["gatherer"],node.playerStartValue,rowCount,columnCount,node,1))
-					node.addUnit(gameLogic.unit(gameState.theUnitTypes["swordsman"],node.playerStartValue,rowCount,columnCount,node,1))
-					node.addUnit(gameLogic.unit(gameState.theUnitTypes["dragon"],node.playerStartValue,rowCount,columnCount,node,1))
+#					node.addUnit(gameLogic.unit(gameState.theUnitTypes["gatherer"],node.playerStartValue,rowCount,columnCount,node,1))
+					node.addUnit(gameLogic.unit(gameState.theUnitTypes["white mage"],node.playerStartValue,rowCount,columnCount,node,1))
 
 	def handleKeyDown(self,keycode):
 		if(keycode == "left shift" or keycode == "right shift"):

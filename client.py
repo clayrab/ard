@@ -82,6 +82,17 @@ class Commands:
     def attackToRedo(args):
         tokens = args.split(" ")
     @staticmethod
+    def healTo(args):
+        tokens = args.split(" ")
+        node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
+       	gameState.getGameMode().nextUnit.healTo(node)
+    @staticmethod
+    def healToUndo(args):
+        tokens = args.split(" ")
+    @staticmethod
+    def healToRedo(args):
+        tokens = args.split(" ")
+    @staticmethod
     def startSummoning(args):
         tokens = args.split(" ")
         node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]

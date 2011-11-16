@@ -20,7 +20,7 @@ class MODES:
 	MOVE_MODE = 0
 	ATTACK_MODE = 1
 	SELECT_MODE = 2
-#	GATHER_MODE = 3
+	HEAL_MODE = 3
 
 cityNames = ["Eshnunna","Tutub","Der","Sippar","Sippar-Amnanum","Kutha","Jemde Nasr","Kish","Babilim","Borsippa","Mashkan-shapir","Dilbat","Nippur","Marad","Adab","Isin","Kisurra","Shuruppak","Bad-tibira","Zabalam","Umma","Girsu","Lagash","Urum","Uruk","Larsa","Ur","Kuara","Eridu","Akshak","Akkad","Urfa","Shanidar cave","Urkesh","Shekhna","Arbid","Harran","Chagar Bazar","Kahat","El Fakhariya","Arslan Tash","Carchemish","Til Barsip","Nabada","Nagar","Telul eth-Thalathat","Tepe Gawra","Tell Arpachiyah","Shibaniba","Tarbisu","Ninua","Qatara","Dur Sharrukin","Tell Shemshara","Arbil","Imgur-Enlil","Nimrud","Emar","Arrapha","Kar-Tukulti-Ninurta","Ashur","Nuzi","al-Fakhar","Terqa","Mari","Haradum","Nerebtum","Agrab","Dur-Kurigalzu","Shaduppum","Seleucia","Ctesiphon","Zenobia","Zalabiye","Hasanlu","Takht-i-Suleiman","Behistun","Godin Tepe","Chogha Mish","Tepe Sialk","Susa","Kabnak","Dur Untash","Pasargadai","Naqsh-e Rustam","Parsa","Anshan","Konar Sandal","Tepe Yahya","Miletus","Sfard","Nicaea","Sapinuwa","Yazilikaya","Alaca Hoyuk","Masat Hoyuk","Hattusa","Ilios","Kanesh","Arslantepe","Sam'al","Beycesultan","Adana","Karatepe","Tarsus","Sultantepe","Attalia","Acre","Adoraim","Alalah","Aleppo","Al-Sinnabra","Aphek","Arad Rabbah","Ashdod","Ashkelon","Baalbek","Batroun","Beersheba","Beth Shean","Bet Shemesh","Bethany","Bet-el","Bezer","Byblos","Capernaum","Dan","Dimashq","Deir Alla","Dhiban","Dor","Ebla","En Gedi","Enfeh","Ekron","Et-Tell","Gath","Gezer","Gibeah","Gilgal Refaim","Gubla","Hamath","Hazor","Hebron","Herodion","Jezreel","Kadesh Barnea","Kedesh","Kumidi","Lachish","Megiddo","Qatna","Qumran","Rabat Amon","Samaria","Sarepta","Sharuhen","Shiloh","Sidon","Tadmor","Tirzah","Tyros","Ugarit","Umm el-Marra"]
 
@@ -80,7 +80,8 @@ class unit:
 		self.movementPoints = 0
 		self.attackPoints = 0
 		self.buildPoints = self.unitType.buildTime	
-		self.health = self.unitType.health
+#		self.health = self.unitType.health
+		self.health = 10
 		self.movePath = []
 		self.waiting = False
 		if(level != None):
@@ -134,6 +135,16 @@ class unit:
 			if(node.unit.gatheringNode == node):
 				self.waiting = True
 			self.movementPoints = self.movementPoints + initiativeActionDepletion
+	def heal(self,node):
+		print 'heal'
+		gameState.getClient().sendCommand("healTo",str(node.xPos) + " " + str(node.yPos))
+		gameState.getClient().sendCommand("chooseNextUnit")
+	def healTo(self,node):
+		self.waiting = False
+		node.unit.health = node.unit.health + self.getAttackPower()
+		self.attackPoints = self.attackPoints + initiativeActionDepletion
+		if(node.unit.health < node.unit.unitType.health):
+			node.unit.health + node.unit.unitType.health
 	def attack(self,node):
 		gameState.getClient().sendCommand("attackTo",str(node.xPos) + " " + str(node.yPos))
 		gameState.getClient().sendCommand("chooseNextUnit")
@@ -270,14 +281,10 @@ class playModeNode(node):
 				self.visible = False
 	def onLeftClickDown(self):
 		if(playModeNode.mode == MODES.ATTACK_MODE):
-#			gameState.getGameMode().nextUnit.waiting = False
-#			gameState.getGameMode().nextUnit.gatheringNode = None
 			gameState.getGameMode().nextUnit.attack(self)
+		elif(playModeNode.mode == MODES.HEAL_MODE):
+			gameState.getGameMode().nextUnit.heal(self)
 		elif(playModeNode.mode == MODES.MOVE_MODE):
-#			uiElements.unitViewer.theUnitViewer.unit.waiting = False
-#			uiElements.unitViewer.theUnitViewer.unit.gatheringNode = None
-#			if(playModeNode.mode == MODES.GATHER_MODE):
-#				uiElements.unitViewer.theUnitViewer.unit.gather(self)
 			if(uiElements.unitViewer.theUnitViewer.unit == gameState.getGameMode().nextUnit):
 				uiElements.unitViewer.theUnitViewer.unit.movePath = uiElements.unitViewer.theUnitViewer.unit.node.movePath
 				uiElements.unitViewer.theUnitViewer.unit.move()
@@ -305,6 +312,9 @@ class playModeNode(node):
 			if((gameState.getGameMode().nextUnit == uiElements.unitViewer.theUnitViewer.unit) and (self.unit != None and self.unit.player != uiElements.unitViewer.theUnitViewer.unit.player) and self.findDistance(uiElements.unitViewer.theUnitViewer.unit.node) <= uiElements.unitViewer.theUnitViewer.unit.unitType.range):
 				self.cursorIndex = cDefines.defines['CURSOR_ATTACK_INDEX']
 				playModeNode.mode = MODES.ATTACK_MODE
+			elif((gameState.getGameMode().nextUnit == uiElements.unitViewer.theUnitViewer.unit) and (self.unit != None and self.unit.player == uiElements.unitViewer.theUnitViewer.unit.player) and self.findDistance(uiElements.unitViewer.theUnitViewer.unit.node) <= uiElements.unitViewer.theUnitViewer.unit.unitType.range and uiElements.unitViewer.theUnitViewer.unit.unitType.name == "white mage"):
+				self.cursorIndex = cDefines.defines['CURSOR_HEAL_INDEX']
+				playModeNode.mode = MODES.HEAL_MODE
 #			elif(uiElements.unitViewer.theUnitViewer.unit.unitType.name == "gatherer" and (not gameState.getGameMode().shiftDown) and (self.tileValue == cDefines.defines['FOREST_TILE_INDEX'] or self.tileValue == cDefines.defines['BLUE_FOREST_TILE_INDEX']) and self.unit != uiElements.unitViewer.theUnitViewer.unit):
 #				self.cursorIndex = cDefines.defines['CURSOR_GATHER_INDEX']
 #				playModeNode.mode = MODES.GATHER_MODE

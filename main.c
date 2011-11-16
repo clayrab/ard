@@ -193,8 +193,8 @@
 #define CURSOR_ATTACK_IMAGE "assets/cursors/swordIcon.png"
 #define CURSOR_ATTACK_INDEX 36
 
-#define CURSOR_GATHER_IMAGE "assets/cursors/gatherCursor.png"
-#define CURSOR_GATHER_INDEX 37
+#define CURSOR_HEAL_IMAGE "assets/cursors/healCursor.png"
+#define CURSOR_HEAL_INDEX 37
 
 #define ARCHER_IMAGE "assets/archer.png"
 #define ARCHER_INDEX 38
@@ -216,6 +216,9 @@
 
 #define DRAGON_IMAGE "assets/dragon.png"
 #define DRAGON_INDEX 44
+
+#define WHITE_MAGE_IMAGE "assets/white_mage.png"
+#define WHITE_MAGE_INDEX 45
 
 #define DESERT_TILE_INDEX 0
 #define GRASS_TILE_INDEX 1
@@ -1191,7 +1194,7 @@ static void initGL (){
   pngLoad(&texturesArray[UNIT_CIRCLE_PURPLE_INDEX],UNIT_CIRCLE_PURPLE_IMAGE);
   pngLoad(&texturesArray[UNIT_CIRCLE_BROWN_INDEX],UNIT_CIRCLE_BROWN_IMAGE);
   pngLoad(&texturesArray[CURSOR_ATTACK_INDEX],CURSOR_ATTACK_IMAGE);
-  pngLoad(&texturesArray[CURSOR_GATHER_INDEX],CURSOR_GATHER_IMAGE);
+  pngLoad(&texturesArray[CURSOR_HEAL_INDEX],CURSOR_HEAL_IMAGE);
   pngLoad(&texturesArray[ARCHER_INDEX],ARCHER_IMAGE);
   pngLoad(&texturesArray[SWORDSMAN_INDEX],SWORDSMAN_IMAGE);
   pngLoad(&texturesArray[SELECTION_BOX_INDEX],SELECTION_BOX_IMAGE);
@@ -1199,6 +1202,7 @@ static void initGL (){
   pngLoad(&texturesArray[CITY_INDEX],CITY_IMAGE);
   pngLoad(&texturesArray[GATHERER_INDEX],GATHERER_IMAGE);
   pngLoad(&texturesArray[DRAGON_INDEX],DRAGON_IMAGE);
+  pngLoad(&texturesArray[WHITE_MAGE_INDEX],WHITE_MAGE_IMAGE);
 
   vertexArrays[DESERT_TILE_INDEX] = *desertVertices;
   vertexArrays[GRASS_TILE_INDEX] = *grassVertices;

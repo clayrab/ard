@@ -1,7 +1,7 @@
 {"textureName":"SUMMONER",
 "movementSpeed":2,
 "attackSpeed":10,
-"attackPower":5,
+"attackPower":0,
 "armor":0,
 "range":1,
 "health":100,

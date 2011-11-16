@@ -1,7 +1,7 @@
 {"textureName":"ARCHER",
 "movementSpeed":10,
-"attackSpeed":10,
-"attackPower":7,
+"attackSpeed":8,
+"attackPower":8,
 "armor":0,
 "range":5,
 "health":35,
@@ -14,6 +14,5 @@
 "armorBonus":1,
 "attackPowerBonus":1,
 "researchCostGreen":100,
-"researchCostBlue":40,
-"researchTime":70}
-
+"researchCostBlue":20,
+"researchTime":100}
