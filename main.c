@@ -279,8 +279,6 @@ char * unitName;
 long playerNumber;
 long unitTextureIndex;
 float healthBarLength;
-
-
 PyObject * uiElement;
 PyObject * gameModule;
 PyObject * gameState;
@@ -1474,26 +1472,15 @@ static void draw(){
 
   glFlush();
   SDL_GL_SwapBuffers ();	
-  
-
 }
 static void mainLoop (){
   while ( !done ) {
-  
-
     gameMode = PyObject_CallMethod(gameState,"getGameMode",NULL);
-      
-
     theMap = PyObject_GetAttrString(gameMode, "map");//New reference
-      
     handleInput();
-      
     draw();
-    
     Py_DECREF(theMap);
-    
     Py_DECREF(gameMode); 
-    
  }
   pyObj = PyObject_CallMethod(gameMode,"onQuit",NULL);
 }
@@ -1501,7 +1488,6 @@ int nextPowerOf2(unsigned int v){
   const unsigned int b[] = {0x2, 0xC, 0xF0, 0xFF00, 0xFFFF0000};
   const unsigned int S[] = {1, 2, 4, 8, 16};
   int i;
-
   register unsigned int r = 0; // result of log2(v) will go here
   for (i = 4; i >= 0; i--){ // unroll for speed...
     if (v & b[i]){

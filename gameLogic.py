@@ -13,6 +13,7 @@ startingBlueWood = 0.0
 #startingBlueWood = 1000.0
 initiativeActionDepletion = 100.0
 resourceCollectionRate = 0.15
+#at resourceCollectionRate = 0.15 one gatherer will gather 15 green wood per 100 'ticks'(i.e. the build time of a gatherer)
 zoomSpeed = 0.2
 mountainAttackBonusMultiplier = 1.0
 

@@ -1,3 +1,4 @@
+
 #save and resume games
 #icons for each unit
 
@@ -12,6 +13,7 @@
 #make sure text edit boxes only allow chars and not shift/enter
 #check new/edited city names for duplicates
 #uiElements startingManaSelector???
+#in map editor: nodes created after the ui render the ui unclickable since clicks go 'thru' to the new nodes
 
 #POLISH
 #existing movePath and new movePath need to be distinguishable
@@ -274,8 +276,11 @@ class playMode(tiledGameMode):
 				columnCount = columnCount + 1
 				if(node.playerStartValue != 0):
 					node.addUnit(gameLogic.unit(gameState.theUnitTypes["summoner"],node.playerStartValue,rowCount,columnCount,node,1))
-#					node.addUnit(gameLogic.unit(gameState.theUnitTypes["gatherer"],node.playerStartValue,rowCount,columnCount,node,1))
-					node.addUnit(gameLogic.unit(gameState.theUnitTypes["white mage"],node.playerStartValue,rowCount,columnCount,node,1))
+					node.addUnit(gameLogic.unit(gameState.theUnitTypes["gatherer"],node.playerStartValue,rowCount,columnCount,node,1))
+					node.addUnit(gameLogic.unit(gameState.theUnitTypes["gatherer"],node.playerStartValue,rowCount,columnCount,node,1))
+					node.addUnit(gameLogic.unit(gameState.theUnitTypes["gatherer"],node.playerStartValue,rowCount,columnCount,node,1))
+
+#					node.addUnit(gameLogic.unit(gameState.theUnitTypes["white mage"],node.playerStartValue,rowCount,columnCount,node,1))
 
 	def handleKeyDown(self,keycode):
 		if(keycode == "left shift" or keycode == "right shift"):
