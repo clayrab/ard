@@ -293,7 +293,7 @@ PyObject * rowIterator;
 PyObject * pyMapWidth;
 PyObject * pyMapHeight;
 PyObject * pyObj;
-PyObject * playableMode;
+//PyObject * playableMode;
 long mapWidth;
 long mapHeight;
 
@@ -528,8 +528,9 @@ void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long 
     glEnd();
   }
 
-  playableMode = PyObject_GetAttrString(gameMode, "units");//if the mode has units, it's playable
-  if(playerStartValue >= 1 && playableMode == NULL){
+
+  //  playableMode = PyObject_GetAttrString(gameMode, "units");//if the mode has units, it's playable
+  if(playerStartValue >= 1 && !PyObject_HasAttrString(gameMode,"units")){
     textureVertices = vertexArrays[PLAYER_START_TILE_INDEX];
     glBegin(GL_POLYGON);
     glTexCoord2f(*(textureVertices+0),*(textureVertices+1)); glVertex3f(hexagonVertices[0][0]+xPosition, hexagonVertices[0][1]+yPosition, 0.0);
@@ -784,6 +785,9 @@ void drawTiles(){
       isOnMovePath = PyLong_AsLong(pyIsOnMovePath);
       isVisible = PyLong_AsLong(pyIsVisible);
 
+
+     
+     
       Py_DECREF(nodeName);
       Py_DECREF(nodeValue);
       Py_DECREF(roadValue);
@@ -792,12 +796,18 @@ void drawTiles(){
       Py_DECREF(pyPlayerStartValue);
       Py_DECREF(pyIsSelected);
       Py_DECREF(pyIsOnMovePath);
-      Py_DECREF(pyIsVisible);
+      if(pyIsVisible != NULL){
+	Py_DECREF(pyIsVisible);
+      }
       Py_DECREF(node);
-      Py_DECREF(nextUnit);
+      if(nextUnit != NULL){
+	Py_DECREF(nextUnit);
+      }
       Py_DECREF(pyPlayerNumber);
 
+
       drawTile(colNumber,rowNumber,longName,longValue,longRoadValue,cityName,isSelected,isOnMovePath,isVisible,longPolarity,playerStartValue,pyUnit,isNextUnit,cursorIndex);
+     
       Py_DECREF(pyUnit);
       colNumber = colNumber - 1;
     }
@@ -855,8 +865,8 @@ void calculateTranslation(){
     if((considerDoneFocusing == 1) && abs(50.0*(translateXPrev - translateX)) == 0 && abs(50.0*(translateYPrev - translateY)) == 0){//this indicates the auto-scrolling code is not allowing us to move any more
       isFocusing = 0;
       considerDoneFocusing = 0;
-      pyObj = PyObject_CallMethod(gameMode,"onDoneFocusing",NULL);//New reference
-      if(pyObj != NULL){
+      if(PyObject_HasAttrString(gameMode,"onDoneFocusing")){
+	pyObj = PyObject_CallMethod(gameMode,"onDoneFocusing",NULL);//New reference
 	Py_DECREF(pyObj);
       }
     }else if(abs(50.0*(translateXPrev - translateX)) == 0 && abs(50.0*(translateYPrev - translateY)) == 0){//this indicates the auto-scrolling code is not allowing us to move any more
@@ -908,7 +918,7 @@ void calculateTranslation(){
 drawBoard(){
   if(theMap != Py_None){
     drawTiles();
-    drawTilesText();
+    //    drawTilesText();
   }
 }
 
@@ -1250,7 +1260,10 @@ static void handleInput(){
     case SDL_MOUSEMOTION:
       mouseX = event.motion.x;
       mouseY = event.motion.y;
-      pyObj = PyObject_CallMethod(gameMode,"handleMouseMovement","(iii)",selectedName,mouseX,mouseY);
+      if(PyObject_HasAttrString(gameMode,"handleMouseMovement")){
+	pyObj = PyObject_CallMethod(gameMode,"handleMouseMovement","(iii)",selectedName,mouseX,mouseY);
+	Py_DECREF(pyObj);
+      }
       printPyStackTrace();
       if(mouseX == 0){
 	//moveRight = -1;
@@ -1265,9 +1278,6 @@ static void handleInput(){
 	//moveUp = -1;
       }else{
 	//moveUp = 0;
-      }
-      if(pyObj != NULL){
-	Py_DECREF(pyObj);
       }
       break;
     case SDL_MOUSEBUTTONDOWN:
@@ -1337,17 +1347,19 @@ static void handleInput(){
 	  key = SDL_GetKeyName(event.key.keysym.sym);
 	  capsKey[0] = (*key)-32;
 	  capsKey[1] = 0;
-	  pyObj = PyObject_CallMethod(gameMode,"handleKeyDown","s",capsKey); 
-	  if(pyObj != NULL){
+	  if(PyObject_HasAttrString(gameMode,"handleKeyDown")){
+	    pyObj = PyObject_CallMethod(gameMode,"handleKeyDown","s",capsKey); 
 	    Py_DECREF(pyObj);
+
 	  }
 	}else{
-	  pyObj = PyObject_CallMethod(gameMode,"handleKeyDown","s",SDL_GetKeyName(event.key.keysym.sym));
-	  if(pyObj != NULL){
+	  if(PyObject_HasAttrString(gameMode,"handleKeyDown")){
+	    pyObj = PyObject_CallMethod(gameMode,"handleKeyDown","s",SDL_GetKeyName(event.key.keysym.sym));
 	    Py_DECREF(pyObj);
+	    
 	  }
 	}
-	printPyStackTrace();
+	//	printPyStackTrace();
       }else{
 	printf("rejected: %d\n",event.key.keysym.sym);
       }
@@ -1358,10 +1370,10 @@ static void handleInput(){
       }else if(event.key.keysym.sym == 303//rightshift
 	       || event.key.keysym.sym == 304//leftshift
 	       ){
-	       pyObj = PyObject_CallMethod(gameMode,"handleKeyUp","s",SDL_GetKeyName(event.key.keysym.sym));
-	       if(pyObj != NULL){
-		 Py_DECREF(pyObj);
-	       }
+	if(PyObject_HasAttrString(gameMode,"handleKeyUp")){
+	  pyObj = PyObject_CallMethod(gameMode,"handleKeyUp","s",SDL_GetKeyName(event.key.keysym.sym));
+	  Py_DECREF(pyObj);
+	}
       }
       break;
     case SDL_QUIT:
@@ -1373,10 +1385,11 @@ static void handleInput(){
   }
 }
 static void draw(){
-  pyObj = PyObject_CallMethod(gameMode,"onDraw",NULL);//New reference
-  if(pyObj != NULL){
+  if(PyObject_HasAttrString(gameMode,"onDraw")){
+    pyObj = PyObject_CallMethod(gameMode,"onDraw",NULL);//New reference
     Py_DECREF(pyObj);
   }
+
   printPyStackTrace();
   glClearDepth(1.1);
   //this needs to be done before glClear...
@@ -1413,7 +1426,9 @@ static void draw(){
   
   glMatrixMode(GL_MODELVIEW);
   glTranslatef(translateX,translateY,translateZ);
+     
   drawBoard();
+     
   //  glPushMatrix();
 
   glMatrixMode(GL_PROJECTION);
@@ -1424,7 +1439,6 @@ static void draw(){
   
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
-
   drawUI();
 
   processTheHits(glRenderMode(GL_RENDER),selectBuf);
@@ -1461,16 +1475,26 @@ static void draw(){
   glFlush();
   SDL_GL_SwapBuffers ();	
   
+
 }
 static void mainLoop (){
   while ( !done ) {
+  
+
     gameMode = PyObject_CallMethod(gameState,"getGameMode",NULL);
+      
+
     theMap = PyObject_GetAttrString(gameMode, "map");//New reference
+      
     handleInput();
+      
     draw();
+    
     Py_DECREF(theMap);
-    Py_DECREF(gameMode);
-  }
+    
+    Py_DECREF(gameMode); 
+    
+ }
   pyObj = PyObject_CallMethod(gameMode,"onQuit",NULL);
 }
 int nextPowerOf2(unsigned int v){
