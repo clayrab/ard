@@ -80,8 +80,7 @@ class unit:
 		self.movementPoints = 0
 		self.attackPoints = 0
 		self.buildPoints = self.unitType.buildTime	
-#		self.health = self.unitType.health
-		self.health = 10
+		self.health = self.unitType.health
 		self.movePath = []
 		self.waiting = False
 		if(level != None):
@@ -136,7 +135,6 @@ class unit:
 				self.waiting = True
 			self.movementPoints = self.movementPoints + initiativeActionDepletion
 	def heal(self,node):
-		print 'heal'
 		gameState.getClient().sendCommand("healTo",str(node.xPos) + " " + str(node.yPos))
 		gameState.getClient().sendCommand("chooseNextUnit")
 	def healTo(self,node):
