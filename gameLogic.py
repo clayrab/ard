@@ -269,11 +269,11 @@ class playModeNode(node):
 		self.visible = False
 		self.viewingUnits = []
 	def startViewing(self,unit):
-		if(gameState.getPlayerNumber() == unit.player or gameState.getPlayerNumber() == -2 or True):
+		if(gameState.getPlayerNumber() == unit.player or gameState.getPlayerNumber() == -2):
 			self.viewingUnits.append(unit)
 			self.visible = True
 	def stopViewing(self,unit):
-		if(gameState.getPlayerNumber() == unit.player or gameState.getPlayerNumber() == -2 or True):
+		if(gameState.getPlayerNumber() == unit.player or gameState.getPlayerNumber() == -2):
 			if(unit in self.viewingUnits):
 				self.viewingUnits.remove(unit)
 			if(len(self.viewingUnits) <= 0):
