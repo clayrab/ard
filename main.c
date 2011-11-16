@@ -1472,8 +1472,11 @@ static void mainLoop (){
   while ( !done ) {
     gameMode = PyObject_CallMethod(gameState,"getGameMode",NULL);
     theMap = PyObject_GetAttrString(gameMode, "map");//New reference
+    printf("a");
     handleInput();
+    printf("b");
     draw();
+    printf("c");
     Py_DECREF(theMap);
     Py_DECREF(gameMode); 
  }
@@ -1512,11 +1515,15 @@ int main(int argc, char **argv){
   int * value;
   SDL_GL_GetAttribute(SDL_GL_DEPTH_SIZE,value);
   printf("depth size: %d\n",*value);
-
+  printf("1");
   SDL_ShowCursor(0);
+  printf("2");
   initGL();
+  printf("3");
   initPython();
+  printf("4");
   initFonts();
+  printf("5");
   //SDL_EnableUNICODE(1);
   gameModule = PyImport_ImportModule("gameModes");//New reference
   gameState = PyImport_ImportModule("gameState");
