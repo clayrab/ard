@@ -634,15 +634,17 @@ def selectNode(node):
 	uiElements.unitViewer.destroy()
 	uiElements.unitTypeResearchViewer.destroy()
 	uiElements.unitTypeBuildViewer.destroy()
-	if(node.unit != None or node.city != None):
+	if(node.city != None):
 		uiElements.actionViewer.theActionViewer = uiElements.actionViewer(node)
-	if(node.unit != None and (gameState.getPlayerNumber() == node.unit.player or gameState.getPlayerNumber() == -2)):
+	if(node.unit != None and node.visible):
 		uiElements.unitViewer.theUnitViewer = uiElements.unitViewer(node.unit)
 	if(node.unit != None and len(node.unit.movePath) > 0):
 		for pathNode in node.unit.movePath:
 			pathNode.onMovePath = True
 	if(hasattr(gameState.getGameMode().mousedOverObject,"toggleCursor")):
 		   gameState.getGameMode().mousedOverObject.toggleCursor()
+
+
 #	node.toggleCursor()
 
 

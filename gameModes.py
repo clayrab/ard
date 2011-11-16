@@ -1,6 +1,7 @@
-
+#disable scrolling during autoscrolling
 #save and resume games
 #icons for each unit
+#need to reset actionViewer on selectNode
 
 ############# PLAYABLE AT THIS POINT ##############
 

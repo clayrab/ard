@@ -18,7 +18,7 @@
 #include "libpngGL.h"
 #include "fonts.h"
 
-#define maxZoom 25.0
+#define maxZoom 40.0
 #define minZoom 1.0
 #define initZoom 20.0
 
@@ -228,7 +228,7 @@
 #define WATER_TILE_INDEX 5
 #define ROAD_TILE_INDEX 6
 #define CITY_TILE_INDEX 7
-#define PLAYER_START_TILE_INDEX 8//REMOVE THIS
+#define PLAYER_START_TILE_INDEX 8
 
 #define DESERT_MOVE_COST 2.0
 #define GRASS_MOVE_COST 1.0
@@ -256,6 +256,8 @@ int moveUp = 0;
 int moveRight = 0;
 int previousTick = 0;
 int deltaTicks = 0;
+int avgDeltaTicks = 0;
+int totalDeltaTicksDataPoints = 0;
 
 GLfloat mapDepth,mapDepthTest1,mapDepthTest2,mapDepthTest3;
 float translateX = 0.0;
@@ -316,6 +318,11 @@ GLdouble mouseMapPosXPrevious, mouseMapPosYPrevious, mouseMapPosZPrevious = -ini
 GLint bufRenderMode;
 float *textureVertices;
 GLuint texturesArray[60];
+GLuint tilesLists;
+GLuint selectionBoxList;
+GLuint unitList;
+GLuint healthBarList;
+
 
 int mouseX = 0;
 int mouseY = 0;
@@ -500,50 +507,27 @@ void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long 
   }else if(isSelected == 1){
     shading = shading - 0.4;
   }
-  
-  glBindTexture(GL_TEXTURE_2D, tilesTexture);
-
+  glPushMatrix();
   glColor3f(shading,shading,shading);
+  glTranslatef(xPosition,yPosition,0.0);
+
   glPushName(name);
-  glBegin(GL_POLYGON);
-  glTexCoord2f(*(textureVertices+0),*(textureVertices+1)); glVertex3f(hexagonVertices[0][0]+xPosition, hexagonVertices[0][1]+yPosition, 0.0);
-  glTexCoord2f(*(textureVertices+2),*(textureVertices+3)); glVertex3f(hexagonVertices[1][0]+xPosition, hexagonVertices[1][1]+yPosition, 0.0);
-  glTexCoord2f(*(textureVertices+4),*(textureVertices+5)); glVertex3f(hexagonVertices[2][0]+xPosition, hexagonVertices[2][1]+yPosition, 0.0);
-  glTexCoord2f(*(textureVertices+6),*(textureVertices+7)); glVertex3f(hexagonVertices[3][0]+xPosition, hexagonVertices[3][1]+yPosition, 0.0);
-  glTexCoord2f(*(textureVertices+8),*(textureVertices+9)); glVertex3f(hexagonVertices[4][0]+xPosition, hexagonVertices[4][1]+yPosition, 0.0);
-  glTexCoord2f(*(textureVertices+10),*(textureVertices+11)); glVertex3f(hexagonVertices[5][0]+xPosition, hexagonVertices[5][1]+yPosition, 0.0);
-  glEnd();
+  glCallList(tilesLists+tileValue);
   glPopName();
+
   if(roadValue == 1){
-    textureVertices = vertexArrays[ROAD_TILE_INDEX];
-    glBegin(GL_POLYGON);
-    glTexCoord2f(*(textureVertices+0),*(textureVertices+1)); glVertex3f(hexagonVertices[0][0]+xPosition, hexagonVertices[0][1]+yPosition, 0.0);
-    glTexCoord2f(*(textureVertices+2),*(textureVertices+3)); glVertex3f(hexagonVertices[1][0]+xPosition, hexagonVertices[1][1]+yPosition, 0.0);
-    glTexCoord2f(*(textureVertices+4),*(textureVertices+5)); glVertex3f(hexagonVertices[2][0]+xPosition, hexagonVertices[2][1]+yPosition, 0.0);
-    glTexCoord2f(*(textureVertices+6),*(textureVertices+7)); glVertex3f(hexagonVertices[3][0]+xPosition, hexagonVertices[3][1]+yPosition, 0.0);
-    glTexCoord2f(*(textureVertices+8),*(textureVertices+9)); glVertex3f(hexagonVertices[4][0]+xPosition, hexagonVertices[4][1]+yPosition, 0.0);
-    glTexCoord2f(*(textureVertices+10),*(textureVertices+11)); glVertex3f(hexagonVertices[5][0]+xPosition, hexagonVertices[5][1]+yPosition, 0.0);
-    glEnd();
+    glCallList(tilesLists+ROAD_TILE_INDEX);
   }
 
-
-  //  playableMode = PyObject_GetAttrString(gameMode, "units");//if the mode has units, it's playable
   if(playerStartValue >= 1 && !PyObject_HasAttrString(gameMode,"units")){
     textureVertices = vertexArrays[PLAYER_START_TILE_INDEX];
-    glBegin(GL_POLYGON);
-    glTexCoord2f(*(textureVertices+0),*(textureVertices+1)); glVertex3f(hexagonVertices[0][0]+xPosition, hexagonVertices[0][1]+yPosition, 0.0);
-    glTexCoord2f(*(textureVertices+2),*(textureVertices+3)); glVertex3f(hexagonVertices[1][0]+xPosition, hexagonVertices[1][1]+yPosition, 0.0);
-    glTexCoord2f(*(textureVertices+4),*(textureVertices+5)); glVertex3f(hexagonVertices[2][0]+xPosition, hexagonVertices[2][1]+yPosition, 0.0);
-    glTexCoord2f(*(textureVertices+6),*(textureVertices+7)); glVertex3f(hexagonVertices[3][0]+xPosition, hexagonVertices[3][1]+yPosition, 0.0);
-    glTexCoord2f(*(textureVertices+8),*(textureVertices+9)); glVertex3f(hexagonVertices[4][0]+xPosition, hexagonVertices[4][1]+yPosition, 0.0);
-    glTexCoord2f(*(textureVertices+10),*(textureVertices+11)); glVertex3f(hexagonVertices[5][0]+xPosition, hexagonVertices[5][1]+yPosition, 0.0);
-    glEnd();
+    glCallList(tilesLists+PLAYER_START_TILE_INDEX);
     sprintf(playerStartVal,"%ld",playerStartValue);
+
     glColor3f(1.0,1.0,1.0);
-    //    glColor3f(0.0,0.0,0.0);
     glPushMatrix();
-    glTranslatef(xPosition-0.7,yPosition-0.4,0.0);
-    glScalef(0.02,0.02,0.0);
+    glTranslatef(-0.4,0.3,0.0);
+    glScalef(0.01,0.01,0.0);
     drawText(playerStartVal);
     glPopMatrix();
   }
@@ -563,73 +547,29 @@ void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long 
       glColor3f(1.0,1.0,1.0);
       if(isNextUnit == 1){
 	glBindTexture(GL_TEXTURE_2D, texturesArray[SELECTION_BOX_INDEX]);
-	glBegin(GL_QUADS);
-	glTexCoord2f(0.0,0.0);
-	glVertex3f(xPosition-0.9, yPosition-1.0, 0.0);
-	glTexCoord2f(1.0,0.0);
-	glVertex3f(xPosition+0.78, yPosition-1.0, 0.0);
-	glTexCoord2f(1.0,1.0);
-	glVertex3f(xPosition+0.78, yPosition+1.0, 0.0);
-	glTexCoord2f(0.0,1.0);
-	glVertex3f(xPosition-0.9, yPosition+1.0, 0.0);
-	glEnd();
 	focusXPos = xPosition;
 	focusYPos = yPosition;
       }else{
 	glBindTexture(GL_TEXTURE_2D, texturesArray[UNIT_CIRCLE_RED_INDEX+playerNumber-1]);
-	glBegin(GL_QUADS);
-	glTexCoord2f(0.0,0.0);
-	glVertex3f(xPosition-0.9, yPosition-1.0, 0.0);
-	glTexCoord2f(1.0,0.0);
-	glVertex3f(xPosition+0.78, yPosition-1.0, 0.0);
-	glTexCoord2f(1.0,1.0);
-	glVertex3f(xPosition+0.78, yPosition+1.0, 0.0);
-	glTexCoord2f(0.0,1.0);
-	glVertex3f(xPosition-0.9, yPosition+1.0, 0.0);
-	glEnd();
       }
-
+      glCallList(selectionBoxList);
       glBindTexture(GL_TEXTURE_2D, texturesArray[unitTextureIndex]);
-      glBegin(GL_QUADS);
-      glTexCoord2f(0.0,0.0);
-      glVertex3f(xPosition-0.8, yPosition-0.75, 0.0);
-      glTexCoord2f(1.0,0.0);
-      glVertex3f(xPosition+0.7, yPosition-0.75, 0.0);
-      glTexCoord2f(1.0,1.0);
-      glVertex3f(xPosition+0.7, yPosition+0.75, 0.0);
-      glTexCoord2f(0.0,1.0);
-      glVertex3f(xPosition-0.8, yPosition+0.75, 0.0);
-      glEnd();
-
+      glCallList(unitList);
       glBindTexture(GL_TEXTURE_2D, texturesArray[HEALTH_BAR_INDEX]);
-      glBegin(GL_QUADS);
-      glTexCoord2f(0.0,0.0);
-      glVertex3f(xPosition-.75, yPosition+1.05, 0.001);
-      glTexCoord2f(1.0,0.0);
-      glVertex3f(xPosition+.75, yPosition+1.05, 0.001);
-      glTexCoord2f(1.0,1.0);
-      glVertex3f(xPosition+.75, yPosition+0.85, 0.001);
-      glTexCoord2f(0.0,1.0);
-      glVertex3f(xPosition-.75, yPosition+0.85, 0.001);
-      glEnd();
- 
-      glBegin(GL_QUADS);
+      glCallList(healthBarList);
+
       glColor3f(255.0, 0.0, 0.0);
+      glBegin(GL_QUADS);
       glTexCoord2f(0.0,0.0);
-      glVertex3f(xPosition-.75, yPosition+1.05, 0.001);
+      glVertex3f(-.75, 1.05, 0.001);
       glTexCoord2f(1.0,0.0);
-      glVertex3f(xPosition-.75+healthBarLength, yPosition+1.05, 0.001);
+      glVertex3f(-.75+healthBarLength, 1.05, 0.001);
       glTexCoord2f(1.0,1.0);
-      glVertex3f(xPosition-.75+healthBarLength, yPosition+0.85, 0.001);
+      glVertex3f(-.75+healthBarLength, 0.85, 0.001);
       glTexCoord2f(0.0,1.0);
-      glVertex3f(xPosition-.75, yPosition+0.85, 0.001);
+      glVertex3f(-.75, 0.85, 0.001);
       glEnd();
 
-      /*      unitNamesXs[unitNamesCount] = xPosition+1.0;
-      unitNamesYs[unitNamesCount] = yPosition-1.3;
-      strcpy(unitNames[unitNamesCount],unitName);
-      unitNamesCount = unitNamesCount + 1;
-      */
       Py_DECREF(pyUnitType);
       Py_DECREF(pyUnitTextureIndex);
       Py_DECREF(pyName);
@@ -642,32 +582,28 @@ void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long 
     glBindTexture(GL_TEXTURE_2D, texturesArray[CITY_INDEX]);
     glBegin(GL_POLYGON);
     glTexCoord2f(0.0,0.0);
-    glVertex3f(xPosition-0.6, yPosition-0.75, 0.0);
+    glVertex3f(-0.6, -0.75, 0.0);
     glTexCoord2f(1.0,0.0);
-    glVertex3f(xPosition+0.6, yPosition-0.75, 0.0);
+    glVertex3f(0.6, -0.75, 0.0);
     glTexCoord2f(1.0,1.0);
-    glVertex3f(xPosition+0.6, yPosition+0.75, 0.0);
+    glVertex3f(0.6, 0.75, 0.0);
     glTexCoord2f(0.0,1.0);
-    glVertex3f(xPosition-0.6, yPosition+0.75, 0.0);
+    glVertex3f(-0.6, 0.75, 0.0);
     glEnd();
 
-    /*    cityNamesXs[cityNamesCount] = xPosition;
-    cityNamesYs[cityNamesCount] = yPosition;
-    strcpy(cityNames[cityNamesCount],cityName);
-    cityNamesCount = cityNamesCount + 1;
-    */
   }
   if(isOnMovePath){
     glBindTexture(GL_TEXTURE_2D, texturesArray[WALK_ICON_INDEX]);
     glColor3f(1.0f, 0.0f, 0.0f);
     glBegin(GL_QUADS);
-    glTexCoord2f(0.0,0.0); glVertex3f(xPosition+0.5,yPosition-0.5,0.0);
-    glTexCoord2f(1.0,0.0); glVertex3f(xPosition-0.5,yPosition-0.5,0.0);
-    glTexCoord2f(1.0,1.0); glVertex3f(xPosition-0.5,yPosition+0.5,0.0);
-    glTexCoord2f(0.0,1.0); glVertex3f(xPosition+0.5,yPosition+0.5,0.0);
+    glTexCoord2f(0.0,0.0); glVertex3f(0.5,-0.5,0.0);
+    glTexCoord2f(1.0,0.0); glVertex3f(-0.5,-0.5,0.0);
+    glTexCoord2f(1.0,1.0); glVertex3f(-0.5,0.5,0.0);
+    glTexCoord2f(0.0,1.0); glVertex3f(0.5,0.5,0.0);
     glEnd();
     glBindTexture(GL_TEXTURE_2D, tilesTexture);
   }
+  glPopMatrix();
 }
 void drawTilesText(){
   /*  int i,j,cityNameLength,unitNameLength = 0;
@@ -782,10 +718,6 @@ void drawTiles(){
       isSelected = PyLong_AsLong(pyIsSelected);
       isOnMovePath = PyLong_AsLong(pyIsOnMovePath);
       isVisible = PyLong_AsLong(pyIsVisible);
-
-
-     
-     
       Py_DECREF(nodeName);
       Py_DECREF(nodeValue);
       Py_DECREF(roadValue);
@@ -802,10 +734,7 @@ void drawTiles(){
 	Py_DECREF(nextUnit);
       }
       Py_DECREF(pyPlayerNumber);
-
-
       drawTile(colNumber,rowNumber,longName,longValue,longRoadValue,cityName,isSelected,isOnMovePath,isVisible,longPolarity,playerStartValue,pyUnit,isNextUnit,cursorIndex);
-     
       Py_DECREF(pyUnit);
       colNumber = colNumber - 1;
     }
@@ -916,7 +845,7 @@ void calculateTranslation(){
 drawBoard(){
   if(theMap != Py_None){
     drawTiles();
-    //    drawTilesText();
+    drawTilesText();
   }
 }
 
@@ -1132,7 +1061,10 @@ void drawUI(){
 
   /*frame rate display*/
   if(deltaTicks != 0){
-    sprintf(frameRate,"%ld",(long)(1000.0/deltaTicks));
+    
+    avgDeltaTicks = ((avgDeltaTicks*totalDeltaTicksDataPoints) + deltaTicks)/(totalDeltaTicksDataPoints+1);
+    totalDeltaTicksDataPoints = totalDeltaTicksDataPoints + 1;
+    sprintf(frameRate,"%ld",(long)(1000.0/avgDeltaTicks));
     glPushMatrix();
     glColor3f(1.0,1.0,1.0);
     glLoadIdentity();
@@ -1162,6 +1094,7 @@ static void initGL (){
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);     
   glClear(GL_COLOR_BUFFER_BIT);
   glDepthFunc(GL_LEQUAL);
+  screenRatio = (GLfloat)SCREEN_WIDTH/(GLfloat)SCREEN_HEIGHT;
 
   char file[100] = TILES_IMAGE;
 
@@ -1222,7 +1155,69 @@ static void initGL (){
   vertexArrays[CITY_TILE_INDEX] = *cityVertices;
   vertexArrays[PLAYER_START_TILE_INDEX] = *playerStartVertices;
   
-  screenRatio = (GLfloat)SCREEN_WIDTH/(GLfloat)SCREEN_HEIGHT;
+  tilesLists = glGenLists(30);
+
+  int c = 0;
+  for(;c<9;c++){
+
+    glNewList(tilesLists+c,GL_COMPILE);    
+    glBindTexture(GL_TEXTURE_2D, tilesTexture);
+    glBegin(GL_POLYGON);
+    glTexCoord2f(*(vertexArrays[c]+0),*(vertexArrays[c]+1)); glVertex3f(hexagonVertices[0][0], hexagonVertices[0][1], 0.0);
+    glTexCoord2f(*(vertexArrays[c]+2),*(vertexArrays[c]+3)); glVertex3f(hexagonVertices[1][0], hexagonVertices[1][1], 0.0);
+    glTexCoord2f(*(vertexArrays[c]+4),*(vertexArrays[c]+5)); glVertex3f(hexagonVertices[2][0], hexagonVertices[2][1], 0.0);
+    glTexCoord2f(*(vertexArrays[c]+6),*(vertexArrays[c]+7)); glVertex3f(hexagonVertices[3][0], hexagonVertices[3][1], 0.0);
+    glTexCoord2f(*(vertexArrays[c]+8),*(vertexArrays[c]+9)); glVertex3f(hexagonVertices[4][0], hexagonVertices[4][1], 0.0);
+    glTexCoord2f(*(vertexArrays[c]+10),*(vertexArrays[c]+11)); glVertex3f(hexagonVertices[5][0], hexagonVertices[5][1], 0.0);
+    glEnd();
+    glEndList();
+  }
+
+  selectionBoxList = tilesLists+c+1;
+  unitList = selectionBoxList+1;
+  healthBarList = unitList+1;
+
+  glNewList(selectionBoxList,GL_COMPILE);    
+  glBegin(GL_QUADS);
+  glTexCoord2f(0.0,0.0);
+  glVertex3f(-0.9,-1.0,0.0);
+  glTexCoord2f(1.0,0.0);
+  glVertex3f(0.78,-1.0,0.0);
+  glTexCoord2f(1.0,1.0);
+  glVertex3f(0.78,1.0, 0.0);
+  glTexCoord2f(0.0,1.0);
+  glVertex3f(-0.9,1.0, 0.0);
+  glEnd();
+  glEndList();
+
+  glNewList(unitList,GL_COMPILE);    
+  glBegin(GL_QUADS);
+  glTexCoord2f(0.0,0.0);
+  glVertex3f(-0.8, -0.75, 0.0);
+  glTexCoord2f(1.0,0.0);
+  glVertex3f(0.7, -0.75, 0.0);
+  glTexCoord2f(1.0,1.0);
+  glVertex3f(0.7, 0.75, 0.0);
+  glTexCoord2f(0.0,1.0);
+  glVertex3f(-0.8, 0.75, 0.0);
+  glEnd();
+  glEndList();
+
+  glNewList(healthBarList,GL_COMPILE);    
+  glBegin(GL_QUADS);
+  glTexCoord2f(0.0,0.0);
+  glVertex3f(-.75, 1.05, 0.001);
+  glTexCoord2f(1.0,0.0);
+  glVertex3f(.75, 1.05, 0.001);
+  glTexCoord2f(1.0,1.0);
+  glVertex3f(.75, 0.85, 0.001);
+  glTexCoord2f(0.0,1.0);
+  glVertex3f(-.75, 0.85, 0.001);
+  glEnd();
+  glEndList();
+
+  //asdf
+
 }
 
 static void initPython(){
@@ -1329,6 +1324,8 @@ static void handleInput(){
 	done = 1;
       }else if(event.key.keysym.sym == SDLK_BACKQUOTE){
 	clickScroll = 1;
+	avgDeltaTicks = 0;
+	totalDeltaTicksDataPoints = 0;
       }else if(
 	       (event.key.keysym.sym >= 0x61 && event.key.keysym.sym <= 0x7A)//a-z
 	       || (event.key.keysym.sym >= 0x30 && event.key.keysym.sym <= 0x39)//0-9
@@ -1424,9 +1421,7 @@ static void draw(){
   
   glMatrixMode(GL_MODELVIEW);
   glTranslatef(translateX,translateY,translateZ);
-     
   drawBoard();
-     
   //  glPushMatrix();
 
   glMatrixMode(GL_PROJECTION);
