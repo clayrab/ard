@@ -1,7 +1,12 @@
 #!/bin/bash
-gcc -arch x86_64 -lz -framework SDL -framework Cocoa -framework libpng12 -framework openGl -Iinclude/SDL/ -lpython2.6 main.c include/SDLMain.m lib/libfreetype.a
-
+#gcc -arch x86_64 -lz -framework SDL -framework Cocoa -framework libpng12 -framework openGl -Iinclude/SDL/ -lpython2.6 main.c include/SDLMain.m lib/libfreetype.a
 #gcc -v -I/c/MinGW/lib -L/c/MinGW/lib -Iinclude -Iinclude/SDL -Iinclude/zlib -Iinclude/freetype -Ilib -Llib -IC:/Python26/include/ -LC:/Python26/libs -lpython26 -lpng12 -Wl,-Bstatic `sdl-config --static-libs`  -lglu32 -lopengl32 -Wl,-Bdynamic test.c
-
-#gcc -Iinclude -Iinclude/SDL -Iinclude/zlib -Iinclude/freetype -Ilib -Llib -lpng12 -Wl,-Bstatic `sdl-config --static-libs` -Wl,-Bdynamic main.c -I/Python26/include/ -L/Python26/libs -lpython26 -lglu32 -lopengl32 -lfreetype
-
+#gcc -Iinclude -Iinclude/SDL -Iinclude/zlib -Iinclude/freetype -Ilib -Llib -lpng12 -Wl,-Bstatic `sdl-config --static-libs` -Wl,-Bdynamic main.c -lpython26 -lglu32 -lopengl32 -lfreetype
+gcc -Iinclude -Iinclude/SDL -Iinclude/zlib -Iinclude/freetype -Ilib -Llib -lpng12 -Wl,-Bstatic `sdl-config --static-libs` -Wl,-Bdynamic main.c -lpython26 -lglu32 -lopengl32 -lfreetype
+rm -rf dst/windows
+mkdir dst/windows
+cp lib/* dst/windows
+cp -r assets dst/windows
+cp -r units dst/windows
+cp -r maps dst/windows
+cp a.exe dst/windows
