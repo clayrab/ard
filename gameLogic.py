@@ -69,7 +69,7 @@ class unitType:
 			print "researchCost:"+str(self.researchCost)
 			print "researchTime:"+str(self.researchTime)
 class unit:
-	def __init__(self,unitType,player,xPos,yPos,node):
+	def __init__(self,unitType,player,xPos,yPos,node,level=None):
 		self.unitType = unitType
 		self.player = player
 #		self.xPos = xPos
@@ -83,7 +83,10 @@ class unit:
 		self.health = self.unitType.health
 		self.movePath = []
 		self.waiting = False
-		self.level = node.city.researchProgress[self.unitType][0]
+		if(level != None):
+			self.level = level
+		else:
+			self.level = node.city.researchProgress[self.unitType][0]
 		self.originCity = node.city
 		self.gatheringNode = None
 	def getAttackPower(self):
@@ -412,11 +415,11 @@ class playModeNode(node):
 					neighbor.findAStarHeuristicCost(target)
 					if(neighbor.unit != None):
 						neighbor.aStarKnownCost = node.aStarKnownCost + 999.9
-					elif(neighbor.tileValue == cDefines.defines['MOUNTAIN_TILE_INDEX']):
+					elif(neighbor.tileValue == cDefines.defines['MOUNTAIN_TILE_INDEX'] and not target.unit.unitType.canFly):
 						neighbor.aStarKnownCost = node.aStarKnownCost + (cDefines.defines['MOUNTAIN_MOVE_COST']/(1.0+float(neighbor.roadValue)))
-					elif(neighbor.tileValue == cDefines.defines['WATER_TILE_INDEX'] and target.unit.unitType.canSwim == False):
+					elif(neighbor.tileValue == cDefines.defines['WATER_TILE_INDEX'] and not target.unit.unitType.canFly and not target.unit.unitType.canFly):
 						neighbor.aStarKnownCost = node.aStarKnownCost + (cDefines.defines['WATER_MOVE_COST']/(1.0+float(neighbor.roadValue)))
-					elif(neighbor.tileValue == cDefines.defines['DESERT_TILE_INDEX']):
+					elif(neighbor.tileValue == cDefines.defines['DESERT_TILE_INDEX'] and not target.unit.unitType.canFly):
 						neighbor.aStarKnownCost = node.aStarKnownCost + (cDefines.defines['DESERT_MOVE_COST']/(1.0+float(neighbor.roadValue)))
 					else:
 						neighbor.aStarKnownCost = node.aStarKnownCost + (cDefines.defines['GRASS_MOVE_COST']/(1.0+float(neighbor.roadValue)))

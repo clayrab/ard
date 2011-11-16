@@ -214,6 +214,9 @@
 #define GATHERER_IMAGE "assets/gatherer.png"
 #define GATHERER_INDEX 43
 
+#define DRAGON_IMAGE "assets/dragon.png"
+#define DRAGON_INDEX 44
+
 #define DESERT_TILE_INDEX 0
 #define GRASS_TILE_INDEX 1
 #define MOUNTAIN_TILE_INDEX 2
@@ -226,9 +229,9 @@
 
 #define DESERT_MOVE_COST 2.0
 #define GRASS_MOVE_COST 1.0
-#define MOUNTAIN_MOVE_COST 10.0
+#define MOUNTAIN_MOVE_COST 6.0
 #define FOREST_MOVE_COST 1.0
-#define WATER_MOVE_COST 10.0
+#define WATER_MOVE_COST 6.0
 
 #define SIN60 0.8660
 #define COS60 0.5
@@ -587,13 +590,13 @@ void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long 
       glBindTexture(GL_TEXTURE_2D, texturesArray[unitTextureIndex]);
       glBegin(GL_QUADS);
       glTexCoord2f(0.0,0.0);
-      glVertex3f(xPosition-0.6, yPosition-0.75, 0.0);
+      glVertex3f(xPosition-0.8, yPosition-0.75, 0.0);
       glTexCoord2f(1.0,0.0);
-      glVertex3f(xPosition+0.6, yPosition-0.75, 0.0);
+      glVertex3f(xPosition+0.7, yPosition-0.75, 0.0);
       glTexCoord2f(1.0,1.0);
-      glVertex3f(xPosition+0.6, yPosition+0.75, 0.0);
+      glVertex3f(xPosition+0.7, yPosition+0.75, 0.0);
       glTexCoord2f(0.0,1.0);
-      glVertex3f(xPosition-0.6, yPosition+0.75, 0.0);
+      glVertex3f(xPosition-0.8, yPosition+0.75, 0.0);
       glEnd();
 
       glBindTexture(GL_TEXTURE_2D, texturesArray[HEALTH_BAR_INDEX]);
@@ -1195,6 +1198,7 @@ static void initGL (){
   pngLoad(&texturesArray[SUMMONER_INDEX],SUMMONER_IMAGE);
   pngLoad(&texturesArray[CITY_INDEX],CITY_IMAGE);
   pngLoad(&texturesArray[GATHERER_INDEX],GATHERER_IMAGE);
+  pngLoad(&texturesArray[DRAGON_INDEX],DRAGON_IMAGE);
 
   vertexArrays[DESERT_TILE_INDEX] = *desertVertices;
   vertexArrays[GRASS_TILE_INDEX] = *grassVertices;
