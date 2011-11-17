@@ -437,6 +437,7 @@ void processTheHits(GLint hitsCount, GLuint buffer[]){
   nameValue = 0;
   bufferPtr = (GLuint *) buffer;
   selectedName = -1;
+  printf("hitscount: %d\n",hitsCount);
   while(count < hitsCount){
     numberOfNames = *bufferPtr;
     printf("numberofnames: %d\n",numberOfNames);
@@ -455,7 +456,6 @@ void processTheHits(GLint hitsCount, GLuint buffer[]){
     bufferPtr = bufferPtr + 3 + numberOfNames;
     count = count + 1;
   }
-  //  printf("selectedname %d\n",selectedName);
 }
 
 //float glMouseCoords[3];
