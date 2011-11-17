@@ -1559,6 +1559,7 @@ static void handleInput(){
   }
 }
 GLint viewport[4];
+GLint hitsCnt;
 static void draw(){
   if(PyObject_HasAttrString(gameMode,"onDraw")){
     pyObj = PyObject_CallMethod(gameMode,"onDraw",NULL);//New reference
@@ -1617,8 +1618,9 @@ static void draw(){
   glLoadIdentity();
   drawUI();
   glFlush();
-    //processTheHits(glRenderMode(GL_RENDER),selectBuf);
-  glRenderMode(GL_RENDER);
+  hitsCnt = glRenderMode(GL_RENDER);
+  processTheHits(hitsCnt,selectBuf);
+  //glRenderMode(GL_RENDER);
   glFlush();
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		
