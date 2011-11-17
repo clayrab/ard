@@ -1470,7 +1470,9 @@ static void draw(){
 }
 static void mainLoop (){
   while ( !done ) {
+    printf("z");
     gameMode = PyObject_CallMethod(gameState,"getGameMode",NULL);
+    printf("y");
     theMap = PyObject_GetAttrString(gameMode, "map");//New reference
     printf("a");
     handleInput();
