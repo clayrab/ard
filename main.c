@@ -1473,13 +1473,17 @@ static void mainLoop (){
     printf("z");
     gameMode = PyObject_CallMethod(gameState,"getGameMode",NULL);
     printf("y");
+    if(PyObject_HasAttrString(gameMode,"map")){
       theMap = PyObject_GetAttrString(gameMode, "map");//New reference
+    }
     printf("a");
     handleInput();
     printf("b");
     draw();
     printf("c");
+    if(PyObject_HasAttrString(gameMode,"map")){
       Py_DECREF(theMap);
+    }
     Py_DECREF(gameMode); 
  }
   pyObj = PyObject_CallMethod(gameMode,"onQuit",NULL);
@@ -1521,6 +1525,8 @@ int main(int argc, char **argv){
   SDL_ShowCursor(0);
   printf("2");
   initGL();
+  const GLubyte * glVersion = glGetString(GL_VERSION);
+  printf("OpenGL Version: %s\n",glVersion);
   printf("3");
   initPython();
   printf("4");
