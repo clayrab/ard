@@ -1526,8 +1526,11 @@ int main(int argc, char **argv){
   printf("5");
   //SDL_EnableUNICODE(1);
   gameModule = PyImport_ImportModule("gameModes");//New reference
+  printf("6");
   gameState = PyImport_ImportModule("gameState");
+  printf("7");
   mainLoop();
+  printf("8");
   Py_DECREF(gameModule);
   Py_DECREF(gameState);
   Py_Finalize();
