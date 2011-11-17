@@ -440,7 +440,7 @@ void processTheHits(GLint hitsCount, GLuint buffer[]){
     numberOfNames = *bufferPtr;
     printf("numberofnames: %d\n",numberOfNames);
     nameValue = *(bufferPtr + 3);//the value of the name is stored +3 over in mem
-    if(numberOfNames == 1){
+    if(numberOfNames >= 1){
       //elements are created from back to front, the names should be in this order so we return the largest name
       if(nameValue > selectedName){
 	selectedName = nameValue;
