@@ -1473,13 +1473,13 @@ static void mainLoop (){
     printf("z");
     gameMode = PyObject_CallMethod(gameState,"getGameMode",NULL);
     printf("y");
-    theMap = PyObject_GetAttrString(gameMode, "map");//New reference
+      theMap = PyObject_GetAttrString(gameMode, "map");//New reference
     printf("a");
     handleInput();
     printf("b");
     draw();
     printf("c");
-    Py_DECREF(theMap);
+      Py_DECREF(theMap);
     Py_DECREF(gameMode); 
  }
   pyObj = PyObject_CallMethod(gameMode,"onQuit",NULL);
@@ -1503,7 +1503,7 @@ int main(int argc, char **argv){
     fprintf(stderr, "Couldn't initialize SDL: %s\n",SDL_GetError());
     exit(1);
   }
-  //  SDL_GL_SetAttribute (SDL_GL_DEPTH_SIZE, 16);
+  SDL_GL_SetAttribute (SDL_GL_DEPTH_SIZE, 16);
   //  SDL_GL_SetAttribute (SDL_GL_DOUBLEBUFFER, 1);
   Uint32 flags = SDL_OPENGL;
   //flags |= SDL_FULLSCREEN;
