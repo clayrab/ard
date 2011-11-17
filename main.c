@@ -1093,7 +1093,7 @@ static void initGL (){
   glEnable(GL_TEXTURE_2D);
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);     
-  glClear(GL_COLOR_BUFFER_BIT);
+  //  glClear(GL_COLOR_BUFFER_BIT);
   glDepthFunc(GL_LEQUAL);
   screenRatio = (GLfloat)SCREEN_WIDTH/(GLfloat)SCREEN_HEIGHT;
 
@@ -1429,7 +1429,7 @@ static void draw(){
   glLoadIdentity();
   glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
   glGetIntegerv(GL_VIEWPORT,viewport);
-  gluPickMatrix(mouseX,viewport[3]-mouseY,5,5,viewport);
+  gluPickMatrix(mouseX,viewport[3]-mouseY,1,1,viewport);
   
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
