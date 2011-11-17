@@ -1417,7 +1417,7 @@ static void draw(){
   glLoadIdentity();
 
   glGetIntegerv(GL_VIEWPORT,viewport);
-  gluPickMatrix(mouseX,viewport[3]+UI_MAP_EDITOR_TOP_IMAGE_HEIGHT+UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT-mouseY,5,5,viewport);
+  gluPickMatrix(mouseX,viewport[3]+UI_MAP_EDITOR_TOP_IMAGE_HEIGHT+UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT-mouseY,1,1,viewport);
   gluPerspective(45.0f,screenRatio,minZoom,maxZoom);
   
   glMatrixMode(GL_MODELVIEW);
