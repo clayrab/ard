@@ -1580,7 +1580,8 @@ static void draw(){
     mapDepth = mapDepthTest2;
   }
   glFlush();
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		 
+  glSelectBuffer(BUFSIZE,selectBuf);
   glRenderMode(GL_SELECT);
   glViewport(UI_MAP_EDITOR_LEFT_IMAGE_WIDTH,UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT,SCREEN_WIDTH - UI_MAP_EDITOR_LEFT_IMAGE_WIDTH - UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH, SCREEN_HEIGHT - UI_MAP_EDITOR_TOP_IMAGE_HEIGHT - UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT);
   theCursorIndex = -1;
@@ -1597,7 +1598,6 @@ static void draw(){
   
   glGetIntegerv(GL_VIEWPORT,viewport);
   glFlush();
-  glSelectBuffer(BUFSIZE,selectBuf);
   gluPickMatrix(mouseX,viewport[3]+UI_MAP_EDITOR_TOP_IMAGE_HEIGHT+UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT-mouseY,1,1,viewport);
   glFlush();
   gluPerspective(45.0f,screenRatio,minZoom,maxZoom);
