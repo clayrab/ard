@@ -1579,7 +1579,7 @@ static void draw(){
   }
   glFlush();
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		
-  glRenderMode(GL_SELECT);
+  /*glRenderMode(GL_SELECT);
   glViewport(UI_MAP_EDITOR_LEFT_IMAGE_WIDTH,UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT,SCREEN_WIDTH - UI_MAP_EDITOR_LEFT_IMAGE_WIDTH - UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH, SCREEN_HEIGHT - UI_MAP_EDITOR_TOP_IMAGE_HEIGHT - UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT);
   theCursorIndex = -1;
     
@@ -1617,8 +1617,9 @@ static void draw(){
   glLoadIdentity();
   drawUI();
   glFlush();
-
+*/
   processTheHits(glRenderMode(GL_RENDER),selectBuf);
+  glRenderMode(GL_RENDER);
   glFlush();
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		
