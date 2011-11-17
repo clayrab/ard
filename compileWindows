@@ -10,3 +10,6 @@ cp -r assets dst/windows
 cp -r units dst/windows
 cp -r maps dst/windows
 cp a.exe dst/windows
+cp *.c dst/windows
+cp *.pyc dst/windows
+cp *.py dst/windows
