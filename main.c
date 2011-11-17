@@ -432,6 +432,7 @@ GLuint *bufferPtr,*ptrNames, numberOfNames;
 int count;
 int nameValue;
 void processTheHits(GLint hitsCount, GLuint buffer[]){
+  glFlush();
   count = 0;
   nameValue = 0;
   bufferPtr = (GLuint *) buffer;
