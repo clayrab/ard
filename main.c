@@ -327,7 +327,7 @@ GLuint healthBarList;
 int mouseX = 0;
 int mouseY = 0;
 GLuint selectBuf[BUFSIZE];
-char selectBufChar[2*BUFSIZE];
+
 int selectedName = -1;//the mousedover object's 'name'
 int previousClickedName = -2;
 int previousMousedoverName = -2;
@@ -438,10 +438,8 @@ void processTheHits(GLint hitsCount, GLuint buffer[]){
   nameValue = 0;
   bufferPtr = (GLuint *) buffer;
   selectedName = -1;
-  printf("hitscount: %d\n",hitsCount);
   while(count < hitsCount){
     numberOfNames = *bufferPtr;
-    printf("numberofnames: %d\n",numberOfNames);
     nameValue = *(bufferPtr + 3);//the value of the name is stored +3 over in mem
     if(numberOfNames == 1){
       //elements are created from back to front, the names should be in this order so we return the largest name
@@ -510,189 +508,12 @@ void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long 
   }else if(isSelected == 1){
     shading = shading - 0.4;
   }
-glBindTexture(GL_TEXTURE_2D, tilesTexture);
-
-  glColor3f(shading,shading,shading);
-  glPushName(name);
-  glBegin(GL_POLYGON);
-  glTexCoord2f(*(textureVertices+0),*(textureVertices+1)); glVertex3f(hexagonVertices[0][0]+xPosition, hexagonVertices[0][1]+yPosition, 0.0);
-  glTexCoord2f(*(textureVertices+2),*(textureVertices+3)); glVertex3f(hexagonVertices[1][0]+xPosition, hexagonVertices[1][1]+yPosition, 0.0);
-  glTexCoord2f(*(textureVertices+4),*(textureVertices+5)); glVertex3f(hexagonVertices[2][0]+xPosition, hexagonVertices[2][1]+yPosition, 0.0);
-  glTexCoord2f(*(textureVertices+6),*(textureVertices+7)); glVertex3f(hexagonVertices[3][0]+xPosition, hexagonVertices[3][1]+yPosition, 0.0);
-  glTexCoord2f(*(textureVertices+8),*(textureVertices+9)); glVertex3f(hexagonVertices[4][0]+xPosition, hexagonVertices[4][1]+yPosition, 0.0);
-  glTexCoord2f(*(textureVertices+10),*(textureVertices+11)); glVertex3f(hexagonVertices[5][0]+xPosition, hexagonVertices[5][1]+yPosition, 0.0);
-  glEnd();
-  glPopName();
-  if(roadValue == 1){
-    textureVertices = vertexArrays[ROAD_TILE_INDEX];
-    glBegin(GL_POLYGON);
-    glTexCoord2f(*(textureVertices+0),*(textureVertices+1)); glVertex3f(hexagonVertices[0][0]+xPosition, hexagonVertices[0][1]+yPosition, 0.0);
-    glTexCoord2f(*(textureVertices+2),*(textureVertices+3)); glVertex3f(hexagonVertices[1][0]+xPosition, hexagonVertices[1][1]+yPosition, 0.0);
-    glTexCoord2f(*(textureVertices+4),*(textureVertices+5)); glVertex3f(hexagonVertices[2][0]+xPosition, hexagonVertices[2][1]+yPosition, 0.0);
-    glTexCoord2f(*(textureVertices+6),*(textureVertices+7)); glVertex3f(hexagonVertices[3][0]+xPosition, hexagonVertices[3][1]+yPosition, 0.0);
-    glTexCoord2f(*(textureVertices+8),*(textureVertices+9)); glVertex3f(hexagonVertices[4][0]+xPosition, hexagonVertices[4][1]+yPosition, 0.0);
-    glTexCoord2f(*(textureVertices+10),*(textureVertices+11)); glVertex3f(hexagonVertices[5][0]+xPosition, hexagonVertices[5][1]+yPosition, 0.0);
-    glEnd();
-  }
-
-
-  //  playableMode = PyObject_GetAttrString(gameMode, "units");//if the mode has units, it's playable
-  if(playerStartValue >= 1 && !PyObject_HasAttrString(gameMode,"units")){
-    textureVertices = vertexArrays[PLAYER_START_TILE_INDEX];
-    glBegin(GL_POLYGON);
-    glTexCoord2f(*(textureVertices+0),*(textureVertices+1)); glVertex3f(hexagonVertices[0][0]+xPosition, hexagonVertices[0][1]+yPosition, 0.0);
-    glTexCoord2f(*(textureVertices+2),*(textureVertices+3)); glVertex3f(hexagonVertices[1][0]+xPosition, hexagonVertices[1][1]+yPosition, 0.0);
-    glTexCoord2f(*(textureVertices+4),*(textureVertices+5)); glVertex3f(hexagonVertices[2][0]+xPosition, hexagonVertices[2][1]+yPosition, 0.0);
-    glTexCoord2f(*(textureVertices+6),*(textureVertices+7)); glVertex3f(hexagonVertices[3][0]+xPosition, hexagonVertices[3][1]+yPosition, 0.0);
-    glTexCoord2f(*(textureVertices+8),*(textureVertices+9)); glVertex3f(hexagonVertices[4][0]+xPosition, hexagonVertices[4][1]+yPosition, 0.0);
-    glTexCoord2f(*(textureVertices+10),*(textureVertices+11)); glVertex3f(hexagonVertices[5][0]+xPosition, hexagonVertices[5][1]+yPosition, 0.0);
-    glEnd();
-    sprintf(playerStartVal,"%ld",playerStartValue);
-    glColor3f(1.0,1.0,1.0);
-    //    glColor3f(0.0,0.0,0.0);
-    glPushMatrix();
-    glTranslatef(xPosition-0.7,yPosition-0.4,0.0);
-    glScalef(0.02,0.02,0.0);
-    drawText(playerStartVal);
-    glPopMatrix();
-  }
-
-  if(pyUnit != NULL && pyUnit != Py_None && isVisible){
-      pyUnitType = PyObject_GetAttrString(pyUnit,"unitType");
-      pyUnitTextureIndex = PyObject_GetAttrString(pyUnitType,"textureIndex");
-      pyName = PyObject_GetAttrString(pyUnitType,"name");
-      unitName = PyString_AsString(pyName);
-      pyHealth = PyObject_GetAttrString(pyUnit,"health");
-      pyMaxHealth = PyObject_GetAttrString(pyUnitType,"health");
-      pyPlayerNumber = PyObject_GetAttrString(pyUnit,"player");
-      playerNumber = PyLong_AsLong(pyPlayerNumber);
-      unitTextureIndex = PyLong_AsLong(pyUnitTextureIndex);
-      healthBarLength = 1.5*PyLong_AsLong(pyHealth)/PyLong_AsLong(pyMaxHealth);
-
-      glColor3f(1.0,1.0,1.0);
-      if(isNextUnit == 1){
-glBindTexture(GL_TEXTURE_2D, texturesArray[SELECTION_BOX_INDEX]);
-glBegin(GL_QUADS);
-glTexCoord2f(0.0,0.0);
-glVertex3f(xPosition-0.9, yPosition-1.0, 0.0);
-glTexCoord2f(1.0,0.0);
-glVertex3f(xPosition+0.78, yPosition-1.0, 0.0);
-glTexCoord2f(1.0,1.0);
-glVertex3f(xPosition+0.78, yPosition+1.0, 0.0);
-glTexCoord2f(0.0,1.0);
-glVertex3f(xPosition-0.9, yPosition+1.0, 0.0);
-glEnd();
-focusXPos = xPosition;
-focusYPos = yPosition;
-      }else{
-glBindTexture(GL_TEXTURE_2D, texturesArray[UNIT_CIRCLE_RED_INDEX+playerNumber-1]);
-glBegin(GL_QUADS);
-glTexCoord2f(0.0,0.0);
-glVertex3f(xPosition-0.9, yPosition-1.0, 0.0);
-glTexCoord2f(1.0,0.0);
-glVertex3f(xPosition+0.78, yPosition-1.0, 0.0);
-glTexCoord2f(1.0,1.0);
-glVertex3f(xPosition+0.78, yPosition+1.0, 0.0);
-glTexCoord2f(0.0,1.0);
-glVertex3f(xPosition-0.9, yPosition+1.0, 0.0);
-glEnd();
-      }
-
-      glBindTexture(GL_TEXTURE_2D, texturesArray[unitTextureIndex]);
-      glBegin(GL_QUADS);
-      glTexCoord2f(0.0,0.0);
-      glVertex3f(xPosition-0.8, yPosition-0.75, 0.0);
-      glTexCoord2f(1.0,0.0);
-      glVertex3f(xPosition+0.7, yPosition-0.75, 0.0);
-      glTexCoord2f(1.0,1.0);
-      glVertex3f(xPosition+0.7, yPosition+0.75, 0.0);
-      glTexCoord2f(0.0,1.0);
-      glVertex3f(xPosition-0.8, yPosition+0.75, 0.0);
-      glEnd();
-
-      glBindTexture(GL_TEXTURE_2D, texturesArray[HEALTH_BAR_INDEX]);
-      glBegin(GL_QUADS);
-      glTexCoord2f(0.0,0.0);
-      glVertex3f(xPosition-.75, yPosition+1.05, 0.001);
-      glTexCoord2f(1.0,0.0);
-      glVertex3f(xPosition+.75, yPosition+1.05, 0.001);
-      glTexCoord2f(1.0,1.0);
-      glVertex3f(xPosition+.75, yPosition+0.85, 0.001);
-      glTexCoord2f(0.0,1.0);
-      glVertex3f(xPosition-.75, yPosition+0.85, 0.001);
-      glEnd();
- 
-      glBegin(GL_QUADS);
-      glColor3f(255.0, 0.0, 0.0);
-      glTexCoord2f(0.0,0.0);
-      glVertex3f(xPosition-.75, yPosition+1.05, 0.001);
-      glTexCoord2f(1.0,0.0);
-      glVertex3f(xPosition-.75+healthBarLength, yPosition+1.05, 0.001);
-      glTexCoord2f(1.0,1.0);
-      glVertex3f(xPosition-.75+healthBarLength, yPosition+0.85, 0.001);
-      glTexCoord2f(0.0,1.0);
-      glVertex3f(xPosition-.75, yPosition+0.85, 0.001);
-      glEnd();
-
-      /*      unitNamesXs[unitNamesCount] = xPosition+1.0;
-      unitNamesYs[unitNamesCount] = yPosition-1.3;
-      strcpy(unitNames[unitNamesCount],unitName);
-      unitNamesCount = unitNamesCount + 1;
-      */
-      Py_DECREF(pyUnitType);
-      Py_DECREF(pyUnitTextureIndex);
-      Py_DECREF(pyName);
-      Py_DECREF(pyHealth);
-      Py_DECREF(pyMaxHealth);
-      Py_DECREF(pyPlayerNumber);
-  }
-  if(cityName[0]!=0){
-    glColor3f(1.0f, 1.0f, 1.0f);
-    glBindTexture(GL_TEXTURE_2D, texturesArray[CITY_INDEX]);
-    glBegin(GL_POLYGON);
-    glTexCoord2f(0.0,0.0);
-    glVertex3f(xPosition-0.6, yPosition-0.75, 0.0);
-    glTexCoord2f(1.0,0.0);
-    glVertex3f(xPosition+0.6, yPosition-0.75, 0.0);
-    glTexCoord2f(1.0,1.0);
-    glVertex3f(xPosition+0.6, yPosition+0.75, 0.0);
-    glTexCoord2f(0.0,1.0);
-    glVertex3f(xPosition-0.6, yPosition+0.75, 0.0);
-    glEnd();
-
-    /*    cityNamesXs[cityNamesCount] = xPosition;
-    cityNamesYs[cityNamesCount] = yPosition;
-    strcpy(cityNames[cityNamesCount],cityName);
-    cityNamesCount = cityNamesCount + 1;
-    */
-  }
-  if(isOnMovePath){
-    glBindTexture(GL_TEXTURE_2D, texturesArray[WALK_ICON_INDEX]);
-    glColor3f(1.0f, 0.0f, 0.0f);
-    glBegin(GL_QUADS);
-    glTexCoord2f(0.0,0.0); glVertex3f(xPosition+0.5,yPosition-0.5,0.0);
-    glTexCoord2f(1.0,0.0); glVertex3f(xPosition-0.5,yPosition-0.5,0.0);
-    glTexCoord2f(1.0,1.0); glVertex3f(xPosition-0.5,yPosition+0.5,0.0);
-    glTexCoord2f(0.0,1.0); glVertex3f(xPosition+0.5,yPosition+0.5,0.0);
-    glEnd();
-    glBindTexture(GL_TEXTURE_2D, tilesTexture);
-  }
-  /*
   glPushMatrix();
   glColor3f(shading,shading,shading);
   glTranslatef(xPosition,yPosition,0.0);
 
   glPushName(name);
-    glBindTexture(GL_TEXTURE_2D, tilesTexture);
-    glBegin(GL_POLYGON);
-    glTexCoord2f(*(vertexArrays[tileValue]+0),*(vertexArrays[tileValue]+1)); glVertex3f(hexagonVertices[0][0], hexagonVertices[0][1], 0.0);
-    glTexCoord2f(*(vertexArrays[tileValue]+2),*(vertexArrays[tileValue]+3)); glVertex3f(hexagonVertices[1][0], hexagonVertices[1][1], 0.0);
-    glTexCoord2f(*(vertexArrays[tileValue]+4),*(vertexArrays[tileValue]+5)); glVertex3f(hexagonVertices[2][0], hexagonVertices[2][1], 0.0);
-    glTexCoord2f(*(vertexArrays[tileValue]+6),*(vertexArrays[tileValue]+7)); glVertex3f(hexagonVertices[3][0], hexagonVertices[3][1], 0.0);
-    glTexCoord2f(*(vertexArrays[tileValue]+8),*(vertexArrays[tileValue]+9)); glVertex3f(hexagonVertices[4][0], hexagonVertices[4][1], 0.0);
-    glTexCoord2f(*(vertexArrays[tileValue]+10),*(vertexArrays[tileValue]+11)); glVertex3f(hexagonVertices[5][0], hexagonVertices[5][1], 0.0);
-    glEnd();
-    //  glCallList(tilesLists+tileValue);
+  glCallList(tilesLists+tileValue);
   glPopName();
 
   if(roadValue == 1){
@@ -784,7 +605,6 @@ glEnd();
     glBindTexture(GL_TEXTURE_2D, tilesTexture);
   }
   glPopMatrix();
-*/
 }
 void drawTilesText(){
   /*  int i,j,cityNameLength,unitNameLength = 0;
@@ -1336,7 +1156,7 @@ static void initGL (){
   vertexArrays[CITY_TILE_INDEX] = *cityVertices;
   vertexArrays[PLAYER_START_TILE_INDEX] = *playerStartVertices;
   
-  /*  tilesLists = glGenLists(30);
+    tilesLists = glGenLists(30);
 
   int c = 0;
   for(;c<9;c++){
@@ -1396,7 +1216,6 @@ static void initGL (){
   glVertex3f(-.75, 0.85, 0.001);
   glEnd();
   glEndList();
-  */
 
 }
 
@@ -1581,7 +1400,7 @@ static void draw(){
   }
   glFlush();
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		 
-  glSelectBuffer(BUFSIZE,selectBuf);
+  glSelectBuffer(BUFSIZE,selectBuf);//glSelectBuffer must be issued before selection mode is enabled, and it must not be issued while the rendering mode is GL_SELECT.
   glRenderMode(GL_SELECT);
   glViewport(UI_MAP_EDITOR_LEFT_IMAGE_WIDTH,UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT,SCREEN_WIDTH - UI_MAP_EDITOR_LEFT_IMAGE_WIDTH - UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH, SCREEN_HEIGHT - UI_MAP_EDITOR_TOP_IMAGE_HEIGHT - UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT);
   theCursorIndex = -1;
@@ -1620,13 +1439,7 @@ static void draw(){
   drawUI();
   glFlush();
   hitsCnt = glRenderMode(GL_RENDER);
-  int cnt = 0;
-  for(;cnt < BUFSIZE;cnt++){
-    printf("%d:",selectBuf[cnt]);
-  }
-  printf("\n");
   processTheHits(hitsCnt,selectBuf);
-  //glRenderMode(GL_RENDER);
   glFlush();
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		
@@ -1636,7 +1449,6 @@ static void draw(){
   glViewport(UI_MAP_EDITOR_LEFT_IMAGE_WIDTH,UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT,SCREEN_WIDTH - UI_MAP_EDITOR_LEFT_IMAGE_WIDTH - UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH, SCREEN_HEIGHT - UI_MAP_EDITOR_TOP_IMAGE_HEIGHT - UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT);
 
   gluPerspective(45.0f,screenRatio,minZoom,maxZoom);
-
 
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
