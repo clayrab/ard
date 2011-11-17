@@ -1622,9 +1622,9 @@ static void draw(){
   hitsCnt = glRenderMode(GL_RENDER);
   int cnt = 0;
   for(;cnt < BUFSIZE;cnt++){
-    sprintf(selectBufChar+cnt,"%d",selectBuf[cnt]);
+    printf("%d",selectBuf[cnt]);
   }
-  printf("buffer %s\n",selectBufChar);
+  printf("\n");
   //processTheHits(hitsCnt,selectBuf);
   //glRenderMode(GL_RENDER);
   glFlush();
