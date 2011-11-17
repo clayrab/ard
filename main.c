@@ -1380,6 +1380,7 @@ static void handleInput(){
     }
   }
 }
+GLint viewport[4];
 static void draw(){
   if(PyObject_HasAttrString(gameMode,"onDraw")){
     pyObj = PyObject_CallMethod(gameMode,"onDraw",NULL);//New reference
@@ -1410,7 +1411,6 @@ static void draw(){
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
 
-  GLint viewport[4];
   glSelectBuffer(BUFSIZE,selectBuf);
 
   glMatrixMode(GL_PROJECTION);
@@ -1471,17 +1471,17 @@ static void draw(){
 }
 static void mainLoop (){
   while ( !done ) {
-    printf("z");
+    
     gameMode = PyObject_CallMethod(gameState,"getGameMode",NULL);
-    printf("y");
+    
     if(PyObject_HasAttrString(gameMode,"map")){
       theMap = PyObject_GetAttrString(gameMode, "map");//New reference
     }
-    printf("a");
+    
     handleInput();
-    printf("b");
+    
     draw();
-    printf("c");
+    
     if(PyObject_HasAttrString(gameMode,"map")){
       Py_DECREF(theMap);
     }
@@ -1522,24 +1522,24 @@ int main(int argc, char **argv){
   int * value;
   //  SDL_GL_GetAttribute(SDL_GL_DEPTH_SIZE,value);
   //printf("depth size: %d\n",*value);
-  printf("1");
+  
   SDL_ShowCursor(0);
-  printf("2");
+  
   initGL();
   const GLubyte * glVersion = glGetString(GL_VERSION);
   printf("OpenGL Version: %s\n",glVersion);
-  printf("3");
+  
   initPython();
-  printf("4");
+  
   initFonts();
-  printf("5");
+  
   //SDL_EnableUNICODE(1);
   gameModule = PyImport_ImportModule("gameModes");//New reference
-  printf("6");
+  
   gameState = PyImport_ImportModule("gameState");
-  printf("7");
+  
   mainLoop();
-  printf("8");
+  
   Py_DECREF(gameModule);
   Py_DECREF(gameState);
   Py_Finalize();
