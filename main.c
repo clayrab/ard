@@ -1610,7 +1610,6 @@ static void draw(){
   glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
   glGetIntegerv(GL_VIEWPORT,viewport);
   glFlush();
-
   gluPickMatrix(mouseX,viewport[3]-mouseY,1,1,viewport);
   glFlush();
   
@@ -1620,6 +1619,7 @@ static void draw(){
   glFlush();
 
   processTheHits(glRenderMode(GL_RENDER),selectBuf);
+  glFlush();
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		
 
