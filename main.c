@@ -1103,7 +1103,7 @@ static void initGL (){
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);     
   //  glClear(GL_COLOR_BUFFER_BIT);
-  glDepthFunc(GL_LEQUAL);
+  //glDepthFunc(GL_LEQUAL);
   screenRatio = (GLfloat)SCREEN_WIDTH/(GLfloat)SCREEN_HEIGHT;
 
   char file[100] = TILES_IMAGE;
