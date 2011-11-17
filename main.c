@@ -1622,7 +1622,7 @@ static void draw(){
   hitsCnt = glRenderMode(GL_RENDER);
   int cnt = 0;
   for(;cnt < BUFSIZE;cnt++){
-    printf("%d",selectBuf[cnt]);
+    printf("%d:",selectBuf[cnt]);
   }
   printf("\n");
   //processTheHits(hitsCnt,selectBuf);
