@@ -1625,7 +1625,7 @@ static void draw(){
     printf("%d:",selectBuf[cnt]);
   }
   printf("\n");
-  //processTheHits(hitsCnt,selectBuf);
+  processTheHits(hitsCnt,selectBuf);
   //glRenderMode(GL_RENDER);
   glFlush();
 
