@@ -440,7 +440,7 @@ void processTheHits(GLint hitsCount, GLuint buffer[]){
     numberOfNames = *bufferPtr;
     printf("numberofnames: %d\n",numberOfNames);
     nameValue = *(bufferPtr + 3);//the value of the name is stored +3 over in mem
-    if(numberOfNames >= 1){
+    if(numberOfNames == 1){
       //elements are created from back to front, the names should be in this order so we return the largest name
       if(nameValue > selectedName){
 	selectedName = nameValue;
@@ -513,7 +513,16 @@ void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long 
   glTranslatef(xPosition,yPosition,0.0);
 
   glPushName(name);
-  glCallList(tilesLists+tileValue);
+    glBindTexture(GL_TEXTURE_2D, tilesTexture);
+    glBegin(GL_POLYGON);
+    glTexCoord2f(*(vertexArrays[tileValue]+0),*(vertexArrays[tileValue]+1)); glVertex3f(hexagonVertices[0][0], hexagonVertices[0][1], 0.0);
+    glTexCoord2f(*(vertexArrays[tileValue]+2),*(vertexArrays[tileValue]+3)); glVertex3f(hexagonVertices[1][0], hexagonVertices[1][1], 0.0);
+    glTexCoord2f(*(vertexArrays[tileValue]+4),*(vertexArrays[tileValue]+5)); glVertex3f(hexagonVertices[2][0], hexagonVertices[2][1], 0.0);
+    glTexCoord2f(*(vertexArrays[tileValue]+6),*(vertexArrays[tileValue]+7)); glVertex3f(hexagonVertices[3][0], hexagonVertices[3][1], 0.0);
+    glTexCoord2f(*(vertexArrays[tileValue]+8),*(vertexArrays[tileValue]+9)); glVertex3f(hexagonVertices[4][0], hexagonVertices[4][1], 0.0);
+    glTexCoord2f(*(vertexArrays[tileValue]+10),*(vertexArrays[tileValue]+11)); glVertex3f(hexagonVertices[5][0], hexagonVertices[5][1], 0.0);
+    glEnd();
+    //  glCallList(tilesLists+tileValue);
   glPopName();
 
   if(roadValue == 1){
