@@ -1611,6 +1611,7 @@ static void draw(){
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
   drawUI();
+  glFlush();
 
   processTheHits(glRenderMode(GL_RENDER),selectBuf);
 
