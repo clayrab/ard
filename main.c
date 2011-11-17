@@ -1085,7 +1085,7 @@ static void initGL (){
   glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);//default values anyway, so not needed but w/e
   glInitNames(); //init names stack	
   glClearColor(0.0, 0.0, 0.0, 0.0); //sets screen clear color
-  glClearDepth(0.5);
+  glClearDepth(0.0);
 
   //glClearColor(1.0, 1.0, 1.0, 1.0); //sets screen clear color
   //glClearColor(123.0/255.0,126.0/255.0,125.0/255.0,1.0);//grey that matches the UI...
@@ -1387,7 +1387,7 @@ static void draw(){
   }
 
   printPyStackTrace();
-  glClearDepth(1.1);
+  glClearDepth(1.0);
   //this needs to be done before glClear...
   //when the mouse is under the pixel this breaks, so we test three points and find any two that match
   glReadPixels( 1*SCREEN_WIDTH/4, SCREEN_HEIGHT/2, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &mapDepthTest1 );
