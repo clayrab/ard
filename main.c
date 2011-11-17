@@ -327,6 +327,7 @@ GLuint healthBarList;
 int mouseX = 0;
 int mouseY = 0;
 GLuint selectBuf[BUFSIZE];
+char selectBufChar[2*BUFSIZE];
 int selectedName = -1;//the mousedover object's 'name'
 int previousClickedName = -2;
 int previousMousedoverName = -2;
@@ -1619,7 +1620,12 @@ static void draw(){
   drawUI();
   glFlush();
   hitsCnt = glRenderMode(GL_RENDER);
-  processTheHits(hitsCnt,selectBuf);
+  int cnt = 0;
+  for(;cnt < BUFSIZE;cnt++){
+    sprintf(selectBufChar+cnt,"%d",selectBuf[cnt]);
+  }
+  printf("buffer %s\n",selectBufChar);
+  //processTheHits(hitsCnt,selectBuf);
   //glRenderMode(GL_RENDER);
   glFlush();
 
