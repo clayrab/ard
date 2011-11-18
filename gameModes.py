@@ -175,6 +175,7 @@ class tiledGameMode(gameMode):
 class playMode(tiledGameMode):
 	def __init__(self):
 		self.units = []
+		self.fires = []
 		self.nextUnit = None
 		self.focusNextUnit = 0
 		self.focusNextUnitTemp = 0
@@ -233,7 +234,7 @@ class playMode(tiledGameMode):
 				else:
 #					if(unit.node.roadValue == 1):
 #					unit.movementPoints = unit.movementPoints - 2.0
-					if(unit.node.tileValue == cDefines.defines['MOUNTAIN_TILE_INDEX'] and not unit.unitType.canFly):
+v					if(unit.node.tileValue == cDefines.defines['MOUNTAIN_TILE_INDEX'] and not unit.unitType.canFly):
 						unit.movementPoints = unit.movementPoints - ((float(unit.getMovementSpeed())+float(unit.node.roadValue))/cDefines.defines['MOUNTAIN_MOVE_COST'])
 					elif(unit.node.tileValue == cDefines.defines['WATER_TILE_INDEX'] and not unit.unitType.canFly and not unit.unitType.canSwim):
 						unit.movementPoints = unit.movementPoints - ((float(unit.getMovementSpeed())+float(unit.node.roadValue))/cDefines.defines['WATER_MOVE_COST'])
