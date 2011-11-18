@@ -152,7 +152,7 @@ class newMapNameInputElement(textInputElement):
 			textInputElement.onKeyDown(self,keycode)
 
 class hostIPInputElement(textInputElement):
-	def __init__(self,xPos,yPos,gameMode,width=0.0,height=0.0,text="192.168.1.4",textSize=0.001,textureIndex=-1,textColor='FF FF FF',textXPos=0.0,textYPos=0.0):
+	def __init__(self,xPos,yPos,gameMode,width=0.0,height=0.0,text="127.0.0.1",textSize=0.001,textureIndex=-1,textColor='FF FF FF',textXPos=0.0,textYPos=0.0):
 		textInputElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textSize=textSize,textColor=textColor,textXPos=textXPos,textYPos=textYPos)
 		self.gameMode = gameMode
 	def onKeyDown(self,keycode):
@@ -281,8 +281,8 @@ class actionViewer(uiElement):
 					if(self.node.city.researchProgress[unitType][0] > 0):
 						
 						self.names.append(viewUnitTypeButton(-0.965,height,unitType,text=unitType.name + "(lvl " + str(self.node.city.researchProgress[unitType][0]) + ")",textSize=0.0005).name)
-						self.names.append(uiElement(-0.93,height-0.04,text=str(unitType.costGreen),textSize=0.0005).name)
-						self.names.append(uiElement(-0.83,height-0.04,text=str(unitType.costBlue),textSize=0.0005).name)
+						self.names.append(uiElement(-0.93,height-0.04,text=str(unitType.costGreen*self.node.city.researchProgress[unitType][0]),textSize=0.0005).name)
+						self.names.append(uiElement(-0.83,height-0.04,text=str(unitType.costBlue*self.node.city.researchProgress[unitType][0]),textSize=0.0005).name)
 						self.names.append(uiElement(-0.73,height-0.04,text=str(unitType.buildTime),textSize=0.0005).name)
 						if(self.node.unit != None and self.node.unit.unitType.name == "summoner" and self.node.unit.player == gameState.getGameMode().getPlayerNumber() and gameState.getGameMode().players[gameState.getGameMode().getPlayerNumber()-1].greenWood >= unitType.costGreen and gameState.getGameMode().players[gameState.getGameMode().getPlayerNumber()-1].blueWood >= unitType.costBlue):
 							self.names.append(startSummoningButton(-0.68,height+0.028,unitType,textureIndex=texIndex("ADD_BUTTON_SMALL"),width=texWidth("ADD_BUTTON_SMALL"),height=texHeight("ADD_BUTTON_SMALL")).name)
@@ -313,8 +313,8 @@ class unitViewer(uiElement):
 		self.names.append(uiElement(-0.96,0.69,text=self.unit.unitType.name,textSize=0.0005).name)
 		self.names.append(uiElement(-0.96,0.65,text="lvl " + str(self.unit.level),textSize=0.0005).name)
 		self.names.append(uiElement(-0.964,0.76,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE'),textureIndex=texIndex('UNIT_BUILD_BAR')).name)
-		self.names.append(uiElement(-0.964,0.76,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE')*(float(self.unit.health)/self.unit.unitType.health),textureIndex=texIndex('UNIT_BUILD_BAR'),color="FF 00 00").name)
-		self.names.append(uiElement(-0.96,0.735,text=str(self.unit.health)+"/"+str(self.unit.unitType.health),textSize=0.0005).name)
+		self.names.append(uiElement(-0.964,0.76,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE')*(float(self.unit.health)/self.unit.getMaxHealth()),textureIndex=texIndex('UNIT_BUILD_BAR'),color="FF 00 00").name)
+		self.names.append(uiElement(-0.96,0.735,text=str(self.unit.health)+"/"+str(self.unit.getMaxHealth()),textSize=0.0005).name)
 		height = 0.565
 		if(len(self.unit.movePath) > 0):
 			self.names.append(cancelMovementButton(-0.964,height,text="cancel move",textSize=0.0005).name)

@@ -34,7 +34,7 @@ class Player:
 		self.blueWood = startingBlueWood
 		self.hasUnits = True
 class unitType:
-	def __init__(self,name,textureIndex,movementSpeed,attackSpeed,attackPower,armor,range,health,canFly,canSwim,costGreen,costBlue,buildTime,movementSpeedBonus,armorBonus,attackPowerBonus,researchCostGreen,researchCostBlue,researchTime):
+	def __init__(self,name,textureIndex,movementSpeed,attackSpeed,attackPower,armor,range,health,canFly,canSwim,costGreen,costBlue,buildTime,movementSpeedBonus,researchCostGreen,researchCostBlue,researchTime):
 		self.name = name
 		self.textureIndex = textureIndex
 		self.movementSpeed = movementSpeed
@@ -49,8 +49,8 @@ class unitType:
 		self.costBlue = costBlue
 		self.buildTime = buildTime
 		self.movementSpeedBonus = movementSpeedBonus
-		self.armorBonus = armorBonus
-		self.attackPowerBonus = attackPowerBonus
+#		self.armorBonus = armorBonus
+#		self.attackPowerBonus = attackPowerBonus
 		self.researchCostGreen = researchCostGreen
 		self.researchCostBlue = researchCostBlue
 		self.researchTime = researchTime
@@ -82,21 +82,27 @@ class unit:
 		self.movementPoints = 0
 		self.attackPoints = 0
 		self.buildPoints = self.unitType.buildTime	
-		self.health = self.unitType.health
 		self.movePath = []
 		self.waiting = False
 		if(level != None):
 			self.level = level
 		else:
 			self.level = node.city.researchProgress[self.unitType][0]
+		self.health = float(self.unitType.health*self.level)
 		self.originCity = node.city
 		self.gatheringNode = None
+	def getMaxHealth(self):
+		return self.unitType.health*self.level
 	def getAttackPower(self):
-		return self.unitType.attackPower + (self.unitType.attackPowerBonus*(self.level-1))
+		return self.unitType.attackPower*self.level
 	def getMovementSpeed(self):
 		return self.unitType.movementSpeed + (self.unitType.movementSpeedBonus*(self.level-1))
 	def getArmor(self):
-		return self.unitType.armor + (self.unitType.armorBonus*(self.level-1))
+		return self.unitType.armor*self.level
+	def getCostGreen(self):
+		return self.unitType.costGreen*self.level
+	def getCostBlue(self):
+		return self.unitType.costBlue*self.level
 	def gather(self,node):
 		gameState.getClient().sendCommand("gatherTo",str(self.node.xPos) + " " + str(self.node.yPos) + " " + str(node.xPos) + " " + str(node.yPos))
 	def move(self):
@@ -143,8 +149,8 @@ class unit:
 		self.waiting = False
 		node.unit.health = node.unit.health + self.getAttackPower()
 		self.attackPoints = self.attackPoints + initiativeActionDepletion
-		if(node.unit.health < node.unit.unitType.health):
-			node.unit.health + node.unit.unitType.health
+		if(node.unit.health > node.unit.getMaxHealth()):
+			node.unit.health + node.unit.getMaxHealth()
 	def attack(self,node):
 		gameState.getClient().sendCommand("attackTo",str(node.xPos) + " " + str(node.yPos))
 		gameState.getClient().sendCommand("chooseNextUnit")
@@ -213,9 +219,6 @@ class city:
 						self.researchProgress[self.researchUnitType][1] = 0
 						self.node.unit.waiting = False#wake up summoner
 						self.researching = False
-						for unit in gameState.getGameMode().units:
-							if(unit.unitType == self.researchUnitType and unit.originCity == self):
-								unit.level = unit.level + 1
 			else:
 				if(self.unitBeingBuilt != None):
 					self.unitBeingBuilt.buildPoints = self.unitBeingBuilt.buildPoints - 1
@@ -513,7 +516,7 @@ class map:
 	def __init__(self,nodeType):
 		self.polarity = 0
 		self.nodeType = nodeType
-		self.translateZ = 0-cDefines.defines['initZoom']
+		self.translateZ = 0.0-cDefines.defines['initZoom']
 		self.load()
 	def getWidth(self):
 		return len(self.nodes[0])
@@ -644,8 +647,6 @@ def selectNode(node):
 			pathNode.onMovePath = True
 	if(hasattr(gameState.getGameMode().mousedOverObject,"toggleCursor")):
 		   gameState.getGameMode().mousedOverObject.toggleCursor()
-
-
 #	node.toggleCursor()
 
 

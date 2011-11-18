@@ -1,8 +1,5 @@
-#remove init.pyc
-#disable scrolling during autoscrolling
 #save and resume games
 #icons for each unit
-#need to reset actionViewer on selectNode
 
 ############# PLAYABLE AT THIS POINT ##############
 
@@ -188,6 +185,8 @@ class playMode(tiledGameMode):
 		self.blueWoodUIElem = None
 		self.greenWoodUIElem = None
 		self.players = []
+		self.focusXPos = 0.0
+		self.focusYPos = 0.0
 	def loadMap(self):
 		self.map = gameLogic.map(gameLogic.playModeNode)
 	def getFocusNextUnit(self):
@@ -256,7 +255,14 @@ class playMode(tiledGameMode):
 		for unit in eligibleUnits:
 			print "elg: " + str(unit.node.xPos) + " " + str(unit.node.yPos)
 		self.nextUnit = random.choice(eligibleUnits)
-		gameLogic.selectNode(self.nextUnit.node)
+		print "***"
+		print self.nextUnit.player
+		print self.getPlayerNumber()
+		if(self.nextUnit.player == self.getPlayerNumber()):
+			print '1'
+			gameLogic.selectNode(self.nextUnit.node)
+			self.focusXPos = self.nextUnit.node.xPos
+			self.focusYPos = self.nextUnit.node.yPos
 		self.focusNextUnit = 1
 		if(hasattr(gameState.getGameMode().mousedOverObject,"toggleCursor")):
 			gameState.getGameMode().mousedOverObject.toggleCursor()
@@ -278,12 +284,12 @@ class playMode(tiledGameMode):
 				columnCount = columnCount + 1
 				if(node.playerStartValue != 0):
 					node.addUnit(gameLogic.unit(gameState.theUnitTypes["summoner"],node.playerStartValue,rowCount,columnCount,node,1))
-					node.addUnit(gameLogic.unit(gameState.theUnitTypes["gatherer"],node.playerStartValue,rowCount,columnCount,node,1))
-					node.addUnit(gameLogic.unit(gameState.theUnitTypes["gatherer"],node.playerStartValue,rowCount,columnCount,node,1))
-					node.addUnit(gameLogic.unit(gameState.theUnitTypes["gatherer"],node.playerStartValue,rowCount,columnCount,node,1))
-
-#					node.addUnit(gameLogic.unit(gameState.theUnitTypes["white mage"],node.playerStartValue,rowCount,columnCount,node,1))
-
+#					node.addUnit(gameLogic.unit(gameState.theUnitTypes["gatherer"],node.playerStartValue,rowCount,columnCount,node,1))
+#					node.addUnit(gameLogic.unit(gameState.theUnitTypes["gatherer"],node.playerStartValue,rowCount,columnCount,node,1))
+#					node.addUnit(gameLogic.unit(gameState.theUnitTypes["gatherer"],node.playerStartValue,rowCount,columnCount,node,1))
+					node.addUnit(gameLogic.unit(gameState.theUnitTypes["swordsman"],node.playerStartValue,rowCount,columnCount,node,1))
+					node.addUnit(gameLogic.unit(gameState.theUnitTypes["wolf"],node.playerStartValue,rowCount,columnCount,node,1))
+		
 	def handleKeyDown(self,keycode):
 		if(keycode == "left shift" or keycode == "right shift"):
 			self.shiftDown = True
@@ -304,10 +310,10 @@ class playMode(tiledGameMode):
 	def getPlayerNumber(self):#TODO: GET RID OF THIS ONCE AI IS DONE AND REPLACE WITH GAMESTATE VERSION
 		number = gameState.getPlayerNumber()
 		if(gameState.getPlayerNumber() == -2):
-			if(self.selectedNode != None and self.selectedNode.unit != None):
-				number = self.selectedNode.unit.player
-			else:
-				number = self.nextUnit.player
+#			if(self.selectedNode != None and self.selectedNode.unit != None):
+#				number = self.selectedNode.unit.player
+#			else:
+			number = self.nextUnit.player
 		return number
 	def onDraw(self):
 		self.greenWoodUIElem.text = str(int(math.floor(self.players[self.getPlayerNumber()-1].greenWood)))
@@ -334,11 +340,9 @@ class playMode(tiledGameMode):
 
 class mapEditorMode(tiledGameMode):	
 	def __init__(self):
-		print 'a'
 		self.selectedButton = None
 		self.selectedCityNode = None
 		tiledGameMode.__init__(self)
-		print 'a'
 	def loadMap(self):
 		self.map = gameLogic.map(gameLogic.mapEditorNode)
 	def handleKeyDown(self,keycode):

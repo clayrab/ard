@@ -22,8 +22,8 @@
 #define minZoom 1.0
 #define initZoom 20.0
 
-#define zoomSpeed 30.0//lower is faster
-#define focusSpeed 15.0//lower is faster
+#define zoomSpeed 5.0//lower is faster
+#define focusSpeed 5.0//lower is faster
 
 #define SCREEN_WIDTH 1280
 #define SCREEN_HEIGHT 800
@@ -220,6 +220,9 @@
 #define WHITE_MAGE_IMAGE "assets/white_mage.png"
 #define WHITE_MAGE_INDEX 45
 
+#define WOLF_IMAGE "assets/wolf.png"
+#define WOLF_INDEX 46
+
 #define DESERT_TILE_INDEX 0
 #define GRASS_TILE_INDEX 1
 #define MOUNTAIN_TILE_INDEX 2
@@ -232,7 +235,7 @@
 
 #define DESERT_MOVE_COST 2.0
 #define GRASS_MOVE_COST 1.0
-#define MOUNTAIN_MOVE_COST 6.0
+#define MOUNTAIN_MOVE_COST 3.0
 #define FOREST_MOVE_COST 1.0
 #define WATER_MOVE_COST 6.0
 
@@ -246,7 +249,9 @@ static SDL_Surface *gScreen;
 
 int clickScroll = 0;
 long focusNextUnit = 0;
-float focusXPos, focusYPos;
+double focusXPos, focusYPos;
+PyObject * pyFocusXPos;
+PyObject * pyFocusYPos;
 int isFocusing = 0;
 int considerDoneFocusing = 0;
 int leftButtonDown = 0;
@@ -262,11 +267,14 @@ int totalDeltaTicksDataPoints = 0;
 GLfloat mapDepth,mapDepthTest1,mapDepthTest2,mapDepthTest3;
 float translateX = 0.0;
 float translateY = 0.0;
-float translateZ = 0.0;
+float translateZ = 0.0-initZoom;
 float translateXPrev = 0.0;
 float translateYPrev = 0.0;
-float translateZPrev = 0.0;
+float translateZPrev = 0.0-initZoom;
 float scrollSpeed = 0.10;
+
+PyObject * pyPolarity;
+long mapPolarity;
 
 GLdouble convertedBottomLeftX,convertedBottomLeftY,convertedBottomLeftZ;
 GLdouble convertedTopRightX,convertedTopRightY,convertedTopRightZ;
@@ -280,7 +288,7 @@ PyObject * pyPlayerNumber;
 char * unitName;
 long playerNumber;
 long unitTextureIndex;
-float healthBarLength;
+double healthBarLength;
 PyObject * uiElement;
 PyObject * gameModule;
 PyObject * gameState;
@@ -317,7 +325,7 @@ GLdouble mouseMapPosX, mouseMapPosY, mouseMapPosZ;
 GLdouble mouseMapPosXPrevious, mouseMapPosYPrevious, mouseMapPosZPrevious = -initZoom;
 GLint bufRenderMode;
 float *textureVertices;
-GLuint texturesArray[60];
+GLuint texturesArray[200];
 GLuint tilesLists;
 GLuint selectionBoxList;
 GLuint unitList;
@@ -476,7 +484,7 @@ void convertWindowCoordsToViewportCoords(int x, int y, float z, GLdouble* posX, 
 
 /************************************* drawing subroutines ***************************************/
 float returnVal;
-float translateTilesXToPositionX(int tileX,int tileY,long mapPolarity){
+float translateTilesXToPositionX(int tileX,int tileY){
   //return (float)tilesX*-(1.9*SIN60);
   returnVal = (float)tileX*-(2.0*SIN60);
   if(abs(tileY)%2 == mapPolarity){
@@ -485,15 +493,15 @@ float translateTilesXToPositionX(int tileX,int tileY,long mapPolarity){
   return returnVal;
 }
 float translateTilesYToPositionY(int tileY){
-    return (float)tileY*1.5;
+  return (float)(tileY*1.5);
 }
 
 double xPosition;
 double yPosition;
 float shading;
 char playerStartVal[2];
-void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long roadValue,char * cityName,long isSelected, long isOnMovePath, long isVisible, long mapPolarity,long playerStartValue,PyObject * pyUnit, int isNextUnit, long cursorIndex){
-  xPosition = translateTilesXToPositionX(tilesXIndex,tilesYIndex,mapPolarity);
+void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long roadValue,char * cityName,long isSelected, long isOnMovePath, long isVisible,long playerStartValue,PyObject * pyUnit, int isNextUnit, long cursorIndex){
+  xPosition = translateTilesXToPositionX(tilesXIndex,tilesYIndex);
   yPosition = translateTilesYToPositionY(tilesYIndex);
   textureVertices = vertexArrays[tileValue];
   shading = 1.0;
@@ -539,17 +547,18 @@ void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long 
       pyName = PyObject_GetAttrString(pyUnitType,"name");
       unitName = PyString_AsString(pyName);
       pyHealth = PyObject_GetAttrString(pyUnit,"health");
-      pyMaxHealth = PyObject_GetAttrString(pyUnitType,"health");
+      pyMaxHealth = PyObject_CallMethod(pyUnit,"getMaxHealth",NULL);
       pyPlayerNumber = PyObject_GetAttrString(pyUnit,"player");
       playerNumber = PyLong_AsLong(pyPlayerNumber);
       unitTextureIndex = PyLong_AsLong(pyUnitTextureIndex);
-      healthBarLength = 1.5*PyLong_AsLong(pyHealth)/PyLong_AsLong(pyMaxHealth);
+      healthBarLength = 1.5*PyFloat_AsDouble(pyHealth)/PyFloat_AsDouble(pyMaxHealth);
 
       glColor3f(1.0,1.0,1.0);
-      if(isNextUnit == 1){
+      if(isNextUnit == 1 && !isFocusing){
 	glBindTexture(GL_TEXTURE_2D, texturesArray[SELECTION_BOX_INDEX]);
-	focusXPos = xPosition;
-	focusYPos = yPosition;
+	//      }else if(isNextUnit == 1){
+	//focusXPos = xPosition;
+	//focusYPos = yPosition;
       }else{
 	glBindTexture(GL_TEXTURE_2D, texturesArray[UNIT_CIRCLE_RED_INDEX+playerNumber-1]);
       }
@@ -581,17 +590,7 @@ void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long 
   if(cityName[0]!=0){
     glColor3f(1.0f, 1.0f, 1.0f);
     glBindTexture(GL_TEXTURE_2D, texturesArray[CITY_INDEX]);
-    glBegin(GL_POLYGON);
-    glTexCoord2f(0.0,0.0);
-    glVertex3f(-0.6, -0.75, 0.0);
-    glTexCoord2f(1.0,0.0);
-    glVertex3f(0.6, -0.75, 0.0);
-    glTexCoord2f(1.0,1.0);
-    glVertex3f(0.6, 0.75, 0.0);
-    glTexCoord2f(0.0,1.0);
-    glVertex3f(-0.6, 0.75, 0.0);
-    glEnd();
-
+    glCallList(unitList);
   }
   if(isOnMovePath){
     glBindTexture(GL_TEXTURE_2D, texturesArray[WALK_ICON_INDEX]);
@@ -642,8 +641,6 @@ void drawTilesText(){
 int rowNumber;
 PyObject * node;
 PyObject * row;
-PyObject * polarity;
-long longPolarity;
 int colNumber = 0;
 PyObject * nodeIterator;
 PyObject * nodeName;
@@ -675,9 +672,19 @@ long isOnMovePath;
 long isVisible;
 void drawTiles(){
   rowNumber = -1;
+  if(PyObject_HasAttrString(gameMode,"focusXPos")){
+    pyFocusXPos = PyObject_GetAttrString(gameMode,"focusXPos");
+    pyFocusYPos = PyObject_GetAttrString(gameMode,"focusYPos");
+    focusXPos = PyLong_AsLong(pyFocusXPos);
+    focusYPos = PyLong_AsLong(pyFocusYPos);
+    focusXPos = translateTilesXToPositionX(0.0-focusXPos,focusYPos);
+    focusYPos = translateTilesYToPositionY(focusYPos);
+    Py_DECREF(pyFocusXPos);
+    Py_DECREF(pyFocusYPos);
+  }
   mapIterator = PyObject_CallMethod(theMap,"getIterator",NULL);//New reference
-  polarity = PyObject_GetAttrString(theMap,"polarity");//New reference
-  longPolarity = PyLong_AsLong(polarity);
+  pyPolarity = PyObject_GetAttrString(theMap,"polarity");//New reference
+  mapPolarity = PyLong_AsLong(pyPolarity);
   rowIterator = PyObject_GetIter(mapIterator);
   while (row = PyIter_Next(rowIterator)) {
     colNumber = 0;
@@ -735,7 +742,7 @@ void drawTiles(){
 	Py_DECREF(nextUnit);
       }
       Py_DECREF(pyPlayerNumber);
-      drawTile(colNumber,rowNumber,longName,longValue,longRoadValue,cityName,isSelected,isOnMovePath,isVisible,longPolarity,playerStartValue,pyUnit,isNextUnit,cursorIndex);
+      drawTile(colNumber,rowNumber,longName,longValue,longRoadValue,cityName,isSelected,isOnMovePath,isVisible,playerStartValue,pyUnit,isNextUnit,cursorIndex);
       Py_DECREF(pyUnit);
       colNumber = colNumber - 1;
     }
@@ -744,7 +751,7 @@ void drawTiles(){
   }
   Py_DECREF(rowIterator); 
   Py_DECREF(mapIterator);
-  Py_DECREF(polarity);
+  Py_DECREF(pyPolarity);
 }
 
 
@@ -763,7 +770,7 @@ void calculateTranslation(){
   convertWindowCoordsToViewportCoords(mouseX,mouseY,translateZ,&mouseMapPosX,&mouseMapPosY,&mouseMapPosZ);
   pyTranslateZ = PyObject_GetAttrString(theMap,"translateZ");
   translateZ = PyFloat_AsDouble(pyTranslateZ);
-  mapRightOffset = translateTilesXToPositionX(mapWidth+1,0,0);
+  mapRightOffset = translateTilesXToPositionX(mapWidth+1,0);
   mapTopOffset = translateTilesYToPositionY(mapHeight);
   //printf("screen topright %f,%f\n",convertedTopRightX,convertedTopRightY);
   //printf("screen bottomleft %f,%f\n",convertedBottomLeftX,convertedBottomLeftY);
@@ -771,7 +778,7 @@ void calculateTranslation(){
   //printf("%f\n",translateTilesYToPositionY(mapHeight));//setting translateY to this number will focus on it
   //printf("mouse %d:%f\t%d:%f\n",mouseX,mouseMapPosX,mouseY,mouseMapPosY);
   
-  if(clickScroll > 0){
+  if(clickScroll > 0 && !isFocusing){
     translateX = translateX + mouseMapPosX - mouseMapPosXPrevious;
     translateY = translateY + mouseMapPosY - mouseMapPosYPrevious;
   }else{
@@ -1145,6 +1152,7 @@ static void initGL (){
   pngLoad(&texturesArray[GATHERER_INDEX],GATHERER_IMAGE);
   pngLoad(&texturesArray[DRAGON_INDEX],DRAGON_IMAGE);
   pngLoad(&texturesArray[WHITE_MAGE_INDEX],WHITE_MAGE_IMAGE);
+  pngLoad(&texturesArray[WOLF_INDEX],WOLF_IMAGE);
 
   vertexArrays[DESERT_TILE_INDEX] = *desertVertices;
   vertexArrays[GRASS_TILE_INDEX] = *grassVertices;
