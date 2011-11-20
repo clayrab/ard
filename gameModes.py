@@ -137,14 +137,14 @@ class tiledGameMode(gameMode):
 		if(name in self.elementsDict and hasattr(self.elementsDict[name],"onScrollUp")):
 			self.elementsDict[name].onScrollUp()
 		else:
-			self.map.translateZ = self.map.translateZ + gameLogic.zoomSpeed*deltaTicks;
+			self.map.translateZ = self.map.translateZ + gameLogic.ZOOM_SPEED*deltaTicks;
 			if(self.map.translateZ > (-10.0-cDefines.defines['minZoom'])):
 				self.map.translateZ = -10.0-cDefines.defines['minZoom']
 	def handleScrollDown(self,name,deltaTicks):
 		if(name in self.elementsDict and hasattr(self.elementsDict[name],"onScrollDown")):
 			self.elementsDict[name].onScrollDown()
 		else:
-			self.map.translateZ = self.map.translateZ - gameLogic.zoomSpeed*deltaTicks;
+			self.map.translateZ = self.map.translateZ - gameLogic.ZOOM_SPEED*deltaTicks;
 			if(self.map.translateZ < (1.0-cDefines.defines['maxZoom'])):
 				self.map.translateZ = 1.0-cDefines.defines['maxZoom']
 	def handleMouseOver(self,name,isLeftMouseDown):
@@ -223,18 +223,21 @@ class playMode(tiledGameMode):
 		self.orderUnits()
 		while(self.units[0].movementPoints > 0.0 or self.units[0].attackPoints > 0.0 or self.units[0].waiting):
 			self.orderUnits()
+			for fire in self.fires:
+				fire.movePoints = fire.movePoints - fire.speed
+#				print fire
 			for unit in self.units:
 				if(unit.unitType.name == "gatherer" and unit.gatheringNode == unit.node):
 					if(unit.node.tileValue == cDefines.defines['FOREST_TILE_INDEX']):
-						self.players[unit.player-1].greenWood = self.players[unit.player-1].greenWood + gameLogic.resourceCollectionRate
+						self.players[unit.player-1].greenWood = self.players[unit.player-1].greenWood + gameLogic.RESOURCE_COLLECTION_RATE
 					elif(unit.node.tileValue == cDefines.defines['BLUE_FOREST_TILE_INDEX']):
-						self.players[unit.player-1].blueWood = self.players[unit.player-1].blueWood + gameLogic.resourceCollectionRate
+						self.players[unit.player-1].blueWood = self.players[unit.player-1].blueWood + gameLogic.RESOURCE_COLLECTION_RATE
 				if(unit.attackPoints > 0.0):
 					unit.attackPoints = unit.attackPoints - unit.unitType.attackSpeed
 				else:
 #					if(unit.node.roadValue == 1):
 #					unit.movementPoints = unit.movementPoints - 2.0
-v					if(unit.node.tileValue == cDefines.defines['MOUNTAIN_TILE_INDEX'] and not unit.unitType.canFly):
+					if(unit.node.tileValue == cDefines.defines['MOUNTAIN_TILE_INDEX'] and not unit.unitType.canFly):
 						unit.movementPoints = unit.movementPoints - ((float(unit.getMovementSpeed())+float(unit.node.roadValue))/cDefines.defines['MOUNTAIN_MOVE_COST'])
 					elif(unit.node.tileValue == cDefines.defines['WATER_TILE_INDEX'] and not unit.unitType.canFly and not unit.unitType.canSwim):
 						unit.movementPoints = unit.movementPoints - ((float(unit.getMovementSpeed())+float(unit.node.roadValue))/cDefines.defines['WATER_MOVE_COST'])
@@ -248,6 +251,10 @@ v					if(unit.node.tileValue == cDefines.defines['MOUNTAIN_TILE_INDEX'] and not 
 				for node in row:
 					if(node.city != None):
 						node.city.incrementBuildProgress()
+		#todo: sort fire and add while loop for when fire should go more than once before the next unit
+		for fire in self.fires:
+			if(fire.movePoints < 0.0):
+				fire.spread()
 		eligibleUnits = []
 		eligibleUnits.append(self.units[0])
 		for unit in self.units[1:]:
@@ -256,11 +263,7 @@ v					if(unit.node.tileValue == cDefines.defines['MOUNTAIN_TILE_INDEX'] and not 
 		for unit in eligibleUnits:
 			print "elg: " + str(unit.node.xPos) + " " + str(unit.node.yPos)
 		self.nextUnit = random.choice(eligibleUnits)
-		print "***"
-		print self.nextUnit.player
-		print self.getPlayerNumber()
 		if(self.nextUnit.player == self.getPlayerNumber()):
-			print '1'
 			gameLogic.selectNode(self.nextUnit.node)
 			self.focusXPos = self.nextUnit.node.xPos
 			self.focusYPos = self.nextUnit.node.yPos
@@ -288,8 +291,9 @@ v					if(unit.node.tileValue == cDefines.defines['MOUNTAIN_TILE_INDEX'] and not 
 #					node.addUnit(gameLogic.unit(gameState.theUnitTypes["gatherer"],node.playerStartValue,rowCount,columnCount,node,1))
 #					node.addUnit(gameLogic.unit(gameState.theUnitTypes["gatherer"],node.playerStartValue,rowCount,columnCount,node,1))
 #					node.addUnit(gameLogic.unit(gameState.theUnitTypes["gatherer"],node.playerStartValue,rowCount,columnCount,node,1))
-					node.addUnit(gameLogic.unit(gameState.theUnitTypes["swordsman"],node.playerStartValue,rowCount,columnCount,node,1))
-					node.addUnit(gameLogic.unit(gameState.theUnitTypes["wolf"],node.playerStartValue,rowCount,columnCount,node,1))
+#					node.addUnit(gameLogic.unit(gameState.theUnitTypes["swordsman"],node.playerStartValue,rowCount,columnCount,node,1))
+#					node.addUnit(gameLogic.unit(gameState.theUnitTypes["wolf"],node.playerStartValue,rowCount,columnCount,node,1))
+					node.addFire(gameLogic.fire(node))
 		
 	def handleKeyDown(self,keycode):
 		if(keycode == "left shift" or keycode == "right shift"):

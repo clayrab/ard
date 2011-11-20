@@ -7,15 +7,17 @@ import random
 
 #researchBuildTime = 100
 #unitBuildSpeed = 0.1
-startingGreenWood = 250.0
-startingBlueWood = 0.0
-#startingGreenWood = 2000.0
-#startingBlueWood = 1000.0
-initiativeActionDepletion = 100.0
-resourceCollectionRate = 0.15
-#at resourceCollectionRate = 0.15 one gatherer will gather 15 green wood per 100 'ticks'(i.e. the build time of a gatherer)
-zoomSpeed = 0.2
-mountainAttackBonusMultiplier = 1.0
+STARTING_GREEN_WOOD = 250.0
+STARTING_BLUE_WOOD = 0.0
+#STARTING_GREEN_WOOD = 2000.0
+#STARTING_BLUE_WOOD = 1000.0
+INITIATIVE_ACTION_DEPLETION = 100.0
+RESOURCE_COLLECTION_RATE = 0.15
+#at RESOURCE_COLLECTION_RATE = 0.15 one gatherer will gather 15 green wood per 100 'ticks'(i.e. the build time of a gatherer)
+ZOOM_SPEED = 0.2 
+MOUNTAIN_ATTACK_BONUS_MULTIPLIER = 1.0
+FIRE_SPEED = 200
+FIRE_POWER = 3
 
 class MODES:
 	MOVE_MODE = 0
@@ -30,8 +32,8 @@ class Player:
 	def __init__(self,playerNumber):
 		self.playerNumber = playerNumber
 		self.isOwnPlayer = False
-		self.greenWood = startingGreenWood
-		self.blueWood = startingBlueWood
+		self.greenWood = STARTING_GREEN_WOOD
+		self.blueWood = STARTING_BLUE_WOOD
 		self.hasUnits = True
 class unitType:
 	def __init__(self,name,textureIndex,movementSpeed,attackSpeed,attackPower,armor,range,health,canFly,canSwim,costGreen,costBlue,buildTime,movementSpeedBonus,researchCostGreen,researchCostBlue,researchTime):
@@ -70,15 +72,25 @@ class unitType:
 			print "attackPowerBonus:"+str(self.attackPowerBonus)
 			print "researchCost:"+str(self.researchCost)
 			print "researchTime:"+str(self.researchTime)
+			
+class fire:
+	def __init__(self,node,vitality=1.0):
+		self.speed = FIRE_SPEED
+		self.power = FIRE_POWER
+		self.vitality = vitality
+		self.node = node
+		self.movePoints = 0
+	def spread(self):
+		self.movePoints = self.movePoints + INITIATIVE_ACTION_DEPLETION
+		print random.randint(0,1)
+		if(random.random() > 0.5):
+			print 'yes'
+		
 class unit:
 	def __init__(self,unitType,player,xPos,yPos,node,level=None):
 		self.unitType = unitType
 		self.player = player
-#		self.xPos = xPos
-#		self.yPos = yPos
 		self.node = node
-#		self.movementPoints = self.unitType.movementSpeed
-#		self.attackPoints = self.unitType.attackSpeed
 		self.movementPoints = 0
 		self.attackPoints = 0
 		self.buildPoints = self.unitType.buildTime	
@@ -141,14 +153,14 @@ class unit:
 						#break
 			if(node.unit.gatheringNode == node):
 				self.waiting = True
-			self.movementPoints = self.movementPoints + initiativeActionDepletion
+			self.movementPoints = self.movementPoints + INITIATIVE_ACTION_DEPLETION
 	def heal(self,node):
 		gameState.getClient().sendCommand("healTo",str(node.xPos) + " " + str(node.yPos))
 		gameState.getClient().sendCommand("chooseNextUnit")
 	def healTo(self,node):
 		self.waiting = False
 		node.unit.health = node.unit.health + self.getAttackPower()
-		self.attackPoints = self.attackPoints + initiativeActionDepletion
+		self.attackPoints = self.attackPoints + INITIATIVE_ACTION_DEPLETION
 		if(node.unit.health > node.unit.getMaxHealth()):
 			node.unit.health + node.unit.getMaxHealth()
 	def attack(self,node):
@@ -158,19 +170,19 @@ class unit:
 		self.waiting = False
 		multiplier = 1.0
 		if(self.node.tileValue == cDefines.defines['MOUNTAIN_TILE_INDEX']):
-			multiplier = multiplier + mountainAttackBonusMultiplier
+			multiplier = multiplier + MOUNTAIN_ATTACK_BONUS_MULTIPLIER
 		damage = ((self.getAttackPower()-node.unit.getArmor())*multiplier)
 		if(damage < 0):
 			damage = 0
 		node.unit.health = node.unit.health - damage
-		self.attackPoints = self.attackPoints + initiativeActionDepletion
+		self.attackPoints = self.attackPoints + INITIATIVE_ACTION_DEPLETION
 		if(node.unit.health < 0.0):
 			for neighb in node.getNeighbors(5):
 				neighb.stopViewing(node.unit)
 			gameState.getGameMode().units.remove(node.unit)
 			node.unit = None
 	def skip(self):
-		self.attackPoints = self.attackPoints + initiativeActionDepletion
+		self.attackPoints = self.attackPoints + INITIATIVE_ACTION_DEPLETION
 			
 class city:
 	def __init__(self,name,node,unitTypes=None,costOfOwnership=10):
@@ -272,6 +284,11 @@ class playModeNode(node):
 		self.aStarParent = None
 		self.visible = False
 		self.viewingUnits = []
+		self.fire = None
+	def addFire(self,fire):
+		self.fire = fire
+		gameState.getGameMode().fires.append(fire)
+#(self.fire)
 	def startViewing(self,unit):
 		if(gameState.getPlayerNumber() == unit.player or gameState.getPlayerNumber() == -2):
 			self.viewingUnits.append(unit)

@@ -223,6 +223,9 @@
 #define WOLF_IMAGE "assets/wolf.png"
 #define WOLF_INDEX 46
 
+#define FIRE_IMAGE "assets/fire.png"
+#define FIRE_INDEX 47
+
 #define DESERT_TILE_INDEX 0
 #define GRASS_TILE_INDEX 1
 #define MOUNTAIN_TILE_INDEX 2
@@ -496,52 +499,16 @@ float translateTilesYToPositionY(int tileY){
   return (float)(tileY*1.5);
 }
 
-double xPosition;
-double yPosition;
-float shading;
-char playerStartVal[2];
-void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long roadValue,char * cityName,long isSelected, long isOnMovePath, long isVisible,long playerStartValue,PyObject * pyUnit, int isNextUnit, long cursorIndex){
-  xPosition = translateTilesXToPositionX(tilesXIndex,tilesYIndex);
-  yPosition = translateTilesYToPositionY(tilesYIndex);
-  textureVertices = vertexArrays[tileValue];
-  shading = 1.0;
-  if(!isVisible){
-    shading = shading - 0.5;
-  }
-  if(name == selectedName){
-    shading = shading - 0.4;
-    if(cursorIndex >= 0){
-      theCursorIndex = (int)cursorIndex;
-    }
-  }else if(isSelected == 1){
-    shading = shading - 0.4;
-  }
-  glPushMatrix();
-  glColor3f(shading,shading,shading);
-  glTranslatef(xPosition,yPosition,0.0);
 
-  glPushName(name);
-  glCallList(tilesLists+tileValue);
-  glPopName();
+int isNextUnit;
+PyObject * pyUnit;
+PyObject * pyFire;
 
-  if(roadValue == 1){
-    glCallList(tilesLists+ROAD_TILE_INDEX);
-  }
-
-  if(playerStartValue >= 1 && !PyObject_HasAttrString(gameMode,"units")){
-    textureVertices = vertexArrays[PLAYER_START_TILE_INDEX];
-    glCallList(tilesLists+PLAYER_START_TILE_INDEX);
-    sprintf(playerStartVal,"%ld",playerStartValue);
-
-    glColor3f(1.0,1.0,1.0);
-    glPushMatrix();
-    glTranslatef(-0.4,0.3,0.0);
-    glScalef(0.01,0.01,0.0);
-    drawText(playerStartVal);
-    glPopMatrix();
-  }
-
-  if(pyUnit != NULL && pyUnit != Py_None && isVisible){
+void drawFire(){
+  glBindTexture(GL_TEXTURE_2D, texturesArray[FIRE_INDEX]);
+  glCallList(unitList);
+}
+void drawUnit(){
       pyUnitType = PyObject_GetAttrString(pyUnit,"unitType");
       pyUnitTextureIndex = PyObject_GetAttrString(pyUnitType,"textureIndex");
       pyName = PyObject_GetAttrString(pyUnitType,"name");
@@ -586,7 +553,60 @@ void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long 
       Py_DECREF(pyHealth);
       Py_DECREF(pyMaxHealth);
       Py_DECREF(pyPlayerNumber);
+
+}
+double xPosition;
+double yPosition;
+float shading;
+char playerStartVal[2];
+void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long roadValue,char * cityName,long isSelected, long isOnMovePath, long isVisible,long playerStartValue, long cursorIndex){
+  xPosition = translateTilesXToPositionX(tilesXIndex,tilesYIndex);
+  yPosition = translateTilesYToPositionY(tilesYIndex);
+  textureVertices = vertexArrays[tileValue];
+  shading = 1.0;
+  if(!isVisible){
+    shading = shading - 0.5;
   }
+  if(name == selectedName){
+    shading = shading - 0.4;
+    if(cursorIndex >= 0){
+      theCursorIndex = (int)cursorIndex;
+    }
+  }else if(isSelected == 1){
+    shading = shading - 0.4;
+  }
+  glPushMatrix();
+  glColor3f(shading,shading,shading);
+  glTranslatef(xPosition,yPosition,0.0);
+
+  glPushName(name);
+  glCallList(tilesLists+tileValue);
+  glPopName();
+
+  if(roadValue == 1){
+    glCallList(tilesLists+ROAD_TILE_INDEX);
+  }
+
+  if(playerStartValue >= 1 && !PyObject_HasAttrString(gameMode,"units")){
+    textureVertices = vertexArrays[PLAYER_START_TILE_INDEX];
+    glCallList(tilesLists+PLAYER_START_TILE_INDEX);
+    sprintf(playerStartVal,"%ld",playerStartValue);
+
+    glColor3f(1.0,1.0,1.0);
+    glPushMatrix();
+    glTranslatef(-0.4,0.3,0.0);
+    glScalef(0.01,0.01,0.0);
+    drawText(playerStartVal);
+    glPopMatrix();
+  }
+
+  if(pyUnit != NULL && pyUnit != Py_None && isVisible){
+    drawUnit();
+  }
+  if(pyFire != NULL && pyFire != Py_None && isVisible){
+    drawFire();
+  }
+  
   if(cityName[0]!=0){
     glColor3f(1.0f, 1.0f, 1.0f);
     glBindTexture(GL_TEXTURE_2D, texturesArray[CITY_INDEX]);
@@ -649,7 +669,6 @@ PyObject * roadValue;
 PyObject * pyCity;
 PyObject * pyCursorIndex;
 PyObject * pyPlayerStartValue;
-PyObject * pyUnit;
 PyObject * pyIsSelected;
 PyObject * pyIsOnMovePath;
 PyObject * pyIsVisible;
@@ -659,7 +678,6 @@ long longRoadValue;
 long cursorIndex;
 PyObject * pyCityName;
 char * cityName;
-int isNextUnit;
 PyObject * nextUnit;
 PyObject * unit;
 PyObject * pyPlayerNumber;
@@ -698,6 +716,7 @@ void drawTiles(){
       pyCursorIndex = PyObject_GetAttrString(node,"cursorIndex");//New reference
       pyPlayerStartValue = PyObject_GetAttrString(node,"playerStartValue");//New reference                                 
       pyUnit = PyObject_GetAttrString(node,"unit");
+      pyFire = PyObject_GetAttrString(node,"fire");
       pyIsSelected = PyObject_GetAttrString(node,"selected");//New reference
       pyIsOnMovePath = PyObject_GetAttrString(node,"onMovePath");//New reference
       pyIsVisible = PyObject_GetAttrString(node,"visible");//New reference
@@ -742,7 +761,7 @@ void drawTiles(){
 	Py_DECREF(nextUnit);
       }
       Py_DECREF(pyPlayerNumber);
-      drawTile(colNumber,rowNumber,longName,longValue,longRoadValue,cityName,isSelected,isOnMovePath,isVisible,playerStartValue,pyUnit,isNextUnit,cursorIndex);
+      drawTile(colNumber,rowNumber,longName,longValue,longRoadValue,cityName,isSelected,isOnMovePath,isVisible,playerStartValue,cursorIndex);
       Py_DECREF(pyUnit);
       colNumber = colNumber - 1;
     }
@@ -1153,6 +1172,7 @@ static void initGL (){
   pngLoad(&texturesArray[DRAGON_INDEX],DRAGON_IMAGE);
   pngLoad(&texturesArray[WHITE_MAGE_INDEX],WHITE_MAGE_IMAGE);
   pngLoad(&texturesArray[WOLF_INDEX],WOLF_IMAGE);
+  pngLoad(&texturesArray[FIRE_INDEX],FIRE_IMAGE);
 
   vertexArrays[DESERT_TILE_INDEX] = *desertVertices;
   vertexArrays[GRASS_TILE_INDEX] = *grassVertices;
@@ -1352,16 +1372,14 @@ static void handleInput(){
 	  if(PyObject_HasAttrString(gameMode,"handleKeyDown")){
 	    pyObj = PyObject_CallMethod(gameMode,"handleKeyDown","s",capsKey); 
 	    Py_DECREF(pyObj);
-
 	  }
 	}else{
 	  if(PyObject_HasAttrString(gameMode,"handleKeyDown")){
 	    pyObj = PyObject_CallMethod(gameMode,"handleKeyDown","s",SDL_GetKeyName(event.key.keysym.sym));
+	    printPyStackTrace();
 	    Py_DECREF(pyObj);
-	    
 	  }
 	}
-	//	printPyStackTrace();
       }else{
 	printf("rejected: %d\n",event.key.keysym.sym);
       }
