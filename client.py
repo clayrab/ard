@@ -209,7 +209,7 @@ class Commands:
         node.unit.waiting = True
 
 def doCommand(commandName,args=None):
-    print commandName + " " + str(args)
+#    print commandName + " " + str(args)
     commandFunc = getattr(Commands,commandName)
     if(commandFunc != None):
         if(args != None and args != ''):

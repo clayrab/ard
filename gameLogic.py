@@ -16,8 +16,11 @@ RESOURCE_COLLECTION_RATE = 0.15
 #at RESOURCE_COLLECTION_RATE = 0.15 one gatherer will gather 15 green wood per 100 'ticks'(i.e. the build time of a gatherer)
 ZOOM_SPEED = 0.2 
 MOUNTAIN_ATTACK_BONUS_MULTIPLIER = 1.0
-FIRE_SPEED = 200
+FIRE_SPEED = 2
 FIRE_POWER = 3
+FIRE_SPREAD_CHANCE = 0.9
+FIRE_LIVE_CHANCE = 0.7
+FIRE_VITALITY_WEIGHT = 0.1
 
 class MODES:
 	MOVE_MODE = 0
@@ -80,11 +83,30 @@ class fire:
 		self.vitality = vitality
 		self.node = node
 		self.movePoints = 0
-	def spread(self):
+		self.weight = 1.0
+	def spread(self,vitality=0.0):
 		self.movePoints = self.movePoints + INITIATIVE_ACTION_DEPLETION
-		print random.randint(0,1)
-		if(random.random() > 0.5):
-			print 'yes'
+		chanceMultiplier = 1-(FIRE_VITALITY_WEIGHT/(FIRE_VITALITY_WEIGHT+self.vitality))
+		print str(self.vitality) + " " + str(chanceMultiplier)
+		if(random.random() < FIRE_SPREAD_CHANCE*chanceMultiplier):
+			spreadToNode = random.choice(self.node.neighbors)
+			if(spreadToNode.fire != None):
+				spreadToNode.fire.vitality = spreadToNode.fire.vitality + self.vitality/2.0
+			else:
+				spreadToNode.addFire(fire(spreadToNode,self.vitality/2.0))
+			self.vitality=self.vitality/2.0
+
+				
+		if(not random.random() < FIRE_LIVE_CHANCE*chanceMultiplier):
+			eligibleNodes = []
+			for node in self.node.neighbors:
+				if node.fire != None:
+					eligibleNodes.append(node)
+			if(len(eligibleNodes) > 0):
+				dieToNode = random.choice(eligibleNodes)
+				dieToNode.fire.vitality = dieToNode.fire.vitality + self.vitality
+			gameState.getGameMode().fires.remove(self)
+			self.node.fire = None
 		
 class unit:
 	def __init__(self,unitType,player,xPos,yPos,node,level=None):

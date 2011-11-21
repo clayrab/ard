@@ -252,16 +252,19 @@ class playMode(tiledGameMode):
 					if(node.city != None):
 						node.city.incrementBuildProgress()
 		#todo: sort fire and add while loop for when fire should go more than once before the next unit
-		for fire in self.fires:
-			if(fire.movePoints < 0.0):
-				fire.spread()
+		print self.fires
+		fireSpreading = True
+		while(fireSpreading):
+			fireSpreading = False
+			for fire in self.fires:
+				if(fire.movePoints < 0.0):
+					fire.spread()
+					fireSpreading = True
 		eligibleUnits = []
 		eligibleUnits.append(self.units[0])
 		for unit in self.units[1:]:
 			if((unit.movementPoints == eligibleUnits[0].movementPoints) and (not unit.waiting) and (unit.attackPoints <= 0.0)):
 				eligibleUnits.append(unit)
-		for unit in eligibleUnits:
-			print "elg: " + str(unit.node.xPos) + " " + str(unit.node.yPos)
 		self.nextUnit = random.choice(eligibleUnits)
 		if(self.nextUnit.player == self.getPlayerNumber()):
 			gameLogic.selectNode(self.nextUnit.node)
@@ -270,7 +273,6 @@ class playMode(tiledGameMode):
 		self.focusNextUnit = 1
 		if(hasattr(gameState.getGameMode().mousedOverObject,"toggleCursor")):
 			gameState.getGameMode().mousedOverObject.toggleCursor()
-			
 	def onDoneFocusing(self):
 		self.focusNextUnit = 0
 		if(len(self.nextUnit.movePath) > 0 and gameState.getPlayers()[gameState.getGameMode().nextUnit.player-1].isOwnPlayer):
@@ -296,6 +298,8 @@ class playMode(tiledGameMode):
 					node.addFire(gameLogic.fire(node))
 		
 	def handleKeyDown(self,keycode):
+		if(keycode == "f"):
+			self.selectedNode.addFire(gameLogic.fire(self.selectedNode))
 		if(keycode == "left shift" or keycode == "right shift"):
 			self.shiftDown = True
 		if(keycode == "space"):

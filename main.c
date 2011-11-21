@@ -334,7 +334,6 @@ GLuint selectionBoxList;
 GLuint unitList;
 GLuint healthBarList;
 
-
 int mouseX = 0;
 int mouseY = 0;
 GLuint selectBuf[BUFSIZE];
@@ -507,6 +506,18 @@ PyObject * pyFire;
 void drawFire(){
   glBindTexture(GL_TEXTURE_2D, texturesArray[FIRE_INDEX]);
   glCallList(unitList);
+  double fireVitality;
+  char fireVit[20];
+  PyObject * pyFireVitality = PyObject_GetAttrString(pyFire,"vitality");
+  fireVitality = PyFloat_AsDouble(pyFireVitality);
+  glColor3f(1.0,1.0,1.0);
+  glPushMatrix();
+  glTranslatef(-0.8,0.0,0.0);
+  glScalef(0.01,0.01,0.0);
+  sprintf(fireVit,"%f",fireVitality);
+  drawText(fireVit);
+  glPopMatrix();
+  
 }
 void drawUnit(){
       pyUnitType = PyObject_GetAttrString(pyUnit,"unitType");
@@ -1256,8 +1267,8 @@ static void initPython(){
   pyArgv[0] = path;
   PySys_SetArgv(1, pyArgv);
 	
-  PyObject * main_module = PyImport_AddModule("__main__");//Borrowed reference
-  PyObject * global_dict = PyModule_GetDict(main_module);//Borrowed reference
+  //PyObject * main_module = PyImport_AddModule("__main__");//Borrowed reference
+  //PyObject * global_dict = PyModule_GetDict(main_module);//Borrowed reference
   //todo: decref these
 }
 SDL_Event event;
@@ -1376,10 +1387,10 @@ static void handleInput(){
 	}else{
 	  if(PyObject_HasAttrString(gameMode,"handleKeyDown")){
 	    pyObj = PyObject_CallMethod(gameMode,"handleKeyDown","s",SDL_GetKeyName(event.key.keysym.sym));
-	    printPyStackTrace();
 	    Py_DECREF(pyObj);
 	  }
 	}
+	printPyStackTrace();
       }else{
 	printf("rejected: %d\n",event.key.keysym.sym);
       }
@@ -1565,8 +1576,9 @@ int main(int argc, char **argv){
   
   //SDL_EnableUNICODE(1);
   gameModule = PyImport_ImportModule("gameModes");//New reference
-  
+  printPyStackTrace();
   gameState = PyImport_ImportModule("gameState");
+  printPyStackTrace();
   
   mainLoop();
   
