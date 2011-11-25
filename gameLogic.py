@@ -16,11 +16,13 @@ RESOURCE_COLLECTION_RATE = 0.15
 #at RESOURCE_COLLECTION_RATE = 0.15 one gatherer will gather 15 green wood per 100 'ticks'(i.e. the build time of a gatherer)
 ZOOM_SPEED = 0.2 
 MOUNTAIN_ATTACK_BONUS_MULTIPLIER = 1.0
-FIRE_SPEED = 2
+FIRE_SPEED = 10
 FIRE_POWER = 3
-FIRE_SPREAD_CHANCE = 0.9
-FIRE_LIVE_CHANCE = 0.7
-FIRE_VITALITY_WEIGHT = 0.1
+FIRE_SPREAD_CHANCE = 0.99
+FIRE_LIVE_CHANCE = 0.99
+FIRE_VITALITIY_SPREAD_EFFECT = 0.9
+FIRE_VITALITIY_LIVE_EFFECT = 0.01
+FIRE_ATTACK_POWER = 3.0
 
 class MODES:
 	MOVE_MODE = 0
@@ -75,7 +77,12 @@ class unitType:
 			print "attackPowerBonus:"+str(self.attackPowerBonus)
 			print "researchCost:"+str(self.researchCost)
 			print "researchTime:"+str(self.researchTime)
-			
+class ice:
+	def __init__(self,node):
+		self.node = node
+		self.movePoints = 0
+	def move(self):
+		print 'ice move'
 class fire:
 	def __init__(self,node,vitality=1.0):
 		self.speed = FIRE_SPEED
@@ -84,28 +91,39 @@ class fire:
 		self.node = node
 		self.movePoints = 0
 		self.weight = 1.0
-	def spread(self,vitality=0.0):
+	def move(self,vitality=0.0):
 		self.movePoints = self.movePoints + INITIATIVE_ACTION_DEPLETION
-		chanceMultiplier = 1-(FIRE_VITALITY_WEIGHT/(FIRE_VITALITY_WEIGHT+self.vitality))
-		print str(self.vitality) + " " + str(chanceMultiplier)
-		if(random.random() < FIRE_SPREAD_CHANCE*chanceMultiplier):
-			spreadToNode = random.choice(self.node.neighbors)
-			if(spreadToNode.fire != None):
-				spreadToNode.fire.vitality = spreadToNode.fire.vitality + self.vitality/2.0
-			else:
-				spreadToNode.addFire(fire(spreadToNode,self.vitality/2.0))
-			self.vitality=self.vitality/2.0
-
-				
-		if(not random.random() < FIRE_LIVE_CHANCE*chanceMultiplier):
+		liveChanceMultiplier = 1-(FIRE_VITALITIY_LIVE_EFFECT/(FIRE_VITALITIY_LIVE_EFFECT+self.vitality))
+		spreadChanceMultiplier = 1-(FIRE_VITALITIY_SPREAD_EFFECT/(FIRE_VITALITIY_SPREAD_EFFECT+self.vitality))
+#		print str(self.vitality) + " " + str(spreadChanceMultiplier) + " " + str(liveChanceMultiplier)
+		if(random.random() < FIRE_SPREAD_CHANCE*spreadChanceMultiplier):
+#		if(random.random() < FIRE_SPREAD_CHANCE*self.vitality or True):
 			eligibleNodes = []
 			for node in self.node.neighbors:
-				if node.fire != None:
+				if(node.tileValue == cDefines.defines['WATER_TILE_INDEX']):
+					return
+				if(node.tileValue == cDefines.defines['FOREST_TILE_INDEX'] or node.tileValue == cDefines.defines['BLUE_FOREST_TILE_INDEX']):
 					eligibleNodes.append(node)
-			if(len(eligibleNodes) > 0):
-				dieToNode = random.choice(eligibleNodes)
-				dieToNode.fire.vitality = dieToNode.fire.vitality + self.vitality
-			gameState.getGameMode().fires.remove(self)
+					eligibleNodes.append(node)
+					eligibleNodes.append(node)
+					##forest tiles get spread to easily
+				eligibleNodes.append(node)
+			spreadToNode = random.choice(eligibleNodes)
+			if(spreadToNode.fire != None):
+				spreadToNode.fire.vitality = spreadToNode.fire.vitality + 0.25*self.vitality
+			else:
+				spreadToNode.addFire(fire(spreadToNode,0.25*self.vitality))
+			self.vitality=0.75*self.vitality
+		if(random.random() > FIRE_LIVE_CHANCE*liveChanceMultiplier):#die
+			if(self.vitality > 0.1):
+				eligibleNodes = []
+				for node in self.node.neighbors:
+					if node.fire != None and node.fire.vitality > self.vitality:
+						eligibleNodes.append(node)
+				if(len(eligibleNodes) > 0):
+					dieToNode = random.choice(eligibleNodes)
+					dieToNode.fire.vitality = dieToNode.fire.vitality + (self.vitality/2.0)
+			gameState.getGameMode().elementalEffects.remove(self)
 			self.node.fire = None
 		
 class unit:
@@ -190,19 +208,30 @@ class unit:
 		gameState.getClient().sendCommand("chooseNextUnit")
 	def attackTo(self,node):
 		self.waiting = False
-		multiplier = 1.0
-		if(self.node.tileValue == cDefines.defines['MOUNTAIN_TILE_INDEX']):
-			multiplier = multiplier + MOUNTAIN_ATTACK_BONUS_MULTIPLIER
-		damage = ((self.getAttackPower()-node.unit.getArmor())*multiplier)
-		if(damage < 0):
-			damage = 0
-		node.unit.health = node.unit.health - damage
+		if(node.unit != None and node.unit.player != self.player):
+			multiplier = 1.0		
+			if(self.node.tileValue == cDefines.defines['MOUNTAIN_TILE_INDEX']):
+				multiplier = multiplier + MOUNTAIN_ATTACK_BONUS_MULTIPLIER
+			damage = ((self.getAttackPower()-node.unit.getArmor())*multiplier)
+			if(damage < 1):
+				damage = 1
+			node.unit.health = node.unit.health - damage
+			if(node.unit.health < 0.0):
+				for neighb in node.getNeighbors(5):
+					neighb.stopViewing(node.unit)
+				gameState.getGameMode().units.remove(node.unit)
+				node.unit = None
+		if(self.unitType.name == "red mage"):
+			node.addFire(fire(node,self.level*1.0))
+		elif(self.unitType.name == "blue mage"):
+			if(node.fire != None):
+				gameState.getGameMode().elementalEffects.remove(node.fire)
+				node.fire = None
+			for neighb in node.neighbors:
+				if(neighb.fire != None):
+					gameState.getGameMode().elementalEffects.remove(neighb.fire)
+					neighb.fire = None
 		self.attackPoints = self.attackPoints + INITIATIVE_ACTION_DEPLETION
-		if(node.unit.health < 0.0):
-			for neighb in node.getNeighbors(5):
-				neighb.stopViewing(node.unit)
-			gameState.getGameMode().units.remove(node.unit)
-			node.unit = None
 	def skip(self):
 		self.attackPoints = self.attackPoints + INITIATIVE_ACTION_DEPLETION
 			
@@ -307,9 +336,26 @@ class playModeNode(node):
 		self.visible = False
 		self.viewingUnits = []
 		self.fire = None
+		self.ice = None
 	def addFire(self,fire):
-		self.fire = fire
-		gameState.getGameMode().fires.append(fire)
+		if(self.ice != None):
+			gameState.getGameMode().elementalEffects.remove(self.ice)
+			self.ice = None
+		if(self.fire != None):
+			self.fire.vitality = self.fire.vitality + fire.vitality
+		else:
+			if(self.tileValue != cDefines.defines['WATER_TILE_INDEX']):
+				gameState.getGameMode().elementalEffects.append(fire)
+				self.fire = fire
+	def addIce(self,ice):
+		if(self.fire != None):
+			gameState.getGameMode().elementalEffects.remove(self.fire)
+			self.fire = None
+		if(self.ice != None):
+			gameState.getGameMode().elementalEffects.remove(self.ice)
+		gameState.getGameMode().elementalEffects.append(ice)
+		self.ice = ice
+		
 #(self.fire)
 	def startViewing(self,unit):
 		if(gameState.getPlayerNumber() == unit.player or gameState.getPlayerNumber() == -2):
@@ -351,7 +397,10 @@ class playModeNode(node):
 			playModeNode.mode = MODES.SELECT_MODE
 			return;
 		if(uiElements.unitViewer.theUnitViewer != None and gameState.getGameMode().getPlayerNumber() == gameState.getGameMode().nextUnit.player):
-			if((gameState.getGameMode().nextUnit == uiElements.unitViewer.theUnitViewer.unit) and (self.unit != None and self.unit.player != uiElements.unitViewer.theUnitViewer.unit.player) and self.findDistance(uiElements.unitViewer.theUnitViewer.unit.node) <= uiElements.unitViewer.theUnitViewer.unit.unitType.range):
+			if((gameState.getGameMode().nextUnit == uiElements.unitViewer.theUnitViewer.unit) and self.fire != None and gameState.getGameMode().nextUnit.unitType.name == "blue mage"):
+				self.cursorIndex = cDefines.defines['CURSOR_ATTACK_INDEX']
+				playModeNode.mode = MODES.ATTACK_MODE				
+			elif((gameState.getGameMode().nextUnit == uiElements.unitViewer.theUnitViewer.unit) and (self.unit != None and self.unit.player != uiElements.unitViewer.theUnitViewer.unit.player) and self.findDistance(uiElements.unitViewer.theUnitViewer.unit.node) <= uiElements.unitViewer.theUnitViewer.unit.unitType.range):
 				self.cursorIndex = cDefines.defines['CURSOR_ATTACK_INDEX']
 				playModeNode.mode = MODES.ATTACK_MODE
 			elif((gameState.getGameMode().nextUnit == uiElements.unitViewer.theUnitViewer.unit) and (self.unit != None and self.unit.player == uiElements.unitViewer.theUnitViewer.unit.player) and self.findDistance(uiElements.unitViewer.theUnitViewer.unit.node) <= uiElements.unitViewer.theUnitViewer.unit.unitType.range and uiElements.unitViewer.theUnitViewer.unit.unitType.name == "white mage"):

@@ -175,7 +175,7 @@ class tiledGameMode(gameMode):
 class playMode(tiledGameMode):
 	def __init__(self):
 		self.units = []
-		self.fires = []
+		self.elementalEffects = []
 		self.nextUnit = None
 		self.focusNextUnit = 0
 		self.focusNextUnitTemp = 0
@@ -223,8 +223,8 @@ class playMode(tiledGameMode):
 		self.orderUnits()
 		while(self.units[0].movementPoints > 0.0 or self.units[0].attackPoints > 0.0 or self.units[0].waiting):
 			self.orderUnits()
-			for fire in self.fires:
-				fire.movePoints = fire.movePoints - fire.speed
+			for elementalEffect in self.elementalEffects:
+				elementalEffect.movePoints = elementalEffect.movePoints - elementalEffect.speed
 #				print fire
 			for unit in self.units:
 				if(unit.unitType.name == "gatherer" and unit.gatheringNode == unit.node):
@@ -252,14 +252,13 @@ class playMode(tiledGameMode):
 					if(node.city != None):
 						node.city.incrementBuildProgress()
 		#todo: sort fire and add while loop for when fire should go more than once before the next unit
-		print self.fires
-		fireSpreading = True
-		while(fireSpreading):
-			fireSpreading = False
-			for fire in self.fires:
-				if(fire.movePoints < 0.0):
-					fire.spread()
-					fireSpreading = True
+		elementalEffectsMoving = True
+		while(elementalEffectsMoving):
+			elementalEffectsMoving = False
+			for elementalEffect in self.elementalEffects:
+				if(elementalEffect.movePoints < 0.0):
+					elementalEffect.move()
+					elementalEffectsMoving = True
 		eligibleUnits = []
 		eligibleUnits.append(self.units[0])
 		for unit in self.units[1:]:
@@ -295,8 +294,10 @@ class playMode(tiledGameMode):
 #					node.addUnit(gameLogic.unit(gameState.theUnitTypes["gatherer"],node.playerStartValue,rowCount,columnCount,node,1))
 #					node.addUnit(gameLogic.unit(gameState.theUnitTypes["swordsman"],node.playerStartValue,rowCount,columnCount,node,1))
 #					node.addUnit(gameLogic.unit(gameState.theUnitTypes["wolf"],node.playerStartValue,rowCount,columnCount,node,1))
-					node.addFire(gameLogic.fire(node))
-		
+					node.addUnit(gameLogic.unit(gameState.theUnitTypes["blue mage"],node.playerStartValue,rowCount,columnCount,node,1))
+#					node.addFire(gameLogic.fire(node))
+					node.addIce(gameLogic.ice(node))
+	
 	def handleKeyDown(self,keycode):
 		if(keycode == "f"):
 			self.selectedNode.addFire(gameLogic.fire(self.selectedNode))

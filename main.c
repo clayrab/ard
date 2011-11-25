@@ -226,6 +226,15 @@
 #define FIRE_IMAGE "assets/fire.png"
 #define FIRE_INDEX 47
 
+#define RED_MAGE_IMAGE "assets/red_mage.png"
+#define RED_MAGE_INDEX 48
+
+#define BLUE_MAGE_IMAGE "assets/blue_mage.png"
+#define BLUE_MAGE_INDEX 49
+
+#define ICE_IMAGE "assets/ice.png"
+#define ICE_INDEX 47
+
 #define DESERT_TILE_INDEX 0
 #define GRASS_TILE_INDEX 1
 #define MOUNTAIN_TILE_INDEX 2
@@ -502,7 +511,12 @@ float translateTilesYToPositionY(int tileY){
 int isNextUnit;
 PyObject * pyUnit;
 PyObject * pyFire;
+PyObject * pyIce;
 
+void drawIce(){
+  glBindTexture(GL_TEXTURE_2D, texturesArray[ICE_INDEX]);
+  glCallList(unitList);
+}
 void drawFire(){
   glBindTexture(GL_TEXTURE_2D, texturesArray[FIRE_INDEX]);
   glCallList(unitList);
@@ -728,6 +742,7 @@ void drawTiles(){
       pyPlayerStartValue = PyObject_GetAttrString(node,"playerStartValue");//New reference                                 
       pyUnit = PyObject_GetAttrString(node,"unit");
       pyFire = PyObject_GetAttrString(node,"fire");
+      pyIce = PyObject_GetAttrString(node,"ice");
       pyIsSelected = PyObject_GetAttrString(node,"selected");//New reference
       pyIsOnMovePath = PyObject_GetAttrString(node,"onMovePath");//New reference
       pyIsVisible = PyObject_GetAttrString(node,"visible");//New reference
@@ -1184,6 +1199,9 @@ static void initGL (){
   pngLoad(&texturesArray[WHITE_MAGE_INDEX],WHITE_MAGE_IMAGE);
   pngLoad(&texturesArray[WOLF_INDEX],WOLF_IMAGE);
   pngLoad(&texturesArray[FIRE_INDEX],FIRE_IMAGE);
+  pngLoad(&texturesArray[RED_MAGE_INDEX],RED_MAGE_IMAGE);
+  pngLoad(&texturesArray[BLUE_MAGE_INDEX],BLUE_MAGE_IMAGE);
+  pngLoad(&texturesArray[ICE_INDEX],ICE_IMAGE);
 
   vertexArrays[DESERT_TILE_INDEX] = *desertVertices;
   vertexArrays[GRASS_TILE_INDEX] = *grassVertices;

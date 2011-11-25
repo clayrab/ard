@@ -3,7 +3,7 @@
 "attackSpeed":8,
 "attackPower":8,
 "armor":0,
-"range":5,
+"range":4,
 "health":35,
 "canFly":0,
 "canSwim":0,
