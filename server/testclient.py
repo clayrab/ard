@@ -3,14 +3,14 @@ import threading
 import SocketServer
 import time
 
-UDP_IP="127.0.0.1"
-UDP_PORT=5005
+#CLIENT_IP="72.47.236.38"
+SERVER_IP="72.47.236.38"
+CLIENT_LISTEN_PORT=2222
+SERVER_LISTEN_PORT=5005
+
 MESSAGE="Hello, World!"
 
-print "UDP target IP:", UDP_IP
-print "UDP target port:", UDP_PORT
-print "message:", MESSAGE
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-sock.sendto(MESSAGE, (UDP_IP, UDP_PORT))
+sock.sendto(MESSAGE, (SERVER_IP, SERVER_LISTEN_PORT))
 
