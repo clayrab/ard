@@ -49,6 +49,7 @@ import gameLogic
 import uiElements
 import server
 import client
+
 from textureFunctions import texWidth, texHeight, texIndex
 
 sys.setrecursionlimit(100000)
