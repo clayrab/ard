@@ -1400,15 +1400,16 @@ static void handleInput(){
 	  capsKey[1] = 0;
 	  if(PyObject_HasAttrString(gameMode,"handleKeyDown")){
 	    pyObj = PyObject_CallMethod(gameMode,"handleKeyDown","s",capsKey); 
+	    printPyStackTrace();
 	    Py_DECREF(pyObj);
 	  }
 	}else{
 	  if(PyObject_HasAttrString(gameMode,"handleKeyDown")){
 	    pyObj = PyObject_CallMethod(gameMode,"handleKeyDown","s",SDL_GetKeyName(event.key.keysym.sym));
+	    printPyStackTrace();
 	    Py_DECREF(pyObj);
 	  }
 	}
-	printPyStackTrace();
       }else{
 	printf("rejected: %d\n",event.key.keysym.sym);
       }

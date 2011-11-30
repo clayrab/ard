@@ -48,7 +48,9 @@ import cDefines
 import gameLogic
 import uiElements
 import server
+import udpServer
 import client
+import udpClient
 
 from textureFunctions import texWidth, texHeight, texIndex
 
@@ -109,6 +111,8 @@ class gameMode:
 		if(gameState.getClient() != None):
 			if(hasattr(gameState.getClient(),"checkSocket")):
 				gameState.getClient().checkSocket()
+		if(udpClient.udpClient.theUdpClient != None):
+			udpClient.udpClient.theUdpClient.checkSocket()
 			
 class tiledGameMode(gameMode):
 	def __init__(self):
@@ -302,6 +306,8 @@ class playMode(tiledGameMode):
 	def handleKeyDown(self,keycode):
 		if(keycode == "f"):
 			self.selectedNode.addFire(gameLogic.fire(self.selectedNode))
+		if(keycode == "s"):
+			udpClient.udpClient.theUdpClient.send()
 		if(keycode == "left shift" or keycode == "right shift"):
 			self.shiftDown = True
 		if(keycode == "space"):
@@ -330,10 +336,14 @@ class playMode(tiledGameMode):
 		self.greenWoodUIElem.text = str(int(math.floor(self.players[self.getPlayerNumber()-1].greenWood)))
 		self.blueWoodUIElem.text = str(int(math.floor(self.players[self.getPlayerNumber()-1].blueWood)))
 		gameMode.onDraw(self)
+#		udpClient.udpClient.theUdpClient.send()
+
 	def addUIElements(self):
 		if(gameState.getClient() == None):#single player game
 			server.startServer('')
+			udpServer.startUdpServer()
 			client.startClient('127.0.0.1')
+			udpClient.startUdpClient()
 			gameState.setPlayerNumber(-2)
 			gameState.addPlayer(1).isOwnPlayer = True
 			gameState.addPlayer(2).isOwnPlayer = True
@@ -374,7 +384,6 @@ class mapEditorMode(tiledGameMode):
 			except:
 				return
 	def addUIElements(self):
-		print 'a'
 		uiElements.uiElement(xPos=-1.0,yPos=1.0,width=2.0,height=texHeight('UI_MAP_EDITOR_TOP_IMAGE'),textureIndex=texIndex('UI_MAP_EDITOR_TOP'))
 		uiElements.uiElement(xPos=-1.0,yPos=1.0-texHeight('UI_MAP_EDITOR_TOP_IMAGE'),width=texWidth('UI_MAP_EDITOR_LEFT_IMAGE'),height=texHeight('UI_MAP_EDITOR_LEFT_IMAGE'),textureIndex=texIndex('UI_MAP_EDITOR_LEFT'))
 		uiElements.uiElement(xPos=1.0-texWidth('UI_MAP_EDITOR_RIGHT_IMAGE'),yPos=1.0-texHeight('UI_MAP_EDITOR_TOP_IMAGE'),width=texWidth('UI_MAP_EDITOR_RIGHT_IMAGE'),height=texHeight('UI_MAP_EDITOR_RIGHT_IMAGE'),textureIndex=texIndex('UI_MAP_EDITOR_RIGHT'))
@@ -388,7 +397,6 @@ class mapEditorMode(tiledGameMode):
 		uiElements.mapEditorTileSelectUIElement(-0.53,0.92,tileType=cDefines.defines['WATER_TILE_INDEX'])
 		uiElements.mapEditorTileSelectUIElement(-0.45,0.92,tileType=cDefines.defines['ROAD_TILE_INDEX'])
 		uiElements.mapEditorTileSelectUIElement(-0.37,0.92,tileType=cDefines.defines['CITY_TILE_INDEX'])
-		print 'a'
 		for col in range(0,2):
 			for row in range(0,4):
 
@@ -411,7 +419,6 @@ class mapEditorMode(tiledGameMode):
 
 		uiElements.uiElement(0.8,0.925,text="asdf",textSize=0.0005)
 		uiElements.saveButton(0.9,0.925,text="save",textSize=0.0005)
-		print 'b'
 
 class textBasedMenuMode(gameMode):
 	def __init__(self):

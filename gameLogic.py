@@ -23,6 +23,7 @@ FIRE_LIVE_CHANCE = 0.99
 FIRE_VITALITIY_SPREAD_EFFECT = 0.9
 FIRE_VITALITIY_LIVE_EFFECT = 0.01
 FIRE_ATTACK_POWER = 3.0
+ICE_SPEED = 10
 
 class MODES:
 	MOVE_MODE = 0
@@ -81,8 +82,11 @@ class ice:
 	def __init__(self,node):
 		self.node = node
 		self.movePoints = 0
+		self.speed = ICE_SPEED
 	def move(self):
+		self.movePoints = self.movePoints + INITIATIVE_ACTION_DEPLETION
 		print 'ice move'
+
 class fire:
 	def __init__(self,node,vitality=1.0):
 		self.speed = FIRE_SPEED
