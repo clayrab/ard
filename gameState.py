@@ -20,6 +20,14 @@ theUnitTypes = {}
 for unitType in unitTypesList:
 	theUnitTypes[unitType.name] = unitType
 
+userName = "clayrab"
+def getUserName():
+	global userName
+	return userName
+def setUserName(uName):
+	global userName
+	userName = uName
+
 theMapName = None
 def getMapName():
     global theMapName

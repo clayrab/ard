@@ -15,6 +15,7 @@ int TextureHeight;
 int BitmapWidth;
 int BitmapHeight;
 GLuint list_base;
+int textName;
 //gluin fontTexture;
 
 struct _font{
@@ -34,6 +35,18 @@ static void loadFont(int font, int fontSize){
   
 }
 
+FT_Glyph glyph;
+FT_Vector origin;
+FT_BitmapGlyph bitmap_glyph;
+FT_Bitmap bitmap;
+int dataWidth;
+int dataHeight;
+GLubyte* expanded_data;
+float x,y;
+int i;
+int j;
+int glyphHeight;
+int glyphWidth;
 void make_dlist ( FT_Face face, char charIndex, GLuint list_base, GLuint * tex_base ) {
 
   if(FT_Load_Glyph( face, FT_Get_Char_Index( face,charIndex), FT_LOAD_DEFAULT )){
@@ -41,35 +54,35 @@ void make_dlist ( FT_Face face, char charIndex, GLuint list_base, GLuint * tex_b
     exit(1);
   }
 
-  FT_Glyph glyph;
   if(FT_Get_Glyph( face->glyph, &glyph )){
     printf("FT_Get_Glyph failed");
     exit(1);
   }
-  FT_Vector origin;
   FT_Glyph_To_Bitmap( &glyph, FT_RENDER_MODE_NORMAL, 0, 1 );
   
-  FT_BitmapGlyph bitmap_glyph = (FT_BitmapGlyph)glyph;
-  FT_Bitmap bitmap = (FT_Bitmap)bitmap_glyph->bitmap;
-  int width = nextPowerOf2( bitmap.width );
-  int height = nextPowerOf2( bitmap.rows );
-  GLubyte* expanded_data = malloc(2 * width * height * sizeof(GLubyte));
-  int i;
-  int j;
-  for(j=0; j < height; j++){
-    for(i=0; i < width; i++){
-      expanded_data[2*(i+j*width)]= expanded_data[2*(i+j*width)+1] = 
-	(i>=bitmap.width || j>=bitmap.rows) ?
-	0 : bitmap.buffer[i + bitmap.width*j];
+  bitmap_glyph = (FT_BitmapGlyph)glyph;
+  bitmap = (FT_Bitmap)bitmap_glyph->bitmap;
+  dataWidth = nextPowerOf2( bitmap.width );
+  dataHeight = nextPowerOf2( bitmap.rows );
+  expanded_data = malloc(2 * dataWidth * dataHeight * sizeof(GLubyte));
+  if(bitmap.rows != 0){//space char has 0 height, but we need it for the 'empty' quads between chars, so we'll use the previous char's height
+    glyphHeight = bitmap.rows;
+  }
+  glyphWidth = bitmap.width;
+  for(j=0; j < dataHeight; j++){
+    for(i=0; i < dataWidth; i++){
+      expanded_data[2*(i+j*dataWidth)]= expanded_data[2*(i+j*dataWidth)+1] = 
+	(i>=glyphWidth || j>=glyphHeight) ?
+	0 : bitmap.buffer[i + glyphWidth*j];
     }
   }
-  //TextureWidth = bitmap.width;
-  //TextureHeight = bitmap.rows;
+  //TextureWidth = glyphWidth;
+  //TextureHeight = glyphHeight;
 
   glBindTexture(GL_TEXTURE_2D, tex_base[charIndex]);
   glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE, expanded_data);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, dataWidth, dataHeight, 0, GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE, expanded_data);
   //delete expanded_data;
 
   glNewList(list_base+charIndex,GL_COMPILE);
@@ -78,43 +91,58 @@ void make_dlist ( FT_Face face, char charIndex, GLuint list_base, GLuint * tex_b
 
   glPushMatrix();
 
-  // First We Need To Move Over A Little So That
-  // The Character Has The Right Amount Of Space
-  // Between It And The One Before It.
-  glTranslatef(bitmap_glyph->left,0,0);
-
-  // Now We Move Down A Little In The Case That The
-  // Bitmap Extends Past The Bottom Of The Line 
-  // This Is Only True For Characters Like 'g' Or 'y'.
-  glTranslatef(0,bitmap_glyph->top-bitmap.rows,0);
-
-  // Now We Need To Account For The Fact That Many Of
+  // We Need To Account For The Fact That Many Of
   // Our Textures Are Filled With Empty Padding Space.
   // We Figure What Portion Of The Texture Is Used By 
   // The Actual Character And Store That Information In
   // The x And y Variables, Then When We Draw The
   // Quad, We Will Only Reference The Parts Of The Texture
   // That Contains The Character Itself.
-  float   x=(float)bitmap.width / (float)width,
-    y=(float)bitmap.rows / (float)height;
+  x=(float)glyphWidth / (float)dataWidth;
+  y=(float)glyphHeight / (float)dataHeight;
+
+  // Move Down A Little In The Case That The
+  // Bitmap Extends Past The Bottom Of The Line 
+  // This Is Only True For Characters Like 'g' Or 'y'.
+  glTranslatef(0,bitmap_glyph->top-glyphHeight,0);
+
+  // We Need To Move Over A Little So That
+  // The Character Has The Right Amount Of Space
+  // Between It And The One Before It.
+  glBegin(GL_QUADS);
+  glVertex2f(-10,glyphHeight);
+  glVertex2f(-10,0);
+  glVertex2f(bitmap_glyph->left,0);
+  glVertex2f(bitmap_glyph->left,glyphHeight);
+  glEnd();
+  glTranslatef(bitmap_glyph->left,0,0);
 
   // Here We Draw The Texturemapped Quads.
   // The Bitmap That We Got From FreeType Was Not 
   // Oriented Quite Like We Would Like It To Be,
   // But We Link The Texture To The Quad
   // In Such A Way That The Result Will Be Properly Aligned.
+  //  printf("%c %d %d %d %f %f %d\n",charIndex,charIndex,glyphHeight,glyphWidth,x,y,face->glyph->advance.x>>6);
   glBegin(GL_QUADS);
-  glTexCoord2d(0,0); glVertex2f(0,bitmap.rows);
+  glTexCoord2d(0,0); glVertex2f(0,glyphHeight);
   glTexCoord2d(0,y); glVertex2f(0,0);
-  glTexCoord2d(x,y); glVertex2f(bitmap.width,0);
-  glTexCoord2d(x,0); glVertex2f(bitmap.width,bitmap.rows);
+  glTexCoord2d(x,y); glVertex2f(glyphWidth,0);
+  glTexCoord2d(x,0); glVertex2f(glyphWidth,glyphHeight);
   glEnd();
   glPopMatrix();
+  //glTranslatef(glyphWidth+5,0,0);
+  /*glBegin(GL_QUADS);
+  glTexCoord2d(0,0); glVertex2f(glyphWidth,glyphHeight);
+  glTexCoord2d(0,y); glVertex2f(glyphWidth,0);
+  glTexCoord2d(x,y); glVertex2f((face->glyph->advance.x>>6),0);
+  glTexCoord2d(x,0); glVertex2f((face->glyph->advance.x>>6),glyphHeight);
+  glEnd();*/
   glTranslatef(face->glyph->advance.x >> 6 ,0,0);
+ 
 
   // Increment The Raster Position As If We Were A Bitmap Font.
   // (Only Needed If You Want To Calculate Text Length)
-  // glBitmap(0,0,0,0,face->glyph->advance.x >> 6,0,NULL);
+  glBitmap(0,0,0,0,face->glyph->advance.x >> 6,0,NULL);
 
   // Finish The Display List
   glEndList();
@@ -149,19 +177,24 @@ static void initFonts(){
   FT_Done_Face(face);
   FT_Done_FreeType(library);
 }
+int strCount;
+float modelview_matrix[16];     
 void drawText(char* str){
-  glPushAttrib(GL_LIST_BIT | GL_CURRENT_BIT  | GL_ENABLE_BIT | GL_TRANSFORM_BIT); 
+  textName = 0;
+  glPushAttrib(GL_LIST_BIT | GL_CURRENT_BIT | GL_ENABLE_BIT | GL_TRANSFORM_BIT); 
   //glMatrixMode(GL_MODELVIEW);
   glDisable(GL_LIGHTING);
   glEnable(GL_TEXTURE_2D);
   //glDisable(GL_DEPTH_TEST);
   //glEnable(GL_BLEND);
   //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);      
-  
-  glListBase(list_base);
-
-  float modelview_matrix[16];     
   glGetFloatv(GL_MODELVIEW_MATRIX, modelview_matrix);
-  glCallLists(strlen(str), GL_UNSIGNED_BYTE, str);
+  //glListBase(list_base);
+  //glCallLists(strlen(str), GL_UNSIGNED_BYTE, str);
+  for(strCount = 0;str[strCount] != 0;strCount++){
+    glPushName(strCount);
+    glCallList(list_base+str[strCount]);
+    glPopName();
+  }
 
 }

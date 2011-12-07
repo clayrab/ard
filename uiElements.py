@@ -16,7 +16,7 @@ unitBuildTimes = ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","
 
 
 class uiElement:
-	def __init__(self,xPos,yPos,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor=None,textSize=0.001,color=None,mouseOverColor=None,textXPos=0.0,textYPos=0.0):
+	def __init__(self,xPos,yPos,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor=None,textSize=0.001,color=None,mouseOverColor=None,textXPos=0.0,textYPos=0.0,cursorPosition=-1):
 		self.name = nameGenerator.getNextName()
 		self.xPosition = xPos
 		self.yPosition = yPos
@@ -31,6 +31,7 @@ class uiElement:
 		self.color = color
 		self.textXPos = textXPos
 		self.textYPos = textYPos
+		self.cursorPosition = cursorPosition
 		if(mouseOverColor != None):
 			self.mouseOverColor = mouseOverColor
 		elif(color != None):
@@ -121,8 +122,8 @@ class removeFirstRowButton(clickableElement):
 		gameState.getGameMode().map.nodes = nodesCopy
 
 class textInputElement(uiElement):
-	def __init__(self,xPos,yPos,width=0.0,height=0.0,text="",textSize=0.001,textureIndex=-1,textColor='FF FF FF',textXPos=0.0,textYPos=0.0):
-		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textSize=textSize,textColor=textColor,textXPos=textXPos,textYPos=textYPos)
+	def __init__(self,xPos,yPos,width=texWidth('UI_TEXT_INPUT_IMAGE'),height=texHeight('UI_TEXT_INPUT_IMAGE'),text="",textSize=0.0004,textureIndex=texIndex('UI_TEXT_INPUT'),textColor='00 00 00',textXPos=0.0,textYPos=-0.05):
+		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textSize=textSize,textColor=textColor,textXPos=textXPos,textYPos=textYPos,cursorPosition=0)
 	def onKeyDown(self,keycode):
 		if(keycode == "backspace"):
 			self.text = self.text.rstrip(self.text[len(self.text)-1])
@@ -641,6 +642,13 @@ class unitTypeSelector(scrollableTextFieldsElement):
 				cityEditor.theCityEditor.addUnitType(unitType)
 		self.destroy()
 
+class roomSelector(scrollableTextFieldsElement):
+	def handleClick(self,textFieldElem):
+		for room in self.rooms():
+			print room
+
+		self.destroy()
+
 class cityCostSelector(scrollableTextFieldsElement):
 	def __init__(self,xPos,yPos,textFields,cityCostField,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,yPositionOffset=-0.04,yOffset=-0.041,numFields=25,scrollSpeed=1):
 		scrollableTextFieldsElement.__init__(self,xPos,yPos,textFields,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,color=color,mouseOverColor=mouseOverColor)
@@ -805,3 +813,20 @@ class startButton(menuButton):
 			#TODO: show host a friendly message
 			print 'choose a map!!'
 
+class loginUserName(textInputElement):
+	def __init__(self,xPos,yPos,text="clayrab"):
+		textInputElement.__init__(self,xPos,yPos,text=text,textSize=0.0006,textXPos=0.005,textYPos=-0.04)
+	def onKeyDown(self,keycode):
+		if(keycode == "return"):
+			print 'enter'
+		else:
+			textInputElement.onKeyDown(self,keycode)
+
+class loginPassword(textInputElement):
+	def __init__(self,xPos,yPos,text=""):
+		textInputElement.__init__(self,xPos,yPos,text=text,textSize=0.0006,textXPos=0.005,textYPos=-0.04)
+	def onKeyDown(self,keycode):
+		if(keycode == "return"):
+			print 'enter'
+		else:
+			textInputElement.onKeyDown(self,keycode)

@@ -9,6 +9,11 @@ import uiElements
 SERVER = -1
 SINGLE_PLAYER = -2
 class Commands:
+    
+
+    @staticmethod
+    def showRoom(args):
+        print args
     @staticmethod
     def seedRNG(seed):
         random.seed(seed)
@@ -206,7 +211,7 @@ class Commands:
     def waitRedo(args):
         tokens = args.split(" ")
         node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
-        node.unit.waiting = True
+        node.unit.waiting = True        
 
 def doCommand(commandName,args=None):
 #    print commandName + " " + str(args)
@@ -219,15 +224,17 @@ def doCommand(commandName,args=None):
     else:
         print "ERROR: COMMAND " + commandName + " does not exist"
 
-
-
 class Client:
-    def __init__(self,hostIP,port=8080):        
+    def __init__(self):        
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.socket.connect((hostIP,port))
+#        host = socket.gethostbyname("cynicsymposium.com")
+        host = "127.0.0.1"
+        port = 2222
+        self.socket.connect((host,port))
         self.socket.setblocking(0)
         self.commandLog = []
         self.delayedCommands = []
+        self.socket.send("subscribe " + gameState.getUserName() + " lobby\r\n")
     def sendDelayedCommands(self):
         for command in self.delayedCommands:
              self.socket.send(command)
@@ -237,7 +244,8 @@ class Client:
             receivedData = self.socket.recv(1024)
         except:
             receivedData = ''
-        for command in receivedData.split("|"):
+#        print "data " + receivedData
+        for command in receivedData.split("\r\n"):
             if(len(command) > 0):
                 tokens = command.split(" ",2)
                 if(tokens[0] == "chooseNextUnit"):
@@ -266,10 +274,9 @@ class Client:
                 doCommand(command,argsString)
             else:
                 doCommand(command)
-        self.socket.send(command + " " + str(gameState.getPlayerNumber()) + " " + argsString + "|")
-def startClient(hostIP):
-    
-    gameState.setClient(Client(hostIP))
+        self.socket.send(command + " " + argsString + "|")
+def startClient():
+    gameState.setClient(Client())
 #    clientThread = ClientThread(hostIP)
 #    clientThread.daemon = True
 #    clientThread.start()

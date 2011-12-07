@@ -31,6 +31,7 @@
 #campaign
 
 #server:
+#SSL SSL SSL SSL SSL SSL SSL SSL SSL SSL
 # room for finding games
 # room for each game
 #unit editor
@@ -50,9 +51,40 @@ import uiElements
 import server
 import udpServer
 import client
+import gameFindClient
 import udpClient
-
 from textureFunctions import texWidth, texHeight, texIndex
+from Crypto.PublicKey import RSA
+
+rsaKey = RSA.importKey("""-----BEGIN RSA PRIVATE KEY-----
+MIICXAIBAAKBgQCJ5JSy/apuQQJ4OzsbT1EcnocXjNbdUgxGoUkDBq6QVwebGAon
+i8aLd/vdyw90Q5dAxelJlTAKgvA7e1DmXlNaPRZ9CuwkfHcIAEeVoMnEmc0Enfwz
+2PaA5dFCdsyifeiLjxH852sNcRQJjis5uCO/qRBIHxhGho31ggCgs/6qcQIDAQAB
+AoGAEKjrRkzbgIKeN8SAOaZ1mE2W6MN9WjQFg6sM1S7DfHDnXFelMm3yyPrwFTXp
+YhSge5TtwJQjv8FeIPGfLpYK39jD1ghC9xYQRnPozjx7Ey/LmwA+tAmZ3V4JJVs0
+8NH8v1b4AqJ1a1fvzVxYcMRcC5fh6UPmZAmqmLZamkWtOYECQQC3cQ3ddfVJ6ZKv
+kJOHoBJfPgXtEhno3jgTc1fiBZqoCH6jbb2y/g088qYV/yCICx24X5t/KLFXsilK
+LDVueF2JAkEAwG9ZtNVTDVPTt419bu2SEC3H7TCTGynXaAttH7prpRGamxe/We2v
+p5TFCnIoKe1PXj6zjL39B5Z3izPGwqnTqQJAVet1+wyM3xmvwtuMvjGTaVi7ndak
+nBW5XiLgPtUxIxMXfaSg/X1Q5gMhF5xvuEi8mubtBhohNloUTNF4FU37QQJBALqA
+8QNnITgwf2hNdD03eTG+/R5vzpMsCT4onNl8VunD1wDrkiQ5Td3wPMwz+aMxAZRI
+1sHYPMzG0xOR2dg+ugkCQEWDWjG/HGn/lXKzAVyA8JGe0oGNlgme2p787ya2ixWA
+9x6ZS1ohXmHsMcT1Ld/6j4sX8mA78GedJTuDN4ScAfw=
+-----END RSA PRIVATE KEY-----""")
+
+pubKey = RSA.importKey("""-----BEGIN PUBLIC KEY-----
+MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCJ5JSy/apuQQJ4OzsbT1EcnocX
+jNbdUgxGoUkDBq6QVwebGAoni8aLd/vdyw90Q5dAxelJlTAKgvA7e1DmXlNaPRZ9
+CuwkfHcIAEeVoMnEmc0Enfwz2PaA5dFCdsyifeiLjxH852sNcRQJjis5uCO/qRBI
+HxhGho31ggCgs/6qcQIDAQAB
+-----END PUBLIC KEY-----""")
+
+text = 'password'
+cipher = pubKey.encrypt(text,32)
+print cipher
+print rsaKey.decrypt(cipher)
+#print pubKey.decrypt(cipher)
+
 
 sys.setrecursionlimit(100000)
 #need this to allow deep recursion for AStar
@@ -103,6 +135,11 @@ class gameMode:
 	def handleKeyUp(self,keycode):
 		if(hasattr(self.elementWithFocus,"onKeyUp")):
 			self.elementWithFocus.onKeyUp(keycode)
+	def setCursorPosition(self,position):
+#		if(hasattr(self.elementWithFocus,"cursorPosition")
+		print position
+		if(self.elementWithFocus != None and self.elementWithFocus.cursorPosition >= 0):
+			self.elementWithFocus.cursorPosition = position
 	def onQuit(self):
 		if(gameState.getClient() != None):
 			gameState.getClient().socket.close()
@@ -449,8 +486,8 @@ class newGameScreenMode(textBasedMenuMode):
 	def addUIElements(self):
 		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])
 		uiElements.menuButton(-0.16,0.2,quickPlayMapSelectMode,text="quick play")
-		uiElements.menuButton(-0.155,0.1,comingSoonMode,text="campaign")
-		uiElements.menuButton(-0.168,0.0,multiplayerGameScreenMode,text="multiplayer")
+		uiElements.menuButton(-0.168,0.1,multiplayerGameScreenMode,text="play lan game")
+		uiElements.menuButton(-0.165,-0.0,loginMode,text="play online")
 		uiElements.menuButton(-0.165,-0.1,mapEditorSelectMode,text="map editor")
 
 class multiplayerGameScreenMode(textBasedMenuMode):
@@ -553,5 +590,22 @@ class hostLANGameScreenMode(gameMode):
 		uiElements.uiElement(-0.85,0.8,text="players")
 		uiElements.mapField(-0.85,-0.1,text="choose map")
 		uiElements.startButton(0.65,-0.8,playMode,text="start")
+
+class loginMode(gameMode):
+	def __init__(self):
+		gameMode.__init__(self)
+		gameFindClient.startClient()
+		print 'asdf'
+
+	def addUIElements(self):
+		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])	
+		self.elementWithFocus = uiElements.loginUserName(-0.12,0.0)
+		uiElements.loginPassword(-0.12,-0.06)
+
+class gameFindMode(gameMode):
+
+	def addUIElements(self):
+		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])	
+		uiElements.roomSelector(0.0,0.0,['asdf','dfdfd'],text="select unit",textSize=0.0005,textureIndex=cDefines.defines['UI_SCROLLABLE_INDEX'],width=(2.0*cDefines.defines['UI_SCROLLABLE_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_SCROLLABLE_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']))
 
 gameState.setGameMode(newGameScreenMode)

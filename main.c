@@ -465,6 +465,10 @@ void processTheHits(GLint hitsCount, GLuint buffer[]){
       if(nameValue > selectedName){
 	selectedName = nameValue;
       }
+      if(nameValue < 500){
+	pyObj = PyObject_CallMethod(gameMode,"setCursorPosition","i",nameValue);
+	Py_DECREF(pyObj);
+      }
     }else if(numberOfNames == 0){
       //selectedName = -1;
     }else{
@@ -949,7 +953,7 @@ PyObject * pyColor;
 PyObject * pyMouseOverColor;
 PyObject * pyTextXPosition;
 PyObject * pyTextYPosition;
-
+PyObject * pyCursorPosition;
 //double xPosition;
 //double yPosition;
 double width;
@@ -965,6 +969,7 @@ char * color;
 char * mouseOverColor;
 double textXPosition;
 double textYPosition;
+double cursorPosition;
 
 void drawUIElement(PyObject * uiElement){
   isNode = PyObject_HasAttrString(uiElement,"tileValue");
@@ -984,6 +989,7 @@ void drawUIElement(PyObject * uiElement){
     pyMouseOverColor = PyObject_GetAttrString(uiElement,"mouseOverColor");
     pyTextXPosition = PyObject_GetAttrString(uiElement,"textXPos");
     pyTextYPosition = PyObject_GetAttrString(uiElement,"textYPos");
+    pyCursorPosition = PyObject_GetAttrString(uiElement,"cursorPosition");
 
     xPosition = PyFloat_AsDouble(pyXPosition);
     yPosition = PyFloat_AsDouble(pyYPosition);
@@ -1000,6 +1006,7 @@ void drawUIElement(PyObject * uiElement){
     mouseOverColor = PyString_AsString(pyMouseOverColor);
     textXPosition = PyFloat_AsDouble(pyTextXPosition);
     textYPosition = PyFloat_AsDouble(pyTextYPosition);
+    cursorPosition = PyFloat_AsDouble(pyCursorPosition);
      
     Py_DECREF(pyXPosition);
     Py_DECREF(pyYPosition);
@@ -1016,6 +1023,7 @@ void drawUIElement(PyObject * uiElement){
     Py_DECREF(pyMouseOverColor);
     Py_DECREF(pyTextXPosition);
     Py_DECREF(pyTextYPosition);
+    Py_DECREF(pyCursorPosition);
 
     if(previousMousedoverName != selectedName){
       if(PyObject_HasAttrString(gameMode,"handleMouseOver")){
@@ -1060,9 +1068,7 @@ void drawUIElement(PyObject * uiElement){
 	  glLoadIdentity();
 	  glTranslatef(xPosition+textXPosition,yPosition+textYPosition,0.0);
 	  glScalef(textSize,textSize,0.0);
-	  glPushName(name);
 	  drawText(text);
-	  glPopName();
 	  glPopMatrix();
 	}
       }
