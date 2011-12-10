@@ -1,10 +1,16 @@
 #include <stdio.h>
 #include <SDL.h>
 #include <SDL_opengl.h>
-
+#include "libpngGL.h"
 
 #define ARIAL 0
 #define HERCULANUM 1
+
+#define TRANSPARENT_PIXEL_IMAGE "assets/transparentPixel.png"
+#define TRANSPARENT_PIXEL_INDEX 0
+#define WHITE_PIXEL_IMAGE "assets/whitePixel.png"
+#define WHITE_PIXEL_INDEX 1
+
 char fontFiles[2][30] = {
   "assets/fonts/Arial.ttf",
   "assets/fonts/Herculanum.ttf"
@@ -34,7 +40,7 @@ struct _fontTexture{
 static void loadFont(int font, int fontSize){
   
 }
-
+GLuint fontTexturesArray[2];
 FT_Glyph glyph;
 FT_Vector origin;
 FT_BitmapGlyph bitmap_glyph;
@@ -87,8 +93,6 @@ void make_dlist ( FT_Face face, char charIndex, GLuint list_base, GLuint * tex_b
 
   glNewList(list_base+charIndex,GL_COMPILE);
 
-  glBindTexture(GL_TEXTURE_2D,tex_base[charIndex]);
-
   glPushMatrix();
 
   // We Need To Account For The Fact That Many Of
@@ -109,12 +113,14 @@ void make_dlist ( FT_Face face, char charIndex, GLuint list_base, GLuint * tex_b
   // We Need To Move Over A Little So That
   // The Character Has The Right Amount Of Space
   // Between It And The One Before It.
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE);
   glBegin(GL_QUADS);
-  glVertex2f(-10,glyphHeight);
-  glVertex2f(-10,0);
+  glVertex2f(-4,glyphHeight);
+  glVertex2f(-4,0);
   glVertex2f(bitmap_glyph->left,0);
   glVertex2f(bitmap_glyph->left,glyphHeight);
   glEnd();
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   glTranslatef(bitmap_glyph->left,0,0);
 
   // Here We Draw The Texturemapped Quads.
@@ -123,6 +129,7 @@ void make_dlist ( FT_Face face, char charIndex, GLuint list_base, GLuint * tex_b
   // But We Link The Texture To The Quad
   // In Such A Way That The Result Will Be Properly Aligned.
   //  printf("%c %d %d %d %f %f %d\n",charIndex,charIndex,glyphHeight,glyphWidth,x,y,face->glyph->advance.x>>6);
+  glBindTexture(GL_TEXTURE_2D,tex_base[charIndex]);
   glBegin(GL_QUADS);
   glTexCoord2d(0,0); glVertex2f(0,glyphHeight);
   glTexCoord2d(0,y); glVertex2f(0,0);
@@ -173,13 +180,31 @@ static void initFonts(){
   for(i=0;i<128;i++){
     make_dlist(face,i,list_base,textures);
   }
+  pngLoad(&fontTexturesArray[TRANSPARENT_PIXEL_INDEX],TRANSPARENT_PIXEL_IMAGE);
+  pngLoad(&fontTexturesArray[WHITE_PIXEL_INDEX],WHITE_PIXEL_IMAGE);
 
   FT_Done_Face(face);
   FT_Done_FreeType(library);
 }
+void drawCursor(){
+  glPushMatrix();
+  float currentColor[4];
+  glGetFloatv(GL_CURRENT_COLOR,currentColor);
+  glBindTexture(GL_TEXTURE_2D,0);
+  glColor4f(currentColor[0],currentColor[1],currentColor[2],currentColor[3]);
+  glTranslatef(-3.0,0.0,100.0);
+  glBegin(GL_QUADS);
+  glTexCoord2d(0,0); glVertex2f(0,60);
+  glTexCoord2d(0,1); glVertex2f(0,-10);
+  glTexCoord2d(1,1); glVertex2f(6,-10);
+  glTexCoord2d(1,0); glVertex2f(6,60);
+  glEnd();
+  glPopMatrix();
+}
+
 int strCount;
-float modelview_matrix[16];     
-void drawText(char* str){
+float modelview_matrix[16];
+void drawText(char* str,int cursorPosition){
   textName = 0;
   glPushAttrib(GL_LIST_BIT | GL_CURRENT_BIT | GL_ENABLE_BIT | GL_TRANSFORM_BIT); 
   //glMatrixMode(GL_MODELVIEW);
@@ -191,10 +216,20 @@ void drawText(char* str){
   glGetFloatv(GL_MODELVIEW_MATRIX, modelview_matrix);
   //glListBase(list_base);
   //glCallLists(strlen(str), GL_UNSIGNED_BYTE, str);
+  //  printf("strr: %s \tcursorPosition %d\n",str,cursorPosition);
   for(strCount = 0;str[strCount] != 0;strCount++){
+    if(strCount == cursorPosition){
+      drawCursor();
+    }
     glPushName(strCount);
     glCallList(list_base+str[strCount]);
     glPopName();
   }
-
+  if(strCount == cursorPosition){
+    //printf("wtf %d\n",cursorPosition);
+    drawCursor();
+  }
+  glPushName(strCount);
+  glCallList(list_base+32);//draw a space at the end
+  glPopName();
 }

@@ -123,14 +123,25 @@ class removeFirstRowButton(clickableElement):
 
 class textInputElement(uiElement):
 	def __init__(self,xPos,yPos,width=texWidth('UI_TEXT_INPUT_IMAGE'),height=texHeight('UI_TEXT_INPUT_IMAGE'),text="",textSize=0.0004,textureIndex=texIndex('UI_TEXT_INPUT'),textColor='00 00 00',textXPos=0.0,textYPos=-0.05):
-		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textSize=textSize,textColor=textColor,textXPos=textXPos,textYPos=textYPos,cursorPosition=0)
+		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textSize=textSize,textColor=textColor,textXPos=textXPos,textYPos=textYPos,cursorPosition=len(text))
 	def onKeyDown(self,keycode):
 		if(keycode == "backspace"):
-			self.text = self.text.rstrip(self.text[len(self.text)-1])
+			self.text = self.text[0:self.cursorPosition-1] + self.text[self.cursorPosition:]
+			self.cursorPosition = self.cursorPosition - 1
 		elif(keycode == "space"):
 			self.text = self.text + " "
+			self.cursorPosition = self.cursorPosition + 1
+		elif(keycode == "left"):
+			if(self.cursorPosition > 0):
+				self.cursorPosition = self.cursorPosition - 1
+		elif(keycode == "right"):
+			if(self.cursorPosition < len(self.text)):
+				self.cursorPosition = self.cursorPosition + 1
+		elif(keycode == "up" or keycode == "down" or keycode == "left shift" or keycode == "right shift"):
+			self.text = self.text
 		else:
-			self.text = self.text + keycode
+			self.text = self.text[0:self.cursorPosition] + keycode + self.text[self.cursorPosition:]
+			self.cursorPosition = self.cursorPosition + 1
 
 class cityNameInputElement(textInputElement):
 	def __init__(self,xPos,yPos,width=0.0,height=0.0,text="",textSize=0.001,textureIndex=-1,textColor='FF FF FF',textXPos=0.0,textYPos=0.0):

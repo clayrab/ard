@@ -15,7 +15,6 @@
 #include <freetype/ftoutln.h>
 #include <freetype/fttrigon.h>
 
-#include "libpngGL.h"
 #include "fonts.h"
 
 #define maxZoom 40.0
@@ -235,6 +234,7 @@
 #define ICE_IMAGE "assets/ice.png"
 #define ICE_INDEX 47
 
+
 #define DESERT_TILE_INDEX 0
 #define GRASS_TILE_INDEX 1
 #define MOUNTAIN_TILE_INDEX 2
@@ -451,6 +451,7 @@ static void printPyStackTrace(){
 GLuint *bufferPtr,*ptrNames, numberOfNames;
 int count;
 int nameValue;
+int namesCount;
 void processTheHits(GLint hitsCount, GLuint buffer[]){
   glFlush();
   count = 0;
@@ -458,22 +459,22 @@ void processTheHits(GLint hitsCount, GLuint buffer[]){
   bufferPtr = (GLuint *) buffer;
   selectedName = -1;
   while(count < hitsCount){
+    namesCount = 0;
     numberOfNames = *bufferPtr;
-    nameValue = *(bufferPtr + 3);//the value of the name is stored +3 over in mem
-    if(numberOfNames == 1){
+    //    nameValue = *(bufferPtr + 3);//the value of the name is stored +3 over in mem
+    if(numberOfNames >= 1){
       //elements are created from back to front, the names should be in this order so we return the largest name
-      if(nameValue > selectedName){
-	selectedName = nameValue;
+      while(namesCount < numberOfNames){
+	nameValue = *(bufferPtr + 3 + namesCount);//the value of the name is stored +3 over in mem
+	namesCount = namesCount + 1;
+	if(nameValue > selectedName){
+	  selectedName = nameValue;
+	}
       }
       if(nameValue < 500){
-	pyObj = PyObject_CallMethod(gameMode,"setCursorPosition","i",nameValue);
+	pyObj = PyObject_CallMethod(gameMode,"setMouseTextPosition","i",nameValue);
 	Py_DECREF(pyObj);
       }
-    }else if(numberOfNames == 0){
-      //selectedName = -1;
-    }else{
-      //This is just if an object has multiple names, the number of objects hit is hitsCount
-      printf("WARNING: WE ONLY EXPECT ONE NAME PER OBJECT WHEN PICKING\n");
     }
     bufferPtr = bufferPtr + 3 + numberOfNames;
     count = count + 1;
@@ -533,7 +534,7 @@ void drawFire(){
   glTranslatef(-0.8,0.0,0.0);
   glScalef(0.01,0.01,0.0);
   sprintf(fireVit,"%f",fireVitality);
-  drawText(fireVit);
+  drawText(fireVit,-1);
   glPopMatrix();
   
 }
@@ -625,7 +626,7 @@ void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long 
     glPushMatrix();
     glTranslatef(-0.4,0.3,0.0);
     glScalef(0.01,0.01,0.0);
-    drawText(playerStartVal);
+    drawText(playerStartVal,-1);
     glPopMatrix();
   }
 
@@ -1068,7 +1069,9 @@ void drawUIElement(PyObject * uiElement){
 	  glLoadIdentity();
 	  glTranslatef(xPosition+textXPosition,yPosition+textYPosition,0.0);
 	  glScalef(textSize,textSize,0.0);
-	  drawText(text);
+	  glPushName(name);
+	  drawText(text,cursorPosition);
+	  glPopName();
 	  glPopMatrix();
 	}
       }
@@ -1129,7 +1132,7 @@ void drawUI(){
     glLoadIdentity();
     glTranslatef(-1.0,-1.0,0.0);
     glScalef(0.0005,0.0005,0.0);
-    drawText(frameRate);
+    drawText(frameRate,-1);
     glPopMatrix();
   }
 }

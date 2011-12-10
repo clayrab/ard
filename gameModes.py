@@ -102,6 +102,7 @@ class gameMode:
 		self.map = None
 		self.elementWithFocus = None
 		self.resortElems = True
+		self.mouseTextPosition = -1
 	def getUIElementsIterator(self):
 		if(self.resortElems):
 			self.resortElems = False
@@ -113,14 +114,16 @@ class gameMode:
 	def handleLeftClickDown(self,name):
 		if(self.elementsDict.has_key(name)):
 			self.elementWithFocus = self.elementsDict[name]
+			print self.elementWithFocus.xPosition
+			self.elementWithFocus.cursorPosition = self.mouseTextPosition
 			if(hasattr(self.elementsDict[name],"onClick")):
 				self.elementsDict[name].onClick()
 			elif(hasattr(self.elementsDict[name],"onLeftClickDown")):
 				self.elementsDict[name].onLeftClickDown()
-			elif(hasattr(self.elementWithFocus,"onClick")):
-				self.elementWithFocus.onClick()
-			elif(hasattr(self.elementWithFocus,"onLeftClickDown")):
-				self.elementWithFocus.onLeftClickDown()
+#			elif(hasattr(self.elementWithFocus,"onClick")):
+#				self.elementWithFocus.onClick()
+#			elif(hasattr(self.elementWithFocus,"onLeftClickDown")):
+#				self.elementWithFocus.onLeftClickDown()
 		else:
 			self.elementWithFocus = None
 	def handleLeftClickUp(self,name):
@@ -135,11 +138,12 @@ class gameMode:
 	def handleKeyUp(self,keycode):
 		if(hasattr(self.elementWithFocus,"onKeyUp")):
 			self.elementWithFocus.onKeyUp(keycode)
-	def setCursorPosition(self,position):
+	def setMouseTextPosition(self,position):
 #		if(hasattr(self.elementWithFocus,"cursorPosition")
-		print position
-		if(self.elementWithFocus != None and self.elementWithFocus.cursorPosition >= 0):
-			self.elementWithFocus.cursorPosition = position
+		self.mouseTextPosition = position
+#		print position
+#		if(self.elementWithFocus != None and self.elementWithFocus.cursorPosition >= 0):
+#			self.elementWithFocus.cursorPosition = position
 	def onQuit(self):
 		if(gameState.getClient() != None):
 			gameState.getClient().socket.close()
