@@ -180,8 +180,6 @@ static void initFonts(){
   for(i=0;i<128;i++){
     make_dlist(face,i,list_base,textures);
   }
-  pngLoad(&fontTexturesArray[TRANSPARENT_PIXEL_INDEX],TRANSPARENT_PIXEL_IMAGE);
-  pngLoad(&fontTexturesArray[WHITE_PIXEL_INDEX],WHITE_PIXEL_IMAGE);
 
   FT_Done_Face(face);
   FT_Done_FreeType(library);

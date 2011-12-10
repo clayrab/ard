@@ -16,6 +16,12 @@ unitBuildTimes = ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","
 
 
 class uiElement:
+	focusedElem = None
+	@staticmethod
+	def setFocused(elem):
+		uiElement.focusedElem.focused = False
+		uiElement.focusedElem = elem
+		uiElement.focusedElem.focused = True
 	def __init__(self,xPos,yPos,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor=None,textSize=0.001,color=None,mouseOverColor=None,textXPos=0.0,textYPos=0.0,cursorPosition=-1):
 		self.name = nameGenerator.getNextName()
 		self.xPosition = xPos
@@ -32,6 +38,7 @@ class uiElement:
 		self.textXPos = textXPos
 		self.textYPos = textYPos
 		self.cursorPosition = cursorPosition
+		self.focused = True
 		if(mouseOverColor != None):
 			self.mouseOverColor = mouseOverColor
 		elif(color != None):
@@ -830,6 +837,8 @@ class loginUserName(textInputElement):
 	def onKeyDown(self,keycode):
 		if(keycode == "return"):
 			print 'enter'
+		elif(keycode == "tab"):
+			print 'tab'
 		else:
 			textInputElement.onKeyDown(self,keycode)
 

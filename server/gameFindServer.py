@@ -70,6 +70,7 @@ class GameFinder(basic.LineReceiver):
             response = response + userName + " "
         print response
         self.sendCommand(response)
+        
     #END COMMANDS
                 
 #            self.sendCommand("")

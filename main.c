@@ -955,6 +955,7 @@ PyObject * pyMouseOverColor;
 PyObject * pyTextXPosition;
 PyObject * pyTextYPosition;
 PyObject * pyCursorPosition;
+PyObject * pyIsFocused;
 //double xPosition;
 //double yPosition;
 double width;
@@ -971,6 +972,7 @@ char * mouseOverColor;
 double textXPosition;
 double textYPosition;
 double cursorPosition;
+int isFocused;
 
 void drawUIElement(PyObject * uiElement){
   isNode = PyObject_HasAttrString(uiElement,"tileValue");
@@ -991,6 +993,7 @@ void drawUIElement(PyObject * uiElement){
     pyTextXPosition = PyObject_GetAttrString(uiElement,"textXPos");
     pyTextYPosition = PyObject_GetAttrString(uiElement,"textYPos");
     pyCursorPosition = PyObject_GetAttrString(uiElement,"cursorPosition");
+    pyIsFocused = PyObject_GetAttrString(uiElement,"focused");
 
     xPosition = PyFloat_AsDouble(pyXPosition);
     yPosition = PyFloat_AsDouble(pyYPosition);
@@ -1008,6 +1011,7 @@ void drawUIElement(PyObject * uiElement){
     textXPosition = PyFloat_AsDouble(pyTextXPosition);
     textYPosition = PyFloat_AsDouble(pyTextYPosition);
     cursorPosition = PyFloat_AsDouble(pyCursorPosition);
+    isFocused = pyIsFocused==Py_True;
      
     Py_DECREF(pyXPosition);
     Py_DECREF(pyYPosition);
@@ -1025,6 +1029,7 @@ void drawUIElement(PyObject * uiElement){
     Py_DECREF(pyTextXPosition);
     Py_DECREF(pyTextYPosition);
     Py_DECREF(pyCursorPosition);
+    Py_DECREF(pyIsFocused);
 
     if(previousMousedoverName != selectedName){
       if(PyObject_HasAttrString(gameMode,"handleMouseOver")){
@@ -1070,7 +1075,11 @@ void drawUIElement(PyObject * uiElement){
 	  glTranslatef(xPosition+textXPosition,yPosition+textYPosition,0.0);
 	  glScalef(textSize,textSize,0.0);
 	  glPushName(name);
-	  drawText(text,cursorPosition);
+	  if(isFocused){
+	    drawText(text,cursorPosition);
+	  }else{
+	    drawText(text,-1);
+	  }	    
 	  glPopName();
 	  glPopMatrix();
 	}
@@ -1401,6 +1410,7 @@ static void handleInput(){
 	       || event.key.keysym.sym == 13//enter/return
 	       || event.key.keysym.sym == 303//rightshift
 	       || event.key.keysym.sym == 304//leftshift
+	       || event.key.keysym.sym == 9//tab
 	       || (event.key.keysym.sym >= 273 && event.key.keysym.sym <= 276)//arrow keys
 	       ){
 	if((event.key.keysym.mod & KMOD_CAPS | event.key.keysym.mod & KMOD_LSHIFT | event.key.keysym.mod & KMOD_RSHIFT) && (event.key.keysym.sym > 0x60 && event.key.keysym.sym <= 0x7A)){
@@ -1597,11 +1607,8 @@ int main(int argc, char **argv){
   initGL();
   const GLubyte * glVersion = glGetString(GL_VERSION);
   printf("OpenGL Version: %s\n",glVersion);
-  
   initPython();
-  
   initFonts();
-  
   //SDL_EnableUNICODE(1);
   gameModule = PyImport_ImportModule("gameModes");//New reference
   printPyStackTrace();
