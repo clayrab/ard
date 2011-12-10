@@ -108,8 +108,6 @@ void make_dlist ( FT_Face face, char charIndex, GLuint list_base, GLuint * tex_b
   // Move Down A Little In The Case That The
   // Bitmap Extends Past The Bottom Of The Line 
   // This Is Only True For Characters Like 'g' Or 'y'.
-  glTranslatef(0,bitmap_glyph->top-glyphHeight,0);
-
   // We Need To Move Over A Little So That
   // The Character Has The Right Amount Of Space
   // Between It And The One Before It.
@@ -117,11 +115,14 @@ void make_dlist ( FT_Face face, char charIndex, GLuint list_base, GLuint * tex_b
   glBegin(GL_QUADS);
   glVertex2f(-4,glyphHeight);
   glVertex2f(-4,0);
-  glVertex2f(bitmap_glyph->left,0);
+  //  glVertex2f(bitmap_glyph->left,0);
+  //  glVertex2f(bitmap_glyph->left,glyphHeight);
+  glVertex2f(face->glyph->advance.x>>6,0);
   glVertex2f(bitmap_glyph->left,glyphHeight);
+
   glEnd();
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  glTranslatef(bitmap_glyph->left,0,0);
+  glTranslatef(bitmap_glyph->left,bitmap_glyph->top-glyphHeight,0);
 
   // Here We Draw The Texturemapped Quads.
   // The Bitmap That We Got From FreeType Was Not 
@@ -214,7 +215,6 @@ void drawText(char* str,int cursorPosition){
   glGetFloatv(GL_MODELVIEW_MATRIX, modelview_matrix);
   //glListBase(list_base);
   //glCallLists(strlen(str), GL_UNSIGNED_BYTE, str);
-  //  printf("strr: %s \tcursorPosition %d\n",str,cursorPosition);
   for(strCount = 0;str[strCount] != 0;strCount++){
     if(strCount == cursorPosition){
       drawCursor();
@@ -224,7 +224,6 @@ void drawText(char* str,int cursorPosition){
     glPopName();
   }
   if(strCount == cursorPosition){
-    //printf("wtf %d\n",cursorPosition);
     drawCursor();
   }
   glPushName(strCount);

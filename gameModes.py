@@ -114,8 +114,6 @@ class gameMode:
 	def handleLeftClickDown(self,name):
 		if(self.elementsDict.has_key(name)):
 			self.elementWithFocus = self.elementsDict[name]
-			print self.elementWithFocus.xPosition
-			self.elementWithFocus.cursorPosition = self.mouseTextPosition
 			if(hasattr(self.elementsDict[name],"onClick")):
 				self.elementsDict[name].onClick()
 			elif(hasattr(self.elementsDict[name],"onLeftClickDown")):
@@ -140,6 +138,7 @@ class gameMode:
 			self.elementWithFocus.onKeyUp(keycode)
 	def setMouseTextPosition(self,position):
 #		if(hasattr(self.elementWithFocus,"cursorPosition")
+#		print position
 		self.mouseTextPosition = position
 #		print position
 #		if(self.elementWithFocus != None and self.elementWithFocus.cursorPosition >= 0):

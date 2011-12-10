@@ -19,7 +19,8 @@ class uiElement:
 	focusedElem = None
 	@staticmethod
 	def setFocused(elem):
-		uiElement.focusedElem.focused = False
+		if(uiElement.focusedElem != None):
+			uiElement.focusedElem.focused = False
 		uiElement.focusedElem = elem
 		uiElement.focusedElem.focused = True
 	def __init__(self,xPos,yPos,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor=None,textSize=0.001,color=None,mouseOverColor=None,textXPos=0.0,textYPos=0.0,cursorPosition=-1):
@@ -149,6 +150,12 @@ class textInputElement(uiElement):
 		else:
 			self.text = self.text[0:self.cursorPosition] + keycode + self.text[self.cursorPosition:]
 			self.cursorPosition = self.cursorPosition + 1
+	def onClick(self):
+		uiElement.setFocused(self)
+		if(gameState.getGameMode().mouseTextPosition >=0):
+			self.cursorPosition = gameState.getGameMode().mouseTextPosition
+		else:
+			self.cursorPosition = len(self.text)
 
 class cityNameInputElement(textInputElement):
 	def __init__(self,xPos,yPos,width=0.0,height=0.0,text="",textSize=0.001,textureIndex=-1,textColor='FF FF FF',textXPos=0.0,textYPos=0.0):
@@ -832,7 +839,7 @@ class startButton(menuButton):
 			print 'choose a map!!'
 
 class loginUserName(textInputElement):
-	def __init__(self,xPos,yPos,text="clayrab"):
+	def __init__(self,xPos,yPos,text="clay rab"):
 		textInputElement.__init__(self,xPos,yPos,text=text,textSize=0.0006,textXPos=0.005,textYPos=-0.04)
 	def onKeyDown(self,keycode):
 		if(keycode == "return"):

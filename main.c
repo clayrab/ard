@@ -452,12 +452,14 @@ GLuint *bufferPtr,*ptrNames, numberOfNames;
 int count;
 int nameValue;
 int namesCount;
+int mouseTextPositionSet;
 void processTheHits(GLint hitsCount, GLuint buffer[]){
   glFlush();
   count = 0;
   nameValue = 0;
   bufferPtr = (GLuint *) buffer;
   selectedName = -1;
+  mouseTextPositionSet = 0;
   while(count < hitsCount){
     namesCount = 0;
     numberOfNames = *bufferPtr;
@@ -474,10 +476,15 @@ void processTheHits(GLint hitsCount, GLuint buffer[]){
       if(nameValue < 500){
 	pyObj = PyObject_CallMethod(gameMode,"setMouseTextPosition","i",nameValue);
 	Py_DECREF(pyObj);
+	mouseTextPositionSet = 1;
       }
     }
     bufferPtr = bufferPtr + 3 + numberOfNames;
     count = count + 1;
+  }
+  if(!mouseTextPositionSet){
+    pyObj = PyObject_CallMethod(gameMode,"setMouseTextPosition","i",-1);
+    Py_DECREF(pyObj);
   }
 }
 
