@@ -8,6 +8,14 @@ import shutil
 import client
 import server
 from textureFunctions import texWidth, texHeight, texIndex
+from Crypto.PublicKey import RSA
+
+pubKey = RSA.importKey("""-----BEGIN PUBLIC KEY-----
+MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCJ5JSy/apuQQJ4OzsbT1EcnocX
+jNbdUgxGoUkDBq6QVwebGAoni8aLd/vdyw90Q5dAxelJlTAKgvA7e1DmXlNaPRZ9
+CuwkfHcIAEeVoMnEmc0Enfwz2PaA5dFCdsyifeiLjxH852sNcRQJjis5uCO/qRBI
+HxhGho31ggCgs/6qcQIDAQAB
+-----END PUBLIC KEY-----""")
 
 cityCosts = ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20"]
 unitCosts = ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20"]
@@ -848,6 +856,10 @@ class loginInputElement(textInputElement):
 		textInputElement.__init__(self,xPos,yPos,text=text,textSize=0.0006,textXPos=textXPos,textYPos=textYPos)
 	def onKeyDown(self,keycode):
 		if(keycode == "return"):
+
+#text = 'password'
+#cipher = pubKey.encrypt(text,32)
+
 			print 'enter'
 		elif(keycode == "tab"):
 			for index,elem in enumerate(textInputElement.elements):
