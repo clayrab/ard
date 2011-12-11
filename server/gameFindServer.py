@@ -70,7 +70,10 @@ class GameFinder(basic.LineReceiver):
             response = response + userName + " "
         print response
         self.sendCommand(response)
-        
+    def login(self,args):
+        print "args: " + str(args)
+        print args[1]
+        print "decrypt: " + str(rsaKey.decrypt(args[1]))
     #END COMMANDS
                 
 #            self.sendCommand("")
@@ -90,7 +93,7 @@ class GameFinder(basic.LineReceiver):
         print "received", repr(line)
         print tokens
         if(len(tokens) > 2):
-            self.doCommand(tokens[0],arguments=tokens[2])
+            self.doCommand(tokens[0],arguments=tokens[1:])
         else:
             self.doCommand(tokens[0])
     def sendCommand(self,command):

@@ -9,8 +9,6 @@ import uiElements
 SERVER = -1
 SINGLE_PLAYER = -2
 class Commands:
-    
-
     @staticmethod
     def showRoom(args):
         print args
@@ -48,7 +46,6 @@ class Commands:
     @staticmethod
     def moveToRedo(args):
         tokens = args.split(" ")
-
     @staticmethod
     def gatherTo(args):
         tokens = args.split(" ")
@@ -234,7 +231,7 @@ class Client:
         self.socket.setblocking(0)
         self.commandLog = []
         self.delayedCommands = []
-        self.socket.send("subscribe " + gameState.getUserName() + " lobby\r\n")
+        self.sendCommand("subscribe",gameState.getUserName() + " lobby")
     def sendDelayedCommands(self):
         for command in self.delayedCommands:
              self.socket.send(command)
@@ -268,15 +265,10 @@ class Client:
                         #print "commandLog: " + str(self.commandLog)
 
     def sendCommand(self,command,argsString=""):
-        if(command != "chooseNextUnit"):
-            self.commandLog.append((command,argsString))
-            if(argsString != ""):
-                doCommand(command,argsString)
-            else:
-                doCommand(command)
-        self.socket.send(command + " " + argsString + "|")
+        self.socket.send(command + " " + argsString + "\r\n")
+        print 'sent...'
 def startClient():
-    gameState.setClient(Client())
+    gameState.setGameFindClient(Client())
 #    clientThread = ClientThread(hostIP)
 #    clientThread.daemon = True
 #    clientThread.start()

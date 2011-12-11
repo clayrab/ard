@@ -65,6 +65,14 @@ def getClient():
 	global theClient
 	return theClient
 
+theGameFindClient = None
+def setGameFindClient(client):
+	global theGameFindClient
+	theGameFindClient = client
+def getGameFindClient():
+	global theGameFindClient
+	return theGameFindClient
+
 thePlayerNumber = 0
 def setPlayerNumber(playerNumber):
 	global thePlayerNumber

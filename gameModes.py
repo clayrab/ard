@@ -55,7 +55,6 @@ import gameFindClient
 import udpClient
 from textureFunctions import texWidth, texHeight, texIndex
 
-
 sys.setrecursionlimit(100000)
 #need this to allow deep recursion for AStar
 #defaults to 1000... may cause crash on systems where 1000000 is too large...
@@ -568,8 +567,6 @@ class loginMode(gameMode):
 	def __init__(self):
 		gameMode.__init__(self)
 		gameFindClient.startClient()
-		print 'asdf'
-
 	def addUIElements(self):
 		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])	
 		self.setFocus(uiElements.loginUserName(-0.12,0.0))

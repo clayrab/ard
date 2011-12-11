@@ -10,6 +10,22 @@ import server
 from textureFunctions import texWidth, texHeight, texIndex
 from Crypto.PublicKey import RSA
 
+rsaKey = RSA.importKey("""-----BEGIN RSA PRIVATE KEY-----
+MIICXAIBAAKBgQCJ5JSy/apuQQJ4OzsbT1EcnocXjNbdUgxGoUkDBq6QVwebGAon
+i8aLd/vdyw90Q5dAxelJlTAKgvA7e1DmXlNaPRZ9CuwkfHcIAEeVoMnEmc0Enfwz
+2PaA5dFCdsyifeiLjxH852sNcRQJjis5uCO/qRBIHxhGho31ggCgs/6qcQIDAQAB
+AoGAEKjrRkzbgIKeN8SAOaZ1mE2W6MN9WjQFg6sM1S7DfHDnXFelMm3yyPrwFTXp
+YhSge5TtwJQjv8FeIPGfLpYK39jD1ghC9xYQRnPozjx7Ey/LmwA+tAmZ3V4JJVs0
+8NH8v1b4AqJ1a1fvzVxYcMRcC5fh6UPmZAmqmLZamkWtOYECQQC3cQ3ddfVJ6ZKv
+kJOHoBJfPgXtEhno3jgTc1fiBZqoCH6jbb2y/g088qYV/yCICx24X5t/KLFXsilK
+LDVueF2JAkEAwG9ZtNVTDVPTt419bu2SEC3H7TCTGynXaAttH7prpRGamxe/We2v
+p5TFCnIoKe1PXj6zjL39B5Z3izPGwqnTqQJAVet1+wyM3xmvwtuMvjGTaVi7ndak
+nBW5XiLgPtUxIxMXfaSg/X1Q5gMhF5xvuEi8mubtBhohNloUTNF4FU37QQJBALqA
+8QNnITgwf2hNdD03eTG+/R5vzpMsCT4onNl8VunD1wDrkiQ5Td3wPMwz+aMxAZRI
+1sHYPMzG0xOR2dg+ugkCQEWDWjG/HGn/lXKzAVyA8JGe0oGNlgme2p787ya2ixWA
+9x6ZS1ohXmHsMcT1Ld/6j4sX8mA78GedJTuDN4ScAfw=
+-----END RSA PRIVATE KEY-----""")
+
 pubKey = RSA.importKey("""-----BEGIN PUBLIC KEY-----
 MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCJ5JSy/apuQQJ4OzsbT1EcnocX
 jNbdUgxGoUkDBq6QVwebGAoni8aLd/vdyw90Q5dAxelJlTAKgvA7e1DmXlNaPRZ9
@@ -17,11 +33,18 @@ CuwkfHcIAEeVoMnEmc0Enfwz2PaA5dFCdsyifeiLjxH852sNcRQJjis5uCO/qRBI
 HxhGho31ggCgs/6qcQIDAQAB
 -----END PUBLIC KEY-----""")
 
+text = 'maskmask'
+cipher = pubKey.encrypt(text,32)
+print cipher
+print rsaKey.decrypt(cipher[0])
+#print pubKey.decrypt(cipher)
+
+
+
 cityCosts = ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20"]
 unitCosts = ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20"]
 startingManas = ["5","10","15","20","30","40","50","60","70","80","90","100"]
 unitBuildTimes = ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20"]
-
 
 class uiElement:
 #	focusedElem = None
@@ -852,11 +875,16 @@ class startButton(menuButton):
 
 
 class loginInputElement(textInputElement):
+	usernameElem = None
+	passwordElem = None
 	def __init__(self,xPos,yPos,text,textXPos,textYPos):
 		textInputElement.__init__(self,xPos,yPos,text=text,textSize=0.0006,textXPos=textXPos,textYPos=textYPos)
 	def onKeyDown(self,keycode):
 		if(keycode == "return"):
-
+			cypher = pubKey.encrypt(loginInputElement.passwordElem.text,32)
+			print cypher
+			gameState.getGameFindClient().sendCommand("login",loginInputElement.usernameElem.text + " " + str(cypher[0]))
+			
 #text = 'password'
 #cipher = pubKey.encrypt(text,32)
 
@@ -869,13 +897,16 @@ class loginInputElement(textInputElement):
 					else:
 						gameState.getGameMode().setFocus(textInputElement.elements[index+1])
 					break
+		elif(keycode == "space"):
+			return
 		else:
 			textInputElement.onKeyDown(self,keycode)
-class loginUserName(loginInputElement):
-	def __init__(self,xPos,yPos,text="clay rab"):
-		loginInputElement.__init__(self,xPos,yPos,text=text,textXPos=0.005,textYPos=-0.04)
-	
 
-class loginPassword(loginInputElement):
-	def __init__(self,xPos,yPos,text=""):
+class loginUserName(loginInputElement):
+	def __init__(self,xPos,yPos,text="clayrab"):
 		loginInputElement.__init__(self,xPos,yPos,text=text,textXPos=0.005,textYPos=-0.04)
+		loginInputElement.usernameElem = self
+class loginPassword(loginInputElement):
+	def __init__(self,xPos,yPos,text="maskmask"):
+		loginInputElement.__init__(self,xPos,yPos,text=text,textXPos=0.005,textYPos=-0.04)
+		loginInputElement.passwordElem = self
