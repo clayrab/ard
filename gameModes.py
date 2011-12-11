@@ -103,6 +103,11 @@ class gameMode:
 		self.elementWithFocus = None
 		self.resortElems = True
 		self.mouseTextPosition = -1
+	def setFocus(self,elem):
+		if(self.elementWithFocus != None):
+			self.elementWithFocus.focused = False
+		self.elementWithFocus = elem
+		self.elementWithFocus.focused = True
 	def getUIElementsIterator(self):
 		if(self.resortElems):
 			self.resortElems = False
@@ -113,7 +118,7 @@ class gameMode:
 #		return self.elementsDict.values().__iter__()
 	def handleLeftClickDown(self,name):
 		if(self.elementsDict.has_key(name)):
-			self.elementWithFocus = self.elementsDict[name]
+			self.setFocus(self.elementsDict[name])
 			if(hasattr(self.elementsDict[name],"onClick")):
 				self.elementsDict[name].onClick()
 			elif(hasattr(self.elementsDict[name],"onLeftClickDown")):
@@ -123,7 +128,7 @@ class gameMode:
 #			elif(hasattr(self.elementWithFocus,"onLeftClickDown")):
 #				self.elementWithFocus.onLeftClickDown()
 		else:
-			self.elementWithFocus = None
+			self.setFocus(None)
 	def handleLeftClickUp(self,name):
 		if(self.elementsDict.has_key(name)):
 			if(hasattr(self.elementsDict[name],"onLeftClickUp")):
@@ -137,12 +142,7 @@ class gameMode:
 		if(hasattr(self.elementWithFocus,"onKeyUp")):
 			self.elementWithFocus.onKeyUp(keycode)
 	def setMouseTextPosition(self,position):
-#		if(hasattr(self.elementWithFocus,"cursorPosition")
-#		print position
 		self.mouseTextPosition = position
-#		print position
-#		if(self.elementWithFocus != None and self.elementWithFocus.cursorPosition >= 0):
-#			self.elementWithFocus.cursorPosition = position
 	def onQuit(self):
 		if(gameState.getClient() != None):
 			gameState.getClient().socket.close()
@@ -532,7 +532,7 @@ class newMapMode(gameMode):
 	def addUIElements(self):
 		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])
 		uiElements.uiElement(-0.15,0.2,text="map name")
-		self.elementWithFocus = uiElements.newMapNameInputElement(-0.15,0.15,mapEditorMode,width=(2.0*cDefines.defines['UI_TEXT_INPUT_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_TEXT_INPUT_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),text="",textSize=0.0005,textColor='00 00 00',textureIndex=cDefines.defines['UI_TEXT_INPUT_INDEX'],textYPos=-0.035,textXPos=0.01)
+		self.setFocus(uiElements.newMapNameInputElement(-0.15,0.15,mapEditorMode,width=(2.0*cDefines.defines['UI_TEXT_INPUT_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_TEXT_INPUT_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),text="",textSize=0.0005,textColor='00 00 00',textureIndex=cDefines.defines['UI_TEXT_INPUT_INDEX'],textYPos=-0.035,textXPos=0.01))
 
 class joinLANGameScreenMode(gameMode):
 	def __init__(self):
@@ -540,7 +540,7 @@ class joinLANGameScreenMode(gameMode):
 	def addUIElements(self):
 		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])
 		uiElements.uiElement(-0.15,0.2,text="Host IP Address")
-		self.elementWithFocus = uiElements.hostIPInputElement(-0.15,0.15,joiningLANGameScreenMode,width=(2.0*cDefines.defines['UI_TEXT_INPUT_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_TEXT_INPUT_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),textSize=0.0005,textColor='00 00 00',textureIndex=cDefines.defines['UI_TEXT_INPUT_INDEX'],textYPos=-0.035,textXPos=0.01)
+		self.setFocus(uiElements.hostIPInputElement(-0.15,0.15,joiningLANGameScreenMode,width=(2.0*cDefines.defines['UI_TEXT_INPUT_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_TEXT_INPUT_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),textSize=0.0005,textColor='00 00 00',textureIndex=cDefines.defines['UI_TEXT_INPUT_INDEX'],textYPos=-0.035,textXPos=0.01))
 
 class joiningLANGameScreenMode(gameMode):
 	def __init__(self):
@@ -602,7 +602,7 @@ class loginMode(gameMode):
 
 	def addUIElements(self):
 		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])	
-		self.elementWithFocus = uiElements.loginUserName(-0.12,0.0)
+		self.setFocus(uiElements.loginUserName(-0.12,0.0))
 		uiElements.loginPassword(-0.12,-0.06)
 
 class gameFindMode(gameMode):

@@ -16,13 +16,13 @@ unitBuildTimes = ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","
 
 
 class uiElement:
-	focusedElem = None
-	@staticmethod
-	def setFocused(elem):
-		if(uiElement.focusedElem != None):
-			uiElement.focusedElem.focused = False
-		uiElement.focusedElem = elem
-		uiElement.focusedElem.focused = True
+#	focusedElem = None
+#	@staticmethod
+#	def setFocused(elem):
+#		if(uiElement.focusedElem != None):
+#			uiElement.focusedElem.focused = False
+#		uiElement.focusedElem = elem
+#		uiElement.focusedElem.focused = True
 	def __init__(self,xPos,yPos,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor=None,textSize=0.001,color=None,mouseOverColor=None,textXPos=0.0,textYPos=0.0,cursorPosition=-1):
 		self.name = nameGenerator.getNextName()
 		self.xPosition = xPos
@@ -39,7 +39,7 @@ class uiElement:
 		self.textXPos = textXPos
 		self.textYPos = textYPos
 		self.cursorPosition = cursorPosition
-		self.focused = True
+		self.focused = False
 		if(mouseOverColor != None):
 			self.mouseOverColor = mouseOverColor
 		elif(color != None):
@@ -130,8 +130,12 @@ class removeFirstRowButton(clickableElement):
 		gameState.getGameMode().map.nodes = nodesCopy
 
 class textInputElement(uiElement):
+	elements = []
 	def __init__(self,xPos,yPos,width=texWidth('UI_TEXT_INPUT_IMAGE'),height=texHeight('UI_TEXT_INPUT_IMAGE'),text="",textSize=0.0004,textureIndex=texIndex('UI_TEXT_INPUT'),textColor='00 00 00',textXPos=0.0,textYPos=-0.05):
 		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textSize=textSize,textColor=textColor,textXPos=textXPos,textYPos=textYPos,cursorPosition=len(text))
+		textInputElement.elements.append(self)
+	def __del__(self):
+		textInputElement.elements.remove(self)
 	def onKeyDown(self,keycode):
 		if(keycode == "backspace"):
 			self.text = self.text[0:self.cursorPosition-1] + self.text[self.cursorPosition:]
@@ -151,7 +155,7 @@ class textInputElement(uiElement):
 			self.text = self.text[0:self.cursorPosition] + keycode + self.text[self.cursorPosition:]
 			self.cursorPosition = self.cursorPosition + 1
 	def onClick(self):
-		uiElement.setFocused(self)
+#		uiElement.setFocused(self)
 		if(gameState.getGameMode().mouseTextPosition >=0):
 			self.cursorPosition = gameState.getGameMode().mouseTextPosition
 		else:
@@ -838,22 +842,28 @@ class startButton(menuButton):
 			#TODO: show host a friendly message
 			print 'choose a map!!'
 
-class loginUserName(textInputElement):
-	def __init__(self,xPos,yPos,text="clay rab"):
-		textInputElement.__init__(self,xPos,yPos,text=text,textSize=0.0006,textXPos=0.005,textYPos=-0.04)
+
+class loginInputElement(textInputElement):
+	def __init__(self,xPos,yPos,text,textXPos,textYPos):
+		textInputElement.__init__(self,xPos,yPos,text=text,textSize=0.0006,textXPos=textXPos,textYPos=textYPos)
 	def onKeyDown(self,keycode):
 		if(keycode == "return"):
 			print 'enter'
 		elif(keycode == "tab"):
-			print 'tab'
+			for index,elem in enumerate(textInputElement.elements):
+				if(elem.focused):
+					if(index >= len(textInputElement.elements)-1):
+						gameState.getGameMode().setFocus(textInputElement.elements[0])
+					else:
+						gameState.getGameMode().setFocus(textInputElement.elements[index+1])
+					break
 		else:
 			textInputElement.onKeyDown(self,keycode)
+class loginUserName(loginInputElement):
+	def __init__(self,xPos,yPos,text="clay rab"):
+		loginInputElement.__init__(self,xPos,yPos,text=text,textXPos=0.005,textYPos=-0.04)
+	
 
-class loginPassword(textInputElement):
+class loginPassword(loginInputElement):
 	def __init__(self,xPos,yPos,text=""):
-		textInputElement.__init__(self,xPos,yPos,text=text,textSize=0.0006,textXPos=0.005,textYPos=-0.04)
-	def onKeyDown(self,keycode):
-		if(keycode == "return"):
-			print 'enter'
-		else:
-			textInputElement.onKeyDown(self,keycode)
+		loginInputElement.__init__(self,xPos,yPos,text=text,textXPos=0.005,textYPos=-0.04)
