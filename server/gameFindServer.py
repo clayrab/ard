@@ -4,10 +4,11 @@ from twisted.application import service, internet
 from twisted.cred.portal import IRealm
 from zope.interface import implements
 from Crypto.PublicKey import RSA
+import MySQLdb
 import time
 import sys
+from pprint import pprint as pp
 
-print "version:" + str(sys.version)
 rsaKey = RSA.importKey("""-----BEGIN RSA PRIVATE KEY-----
 MIICXAIBAAKBgQCJ5JSy/apuQQJ4OzsbT1EcnocXjNbdUgxGoUkDBq6QVwebGAon
 i8aLd/vdyw90Q5dAxelJlTAKgvA7e1DmXlNaPRZ9CuwkfHcIAEeVoMnEmc0Enfwz
@@ -36,8 +37,6 @@ class UserRealm(object):
         raise NotImplementedError()
 #portal = Portal(UserRealm(),
 
-
-
 rooms = {}
 class Room:
     def __init__(self,name,parent):
@@ -50,11 +49,14 @@ class Room:
             rooms[parent].childRooms.append(self)
 
 class GameFinder(basic.LineReceiver):
+    databaseConnection = MySQLdb.connect (host = "localhost",user = "clay",passwd = "maskmask",db = "ard")
+    databaseCursor = databaseConnection.cursor()
     def connectionMade(self):
         self.userName = ""
         self.loggedIn = False
         print "Got new client!"
         self.factory.clients.append(self)
+        self.authenticated = False
         
     def connectionLost(self, reason):
         print "Lost a client!"
@@ -74,6 +76,9 @@ class GameFinder(basic.LineReceiver):
         print "args: " + str(args)
         print args[1]
         print "decrypt: " + str(rsaKey.decrypt(args[1]))
+        password = str(rsaKey.decrypt(args[1]))
+        GameFinder.databaseCursor.execute("SELECT * from users WHERE username = '" + args[0] + "'")
+        print "Number of rows returned: %d" % GameFinder.databaseCursor.rowcount
     #END COMMANDS
                 
 #            self.sendCommand("")
@@ -90,8 +95,6 @@ class GameFinder(basic.LineReceiver):
 
     def lineReceived(self, line):
         tokens = line.split(" ",2)
-        print "received", repr(line)
-        print tokens
         if(len(tokens) > 2):
             self.doCommand(tokens[0],arguments=tokens[1:])
         else:

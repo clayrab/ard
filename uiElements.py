@@ -882,13 +882,7 @@ class loginInputElement(textInputElement):
 	def onKeyDown(self,keycode):
 		if(keycode == "return"):
 			cypher = pubKey.encrypt(loginInputElement.passwordElem.text,32)
-			print cypher
 			gameState.getGameFindClient().sendCommand("login",loginInputElement.usernameElem.text + " " + str(cypher[0]))
-			
-#text = 'password'
-#cipher = pubKey.encrypt(text,32)
-
-			print 'enter'
 		elif(keycode == "tab"):
 			for index,elem in enumerate(textInputElement.elements):
 				if(elem.focused):

@@ -55,6 +55,12 @@ import gameFindClient
 import udpClient
 from textureFunctions import texWidth, texHeight, texIndex
 
+from pprint import pprint as pp
+print "version:" + str(sys.version)
+print pp(sys.path)
+
+
+
 sys.setrecursionlimit(100000)
 #need this to allow deep recursion for AStar
 #defaults to 1000... may cause crash on systems where 1000000 is too large...

@@ -8,9 +8,12 @@ if(len(sys.argv) < 3):
     exit()
 else:
     conn = MySQLdb.connect (host = "localhost",user = "clay",passwd = "maskmask",db = "ard")
-    cursor = conn.cursor()
+    cursor = conn.cursor() 
     hashFunc = hashlib.sha256()
     hashFunc.update(sys.argv[2])
+    print sys.argv[1]
+    print sys.argv[2]
+    print "inserting " + sys.argv[1] + " " + hashFunc.digest()
     cursor.execute ("""
        INSERT INTO users (username, passhash)
        VALUES ('""" + sys.argv[1] + """', '""" + hashFunc.digest()  + """')
