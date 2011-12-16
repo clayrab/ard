@@ -11,9 +11,10 @@
 #define WHITE_PIXEL_IMAGE "assets/whitePixel.png"
 #define WHITE_PIXEL_INDEX 1
 
-char fontFiles[2][30] = {
+char fontFiles[3][30] = {
   "assets/fonts/Arial.ttf",
-  "assets/fonts/Herculanum.ttf"
+  "assets/fonts/Herculanum.ttf",
+  "assets/fonts/LateefRegOT.ttf"
 };
 
 int TextureWidth;
@@ -163,7 +164,7 @@ static void initFonts(){
   FT_Library library;
   FT_Face face; 
   int error = FT_Init_FreeType( &library );
-  if(FT_New_Face(library,"assets/fonts/Arial.ttf",0,&face)){
+  if(FT_New_Face(library,"assets/fonts/LateefRegOT.ttf",0,&face)){
     printf("FT_New_Face error");
     exit(1);
   }

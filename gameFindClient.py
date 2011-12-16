@@ -5,12 +5,23 @@ import gameState
 import gameModes
 import gameLogic
 import uiElements
+from Crypto.PublicKey import RSA
+
+pubKey = RSA.importKey("""-----BEGIN PUBLIC KEY-----
+MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCJ5JSy/apuQQJ4OzsbT1EcnocX
+jNbdUgxGoUkDBq6QVwebGAoni8aLd/vdyw90Q5dAxelJlTAKgvA7e1DmXlNaPRZ9
+CuwkfHcIAEeVoMnEmc0Enfwz2PaA5dFCdsyifeiLjxH852sNcRQJjis5uCO/qRBI
+HxhGho31ggCgs/6qcQIDAQAB
+-----END PUBLIC KEY-----""")
 
 SERVER = -1
 SINGLE_PLAYER = -2
 class Commands:
     @staticmethod
     def showRoom(args):
+        print 'showroom'
+        gameState.setGameMode(gameModes.gameFindMode)
+
         print args
     @staticmethod
     def seedRNG(seed):
@@ -211,7 +222,6 @@ class Commands:
         node.unit.waiting = True        
 
 def doCommand(commandName,args=None):
-#    print commandName + " " + str(args)
     commandFunc = getattr(Commands,commandName)
     if(commandFunc != None):
         if(args != None and args != ''):
@@ -232,40 +242,25 @@ class Client:
         self.commandLog = []
         self.delayedCommands = []
         self.sendCommand("subscribe",gameState.getUserName() + " lobby")
-    def sendDelayedCommands(self):
-        for command in self.delayedCommands:
-             self.socket.send(command)
-        self.delayedCommands = []
     def checkSocket(self):
         try:
             receivedData = self.socket.recv(1024)
         except:
             receivedData = ''
-#        print "data " + receivedData
         for command in receivedData.split("\r\n"):
             if(len(command) > 0):
-                tokens = command.split(" ",2)
-                if(tokens[0] == "chooseNextUnit"):
-                    if(len(self.commandLog) > 0):
-                        for command in self.commandLog:
-                            doCommand(command[0]+"Undo",command[1])
-                    doCommand("chooseNextUnit")
-                    if(len(self.commandLog) > 0):
-                        for command in self.commandLog:
-                            doCommand(command[0]+"Redo",command[1])
-                    self.commandLog = []
+                tokens = command.split("~",1)
+                if(len(tokens) > 1):
+                    doCommand(tokens[0],args=tokens[1])
                 else:
-                    if(gameState.getPlayerNumber() == SERVER or int(tokens[1]) != gameState.getPlayerNumber()):#skip our own commands, they were executed immediately
-                        if(len(tokens) > 2):
-                            doCommand(tokens[0],args=tokens[2])
-                        else:
-                            doCommand(tokens[0])
-                    else:
-                        self.commandLog = self.commandLog[:-1:]
-                        #print "commandLog: " + str(self.commandLog)
+                    doCommand(tokens[0])
 
     def sendCommand(self,command,argsString=""):
-        self.socket.send(command + " " + argsString + "\r\n")
+        if(command == "login"):
+            argsString = pubKey.encrypt(argsString,32)
+            argsString = argsString[0]
+            print argsString
+        self.socket.send(command + " " + str(argsString) + "\r\n")
         print 'sent...'
 def startClient():
     gameState.setGameFindClient(Client())

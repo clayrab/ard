@@ -31,7 +31,7 @@
 #campaign
 
 #server:
-#SSL SSL SSL SSL SSL SSL SSL SSL SSL SSL
+#SSL
 # room for finding games
 # room for each game
 #unit editor
@@ -54,12 +54,6 @@ import client
 import gameFindClient
 import udpClient
 from textureFunctions import texWidth, texHeight, texIndex
-
-from pprint import pprint as pp
-print "version:" + str(sys.version)
-print pp(sys.path)
-
-
 
 sys.setrecursionlimit(100000)
 #need this to allow deep recursion for AStar
@@ -126,6 +120,9 @@ class gameMode:
 		if(gameState.getClient() != None):
 			if(hasattr(gameState.getClient(),"checkSocket")):
 				gameState.getClient().checkSocket()
+		if(gameState.getGameFindClient() != None):
+			if(hasattr(gameState.getGameFindClient(),"checkSocket")):
+				gameState.getGameFindClient().checkSocket()
 		if(udpClient.udpClient.theUdpClient != None):
 			udpClient.udpClient.theUdpClient.checkSocket()
 			
@@ -582,6 +579,6 @@ class gameFindMode(gameMode):
 
 	def addUIElements(self):
 		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])	
-		uiElements.roomSelector(0.0,0.0,['asdf','dfdfd'],text="select unit",textSize=0.0005,textureIndex=cDefines.defines['UI_SCROLLABLE_INDEX'],width=(2.0*cDefines.defines['UI_SCROLLABLE_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_SCROLLABLE_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']))
+		self.roomSelector = uiElements.roomSelector(-0.9,0.8,['asdf','dfdfd'],text="select unit",textSize=0.0005,textureIndex=cDefines.defines['UI_SCROLLABLE_INDEX'],width=(2.0*cDefines.defines['UI_SCROLLABLE_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_SCROLLABLE_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']))
 
 gameState.setGameMode(newGameScreenMode)

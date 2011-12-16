@@ -1465,10 +1465,9 @@ GLint hitsCnt;
 static void draw(){
   if(PyObject_HasAttrString(gameMode,"onDraw")){
     pyObj = PyObject_CallMethod(gameMode,"onDraw",NULL);//New reference
+    printPyStackTrace();
     Py_DECREF(pyObj);
   }
-
-  printPyStackTrace();
   glClearDepth(1.0);
   //this needs to be done before glClear...
   //when the mouse is under the pixel this breaks, so we test three points and find any two that match

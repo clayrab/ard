@@ -5,6 +5,7 @@ from twisted.cred.portal import IRealm
 from zope.interface import implements
 from Crypto.PublicKey import RSA
 import MySQLdb
+import hashlib
 import time
 import sys
 from pprint import pprint as pp
@@ -25,18 +26,6 @@ nBW5XiLgPtUxIxMXfaSg/X1Q5gMhF5xvuEi8mubtBhohNloUTNF4FU37QQJBALqA
 9x6ZS1ohXmHsMcT1Ld/6j4sX8mA78GedJTuDN4ScAfw=
 -----END RSA PRIVATE KEY-----""")
 
-class Avatar:
-    def __init__(self):
-        self.userName = "claybar" + str(time.time())
-
-class UserRealm(object):
-    implements(IRealm)
-    def requestAvatar(self, avatarId, mind, *interfaces):
-        if IResource in interfaces:
-            return (IResource, Avatar(), lambda: None)#third element in tuple is logout callback
-        raise NotImplementedError()
-#portal = Portal(UserRealm(),
-
 rooms = {}
 class Room:
     def __init__(self,name,parent):
@@ -49,7 +38,7 @@ class Room:
             rooms[parent].childRooms.append(self)
 
 class GameFinder(basic.LineReceiver):
-    databaseConnection = MySQLdb.connect (host = "localhost",user = "clay",passwd = "maskmask",db = "ard")
+    databaseConnection = MySQLdb.connect(host = "localhost",user = "clay",passwd = "maskmask",db = "ard")
     databaseCursor = databaseConnection.cursor()
     def connectionMade(self):
         self.userName = ""
@@ -63,25 +52,33 @@ class GameFinder(basic.LineReceiver):
         self.factory.clients.remove(self)
     #BEGIN COMMANDS
     def subscribe(self,args):
-        response = "showRoom "
-        rooms[args].subscribers.append(self.userName)
-        for room in rooms[args].childRooms:
+        response = ""
+        print rooms
+        print rooms[args[1]]
+        print rooms[args[1]].subscribers
+        print rooms[args[1]].subscribers.append
+        rooms[args[1]].subscribers.append(self.userName)
+        for room in rooms[args[1]].childRooms:
             response = response + "|" + room.name
         response = response + ":"
-        for userName in rooms[args].subscribers:
+        for userName in rooms[args[1]].subscribers:
             response = response + userName + " "
         print response
-        self.sendCommand(response)
+        self.sendCommand("showRoom",response)
     def login(self,args):
-        print "args: " + str(args)
-        print args[1]
-        print "decrypt: " + str(rsaKey.decrypt(args[1]))
-        password = str(rsaKey.decrypt(args[1]))
-        GameFinder.databaseCursor.execute("SELECT * from users WHERE username = '" + args[0] + "'")
-        print "Number of rows returned: %d" % GameFinder.databaseCursor.rowcount
+        strArgs = " ".join(args)
+        strArgs = str(rsaKey.decrypt(strArgs))
+        tokens = strArgs.split(" ",1)
+        hashFunc = hashlib.sha256()
+        hashFunc.update(tokens[1])
+        GameFinder.databaseCursor.execute("SELECT * from users WHERE username = '" + tokens[0] + "' and passhash = '" + hashFunc.digest() + "'")
+        if(GameFinder.databaseCursor.rowcount > 0):
+            self.loggedIn = True
+            print "Logged in!"
+            self.subscribe([tokens[0],"lobby"])
+        else:
+            print "TODO: Send failed login message to client!"
     #END COMMANDS
-                
-#            self.sendCommand("")
     def doCommand(self,commandName,arguments=None):
         if(self.loggedIn or commandName == "login"):
             commandFunc = getattr(self,commandName)
@@ -99,8 +96,8 @@ class GameFinder(basic.LineReceiver):
             self.doCommand(tokens[0],arguments=tokens[1:])
         else:
             self.doCommand(tokens[0])
-    def sendCommand(self,command):
-        self.transport.write(command + "\r\n")
+    def sendCommand(self,command,arg):
+        self.transport.write(command + "~" + arg + "\r\n")
 
 factory = protocol.ServerFactory()
 factory.protocol = GameFinder
