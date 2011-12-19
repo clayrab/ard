@@ -24,10 +24,12 @@
 #define zoomSpeed 5.0//lower is faster
 #define focusSpeed 5.0//lower is faster
 
-#define SCREEN_WIDTH 1280
-#define SCREEN_HEIGHT 800
-//#define SCREEN_WIDTH 1920
+//#define SCREEN_WIDTH 1280
+//#define SCREEN_HEIGHT 800
+//#define SCREEN_WIDTH 1600
 //#define SCREEN_HEIGHT 1200
+#define SCREEN_WIDTH 1920
+#define SCREEN_HEIGHT 1200
 
 #define TILES_IMAGE "assets/tiles2.png"
 #define UI_IMAGE "assets/UI.png"
@@ -1596,7 +1598,7 @@ int main(int argc, char **argv){
   SDL_GL_SetAttribute (SDL_GL_DEPTH_SIZE, 16);
   //  SDL_GL_SetAttribute (SDL_GL_DOUBLEBUFFER, 1);
   Uint32 flags = SDL_OPENGL;
-  //flags |= SDL_FULLSCREEN;
+  flags |= SDL_FULLSCREEN;
   gScreen = SDL_SetVideoMode (SCREEN_WIDTH, SCREEN_HEIGHT, 0, flags);
   if (gScreen == NULL) {
     fprintf (stderr, "Could not set OpenGL video mode: %s\n",
