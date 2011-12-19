@@ -460,10 +460,10 @@ class textBasedMenuMode(gameMode):
 class newGameScreenMode(textBasedMenuMode):
 	def addUIElements(self):
 		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])
-		uiElements.menuButton(-0.16,0.2,quickPlayMapSelectMode,text="quick play")
-		uiElements.menuButton(-0.168,0.1,multiplayerGameScreenMode,text="play lan game")
-		uiElements.menuButton(-0.165,-0.0,loginMode,text="play online")
-		uiElements.menuButton(-0.165,-0.1,mapEditorSelectMode,text="map editor")
+		uiElements.menuButton(-0.16,-0.4,quickPlayMapSelectMode,text="Quick Play")
+		uiElements.menuButton(-0.198,-0.5,multiplayerGameScreenMode,text="Play LAN Game")
+		uiElements.menuButton(-0.165,-0.6,loginMode,text="Play Online")
+		uiElements.menuButton(-0.165,-0.7,mapEditorSelectMode,text="Map Editor")
 
 class multiplayerGameScreenMode(textBasedMenuMode):
 	def addUIElements(self):

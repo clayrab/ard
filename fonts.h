@@ -11,10 +11,12 @@
 #define WHITE_PIXEL_IMAGE "assets/whitePixel.png"
 #define WHITE_PIXEL_INDEX 1
 
-char fontFiles[3][30] = {
+#define FONT_NAME_SIZE 50
+
+char fontFiles[3][FONT_NAME_SIZE] = {
   "assets/fonts/Arial.ttf",
+  "assets/fonts/XXII ARABIAN-ONENIGHTSTAND.ttf",
   "assets/fonts/Herculanum.ttf",
-  "assets/fonts/LateefRegOT.ttf"
 };
 
 int TextureWidth;
@@ -164,26 +166,34 @@ static void initFonts(){
   FT_Library library;
   FT_Face face; 
   int error = FT_Init_FreeType( &library );
-  if(FT_New_Face(library,"assets/fonts/LateefRegOT.ttf",0,&face)){
-    printf("FT_New_Face error");
-    exit(1);
-  }
-  if(FT_Set_Char_Size(face, 16*64, 0, 300, 0)){
-    printf("FT_Set_Char_Size error");
-    exit(1);
-  }
+  //  if(FT_New_Face(library,"assets/fonts/Ceria Lebaran.otf",0,&face)){
+    //XXII ARABIAN-ONENIGHTSTAND.ttf
+  
+  printf("siezof: %ld\n",sizeof(fontFiles)/FONT_NAME_SIZE);
+  long int fontCount = sizeof(fontFiles)/FONT_NAME_SIZE;
+  GLuint textures[128*fontCount];
+  list_base=glGenLists(128*fontCount);
+  glGenTextures(128*fontCount,textures);
 
-  GLuint textures[128];
-  list_base=glGenLists(128);
-  glGenTextures( 128, textures );
-
-  // This Is Where We Actually Create Each Of The Fonts Display Lists.
-  int i;
-  for(i=0;i<128;i++){
-    make_dlist(face,i,list_base,textures);
+  int index = 0;
+  for(;index < fontCount;index++){
+    if(FT_New_Face(library,fontFiles[index],0,&face)){
+      printf("FT_New_Face error");
+      exit(1);
+    }
+    if(FT_Set_Char_Size(face, 16*64, 0, 300, 0)){
+      printf("FT_Set_Char_Size error");
+      exit(1);
+    }
+    // This Is Where We Actually Create Each Of The Fonts Display Lists.
+    int i;
+    for(i=0;i<128;i++){
+      make_dlist(face,i,list_base+(128*index),textures+(128*index));
+    }
+    FT_Done_Face(face);
+    
+    printf("%s\n",fontFiles[index]);
   }
-
-  FT_Done_Face(face);
   FT_Done_FreeType(library);
 }
 void drawCursor(){
@@ -204,7 +214,7 @@ void drawCursor(){
 
 int strCount;
 float modelview_matrix[16];
-void drawText(char* str,int cursorPosition){
+void drawText(char* str,int fontIndex,int cursorPosition){
   textName = 0;
   glPushAttrib(GL_LIST_BIT | GL_CURRENT_BIT | GL_ENABLE_BIT | GL_TRANSFORM_BIT); 
   //glMatrixMode(GL_MODELVIEW);
@@ -221,7 +231,7 @@ void drawText(char* str,int cursorPosition){
       drawCursor();
     }
     glPushName(strCount);
-    glCallList(list_base+str[strCount]);
+    glCallList(list_base+(fontIndex*128)+str[strCount]);
     glPopName();
   }
   if(strCount == cursorPosition){

@@ -25,7 +25,7 @@ class uiElement:
 #			uiElement.focusedElem.focused = False
 #		uiElement.focusedElem = elem
 #		uiElement.focusedElem.focused = True
-	def __init__(self,xPos,yPos,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor=None,textSize=0.001,color=None,mouseOverColor=None,textXPos=0.0,textYPos=0.0,cursorPosition=-1):
+	def __init__(self,xPos,yPos,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor=None,textSize=0.001,color=None,mouseOverColor=None,textXPos=0.0,textYPos=0.0,cursorPosition=-1,fontIndex=0):
 		self.name = nameGenerator.getNextName()
 		self.xPosition = xPos
 		self.yPosition = yPos
@@ -41,6 +41,7 @@ class uiElement:
 		self.textXPos = textXPos
 		self.textYPos = textYPos
 		self.cursorPosition = cursorPosition
+		self.fontIndex = fontIndex
 		self.focused = False
 		if(mouseOverColor != None):
 			self.mouseOverColor = mouseOverColor
@@ -780,11 +781,11 @@ class menuButton(clickableElement):
 	index = 0
 	buttonsList = []
 	selectedIndex = 0
-	selectedTextColor = "55 55 55"
-	normalTextColor = "33 33 33"
+	selectedTextColor = "AA AA AA"
+	normalTextColor = "EE EE EE"
 	gameMode = None
-	def __init__(self,xPos,yPos,gameMode,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",selected=False):
-		clickableElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=menuButton.normalTextColor,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],mouseOverColor="66 66 66")
+	def __init__(self,xPos,yPos,gameMode,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",selected=False):
+		clickableElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=menuButton.normalTextColor,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],mouseOverColor="66 66 66",textSize=0.0013)
 		if(menuButton.gameMode != gameState.getGameMode()):
 			menuButton.index = 0
 			menuButton.buttonsList = []

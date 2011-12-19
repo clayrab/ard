@@ -24,12 +24,12 @@
 #define zoomSpeed 5.0//lower is faster
 #define focusSpeed 5.0//lower is faster
 
-//#define SCREEN_WIDTH 1280
-//#define SCREEN_HEIGHT 800
+#define SCREEN_WIDTH 1280
+#define SCREEN_HEIGHT 800
 //#define SCREEN_WIDTH 1600
+//#define SCREEN_HEIGHT 1000
+//#define SCREEN_WIDTH 1920
 //#define SCREEN_HEIGHT 1200
-#define SCREEN_WIDTH 1920
-#define SCREEN_HEIGHT 1200
 
 #define TILES_IMAGE "assets/tiles2.png"
 #define UI_IMAGE "assets/UI.png"
@@ -51,9 +51,9 @@
 #define UI_MAP_EDITOR_RIGHT_IMAGE_HEIGHT 871
 #define UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH 10
 #define UI_MAP_EDITOR_RIGHT_INDEX 4
-#define UI_NEW_GAME_SCREEN_IMAGE "assets/newGameScreen.png"
-#define UI_NEW_GAME_SCREEN_IMAGE_HEIGHT 960
-#define UI_NEW_GAME_SCREEN_IMAGE_WIDTH 1280
+#define UI_NEW_GAME_SCREEN_IMAGE "assets/MenusBackground.png"
+#define UI_NEW_GAME_SCREEN_IMAGE_HEIGHT 1600
+#define UI_NEW_GAME_SCREEN_IMAGE_WIDTH 1200
 #define UI_NEW_GAME_SCREEN_INDEX 5
 
 #define CURSOR_POINTER_IMAGE "assets/cursors/gam372.png"
@@ -234,7 +234,12 @@
 #define BLUE_MAGE_INDEX 49
 
 #define ICE_IMAGE "assets/ice.png"
-#define ICE_INDEX 47
+#define ICE_INDEX 50
+
+#define GAME_FIND_BACKGROUND "assets/GameFindBackground.png"
+#define GAME_FIND_BACKGROUND_HEIGHT 1600
+#define GAME_FIND_BACKGROUND_WIDTH 1200
+#define GAME_FIND_BACKGROUND_INDEX 51
 
 
 #define DESERT_TILE_INDEX 0
@@ -543,7 +548,7 @@ void drawFire(){
   glTranslatef(-0.8,0.0,0.0);
   glScalef(0.01,0.01,0.0);
   sprintf(fireVit,"%f",fireVitality);
-  drawText(fireVit,-1);
+  drawText(fireVit,0,-1);
   glPopMatrix();
   
 }
@@ -635,7 +640,7 @@ void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long 
     glPushMatrix();
     glTranslatef(-0.4,0.3,0.0);
     glScalef(0.01,0.01,0.0);
-    drawText(playerStartVal,-1);
+    drawText(playerStartVal,0,-1);
     glPopMatrix();
   }
 
@@ -677,7 +682,7 @@ void drawTilesText(){
     glPushMatrix();
     glTranslatef(cityNamesXs[i]-(0.18*cityNameLength),cityNamesYs[i]+0.5,0.0);
     glScalef(0.010,0.010,0.0);
-    drawText(cityNames[i]);
+    drawText(cityNames[i],0);
     glPopMatrix();
   }
   cityNamesCount = 0;*/
@@ -692,7 +697,7 @@ void drawTilesText(){
     glPushMatrix();
     glTranslatef(unitNamesXs[i]-(0.3*j),unitNamesYs[i]+0.5,0.0);
     glScalef(0.009,0.009,0.0);
-    drawText(unitNames[i]);
+    drawText(unitNames[i],0);
     glPopMatrix();
   }
   unitNamesCount = 0;*/
@@ -964,6 +969,7 @@ PyObject * pyMouseOverColor;
 PyObject * pyTextXPosition;
 PyObject * pyTextYPosition;
 PyObject * pyCursorPosition;
+PyObject * pyFontIndex;
 PyObject * pyIsFocused;
 //double xPosition;
 //double yPosition;
@@ -981,6 +987,7 @@ char * mouseOverColor;
 double textXPosition;
 double textYPosition;
 double cursorPosition;
+double fontIndex;
 int isFocused;
 
 void drawUIElement(PyObject * uiElement){
@@ -1002,6 +1009,7 @@ void drawUIElement(PyObject * uiElement){
     pyTextXPosition = PyObject_GetAttrString(uiElement,"textXPos");
     pyTextYPosition = PyObject_GetAttrString(uiElement,"textYPos");
     pyCursorPosition = PyObject_GetAttrString(uiElement,"cursorPosition");
+    pyFontIndex = PyObject_GetAttrString(uiElement,"fontIndex");
     pyIsFocused = PyObject_GetAttrString(uiElement,"focused");
 
     xPosition = PyFloat_AsDouble(pyXPosition);
@@ -1020,6 +1028,7 @@ void drawUIElement(PyObject * uiElement){
     textXPosition = PyFloat_AsDouble(pyTextXPosition);
     textYPosition = PyFloat_AsDouble(pyTextYPosition);
     cursorPosition = PyFloat_AsDouble(pyCursorPosition);
+    fontIndex = PyFloat_AsDouble(pyFontIndex);
     isFocused = pyIsFocused==Py_True;
      
     Py_DECREF(pyXPosition);
@@ -1038,6 +1047,7 @@ void drawUIElement(PyObject * uiElement){
     Py_DECREF(pyTextXPosition);
     Py_DECREF(pyTextYPosition);
     Py_DECREF(pyCursorPosition);
+    Py_DECREF(pyFontIndex);
     Py_DECREF(pyIsFocused);
 
     if(previousMousedoverName != selectedName){
@@ -1085,9 +1095,9 @@ void drawUIElement(PyObject * uiElement){
 	  glScalef(textSize,textSize,0.0);
 	  glPushName(name);
 	  if(isFocused){
-	    drawText(text,cursorPosition);
+	    drawText(text,fontIndex,cursorPosition);
 	  }else{
-	    drawText(text,-1);
+	    drawText(text,fontIndex,-1);
 	  }	    
 	  glPopName();
 	  glPopMatrix();
@@ -1150,7 +1160,7 @@ void drawUI(){
     glLoadIdentity();
     glTranslatef(-1.0,-1.0,0.0);
     glScalef(0.0005,0.0005,0.0);
-    drawText(frameRate,-1);
+    drawText(frameRate,0,-1);
     glPopMatrix();
   }
 }
@@ -1229,6 +1239,7 @@ static void initGL (){
   pngLoad(&texturesArray[RED_MAGE_INDEX],RED_MAGE_IMAGE);
   pngLoad(&texturesArray[BLUE_MAGE_INDEX],BLUE_MAGE_IMAGE);
   pngLoad(&texturesArray[ICE_INDEX],ICE_IMAGE);
+  pngLoad(&texturesArray[GAME_FIND_BACKGROUND_INDEX],GAME_FIND_BACKGROUND);
 
   vertexArrays[DESERT_TILE_INDEX] = *desertVertices;
   vertexArrays[GRASS_TILE_INDEX] = *grassVertices;
@@ -1598,7 +1609,7 @@ int main(int argc, char **argv){
   SDL_GL_SetAttribute (SDL_GL_DEPTH_SIZE, 16);
   //  SDL_GL_SetAttribute (SDL_GL_DOUBLEBUFFER, 1);
   Uint32 flags = SDL_OPENGL;
-  flags |= SDL_FULLSCREEN;
+  //flags |= SDL_FULLSCREEN;
   gScreen = SDL_SetVideoMode (SCREEN_WIDTH, SCREEN_HEIGHT, 0, flags);
   if (gScreen == NULL) {
     fprintf (stderr, "Could not set OpenGL video mode: %s\n",
