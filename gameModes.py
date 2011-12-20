@@ -460,10 +460,10 @@ class textBasedMenuMode(gameMode):
 class newGameScreenMode(textBasedMenuMode):
 	def addUIElements(self):
 		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])
-		uiElements.menuButton(-0.16,-0.4,quickPlayMapSelectMode,text="Quick Play")
-		uiElements.menuButton(-0.198,-0.5,multiplayerGameScreenMode,text="Play LAN Game")
-		uiElements.menuButton(-0.165,-0.6,loginMode,text="Play Online")
-		uiElements.menuButton(-0.165,-0.7,mapEditorSelectMode,text="Map Editor")
+		uiElements.menuButton(-0.18,-0.4,quickPlayMapSelectMode,text="Quick Play")
+		uiElements.menuButton(-0.29,-0.52,multiplayerGameScreenMode,text="Play LAN Game")
+		uiElements.menuButton(-0.19,-0.64,loginMode,text="Play Online")
+		uiElements.menuButton(-0.19,-0.76,mapEditorSelectMode,text="Map Editor")
 
 class multiplayerGameScreenMode(textBasedMenuMode):
 	def addUIElements(self):
@@ -578,7 +578,9 @@ class loginMode(gameMode):
 class gameFindMode(gameMode):
 
 	def addUIElements(self):
-		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])	
-		self.roomSelector = uiElements.roomSelector(-0.9,0.8,['asdf','dfdfd'],text="select unit",textSize=0.0005,textureIndex=cDefines.defines['UI_SCROLLABLE_INDEX'],width=(2.0*cDefines.defines['UI_SCROLLABLE_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_SCROLLABLE_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']))
+		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['GAME_FIND_BACKGROUND_INDEX'])	
+		width = (2.0*cDefines.defines['GAME_FIND_MAPS_WIDTH']/cDefines.defines['UI_NEW_GAME_SCREEN_IMAGE_WIDTH'])
+		height = (2.0*cDefines.defines['GAME_FIND_MAPS_HEIGHT']/cDefines.defines['UI_NEW_GAME_SCREEN_IMAGE_HEIGHT'])
+		self.roomSelector = uiElements.roomSelector(-0.925,0.9,[],textSize=0.0005,textureIndex=cDefines.defines['GAME_FIND_MAPS_INDEX'],width=width,height=height)
 
 gameState.setGameMode(newGameScreenMode)

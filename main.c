@@ -52,8 +52,8 @@
 #define UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH 10
 #define UI_MAP_EDITOR_RIGHT_INDEX 4
 #define UI_NEW_GAME_SCREEN_IMAGE "assets/MenusBackground.png"
-#define UI_NEW_GAME_SCREEN_IMAGE_HEIGHT 1600
-#define UI_NEW_GAME_SCREEN_IMAGE_WIDTH 1200
+#define UI_NEW_GAME_SCREEN_IMAGE_HEIGHT 1200
+#define UI_NEW_GAME_SCREEN_IMAGE_WIDTH 1600
 #define UI_NEW_GAME_SCREEN_INDEX 5
 
 #define CURSOR_POINTER_IMAGE "assets/cursors/gam372.png"
@@ -237,9 +237,14 @@
 #define ICE_INDEX 50
 
 #define GAME_FIND_BACKGROUND "assets/GameFindBackground.png"
-#define GAME_FIND_BACKGROUND_HEIGHT 1600
-#define GAME_FIND_BACKGROUND_WIDTH 1200
+#define GAME_FIND_BACKGROUND_HEIGHT 1200
+#define GAME_FIND_BACKGROUND_WIDTH 1600
 #define GAME_FIND_BACKGROUND_INDEX 51
+
+#define GAME_FIND_MAPS "assets/GameFindMaps.png"
+#define GAME_FIND_MAPS_HEIGHT 976
+#define GAME_FIND_MAPS_WIDTH 1154
+#define GAME_FIND_MAPS_INDEX 52
 
 
 #define DESERT_TILE_INDEX 0
@@ -1240,6 +1245,7 @@ static void initGL (){
   pngLoad(&texturesArray[BLUE_MAGE_INDEX],BLUE_MAGE_IMAGE);
   pngLoad(&texturesArray[ICE_INDEX],ICE_IMAGE);
   pngLoad(&texturesArray[GAME_FIND_BACKGROUND_INDEX],GAME_FIND_BACKGROUND);
+  pngLoad(&texturesArray[GAME_FIND_MAPS_INDEX],GAME_FIND_MAPS);
 
   vertexArrays[DESERT_TILE_INDEX] = *desertVertices;
   vertexArrays[GRASS_TILE_INDEX] = *grassVertices;

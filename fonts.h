@@ -169,7 +169,6 @@ static void initFonts(){
   //  if(FT_New_Face(library,"assets/fonts/Ceria Lebaran.otf",0,&face)){
     //XXII ARABIAN-ONENIGHTSTAND.ttf
   
-  printf("siezof: %ld\n",sizeof(fontFiles)/FONT_NAME_SIZE);
   long int fontCount = sizeof(fontFiles)/FONT_NAME_SIZE;
   GLuint textures[128*fontCount];
   list_base=glGenLists(128*fontCount);
@@ -191,8 +190,6 @@ static void initFonts(){
       make_dlist(face,i,list_base+(128*index),textures+(128*index));
     }
     FT_Done_Face(face);
-    
-    printf("%s\n",fontFiles[index]);
   }
   FT_Done_FreeType(library);
 }

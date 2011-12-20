@@ -53,17 +53,13 @@ class GameFinder(basic.LineReceiver):
     #BEGIN COMMANDS
     def subscribe(self,args):
         response = ""
-        print rooms
-        print rooms[args[1]]
-        print rooms[args[1]].subscribers
-        print rooms[args[1]].subscribers.append
         rooms[args[1]].subscribers.append(self.userName)
         for room in rooms[args[1]].childRooms:
-            response = response + "|" + room.name
-        response = response + ":"
-        for userName in rooms[args[1]].subscribers:
-            response = response + userName + " "
-        print response
+            response = response + "|" + room.name + "-" + str(len(room.subscribers))
+#        response = response + ":"
+#        for userName in rooms[args[1]].subscribers:
+#            response = response + userName + " "
+#        print response
         self.sendCommand("showRoom",response)
     def login(self,args):
         strArgs = " ".join(args)

@@ -21,7 +21,15 @@ class Commands:
     def showRoom(args):
         print 'showroom'
         gameState.setGameMode(gameModes.gameFindMode)
-
+        roomSelector = gameState.getGameMode().roomSelector
+        roomSelector.reset()
+        tokens = args.split('|')
+        for token in tokens:
+            if(len(token) > 0):
+                (roomName,subscribersCount) = tuple(token.split("-"))
+                roomSelector.textFields.append(uiElements.scrollableRoomElement(roomSelector.xPosition,0.0,roomName,"mapname",0,8))
+        roomSelector.redraw()
+        
         print args
     @staticmethod
     def seedRNG(seed):
@@ -41,10 +49,10 @@ class Commands:
         if(hasattr(gameState.getGameMode(),"redrawPlayers")):
                gameState.getGameMode().redrawPlayers()
     @staticmethod
-    def startGame():
+    def startGame(args):
         gameState.setGameMode(gameModes.playMode)
     @staticmethod
-    def chooseNextUnit():
+    def chooseNextUnit(args):
         gameState.getGameMode().chooseNextUnit()
     @staticmethod
     def moveTo(args):
@@ -224,10 +232,7 @@ class Commands:
 def doCommand(commandName,args=None):
     commandFunc = getattr(Commands,commandName)
     if(commandFunc != None):
-        if(args != None and args != ''):
-            commandFunc(args)
-        else:
-            commandFunc()
+        commandFunc(args)
     else:
         print "ERROR: COMMAND " + commandName + " does not exist"
 
@@ -250,6 +255,7 @@ class Client:
         for command in receivedData.split("\r\n"):
             if(len(command) > 0):
                 tokens = command.split("~",1)
+                print tokens
                 if(len(tokens) > 1):
                     doCommand(tokens[0],args=tokens[1])
                 else:

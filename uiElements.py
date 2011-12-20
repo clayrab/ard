@@ -61,11 +61,18 @@ class uiElement:
 		return None
 	def onScrollUp(self):
 		return None
-
+	def destroy(self):
+		if(hasattr(self,"names")):
+			for name in self.names:
+				gameState.getGameMode().elementsDict[self.name].destroy()
+			self.names = []
+		del gameState.getGameMode().elementsDict[self.name]
+		gameState.getGameMode().resortElems = True
+				
 
 class clickableElement(uiElement):
-	def __init__(self,xPos,yPos,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,textXPos=0.0,textYPos=0.0):
-		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],color=color,mouseOverColor=mouseOverColor,textXPos=textXPos,textYPos=textYPos)
+	def __init__(self,xPos,yPos,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,textXPos=0.0,textYPos=0.0,fontIndex=0):
+		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],color=color,mouseOverColor=mouseOverColor,textXPos=textXPos,textYPos=textYPos,fontIndex=fontIndex)
 
 class saveButton(clickableElement):	
 	def onClick(self):
@@ -602,7 +609,32 @@ class scrollingTextElement(uiElement):
 		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,color=color,mouseOverColor=mouseOverColor,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'])
 		self.scrollableElement = scrollableElement
 	def onClick(self):
-		self.scrollableElement.handleClick(self)
+		self.scrollableElement.handleClick(self)	
+
+class scrollableElement(uiElement):
+	def onClick(self):
+		self.scrollableElement.handleClick(self)	
+	def setYPosition(self,yPos):
+		if(hasattr(self,"names")):
+			for name in self.names:
+				gameState.getGameMode().elementsDict[name].yPosition = yPos
+		self.yPosition = yPos
+		
+class scrollableRoomNameElement(uiElement):
+	def onClick(self):
+		print gameState.getGameFindClient().sendCommand
+		gameState.getGameFindClient().sendCommand("subscribe",gameState.getUserName() + " " + self.text)
+		print 'click'
+class scrollableMapNameElement(uiElement):
+	def onClick(self):
+		print 'click'
+class scrollableRoomElement(scrollableElement):
+	def __init__(self,xPos,yPos,roomName,mapName,playerCount,maxPlayerCount,text="",textSize=0.0005):
+		scrollableElement.__init__(self,xPos,yPos,text="",textSize=textSize)
+		self.names = []
+		self.names.append(scrollableRoomNameElement(xPos+0.008,yPos,text=roomName,textSize=textSize).name)
+		self.names.append(scrollableMapNameElement(xPos+0.9,yPos,text=mapName,textSize=textSize).name)
+		self.names.append(uiElement(xPos+1.38,yPos,text=str(playerCount) + "/" + str(maxPlayerCount),textSize=textSize).name)
 
 class scrollableTextFieldsElement(uiElement):
 	def __init__(self,xPos,yPos,textFields,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,yPositionOffset=-0.04,yOffset=-0.041,numFields=25,scrollSpeed=1):
@@ -614,20 +646,26 @@ class scrollableTextFieldsElement(uiElement):
 		self.scrollSpeed = scrollSpeed
 		self.scrollPosition = 0
 		self.textFields = textFields
-		self.textFieldElements = []
 		self.names = []
+		self.redraw()
+	def redraw(self):
+		self.reset()
 		for field in self.textFields:
-			text = ""
-			if(hasattr(field,"name")):
-				text = field.name
+			textFieldElem = None
+			if(hasattr(field,"onClick")):
+				textFieldElem = field
+				textFieldElem.scrollableElement = self
 			else:
-				text=field
-			textFieldElem = scrollingTextElement(self.xPosition,0.0,width=0.2,height=0.1,text=text,textureIndex=-1,textSize=self.textSize,hidden=True,scrollableElement=self)
+				text = ""
+				if(hasattr(field,"name")):
+					text = field.name
+				else:
+					text=field
+				textFieldElem = scrollingTextElement(self.xPosition,0.0,width=0.2,height=0.1,text=text,textureIndex=-1,textSize=self.textSize,hidden=True,scrollableElement=self)
 			textFieldElem.onScrollUp = self.onScrollUp
 			textFieldElem.onScrollDown = self.onScrollDown
 			self.names.append(textFieldElem.name)
 			self.textFieldElements.append(textFieldElem)
-
 		self.hideAndShowTextFields()
 		if(len(self.textFields) < self.numFields):
 			self.scrollPadElem = None
@@ -640,7 +678,7 @@ class scrollableTextFieldsElement(uiElement):
 		yPosOffset = self.yPositionOffset
 		for textFieldElement in self.textFieldElements:
 			count = count + 1
-			textFieldElement.yPosition = self.yPosition+yPosOffset
+			textFieldElement.setYPosition(self.yPosition+yPosOffset)
 			if(count < self.numFields + self.scrollPosition and count > self.scrollPosition):
 				textFieldElement.hidden = False
 				yPosOffset = yPosOffset + self.yOffset
@@ -660,25 +698,27 @@ class scrollableTextFieldsElement(uiElement):
 				self.scrollPosition = len(self.textFieldElements) - self.numFields + 1
 			self.hideAndShowTextFields()
 			self.scrollPadElem.setScrollPosition(self.scrollPosition)
-	def destroy(self):
+	def reset(self):
 		for name in self.names:
+			if(hasattr(gameState.getGameMode().elementsDict[name],"destroy")):
+				gameState.getGameMode().elementsDict[name].destroy()
 			del gameState.getGameMode().elementsDict[name]
 		self.names = []
+		self.textFieldElements = []
+	def destroy(self):
+		self.reset()
 		del gameState.getGameMode().elementsDict[self.name]
 		gameState.getGameMode().resortElems = True
+
+class roomSelector(scrollableTextFieldsElement):
+	def handleClick(self,textFieldElem):
+		print textFieldElem
 
 class unitTypeSelector(scrollableTextFieldsElement):
 	def handleClick(self,textFieldElem):
 		for unitType in gameState.theUnitTypes.values():
 			if(unitType.name == textFieldElem.text):
 				cityEditor.theCityEditor.addUnitType(unitType)
-		self.destroy()
-
-class roomSelector(scrollableTextFieldsElement):
-	def handleClick(self,textFieldElem):
-		for room in self.rooms():
-			print room
-
 		self.destroy()
 
 class cityCostSelector(scrollableTextFieldsElement):
@@ -785,7 +825,7 @@ class menuButton(clickableElement):
 	normalTextColor = "EE EE EE"
 	gameMode = None
 	def __init__(self,xPos,yPos,gameMode,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",selected=False):
-		clickableElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=menuButton.normalTextColor,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],mouseOverColor="66 66 66",textSize=0.0013)
+		clickableElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=menuButton.normalTextColor,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],mouseOverColor="66 66 66",textSize=0.0013,fontIndex=1)
 		if(menuButton.gameMode != gameState.getGameMode()):
 			menuButton.index = 0
 			menuButton.buttonsList = []
