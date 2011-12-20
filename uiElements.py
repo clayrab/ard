@@ -750,6 +750,10 @@ class startingManaSelector(scrollableTextFieldsElement):
 #		self.unitCostField.unitType.costGreen = int(textFieldElem.text)
 		self.destroy()
 
+class createRoomButton(clickableElement):
+	def onClick(self):
+		print 'clickity'
+
 class playerStartLocationButton(clickableElement):
 	playerStartLocationButtons = []
 	def __init__(self,xPos,yPos,playerNumber,width=0.0,height=0.0,text="",textSize=0.001,textureIndex=-1,color="FF FF FF"):

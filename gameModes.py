@@ -582,5 +582,6 @@ class gameFindMode(gameMode):
 		width = (2.0*cDefines.defines['GAME_FIND_MAPS_WIDTH']/cDefines.defines['UI_NEW_GAME_SCREEN_IMAGE_WIDTH'])
 		height = (2.0*cDefines.defines['GAME_FIND_MAPS_HEIGHT']/cDefines.defines['UI_NEW_GAME_SCREEN_IMAGE_HEIGHT'])
 		self.roomSelector = uiElements.roomSelector(-0.925,0.9,[],textSize=0.0005,textureIndex=cDefines.defines['GAME_FIND_MAPS_INDEX'],width=width,height=height)
+		uiElements.createRoomButton(0.5,0.8,text="create game")
 
 gameState.setGameMode(newGameScreenMode)
