@@ -28,9 +28,11 @@ nBW5XiLgPtUxIxMXfaSg/X1Q5gMhF5xvuEi8mubtBhohNloUTNF4FU37QQJBALqA
 
 rooms = {}
 class Room:
-    def __init__(self,name,parent):
+    def __init__(self,name,parent,mapName=None,maxPlayers=None):
         self.name = name
         self.parent = parent
+        self.mapName = mapName
+        self.maxPlayers = maxPlayers
         self.childRooms = []
         self.subscribers = []
         rooms[name] = self
@@ -61,6 +63,9 @@ class GameFinder(basic.LineReceiver):
 #            response = response + userName + " "
 #        print response
         self.sendCommand("showRoom",response)
+    def createRoom(self,args):
+        Room(
+        print args
     def login(self,args):
         strArgs = " ".join(args)
         strArgs = str(rsaKey.decrypt(strArgs))

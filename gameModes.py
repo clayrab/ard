@@ -563,7 +563,7 @@ class hostLANGameScreenMode(gameMode):
 		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])	
 		uiElements.uiElement(-0.15,0.9,text="lan game")
 		uiElements.uiElement(-0.85,0.8,text="players")
-		uiElements.mapField(-0.85,-0.1,text="choose map")
+		uiElements.mapField(-0.85,-0.1,uiElements.mapSelector,text="choose map")
 		uiElements.startButton(0.65,-0.8,playMode,text="start")
 
 class loginMode(gameMode):
@@ -578,10 +578,39 @@ class loginMode(gameMode):
 class gameFindMode(gameMode):
 
 	def addUIElements(self):
-		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['GAME_FIND_BACKGROUND_INDEX'])	
-		width = (2.0*cDefines.defines['GAME_FIND_MAPS_WIDTH']/cDefines.defines['UI_NEW_GAME_SCREEN_IMAGE_WIDTH'])
-		height = (2.0*cDefines.defines['GAME_FIND_MAPS_HEIGHT']/cDefines.defines['UI_NEW_GAME_SCREEN_IMAGE_HEIGHT'])
-		self.roomSelector = uiElements.roomSelector(-0.925,0.9,[],textSize=0.0005,textureIndex=cDefines.defines['GAME_FIND_MAPS_INDEX'],width=width,height=height)
-		uiElements.createRoomButton(0.5,0.8,text="create game")
+		self.createGameMode = createGame
+		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])	
+		roomSelectorWidth = (2.0*cDefines.defines['GAME_FIND_MAPS_WIDTH']/cDefines.defines['UI_NEW_GAME_SCREEN_IMAGE_WIDTH'])
+		roomSelectorHeight = (2.0*cDefines.defines['GAME_FIND_MAPS_HEIGHT']/cDefines.defines['UI_NEW_GAME_SCREEN_IMAGE_HEIGHT'])
+		chatDisplayWidth =  (2.0*cDefines.defines['GAME_FIND_CHAT_WIDTH']/cDefines.defines['UI_NEW_GAME_SCREEN_IMAGE_WIDTH'])
+		chatDisplayHeight = (2.0*cDefines.defines['GAME_FIND_CHAT_HEIGHT']/cDefines.defines['UI_NEW_GAME_SCREEN_IMAGE_HEIGHT'])
+		self.roomSelector = uiElements.roomSelector(-0.925,0.9,[],textSize=0.0005,textureIndex=cDefines.defines['GAME_FIND_MAPS_INDEX'],width=roomSelectorWidth,height=roomSelectorHeight)
+		self.chatDisplay = uiElements.chatDisplay(0.55,0.9,["asd","fkfkf"],textSize=0.0005,textureIndex=cDefines.defines['GAME_FIND_CHAT_INDEX'],width=chatDisplayWidth,height=chatDisplayHeight)
+		uiElements.createRoomButton(-0.92,-0.8,text="create game",textSize=0.0006)
+		
+class createGame(gameMode):
+	def __init__(self):
+		gameMode.__init__(self)
+		self.playerElementNames = []
+	def removePlayerElements(self):
+		for name in self.playerElementNames:
+			del gameState.getGameMode().elementsDict[name]
+		self.playerElementNames = []
+		gameState.getGameMode().resortElems = True
+	def redrawPlayers(self):
+		self.removePlayerElements()
+		height = 0.7
+		for player in gameState.getPlayers():
+			if(player.isOwnPlayer):
+				self.playerElementNames.append(uiElements.uiElement(-0.85,height,text="*player " + str(player.playerNumber) + "*").name)
+			else:
+				self.playerElementNames.append(uiElements.uiElement(-0.85,height,text="player " + str(player.playerNumber)).name)
+			height = height - 0.1
+	def addUIElements(self):
+		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])	
+		self.titleField = uiElements.roomTitleInputElement(-0.5,0.4,textSize=0.0006,text="clayrab's game",textYPos=-0.036,textXPos=0.005)
+		self.mapField = uiElements.mapField(-0.5,0.2,uiElements.onlineMapSelector,text="choose map")
+		self.maxPlayersField = uiElements.maxPlayersField(0.2,0.2,text="2 players")
+		uiElements.createButton(0.65,-0.8,playMode,text="create")
 
 gameState.setGameMode(newGameScreenMode)

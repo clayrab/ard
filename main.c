@@ -246,6 +246,11 @@
 #define GAME_FIND_MAPS_WIDTH 1154
 #define GAME_FIND_MAPS_INDEX 52
 
+#define GAME_FIND_CHAT "assets/GameFindChat.png"
+#define GAME_FIND_CHAT_HEIGHT 976
+#define GAME_FIND_CHAT_WIDTH 304
+#define GAME_FIND_CHAT_INDEX 53
+
 
 #define DESERT_TILE_INDEX 0
 #define GRASS_TILE_INDEX 1
@@ -1246,6 +1251,7 @@ static void initGL (){
   pngLoad(&texturesArray[ICE_INDEX],ICE_IMAGE);
   pngLoad(&texturesArray[GAME_FIND_BACKGROUND_INDEX],GAME_FIND_BACKGROUND);
   pngLoad(&texturesArray[GAME_FIND_MAPS_INDEX],GAME_FIND_MAPS);
+  pngLoad(&texturesArray[GAME_FIND_CHAT_INDEX],GAME_FIND_CHAT);
 
   vertexArrays[DESERT_TILE_INDEX] = *desertVertices;
   vertexArrays[GRASS_TILE_INDEX] = *grassVertices;

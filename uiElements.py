@@ -64,7 +64,7 @@ class uiElement:
 	def destroy(self):
 		if(hasattr(self,"names")):
 			for name in self.names:
-				gameState.getGameMode().elementsDict[self.name].destroy()
+				gameState.getGameMode().elementsDict[name].destroy()
 			self.names = []
 		del gameState.getGameMode().elementsDict[self.name]
 		gameState.getGameMode().resortElems = True
@@ -604,13 +604,6 @@ class scrollPadElement(uiElement):
 		self.yPosition = 0.0-((self.totalScrollableHeight*scrollPos/(1+self.numScrollableElements))+self.topOffset-self.scrollableElement.yPosition)
 #		self.yPosition = (self.totalScrollableHeight*scrollPos/(1+self.numScrollableElements))+self.topOffset-self.scrollableElement.yPosition
 
-class scrollingTextElement(uiElement):
-	def __init__(self,xPos,yPos,scrollableElement,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None):
-		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,color=color,mouseOverColor=mouseOverColor,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'])
-		self.scrollableElement = scrollableElement
-	def onClick(self):
-		self.scrollableElement.handleClick(self)	
-
 class scrollableElement(uiElement):
 	def onClick(self):
 		self.scrollableElement.handleClick(self)	
@@ -619,6 +612,12 @@ class scrollableElement(uiElement):
 			for name in self.names:
 				gameState.getGameMode().elementsDict[name].yPosition = yPos
 		self.yPosition = yPos
+
+class scrollingTextElement(scrollableElement):
+	def __init__(self,xPos,yPos,scrollableElement,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None):
+		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,color=color,mouseOverColor=mouseOverColor,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'])
+		self.scrollableElement = scrollableElement
+
 		
 class scrollableRoomNameElement(uiElement):
 	def onClick(self):
@@ -705,10 +704,6 @@ class scrollableTextFieldsElement(uiElement):
 			del gameState.getGameMode().elementsDict[name]
 		self.names = []
 		self.textFieldElements = []
-	def destroy(self):
-		self.reset()
-		del gameState.getGameMode().elementsDict[self.name]
-		gameState.getGameMode().resortElems = True
 
 class roomSelector(scrollableTextFieldsElement):
 	def handleClick(self,textFieldElem):
@@ -752,7 +747,25 @@ class startingManaSelector(scrollableTextFieldsElement):
 
 class createRoomButton(clickableElement):
 	def onClick(self):
-		print 'clickity'
+		gameState.setGameMode(gameState.getGameMode().createGameMode)
+
+class chatDisplay(scrollableTextFieldsElement):
+	def foo(self):
+		print 'asf'
+
+class chatBox(textInputElement):
+	def onKeyDown(self,keycode):
+		if(keycode == "return"):
+			print 'return'
+			return
+		elif(keycode == "tab"):
+			return
+		else:
+			textInputElement.onKeyDown(self,keycode)
+
+class sendChatButton(clickableElement):
+	def onClick(self):
+		print 'send chat command'
 
 class playerStartLocationButton(clickableElement):
 	playerStartLocationButtons = []
@@ -868,16 +881,58 @@ class mapSelector(scrollableTextFieldsElement):
 		self.mapField.text = textFieldElem.text
 		self.destroy()
 
+class onlineMapSelector(scrollableTextFieldsElement):
+	def __init__(self,xPos,yPos,textFields,mapField,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,yPositionOffset=-0.04,yOffset=-0.041,numFields=25,scrollSpeed=1):
+		scrollableTextFieldsElement.__init__(self,xPos,yPos,textFields,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,color=color,mouseOverColor=mouseOverColor)
+		self.mapField = mapField
+	def handleClick(self,fieldElem):
+		self.mapField.text = fieldElem.text
+		self.mapField.mapName = fieldElem.text
+		self.destroy()
+
 class mapField(clickableElement):
-       	def __init__(self,xPos,yPos,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,textXPos=0.0,textYPos=0.0):
+       	def __init__(self,xPos,yPos,selector,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,textXPos=0.0,textYPos=0.0):
 		clickableElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],color=color,mouseOverColor=mouseOverColor,textXPos=textXPos,textYPos=textYPos)
+		self.selector = selector
+		self.mapName = None
 	def onClick(self):
 		dirList=os.listdir("maps")
 		mapNames = []
 		for fileName in dirList:
 			if(fileName.endswith(".map")):
 				mapNames.append(fileName[0:len(fileName)-4])
-		mapSelector(self.xPosition,self.yPosition-0.06,mapNames,self,text="select build time",textSize=0.0005,textureIndex=cDefines.defines['UI_SCROLLABLE_INDEX'],width=(2.0*cDefines.defines['UI_SCROLLABLE_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_SCROLLABLE_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']))
+		self.selector(self.xPosition,self.yPosition-0.06,mapNames,self,text="select build time",textSize=0.0005,textureIndex=cDefines.defines['UI_SCROLLABLE_INDEX'],width=(2.0*cDefines.defines['UI_SCROLLABLE_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_SCROLLABLE_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']))
+
+class maxPlayersSelector(scrollableTextFieldsElement):
+	def handleClick(self,fieldElem):
+		gameState.getGameMode().maxPlayersField.text = fieldElem.text + " players"
+		self.destroy()
+
+class maxPlayersField(clickableElement):
+	def onClick(self):
+		maxPlayersSelector(self.xPosition,self.yPosition-0.06,["1","2","4","8"],textSize=0.0006)
+
+class createButton(menuButton):
+	def onClick(self):
+		if(gameState.getGameMode().mapField.mapName != None):
+			print gameState.getGameMode().mapField.mapName
+			print gameState.getGameMode().maxPlayersField.text
+			print gameState.getGameMode().titleField.text
+			
+			gameState.getGameFindClient().sendCommand("createRoom",gameState.getGameMode().titleField.text + "|" + gameState.getGameMode().maxPlayersField.text.split(" ")[0] + "|" + gameState.getGameMode().mapField.mapName)
+		else:
+			print 'choose a map!!'
+
+class roomTitleInputElement(textInputElement):
+	def onKeyDown(self,keycode):
+		if(keycode == "return"):
+			return
+		elif(keycode == "tab"):
+			return
+		elif(keycode == "space"):
+			return
+		else:
+			textInputElement.onKeyDown(self,keycode)
 
 class startButton(menuButton):
 	def onClick(self):
