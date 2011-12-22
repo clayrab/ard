@@ -617,16 +617,15 @@ class scrollingTextElement(scrollableElement):
 	def __init__(self,xPos,yPos,scrollableElement,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None):
 		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,color=color,mouseOverColor=mouseOverColor,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'])
 		self.scrollableElement = scrollableElement
-
 		
 class scrollableRoomNameElement(uiElement):
 	def onClick(self):
-		print gameState.getGameFindClient().sendCommand
-		gameState.getGameFindClient().sendCommand("subscribe",gameState.getUserName() + " " + self.text)
-		print 'click'
+		gameState.getGameFindClient().sendCommand("subscribe",self.text)
+
 class scrollableMapNameElement(uiElement):
 	def onClick(self):
 		print 'click'
+
 class scrollableRoomElement(scrollableElement):
 	def __init__(self,xPos,yPos,roomName,mapName,playerCount,maxPlayerCount,text="",textSize=0.0005):
 		scrollableElement.__init__(self,xPos,yPos,text="",textSize=textSize)

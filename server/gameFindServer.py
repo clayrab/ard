@@ -27,6 +27,7 @@ nBW5XiLgPtUxIxMXfaSg/X1Q5gMhF5xvuEi8mubtBhohNloUTNF4FU37QQJBALqA
 -----END RSA PRIVATE KEY-----""")
 
 rooms = {}
+users = {}
 class Room:
     def __init__(self,name,parent,mapName=None,maxPlayers=None):
         self.name = name
@@ -37,46 +38,67 @@ class Room:
         self.subscribers = []
         rooms[name] = self
         if(parent != None):
-            rooms[parent].childRooms.append(self)
+            rooms[parent.name].childRooms.append(self)
 
-class GameFinder(basic.LineReceiver):
+class Connection(basic.LineReceiver):
     databaseConnection = MySQLdb.connect(host = "localhost",user = "clay",passwd = "maskmask",db = "ard")
     databaseCursor = databaseConnection.cursor()
     def connectionMade(self):
         self.userName = ""
         self.loggedIn = False
+        self.currentRoom = None
+        self.ownedRoom = None
         print "Got new client!"
         self.factory.clients.append(self)
         self.authenticated = False
-        
     def connectionLost(self, reason):
         print "Lost a client!"
+        if(self.ownedRoom != None):
+            self.destroyRoom(self.ownedRoom)
+        if(self.currentRoom != None):
+            rooms[self.currentRoom.name].subscribers.remove(self.userName)
         self.factory.clients.remove(self)
+    def destroyRoom(self,room):
+        room.parent.childRooms.remove(self)
+        del rooms[self.name]
+        #TODO: dispatch message to subscribers and subscribe them to parent
     #BEGIN COMMANDS
     def subscribe(self,args):
+        roomName = args
+        print "args: " + str(args)
         response = ""
-        rooms[args[1]].subscribers.append(self.userName)
-        for room in rooms[args[1]].childRooms:
+        if(self.currentRoom != None):
+            rooms[self.currentRoom.name].subscribers.remove(self.userName)
+        print rooms[roomName].subscribers
+        rooms[roomName].subscribers.append(self.userName)
+        self.currentRoom = rooms[roomName]
+        for room in rooms[roomName].childRooms:
             response = response + "|" + room.name + "-" + str(len(room.subscribers))
-#        response = response + ":"
-#        for userName in rooms[args[1]].subscribers:
-#            response = response + userName + " "
-#        print response
+        if(rooms[roomName].mapName != None):
+            response = response + "*" + rooms[roomName].mapName
+        print response
         self.sendCommand("showRoom",response)
     def createRoom(self,args):
-        Room(
+        tokens = args.split("|")
+        if(self.ownedRoom != None):
+            print 'owned rooml....'
+            self.destroyRoom(self.ownedRoom)
+        self.ownedRoom = Room(tokens[0],self.currentRoom,tokens[2],tokens[1])
+        print self.ownedRoom
+        print self.ownedRoom.name
+        self.subscribe(self.ownedRoom.name)
         print args
     def login(self,args):
-        strArgs = " ".join(args)
-        strArgs = str(rsaKey.decrypt(strArgs))
+#        strArgs = " ".join(args)
+        strArgs = str(rsaKey.decrypt(args))
         tokens = strArgs.split(" ",1)
         hashFunc = hashlib.sha256()
         hashFunc.update(tokens[1])
-        GameFinder.databaseCursor.execute("SELECT * from users WHERE username = '" + tokens[0] + "' and passhash = '" + hashFunc.digest() + "'")
-        if(GameFinder.databaseCursor.rowcount > 0):
+        Connection.databaseCursor.execute("SELECT * from users WHERE username = '" + tokens[0] + "' and passhash = '" + hashFunc.digest() + "'")
+        if(Connection.databaseCursor.rowcount > 0):
             self.loggedIn = True
-            print "Logged in!"
-            self.subscribe([tokens[0],"lobby"])
+            self.userName = tokens[0]
+            self.subscribe("lobby")
         else:
             print "TODO: Send failed login message to client!"
     #END COMMANDS
@@ -84,29 +106,26 @@ class GameFinder(basic.LineReceiver):
         if(self.loggedIn or commandName == "login"):
             commandFunc = getattr(self,commandName)
             if(commandFunc != None):
-                if(arguments != None and arguments != ''):
-                    commandFunc(arguments)
-                else:
-                    commandFunc()
+                commandFunc(arguments)
             else:
                 print "ERROR: COMMAND " + commandName + " does not exist"
 
     def lineReceived(self, line):
-        tokens = line.split(" ",2)
-        if(len(tokens) > 2):
-            self.doCommand(tokens[0],arguments=tokens[1:])
+        tokens = line.split(" ",1)
+        if(len(tokens) > 1):
+            self.doCommand(tokens[0],arguments=tokens[1])
         else:
             self.doCommand(tokens[0])
     def sendCommand(self,command,arg):
         self.transport.write(command + "~" + arg + "\r\n")
 
 factory = protocol.ServerFactory()
-factory.protocol = GameFinder
+factory.protocol = Connection
 factory.clients = []
-Room("lobby",None)
-Room("1v1","lobby")
-Room("2v2","lobby")
-Room("3v3","lobby")
+lobby = Room("lobby",None)
+Room("1v1",lobby)
+Room("2v2",lobby)
+Room("3v3",lobby)
 
 application = service.Application("gameFindServer")
 internet.TCPServer(2222, factory).setServiceParent(application)

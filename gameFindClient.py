@@ -19,18 +19,18 @@ SINGLE_PLAYER = -2
 class Commands:
     @staticmethod
     def showRoom(args):
-        print 'showroom'
-        gameState.setGameMode(gameModes.gameFindMode)
-        roomSelector = gameState.getGameMode().roomSelector
-        roomSelector.reset()
-        tokens = args.split('|')
-        for token in tokens:
-            if(len(token) > 0):
-                (roomName,subscribersCount) = tuple(token.split("-"))
-                roomSelector.textFields.append(uiElements.scrollableRoomElement(roomSelector.xPosition,0.0,roomName,"mapname",0,8))
-        roomSelector.redraw()
-        
-        print args
+        if(args != "" and args[0] == "*"):
+            print 'show game room'
+        else:
+            gameState.setGameMode(gameModes.gameFindMode)
+            roomSelector = gameState.getGameMode().roomSelector
+            roomSelector.reset()
+            tokens = args.split('|')
+            for token in tokens:
+                if(len(token) > 0):
+                    (roomName,subscribersCount) = tuple(token.split("-"))
+                    roomSelector.textFields.append(uiElements.scrollableRoomElement(roomSelector.xPosition,0.0,roomName,"mapname",0,8))
+            roomSelector.redraw()        
     @staticmethod
     def seedRNG(seed):
         random.seed(seed)
@@ -246,7 +246,7 @@ class Client:
         self.socket.setblocking(0)
         self.commandLog = []
         self.delayedCommands = []
-        self.sendCommand("subscribe",gameState.getUserName() + " lobby")
+        self.sendCommand("subscribe","lobby")
     def checkSocket(self):
         try:
             receivedData = self.socket.recv(1024)
