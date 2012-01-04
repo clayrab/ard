@@ -584,7 +584,7 @@ class gameFindMode(gameMode):
 		roomSelectorHeight = (2.0*cDefines.defines['GAME_FIND_MAPS_HEIGHT']/cDefines.defines['UI_NEW_GAME_SCREEN_IMAGE_HEIGHT'])
 		chatDisplayWidth =  (2.0*cDefines.defines['GAME_FIND_CHAT_WIDTH']/cDefines.defines['UI_NEW_GAME_SCREEN_IMAGE_WIDTH'])
 		chatDisplayHeight = (2.0*cDefines.defines['GAME_FIND_CHAT_HEIGHT']/cDefines.defines['UI_NEW_GAME_SCREEN_IMAGE_HEIGHT'])
-		self.roomSelector = uiElements.roomSelector(-0.925,0.9,[],textSize=0.0005,textureIndex=cDefines.defines['GAME_FIND_MAPS_INDEX'],width=roomSelectorWidth,height=roomSelectorHeight)
+		self.roomSelector = uiElements.roomSelector(-0.925,0.9,[],textSize=0.0005,textureIndex=cDefines.defines['GAME_FIND_MAPS_INDEX'],width=roomSelectorWidth,height=roomSelectorHeight,xPositionOffset=0.01,yPositionOffset=-0.06)
 		self.chatDisplay = uiElements.chatDisplay(0.55,0.9,["asd","fkfkf"],textSize=0.0005,textureIndex=cDefines.defines['GAME_FIND_CHAT_INDEX'],width=chatDisplayWidth,height=chatDisplayHeight)
 		uiElements.createRoomButton(-0.92,-0.8,text="create game",textSize=0.0006)
 		

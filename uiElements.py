@@ -632,12 +632,13 @@ class scrollableRoomElement(scrollableElement):
 		self.names = []
 		self.names.append(scrollableRoomNameElement(xPos+0.008,yPos,text=roomName,textSize=textSize).name)
 		self.names.append(scrollableMapNameElement(xPos+0.9,yPos,text=mapName,textSize=textSize).name)
-		self.names.append(uiElement(xPos+1.38,yPos,text=str(playerCount) + "/" + str(maxPlayerCount),textSize=textSize).name)
+		self.names.append(uiElement(xPos+1.36,yPos,text=str(playerCount) + "/" + str(maxPlayerCount),textSize=textSize).name)
 
 class scrollableTextFieldsElement(uiElement):
-	def __init__(self,xPos,yPos,textFields,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,yPositionOffset=-0.04,yOffset=-0.041,numFields=25,scrollSpeed=1):
+	def __init__(self,xPos,yPos,textFields,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,xPositionOffset=0.0,yPositionOffset=-0.04,yOffset=-0.041,numFields=25,scrollSpeed=1):
 		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,color=color,mouseOverColor=mouseOverColor)
-
+		print 		xPositionOffset
+		self.xPositionOffset = xPositionOffset
 		self.yPositionOffset = yPositionOffset
 		self.yOffset = yOffset
 		self.numFields = numFields
@@ -659,7 +660,7 @@ class scrollableTextFieldsElement(uiElement):
 					text = field.name
 				else:
 					text=field
-				textFieldElem = scrollingTextElement(self.xPosition,0.0,width=0.2,height=0.1,text=text,textureIndex=-1,textSize=self.textSize,hidden=True,scrollableElement=self)
+				textFieldElem = scrollingTextElement(self.xPosition+self.xPositionOffset,0.0,self,width=0.2,height=0.1,text=text,textureIndex=-1,textSize=self.textSize,hidden=True)
 			textFieldElem.onScrollUp = self.onScrollUp
 			textFieldElem.onScrollDown = self.onScrollDown
 			self.names.append(textFieldElem.name)
@@ -707,6 +708,14 @@ class scrollableTextFieldsElement(uiElement):
 class roomSelector(scrollableTextFieldsElement):
 	def handleClick(self,textFieldElem):
 		print textFieldElem
+	def drawRooms(self,roomsStr):
+		self.reset()
+		tokens = roomsStr.split('|')
+		for token in tokens:
+			if(len(token) > 0):
+				(roomName,subscribersCount) = tuple(token.split("-"))
+				self.textFields.append(scrollableRoomElement(self.xPosition+self.xPositionOffset,0.0,roomName,"mapname",0,8))
+		self.redraw()        
 
 class unitTypeSelector(scrollableTextFieldsElement):
 	def handleClick(self,textFieldElem):

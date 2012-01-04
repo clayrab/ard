@@ -23,14 +23,7 @@ class Commands:
             print 'show game room'
         else:
             gameState.setGameMode(gameModes.gameFindMode)
-            roomSelector = gameState.getGameMode().roomSelector
-            roomSelector.reset()
-            tokens = args.split('|')
-            for token in tokens:
-                if(len(token) > 0):
-                    (roomName,subscribersCount) = tuple(token.split("-"))
-                    roomSelector.textFields.append(uiElements.scrollableRoomElement(roomSelector.xPosition,0.0,roomName,"mapname",0,8))
-            roomSelector.redraw()        
+            gameState.getGameMode().roomSelector.drawRooms(args)
     @staticmethod
     def seedRNG(seed):
         random.seed(seed)

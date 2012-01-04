@@ -37,8 +37,8 @@ class Room:
         self.childRooms = []
         self.subscribers = []
         rooms[name] = self
-        if(parent != None):
-            rooms[parent.name].childRooms.append(self)
+        if(self.parent != None):
+            self.parent.childRooms.append(self)
 
 class Connection(basic.LineReceiver):
     databaseConnection = MySQLdb.connect(host = "localhost",user = "clay",passwd = "maskmask",db = "ard")
@@ -59,35 +59,32 @@ class Connection(basic.LineReceiver):
             rooms[self.currentRoom.name].subscribers.remove(self.userName)
         self.factory.clients.remove(self)
     def destroyRoom(self,room):
+        print room.name
+        print room.parent.childRooms
         room.parent.childRooms.remove(self)
         del rooms[self.name]
         #TODO: dispatch message to subscribers and subscribe them to parent
     #BEGIN COMMANDS
     def subscribe(self,args):
         roomName = args
-        print "args: " + str(args)
         response = ""
         if(self.currentRoom != None):
             rooms[self.currentRoom.name].subscribers.remove(self.userName)
         print rooms[roomName].subscribers
         rooms[roomName].subscribers.append(self.userName)
         self.currentRoom = rooms[roomName]
+        print 'currentroom: ' + str(self.currentRoom)
         for room in rooms[roomName].childRooms:
             response = response + "|" + room.name + "-" + str(len(room.subscribers))
         if(rooms[roomName].mapName != None):
             response = response + "*" + rooms[roomName].mapName
-        print response
         self.sendCommand("showRoom",response)
     def createRoom(self,args):
         tokens = args.split("|")
         if(self.ownedRoom != None):
-            print 'owned rooml....'
             self.destroyRoom(self.ownedRoom)
         self.ownedRoom = Room(tokens[0],self.currentRoom,tokens[2],tokens[1])
-        print self.ownedRoom
-        print self.ownedRoom.name
         self.subscribe(self.ownedRoom.name)
-        print args
     def login(self,args):
 #        strArgs = " ".join(args)
         strArgs = str(rsaKey.decrypt(args))

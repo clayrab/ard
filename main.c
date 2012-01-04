@@ -242,8 +242,8 @@
 #define GAME_FIND_BACKGROUND_INDEX 51
 
 #define GAME_FIND_MAPS "assets/GameFindMaps.png"
-#define GAME_FIND_MAPS_HEIGHT 976
-#define GAME_FIND_MAPS_WIDTH 1154
+#define GAME_FIND_MAPS_HEIGHT 978
+#define GAME_FIND_MAPS_WIDTH 1156
 #define GAME_FIND_MAPS_INDEX 52
 
 #define GAME_FIND_CHAT "assets/GameFindChat.png"
