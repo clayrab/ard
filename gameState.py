@@ -37,9 +37,9 @@ def setMapName(mapName):
     theMapName = mapName
     
 theGameMode = None
-def setGameMode(gameModeType):
+def setGameMode(gameModeType,args=[]):
     global theGameMode
-    theGameMode = gameModeType()
+    theGameMode = gameModeType(args)
     if(hasattr(theGameMode,"loadMap")):
         theGameMode.loadMap()
     theGameMode.addUIElements()

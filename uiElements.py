@@ -706,9 +706,19 @@ class scrollableTextFieldsElement(uiElement):
 		self.textFieldElements = []
 
 class roomSelector(scrollableTextFieldsElement):
+	def __init__(self,xPos,yPos,rooms,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,xPositionOffset=0.0,yPositionOffset=-0.04,yOffset=-0.041,numFields=25,scrollSpeed=1):
+		print 'foo'
+		scrollableTextFieldsElement.__init__(self,xPos,yPos,[],width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,color=color,mouseOverColor=mouseOverColor,xPositionOffset=xPositionOffset,yPositionOffset=yPositionOffset,yOffset=yOffset)
+		self.rooms = rooms
+		for room in rooms:
+			self.textFields.append(scrollableRoomElement(self.xPosition+self.xPositionOffset,0.0,room[0],"mapname",0,8))
+		self.redraw()
 	def handleClick(self,textFieldElem):
 		print textFieldElem
+	
 	def drawRooms(self,roomsStr):
+		print 'drawrooms'
+	def foo(self):
 		self.reset()
 		tokens = roomsStr.split('|')
 		for token in tokens:

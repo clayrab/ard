@@ -56,7 +56,7 @@ class Connection(basic.LineReceiver):
         if(self.ownedRoom != None):
             self.destroyRoom(self.ownedRoom)
         if(self.currentRoom != None):
-            rooms[self.currentRoom.name].subscribers.remove(self.userName)
+            rooms[self.currentRoom.name].subscribers.remove(self)
         self.factory.clients.remove(self)
     def destroyRoom(self,room):
         print room.name
@@ -69,22 +69,26 @@ class Connection(basic.LineReceiver):
         roomName = args
         response = ""
         if(self.currentRoom != None):
-            rooms[self.currentRoom.name].subscribers.remove(self.userName)
+            rooms[self.currentRoom.name].subscribers.remove(self)
         print rooms[roomName].subscribers
-        rooms[roomName].subscribers.append(self.userName)
+        rooms[roomName].subscribers.append(self)
         self.currentRoom = rooms[roomName]
         print 'currentroom: ' + str(self.currentRoom)
-        for room in rooms[roomName].childRooms:
-            response = response + "|" + room.name + "-" + str(len(room.subscribers))
         if(rooms[roomName].mapName != None):
             response = response + "*" + rooms[roomName].mapName
-        self.sendCommand("showRoom",response)
+            self.sendCommand("showGameRoom",roomName + response)
+        else:
+            for room in rooms[roomName].childRooms:
+                response = response + "|" + room.name + "-" + str(len(room.subscribers))
+            self.sendCommand("showRoom",roomName + response)
     def createRoom(self,args):
         tokens = args.split("|")
         if(self.ownedRoom != None):
             self.destroyRoom(self.ownedRoom)
         self.ownedRoom = Room(tokens[0],self.currentRoom,tokens[2],tokens[1])
         self.subscribe(self.ownedRoom.name)
+        for subscriber in self.ownedRoom.parent:
+            print subscriber
     def login(self,args):
 #        strArgs = " ".join(args)
         strArgs = str(rsaKey.decrypt(args))

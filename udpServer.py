@@ -55,7 +55,7 @@ class udpServer:
 #            elif(data == str(MESSAGES.HANDSHAKE)):
 #                print 'connecting...'
 #                self.clientConnected = True
-            print "received message:", data
+#            print "received message:", data
 def startUdpServer():
     udpServer.theUdpServer = udpServer(socket.socket(socket.AF_INET, socket.SOCK_DGRAM))
     serverThread = threading.Thread(target=udpServer.theUdpServer.run)

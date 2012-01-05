@@ -66,7 +66,7 @@ def printTraceBack(excType,excValue,tb=None):
 
 class gameMode:
 	sortedElements = []
-	def __init__(self):
+	def __init__(self,args=[]):
 		self.elementsDict = {}
 		self.map = None
 		self.elementWithFocus = None
@@ -127,7 +127,7 @@ class gameMode:
 			udpClient.udpClient.theUdpClient.checkSocket()
 			
 class tiledGameMode(gameMode):
-	def __init__(self):
+	def __init__(self,args=[]):
 		self.mousedOverObject = None
 		self.mouseX = 0
 		self.mouseY = 0
@@ -190,7 +190,7 @@ class tiledGameMode(gameMode):
 
 
 class playMode(tiledGameMode):
-	def __init__(self):
+	def __init__(self,args):
 		self.units = []
 		self.elementalEffects = []
 		self.nextUnit = None
@@ -372,7 +372,7 @@ class playMode(tiledGameMode):
 		self.chooseNextUnit()
 
 class mapEditorMode(tiledGameMode):	
-	def __init__(self):
+	def __init__(self,args):
 		self.selectedButton = None
 		self.selectedCityNode = None
 		tiledGameMode.__init__(self)
@@ -433,8 +433,8 @@ class mapEditorMode(tiledGameMode):
 		uiElements.saveButton(0.9,0.925,text="save",textSize=0.0005)
 
 class textBasedMenuMode(gameMode):
-	def __init__(self):
-		gameMode.__init__(self)
+	def __init__(self,args):
+		gameMode.__init__(self,args)
 	def handleKeyDown(self,keycode):
 		if(keycode == "up"):
 			if(uiElements.menuButton.selectedIndex == 0):
@@ -499,7 +499,7 @@ class mapEditorSelectMode(textBasedMenuMode):
 				uiElements.mapEditSelectButton(-0.16,0.2+heightDelta,mapEditorMode,text=fileName[0:len(fileName)-4])
 
 class newMapMode(gameMode):
-	def __init__(self):
+	def __init__(self,args):
 		gameMode.__init__(self)
 	def addUIElements(self):
 		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])
@@ -507,7 +507,7 @@ class newMapMode(gameMode):
 		self.setFocus(uiElements.newMapNameInputElement(-0.15,0.15,mapEditorMode,width=(2.0*cDefines.defines['UI_TEXT_INPUT_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_TEXT_INPUT_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),text="",textSize=0.0005,textColor='00 00 00',textureIndex=cDefines.defines['UI_TEXT_INPUT_INDEX'],textYPos=-0.035,textXPos=0.01))
 
 class joinLANGameScreenMode(gameMode):
-	def __init__(self):
+	def __init__(self,args):
 		gameMode.__init__(self)
 	def addUIElements(self):
 		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])
@@ -515,7 +515,7 @@ class joinLANGameScreenMode(gameMode):
 		self.setFocus(uiElements.hostIPInputElement(-0.15,0.15,joiningLANGameScreenMode,width=(2.0*cDefines.defines['UI_TEXT_INPUT_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_TEXT_INPUT_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),textSize=0.0005,textColor='00 00 00',textureIndex=cDefines.defines['UI_TEXT_INPUT_INDEX'],textYPos=-0.035,textXPos=0.01))
 
 class joiningLANGameScreenMode(gameMode):
-	def __init__(self):
+	def __init__(self,args):
 		gameMode.__init__(self)
 		self.playerElementNames = []
 	def removePlayerElements(self):
@@ -540,7 +540,7 @@ class joiningLANGameScreenMode(gameMode):
 		#uiElements.menuButton(-0.45,0.0,newGameScreenMode,text="back")
 
 class hostLANGameScreenMode(gameMode):
-	def __init__(self):
+	def __init__(self,args):
 		gameMode.__init__(self)
 		self.playerElementNames = []
 	def removePlayerElements(self):
@@ -566,8 +566,21 @@ class hostLANGameScreenMode(gameMode):
 		uiElements.mapField(-0.85,-0.1,uiElements.mapSelector,text="choose map")
 		uiElements.startButton(0.65,-0.8,playMode,text="start")
 
+class gameRoomMode(gameMode):
+	def __init__(self,args):
+		gameMode.__init__(self)
+		self.playerElementNames = []
+	def setMapName(self,mapName):
+		self.mapName = mapName
+		uiElements.uiElement(-0.15,0.9,text=mapName)
+		
+	def addUIElements(self):
+		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])	
+		uiElements.uiElement(-0.85,0.8,text="players")
+		uiElements.startButton(0.65,-0.8,playMode,text="start")
+
 class loginMode(gameMode):
-	def __init__(self):
+	def __init__(self,args):
 		gameMode.__init__(self)
 		gameFindClient.startClient()
 	def addUIElements(self):
@@ -576,7 +589,16 @@ class loginMode(gameMode):
 		uiElements.loginPassword(-0.12,-0.06)
 
 class gameFindMode(gameMode):
-
+	def __init__(self,args):
+		print "args: " + str(args)
+		self.roomName = args[0]
+		self.rooms = []
+		tokens = args[1].split('|')
+		for token in tokens:
+			self.rooms.append(tuple(token.split("-")))
+		print '1'
+		gameMode.__init__(self)
+		print '2'
 	def addUIElements(self):
 		self.createGameMode = createGame
 		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])	
@@ -584,12 +606,12 @@ class gameFindMode(gameMode):
 		roomSelectorHeight = (2.0*cDefines.defines['GAME_FIND_MAPS_HEIGHT']/cDefines.defines['UI_NEW_GAME_SCREEN_IMAGE_HEIGHT'])
 		chatDisplayWidth =  (2.0*cDefines.defines['GAME_FIND_CHAT_WIDTH']/cDefines.defines['UI_NEW_GAME_SCREEN_IMAGE_WIDTH'])
 		chatDisplayHeight = (2.0*cDefines.defines['GAME_FIND_CHAT_HEIGHT']/cDefines.defines['UI_NEW_GAME_SCREEN_IMAGE_HEIGHT'])
-		self.roomSelector = uiElements.roomSelector(-0.925,0.9,[],textSize=0.0005,textureIndex=cDefines.defines['GAME_FIND_MAPS_INDEX'],width=roomSelectorWidth,height=roomSelectorHeight,xPositionOffset=0.01,yPositionOffset=-0.06)
+		self.roomSelector = uiElements.roomSelector(-0.925,0.9,self.rooms,textSize=0.0005,textureIndex=cDefines.defines['GAME_FIND_MAPS_INDEX'],width=roomSelectorWidth,height=roomSelectorHeight,xPositionOffset=0.01,yPositionOffset=-0.06)
 		self.chatDisplay = uiElements.chatDisplay(0.55,0.9,["asd","fkfkf"],textSize=0.0005,textureIndex=cDefines.defines['GAME_FIND_CHAT_INDEX'],width=chatDisplayWidth,height=chatDisplayHeight)
 		uiElements.createRoomButton(-0.92,-0.8,text="create game",textSize=0.0006)
 		
 class createGame(gameMode):
-	def __init__(self):
+	def __init__(self,args):
 		gameMode.__init__(self)
 		self.playerElementNames = []
 	def removePlayerElements(self):
