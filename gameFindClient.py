@@ -19,7 +19,7 @@ SERVER = -1
 SINGLE_PLAYER = -2
 class Commands:
     @staticmethod
-    def showGameRoom(args):
+    def showGameRoom(args):	    
         print args
         gameState.setGameMode(gameModes.gameRoomMode) 
         print 'show game room'
@@ -60,8 +60,8 @@ def doCommand(commandName,args=None):
 class Client:
     def __init__(self):        
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-#        host = socket.gethostbyname("cynicsymposium.com")
-        host = "127.0.0.1"
+        host = socket.gethostbyname("cynicsymposium.com")
+#        host = "127.0.0.1"
         port = 2222
         self.socket.connect((host,port))
         self.socket.setblocking(0)
@@ -84,9 +84,8 @@ class Client:
 
     def sendCommand(self,command,argsString=""):
         if(command == "login"):
-#            argsString = pubKey.encrypt(argsString,32)
-#            argsString = argsString[0]
-            print argsString
+            argsString = pubKey.encrypt(argsString,32)
+            argsString = argsString[0]
         self.socket.send(command + " " + str(argsString) + "\r\n")
         print 'sent...'
 def startClient():
