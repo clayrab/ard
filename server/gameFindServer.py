@@ -41,7 +41,7 @@ class Room:
             self.parent.childRooms.append(self)
 
 class Connection(basic.LineReceiver):
-    databaseConnection = MySQLdb.connect(host = "localhost",user = "clay",passwd = "maskmask",db = "ard")
+    databaseConnection = MySQLdb.connect(host = "localhost",user = "clay",passwd = "maskboat",db = "ard")
     databaseCursor = databaseConnection.cursor()
     def connectionMade(self):
         self.userName = ""
