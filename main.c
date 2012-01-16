@@ -498,10 +498,12 @@ void processTheHits(GLint hitsCount, GLuint buffer[]){
     }
     bufferPtr = bufferPtr + 3 + numberOfNames;
     count = count + 1;
-  }
+  }  
   if(!mouseTextPositionSet){
-    pyObj = PyObject_CallMethod(gameMode,"setMouseTextPosition","i",-1);
+	pyObj = PyObject_CallMethod(gameMode,"setMouseTextPosition","i",-1);
+	if(pyObj != NULL){
     Py_DECREF(pyObj);
+	}
   }
 }
 
@@ -842,10 +844,15 @@ void calculateTranslation(){
   convertWindowCoordsToViewportCoords(UI_MAP_EDITOR_LEFT_IMAGE_WIDTH,SCREEN_HEIGHT-UI_MAP_EDITOR_TOP_IMAGE_HEIGHT-UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT,translateZ,&convertedBottomLeftX,&convertedBottomLeftY,&convertedBottomLeftZ);
   convertWindowCoordsToViewportCoords(SCREEN_WIDTH-UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH,0.0,translateZ,&convertedTopRightX,&convertedTopRightY,&convertedTopRightZ);
   convertWindowCoordsToViewportCoords(mouseX,mouseY,translateZ,&mouseMapPosX,&mouseMapPosY,&mouseMapPosZ);
-  pyTranslateZ = PyObject_GetAttrString(theMap,"translateZ");
-  translateZ = PyFloat_AsDouble(pyTranslateZ);
+	if(theMap != NULL){
+		pyTranslateZ = PyObject_GetAttrString(theMap,"translateZ");
+		translateZ = PyFloat_AsDouble(pyTranslateZ);
+	}
+
   mapRightOffset = translateTilesXToPositionX(mapWidth+1,0);
+
   mapTopOffset = translateTilesYToPositionY(mapHeight);
+
   //printf("screen topright %f,%f\n",convertedTopRightX,convertedTopRightY);
   //printf("screen bottomleft %f,%f\n",convertedBottomLeftX,convertedBottomLeftY);
   //printf("translate %f,%f\n",translateX,translateY);
@@ -918,14 +925,14 @@ void calculateTranslation(){
     }
   }
   //glTranslatef(translateX,translateY,mouseMapPosZ);
-  if(theMap != Py_None){
+  if(theMap != Py_None && theMap != NULL){
     Py_DECREF(pyMapWidth);
     Py_DECREF(pyMapHeight);
   }
 }
 
 drawBoard(){
-  if(theMap != Py_None){
+  if(theMap != Py_None && theMap != NULL){
     drawTiles();
     drawTilesText();
   }
@@ -1127,13 +1134,14 @@ float pointerHeight;
 char frameRate[20];
 void drawUI(){
   pyObj = PyObject_CallMethod(gameMode,"getUIElementsIterator",NULL);
-  UIElementsIterator = PyObject_GetIter(pyObj);//New reference
-  while (uiElement = PyIter_Next(UIElementsIterator)) {
-    drawUIElement(uiElement);
+  if(pyObj != NULL){
+	  UIElementsIterator = PyObject_GetIter(pyObj);//New reference
+	  while (uiElement = PyIter_Next(UIElementsIterator)) {
+		drawUIElement(uiElement);
+	  }
+	  Py_DECREF(UIElementsIterator);
+	  Py_DECREF(pyObj);
   }
-  Py_DECREF(pyObj);
-  Py_DECREF(UIElementsIterator);
-
   glGetIntegerv(GL_RENDER_MODE,&bufRenderMode);
   if(bufRenderMode==GL_RENDER){//need to hide the cursor during GL_SELECT
     /*draw cursor*/
@@ -1488,6 +1496,7 @@ static void handleInput(){
 GLint viewport[4];
 GLint hitsCnt;
 static void draw(){
+
   if(PyObject_HasAttrString(gameMode,"onDraw")){
     pyObj = PyObject_CallMethod(gameMode,"onDraw",NULL);//New reference
     printPyStackTrace();
@@ -1516,7 +1525,6 @@ static void draw(){
   gluPerspective(45.0f,screenRatio,minZoom,maxZoom);
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
-
 
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
@@ -1595,9 +1603,10 @@ static void mainLoop (){
     if(PyObject_HasAttrString(gameMode,"map")){
       Py_DECREF(theMap);
     }
-    Py_DECREF(gameMode); 
- }
+    Py_DECREF(gameMode);
+  }
   pyObj = PyObject_CallMethod(gameMode,"onQuit",NULL);
+ 
 }
 int nextPowerOf2(unsigned int v){
   const unsigned int b[] = {0x2, 0xC, 0xF0, 0xFF00, 0xFFFF0000};
@@ -1645,12 +1654,9 @@ int main(int argc, char **argv){
   printPyStackTrace();
   gameState = PyImport_ImportModule("gameState");
   printPyStackTrace();
-  
   mainLoop();
-  
   Py_DECREF(gameModule);
   Py_DECREF(gameState);
   Py_Finalize();
-
   exit(0);
 }
