@@ -5,15 +5,17 @@ import gameState
 import gameModes
 import gameLogic
 import uiElements
-from Crypto.PublicKey import RSA
+print '1'
+#from Crypto.PublicKey import RSA
+print '2'
 #import Crypto
 
-pubKey = RSA.importKey("""-----BEGIN PUBLIC KEY-----
-MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCJ5JSy/apuQQJ4OzsbT1EcnocX
-jNbdUgxGoUkDBq6QVwebGAoni8aLd/vdyw90Q5dAxelJlTAKgvA7e1DmXlNaPRZ9
-CuwkfHcIAEeVoMnEmc0Enfwz2PaA5dFCdsyifeiLjxH852sNcRQJjis5uCO/qRBI
-HxhGho31ggCgs/6qcQIDAQAB
------END PUBLIC KEY-----""")
+#pubKey = RSA.importKey("""-----BEGIN PUBLIC KEY-----
+#MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCJ5JSy/apuQQJ4OzsbT1EcnocX
+#jNbdUgxGoUkDBq6QVwebGAoni8aLd/vdyw90Q5dAxelJlTAKgvA7e1DmXlNaPRZ9
+#CuwkfHcIAEeVoMnEmc0Enfwz2PaA5dFCdsyifeiLjxH852sNcRQJjis5uCO/qRBI
+#HxhGho31ggCgs/6qcQIDAQAB
+#-----END PUBLIC KEY-----""")
 
 SERVER = -1
 SINGLE_PLAYER = -2
@@ -84,7 +86,7 @@ class Client:
 
     def sendCommand(self,command,argsString=""):
         if(command == "login"):
-            argsString = pubKey.encrypt(argsString,32)
+#            argsString = pubKey.encrypt(argsString,32)
             argsString = argsString[0]
         self.socket.send(command + " " + str(argsString) + "\r\n")
         print 'sent...'
