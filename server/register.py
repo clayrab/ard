@@ -7,7 +7,7 @@ if(len(sys.argv) < 3):
     print "usage: python register.py username password"
     exit()
 else:
-    conn = MySQLdb.connect (host = "localhost",user = "clay",passwd = "maskmask",db = "ard")
+    conn = MySQLdb.connect (host = "localhost",user = "clay",passwd = "maskboat",db = "ard")
     cursor = conn.cursor() 
     hashFunc = hashlib.sha256()
     hashFunc.update(sys.argv[2])

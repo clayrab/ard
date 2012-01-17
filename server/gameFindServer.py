@@ -3,28 +3,14 @@ from twisted.internet import protocol
 from twisted.application import service, internet
 from twisted.cred.portal import IRealm
 from zope.interface import implements
-from Crypto.PublicKey import RSA
+import rsa
 import MySQLdb
 import hashlib
 import time
 import sys
 from pprint import pprint as pp
 
-rsaKey = RSA.importKey("""-----BEGIN RSA PRIVATE KEY-----
-MIICXAIBAAKBgQCJ5JSy/apuQQJ4OzsbT1EcnocXjNbdUgxGoUkDBq6QVwebGAon
-i8aLd/vdyw90Q5dAxelJlTAKgvA7e1DmXlNaPRZ9CuwkfHcIAEeVoMnEmc0Enfwz
-2PaA5dFCdsyifeiLjxH852sNcRQJjis5uCO/qRBIHxhGho31ggCgs/6qcQIDAQAB
-AoGAEKjrRkzbgIKeN8SAOaZ1mE2W6MN9WjQFg6sM1S7DfHDnXFelMm3yyPrwFTXp
-YhSge5TtwJQjv8FeIPGfLpYK39jD1ghC9xYQRnPozjx7Ey/LmwA+tAmZ3V4JJVs0
-8NH8v1b4AqJ1a1fvzVxYcMRcC5fh6UPmZAmqmLZamkWtOYECQQC3cQ3ddfVJ6ZKv
-kJOHoBJfPgXtEhno3jgTc1fiBZqoCH6jbb2y/g088qYV/yCICx24X5t/KLFXsilK
-LDVueF2JAkEAwG9ZtNVTDVPTt419bu2SEC3H7TCTGynXaAttH7prpRGamxe/We2v
-p5TFCnIoKe1PXj6zjL39B5Z3izPGwqnTqQJAVet1+wyM3xmvwtuMvjGTaVi7ndak
-nBW5XiLgPtUxIxMXfaSg/X1Q5gMhF5xvuEi8mubtBhohNloUTNF4FU37QQJBALqA
-8QNnITgwf2hNdD03eTG+/R5vzpMsCT4onNl8VunD1wDrkiQ5Td3wPMwz+aMxAZRI
-1sHYPMzG0xOR2dg+ugkCQEWDWjG/HGn/lXKzAVyA8JGe0oGNlgme2p787ya2ixWA
-9x6ZS1ohXmHsMcT1Ld/6j4sX8mA78GedJTuDN4ScAfw=
------END RSA PRIVATE KEY-----""")
+privKey = rsa.PrivateKey(7294827300696961467825209649910612955544688273739654133132828909790861956391138768640249164939907033611860365075051236361359042803639003856587767504588353, 65537, 6977264057202623443995841153775681866813605135283831723778907294830864861810642621995438195929805731219864983148755866749414123928269010901281896813845553, 6795004418806002701275892780554702381414286837297772798037030472995866173266951571, 1073557403510678821257076760372205704035248017469579525573290803741034843)
 
 rooms = {}
 users = {}
@@ -91,12 +77,14 @@ class Connection(basic.LineReceiver):
             print subscriber
     def login(self,args):
 #        strArgs = " ".join(args)
-        strArgs = str(rsaKey.decrypt(args))
+#        strArgs = str(rsaKey.decrypt(args))
+        strArgs = rsa.decrypt(args, privKey)
         tokens = strArgs.split(" ",1)
         hashFunc = hashlib.sha256()
         hashFunc.update(tokens[1])
         Connection.databaseCursor.execute("SELECT * from users WHERE username = '" + tokens[0] + "' and passhash = '" + hashFunc.digest() + "'")
         if(Connection.databaseCursor.rowcount > 0):
+            users[tokens[0]] = self
             self.loggedIn = True
             self.userName = tokens[0]
             self.subscribe("lobby")
