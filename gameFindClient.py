@@ -87,9 +87,7 @@ class Client:
 
     def sendCommand(self,command,argsString=""):
         if(command == "login"):
-#            argsString = pubKey.encrypt(argsString,32)
             argsString = rsa.encrypt(argsString, pubKey)
-            argsString = argsString[0]
         self.socket.send(command + " " + str(argsString) + "\r\n")
         print 'sent...'
 def startClient():

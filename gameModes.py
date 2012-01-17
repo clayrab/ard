@@ -78,7 +78,6 @@ class gameMode:
 		self.elementWithFocus = elem
 		self.elementWithFocus.focused = True
 	def getUIElementsIterator(self):
-		print 'asdf'
 		if(self.resortElems):
 			self.resortElems = False
 #			gameMode.sortedElements = sorted(self.elementsDict.values(),key=lambda x:x.name)
