@@ -37,6 +37,10 @@
 # room for each game
 #unit editor
 import sys
+print sys.path
+#sys.path.insert(0,"python26.zip")
+#sys.path.insert(0,".")
+#print sys.path
 import os
 import random
 import math
@@ -54,6 +58,9 @@ import client
 import gameFindClient
 import udpClient
 from textureFunctions import texWidth, texHeight, texIndex
+
+print random.__file__
+
 
 sys.setrecursionlimit(100000)
 #need this to allow deep recursion for AStar

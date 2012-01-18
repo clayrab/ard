@@ -1336,11 +1336,12 @@ static void initGL (){
 
 static void initPython(){
   //http://docs.python.org/release/2.6.6/c-api/index.html
-  char path[100] = "hello";
+  //  char [100] = "-v";
   //	sprintf(path,"%s","hello");
+  Py_SetPythonHome(".");
   Py_Initialize();
   char *pyArgv[1];
-  pyArgv[0] = path;
+  pyArgv[1] = "-v";
   PySys_SetArgv(1, pyArgv);
 	
   //PyObject * main_module = PyImport_AddModule("__main__");//Borrowed reference
