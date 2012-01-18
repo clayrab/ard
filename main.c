@@ -1343,7 +1343,15 @@ static void initPython(){
   char *pyArgv[1];
   pyArgv[1] = "-v";
   PySys_SetArgv(1, pyArgv);
-	
+
+  PyObject* sys = PyImport_ImportModule("sys");
+  PyObject* pystdout = PyFile_FromString("CONOUT$", "wt");
+  if (-1 == PyObject_SetAttrString(sys, "stdout", pystdout)) {
+    /* raise errors and wail very loud */
+  }
+  Py_DECREF(sys);
+  Py_DECREF(pystdout);
+
   //PyObject * main_module = PyImport_AddModule("__main__");//Borrowed reference
   //PyObject * global_dict = PyModule_GetDict(main_module);//Borrowed reference
   //todo: decref these
