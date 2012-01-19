@@ -1341,16 +1341,27 @@ static void initPython(){
   Py_SetPythonHome(".");
   Py_Initialize();
   char *pyArgv[1];
-  pyArgv[1] = "-v";
-  PySys_SetArgv(1, pyArgv);
+  pyArgv[0] = "-v";
+//  PySys_SetArgv(1, pyArgv);
 
   PyObject* sys = PyImport_ImportModule("sys");
-  PyObject* pystdout = PyFile_FromString("CONOUT$", "wt");
+  PyObject* pystdout = PyFile_FromString("stdout.txt", "wt");
   if (-1 == PyObject_SetAttrString(sys, "stdout", pystdout)) {
+	  printf("NO STDOUT AVAILABLE");
     /* raise errors and wail very loud */
   }
+  PyObject* pystderr = PyFile_FromString("stderr.txt", "wt");
+  if (-1 == PyObject_SetAttrString(sys, "stderr", pystderr)) {
+	  printf("NO STDERR AVAILABLE");
+    /* raise errors and wail very loud */
+  }
+  if(pystdout != NULL){
+	Py_DECREF(pystdout);
+  }
+  if(pystderr != NULL){
+	Py_DECREF(pystderr);
+  }
   Py_DECREF(sys);
-  Py_DECREF(pystdout);
 
   //PyObject * main_module = PyImport_AddModule("__main__");//Borrowed reference
   //PyObject * global_dict = PyModule_GetDict(main_module);//Borrowed reference
