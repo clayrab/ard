@@ -46,8 +46,8 @@ def setGameMode(gameModeType,args=[]):
     if(hasattr(theGameMode,"startGame")):
         theGameMode.startGame()
 def getGameMode():
-    global theGameMode
-    return theGameMode
+	global theGameMode
+	return theGameMode
 
 theHostIP = None
 def setHostIP(hostIP):

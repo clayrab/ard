@@ -1341,31 +1341,27 @@ static void initPython(){
   Py_SetPythonHome(".");
   Py_Initialize();
   char *pyArgv[1];
-  pyArgv[0] = "-v";
-//  PySys_SetArgv(1, pyArgv);
-
-  PyObject* sys = PyImport_ImportModule("sys");
-  PyObject* pystdout = PyFile_FromString("stdout.txt", "wt");
-  if (-1 == PyObject_SetAttrString(sys, "stdout", pystdout)) {
-	  printf("NO STDOUT AVAILABLE");
-    /* raise errors and wail very loud */
+  pyArgv[0] = "";
+  PySys_SetArgv(1, pyArgv);
+  printf("testd %d\n",isWindows);
+  if(isWindows){
+    PyObject* sys = PyImport_ImportModule("sys");
+    PyObject* pystdout = PyFile_FromString("stdout.txt", "wt");
+    if (-1 == PyObject_SetAttrString(sys, "stdout", pystdout)) {
+      printf("NO STDOUT AVAILABLE");
+    }
+    PyObject* pystderr = PyFile_FromString("stderr.txt", "wt");
+    if (-1 == PyObject_SetAttrString(sys, "stderr", pystderr)) {
+      printf("NO STDERR AVAILABLE");
+    }
+    if(pystdout != NULL){
+      Py_DECREF(pystdout);
+    }
+    if(pystderr != NULL){
+      Py_DECREF(pystderr);
+    }
+    Py_DECREF(sys);
   }
-  PyObject* pystderr = PyFile_FromString("stderr.txt", "wt");
-  if (-1 == PyObject_SetAttrString(sys, "stderr", pystderr)) {
-	  printf("NO STDERR AVAILABLE");
-    /* raise errors and wail very loud */
-  }
-  if(pystdout != NULL){
-	Py_DECREF(pystdout);
-  }
-  if(pystderr != NULL){
-	Py_DECREF(pystderr);
-  }
-  Py_DECREF(sys);
-
-  //PyObject * main_module = PyImport_AddModule("__main__");//Borrowed reference
-  //PyObject * global_dict = PyModule_GetDict(main_module);//Borrowed reference
-  //todo: decref these
 }
 SDL_Event event;
 PyObject * pyFocusNextUnit;
@@ -1609,17 +1605,12 @@ static void draw(){
 }
 static void mainLoop (){
   while ( !done ) {
-    
     gameMode = PyObject_CallMethod(gameState,"getGameMode",NULL);
-    
     if(PyObject_HasAttrString(gameMode,"map")){
       theMap = PyObject_GetAttrString(gameMode, "map");//New reference
     }
-    
     handleInput();
-    
     draw();
-    
     if(PyObject_HasAttrString(gameMode,"map")){
       Py_DECREF(theMap);
     }
@@ -1672,6 +1663,7 @@ int main(int argc, char **argv){
   //SDL_EnableUNICODE(1);
   gameModule = PyImport_ImportModule("gameModes");//New reference
   printPyStackTrace();
+  printf("gameModule: %d\n",gameModule);
   gameState = PyImport_ImportModule("gameState");
   printPyStackTrace();
   mainLoop();
