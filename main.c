@@ -251,6 +251,16 @@
 #define GAME_FIND_CHAT_WIDTH 304
 #define GAME_FIND_CHAT_INDEX 53
 
+#define MODAL "assets/modal.png"
+#define MODAL_HEIGHT 1200
+#define MODAL_WIDTH 1600
+#define MODAL_INDEX 54
+
+#define OK_BUTTON "assets/okButton.png"
+#define OK_BUTTON_HEIGHT 67
+#define OK_BUTTON_WIDTH 177
+#define OK_BUTTON_INDEX 55
+
 
 #define DESERT_TILE_INDEX 0
 #define GRASS_TILE_INDEX 1
@@ -354,7 +364,7 @@ GLdouble mouseMapPosX, mouseMapPosY, mouseMapPosZ;
 GLdouble mouseMapPosXPrevious, mouseMapPosYPrevious, mouseMapPosZPrevious = -initZoom;
 GLint bufRenderMode;
 float *textureVertices;
-GLuint texturesArray[200];
+GLuint texturesArray[300];
 GLuint tilesLists;
 GLuint selectionBoxList;
 GLuint unitList;
@@ -1260,6 +1270,8 @@ static void initGL (){
   pngLoad(&texturesArray[GAME_FIND_BACKGROUND_INDEX],GAME_FIND_BACKGROUND);
   pngLoad(&texturesArray[GAME_FIND_MAPS_INDEX],GAME_FIND_MAPS);
   pngLoad(&texturesArray[GAME_FIND_CHAT_INDEX],GAME_FIND_CHAT);
+  pngLoad(&texturesArray[MODAL_INDEX],MODAL);
+  pngLoad(&texturesArray[OK_BUTTON_INDEX],OK_BUTTON);
 
   vertexArrays[DESERT_TILE_INDEX] = *desertVertices;
   vertexArrays[GRASS_TILE_INDEX] = *grassVertices;
@@ -1343,7 +1355,6 @@ static void initPython(){
   char *pyArgv[1];
   pyArgv[0] = "";
   PySys_SetArgv(1, pyArgv);
-  printf("testd %d\n",isWindows);
   if(isWindows){
     PyObject* sys = PyImport_ImportModule("sys");
     PyObject* pystdout = PyFile_FromString("stdout.txt", "wt");
@@ -1365,8 +1376,7 @@ static void initPython(){
 }
 SDL_Event event;
 PyObject * pyFocusNextUnit;
-char * key;
-char capsKey[2];
+char keyArray[20];
 static void handleInput(){
   deltaTicks = SDL_GetTicks()-previousTick;
   previousTick = SDL_GetTicks();
@@ -1470,21 +1480,17 @@ static void handleInput(){
 	       || (event.key.keysym.sym >= 273 && event.key.keysym.sym <= 276)//arrow keys
 	       ){
 	if((event.key.keysym.mod & KMOD_CAPS | event.key.keysym.mod & KMOD_LSHIFT | event.key.keysym.mod & KMOD_RSHIFT) && (event.key.keysym.sym > 0x60 && event.key.keysym.sym <= 0x7A)){
-	  key = SDL_GetKeyName(event.key.keysym.sym);
-	  capsKey[0] = (*key)-32;
-	  capsKey[1] = 0;
-	  if(PyObject_HasAttrString(gameMode,"handleKeyDown")){
-	    pyObj = PyObject_CallMethod(gameMode,"handleKeyDown","s",capsKey); 
-	    printPyStackTrace();
-	    Py_DECREF(pyObj);
-	  }
+	  keyArray[0] = (*SDL_GetKeyName(event.key.keysym.sym))-32;
+	  keyArray[1] = 0;
 	}else{
-	  if(PyObject_HasAttrString(gameMode,"handleKeyDown")){
-	    pyObj = PyObject_CallMethod(gameMode,"handleKeyDown","s",SDL_GetKeyName(event.key.keysym.sym));
-	    printPyStackTrace();
-	    Py_DECREF(pyObj);
-	  }
+	  sprintf(keyArray,"%s",SDL_GetKeyName(event.key.keysym.sym));
 	}
+	if(PyObject_HasAttrString(gameMode,"handleKeyDown")){
+	  pyObj = PyObject_CallMethod(gameMode,"handleKeyDown","s",keyArray); 
+	  printPyStackTrace();
+	  Py_DECREF(pyObj);
+	}
+
       }else{
 	printf("rejected: %d\n",event.key.keysym.sym);
       }
@@ -1663,7 +1669,6 @@ int main(int argc, char **argv){
   //SDL_EnableUNICODE(1);
   gameModule = PyImport_ImportModule("gameModes");//New reference
   printPyStackTrace();
-  printf("gameModule: %d\n",gameModule);
   gameState = PyImport_ImportModule("gameState");
   printPyStackTrace();
   mainLoop();

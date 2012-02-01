@@ -58,16 +58,16 @@ int glyphHeight;
 int glyphWidth;
 void make_dlist ( FT_Face face, char charIndex, GLuint list_base, GLuint * tex_base ) {
 
-  if(FT_Load_Glyph( face, FT_Get_Char_Index( face,charIndex), FT_LOAD_DEFAULT )){
+  if(FT_Load_Glyph(face, FT_Get_Char_Index(face,charIndex), FT_LOAD_DEFAULT)){
     printf("FT_Load_Glyph failed");
     exit(1);
   }
 
-  if(FT_Get_Glyph( face->glyph, &glyph )){
+  if(FT_Get_Glyph(face->glyph, &glyph)){
     printf("FT_Get_Glyph failed");
     exit(1);
   }
-  FT_Glyph_To_Bitmap( &glyph, FT_RENDER_MODE_NORMAL, 0, 1 );
+  FT_Glyph_To_Bitmap(&glyph, FT_RENDER_MODE_NORMAL, 0, 1 );
   
   bitmap_glyph = (FT_BitmapGlyph)glyph;
   bitmap = (FT_Bitmap)bitmap_glyph->bitmap;
@@ -148,8 +148,7 @@ void make_dlist ( FT_Face face, char charIndex, GLuint list_base, GLuint * tex_b
   glTexCoord2d(x,y); glVertex2f((face->glyph->advance.x>>6),0);
   glTexCoord2d(x,0); glVertex2f((face->glyph->advance.x>>6),glyphHeight);
   glEnd();*/
-  glTranslatef(face->glyph->advance.x >> 6 ,0,0);
- 
+  glTranslatef(face->glyph->advance.x >> 6, 0, 0);
 
   // Increment The Raster Position As If We Were A Bitmap Font.
   // (Only Needed If You Want To Calculate Text Length)
@@ -157,7 +156,6 @@ void make_dlist ( FT_Face face, char charIndex, GLuint list_base, GLuint * tex_b
 
   // Finish The Display List
   glEndList();
-
 }
 
 
@@ -184,7 +182,6 @@ static void initFonts(){
       printf("FT_Set_Char_Size error");
       exit(1);
     }
-    // This Is Where We Actually Create Each Of The Fonts Display Lists.
     int i;
     for(i=0;i<128;i++){
       make_dlist(face,i,list_base+(128*index),textures+(128*index));
@@ -237,4 +234,16 @@ void drawText(char* str,int fontIndex,int cursorPosition){
   glPushName(strCount);
   glCallList(list_base+32);//draw a space at the end
   glPopName();
+
+    GLdouble projMatrix[16];
+  glGetDoublev(GL_MODELVIEW_MATRIX,projMatrix);
+  int ix = 0;
+  printf("%s ",str);
+  //for(;ix < 16; ix++){
+  //  printf("%f ",projMatrix[ix]);
+  //}
+  printf("%f ",projMatrix[12]);//IT APPEARS THAT THIS IS THE TRANSLATION OF THE LAST CHARACTER
+  printf("\n");
+  
+
 }

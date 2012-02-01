@@ -178,18 +178,6 @@ class cityNameInputElement(textInputElement):
 		textInputElement.onKeyDown(self,keycode)
 		cityEditor.theCityEditor.city.name = self.text
 
-class newMapNameInputElement(textInputElement):
-	def __init__(self,xPos,yPos,gameMode,width=0.0,height=0.0,text="",textSize=0.001,textureIndex=-1,textColor='FF FF FF',textXPos=0.0,textYPos=0.0):
-		textInputElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textSize=textSize,textColor=textColor,textXPos=textXPos,textYPos=textYPos)
-		self.gameMode = gameMode
-	def onKeyDown(self,keycode):
-		if(keycode == "return"):
-			if(len(self.text) > 0):
-				shutil.copyfile("maps/defaultMap","maps/" + self.text + ".map")
-				gameState.setMapName(self.text)
-				gameState.setGameMode(self.gameMode)
-		else:
-			textInputElement.onKeyDown(self,keycode)
 
 class hostIPInputElement(textInputElement):
 	def __init__(self,xPos,yPos,gameMode,width=0.0,height=0.0,text="127.0.0.1",textSize=0.001,textureIndex=-1,textColor='FF FF FF',textXPos=0.0,textYPos=0.0):
@@ -960,8 +948,7 @@ class startButton(menuButton):
 				player.dispatchCommand("startGame -1")
 		else:
 			#TODO: show host a friendly message
-			print 'choose a map!!'
-
+			print 'choose a map!!'		
 
 class loginInputElement(textInputElement):
 	usernameElem = None
@@ -993,3 +980,43 @@ class loginPassword(loginInputElement):
 	def __init__(self,xPos,yPos,text="maskmask"):
 		loginInputElement.__init__(self,xPos,yPos,text=text,textXPos=0.005,textYPos=-0.04)
 		loginInputElement.passwordElem = self
+
+class modalButton(clickableElement):
+	def __init__(self,modal,text="ok",textureIndex=cDefines.defines["OK_BUTTON_INDEX"]):
+		self.modal = modal
+		clickableElement.__init__(self,texWidth("OK_BUTTON")/-2.0,-0.1,text=text,width=texWidth("OK_BUTTON"),height=texHeight("OK_BUTTON"),textureIndex=textureIndex,textXPos=0.1,textYPos=-0.1)
+	def onClick(self):
+		self.modal.destroy()
+
+class modal(uiElement):
+	def __init__(self,text,textureIndex=cDefines.defines["MODAL_INDEX"]):
+		uiElement.__init__(self,-1.0,1.0,width=2.0,height=2.0,textureIndex=textureIndex)
+		self.textElem = uiElement(-0.1,0.1,text=text)
+		self.buttonElem = modalButton(self)
+		gameState.getGameMode().modal = self
+		
+	def destroy(self):
+		del gameState.getGameMode().elementsDict[self.name]
+		del gameState.getGameMode().elementsDict[self.textElem.name]
+		del gameState.getGameMode().elementsDict[self.buttonElem.name]
+		gameState.getGameMode().resortElems = True
+		gameState.getGameMode().modal = None
+
+class createMapButton(clickableElement):
+	def __init__(self,xPos,yPos,gameMode,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",selected=False):
+		clickableElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=menuButton.normalTextColor,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],mouseOverColor="66 66 66",textSize=0.0013,fontIndex=1)
+		self.gameMode = gameMode
+	def onClick(self):
+		text = gameState.getGameMode().mapNameInputElement.text
+		if(len(text) > 0):
+			shutil.copyfile("maps/defaultMap","maps/" + text + ".map")
+			gameState.setMapName(text)
+			gameState.setGameMode(self.gameMode)
+
+class newMapNameInputElement(textInputElement):
+	def __init__(self,xPos,yPos,gameMode,width=0.0,height=0.0,text="",textSize=0.001,textureIndex=-1,textColor='FF FF FF',textXPos=0.0,textYPos=0.0):
+		textInputElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textSize=textSize,textColor=textColor,textXPos=textXPos,textYPos=textYPos)
+		self.gameMode = gameMode
+	def onKeyDown(self,keycode):
+		if(keycode != "return"):
+			textInputElement.onKeyDown(self,keycode)

@@ -79,6 +79,7 @@ class gameMode:
 		self.elementWithFocus = None
 		self.resortElems = True
 		self.mouseTextPosition = -1
+		self.modal = None
 	def setFocus(self,elem):
 		if(self.elementWithFocus != None):
 			self.elementWithFocus.focused = False
@@ -93,30 +94,40 @@ class gameMode:
 		return gameMode.sortedElements.__iter__()
 #		return self.elementsDict.values().__iter__()
 	def handleLeftClickDown(self,name):
-		if(self.elementsDict.has_key(name)):
-			self.setFocus(self.elementsDict[name])
-			if(hasattr(self.elementsDict[name],"onClick")):
-				self.elementsDict[name].onClick()
-			elif(hasattr(self.elementsDict[name],"onLeftClickDown")):
-				self.elementsDict[name].onLeftClickDown()
-#			elif(hasattr(self.elementWithFocus,"onClick")):
-#				self.elementWithFocus.onClick()
-#			elif(hasattr(self.elementWithFocus,"onLeftClickDown")):
-#				self.elementWithFocus.onLeftClickDown()
+		if(self.modal != None):
+			if(self.elementsDict.has_key(name)):
+				if(hasattr(self.elementsDict[name],"modal")):#only modalButton instances should have a modal attribute
+					self.elementsDict[name].onClick()
+				
 		else:
-			self.setFocus(None)
+			if(self.elementsDict.has_key(name)):
+				self.setFocus(self.elementsDict[name])
+				if(hasattr(self.elementsDict[name],"onClick")):
+					self.elementsDict[name].onClick()
+				elif(hasattr(self.elementsDict[name],"onLeftClickDown")):
+					self.elementsDict[name].onLeftClickDown()
+			else:
+				self.setFocus(None)
 	def handleLeftClickUp(self,name):
-		if(self.elementsDict.has_key(name)):
-			if(hasattr(self.elementsDict[name],"onLeftClickUp")):
-                                self.elementsDict[name].onLeftClickUp()
-			elif(hasattr(self.elementWithFocus,"onLeftClickUp")):
-				self.elementWithFocus.onLeftClickUp()
+		if(self.modal == None):
+			if(self.elementsDict.has_key(name)):
+				if(hasattr(self.elementsDict[name],"onLeftClickUp")):
+					self.elementsDict[name].onLeftClickUp()
+				elif(hasattr(self.elementWithFocus,"onLeftClickUp")):
+					self.elementWithFocus.onLeftClickUp()
 	def handleKeyDown(self,keycode):
-		if(hasattr(self.elementWithFocus,"onKeyDown")):
-			self.elementWithFocus.onKeyDown(keycode)
+		if(keycode == "m"):
+			uiElements.modal("Hi Ban")
+		if(self.modal == None):
+			if(hasattr(self,"keyDown")):
+				self.keyDown(keycode)
+			else:
+				if(hasattr(self.elementWithFocus,"onKeyDown")):
+					self.elementWithFocus.onKeyDown(keycode)
 	def handleKeyUp(self,keycode):
-		if(hasattr(self.elementWithFocus,"onKeyUp")):
-			self.elementWithFocus.onKeyUp(keycode)
+		if(self.modal == None):
+			if(hasattr(self.elementWithFocus,"onKeyUp")):
+				self.elementWithFocus.onKeyUp(keycode)
 	def setMouseTextPosition(self,position):
 		self.mouseTextPosition = position
 	def onQuit(self):
@@ -149,52 +160,59 @@ class tiledGameMode(gameMode):
 				self.elementWithFocus.onMouseMovement()
 
 	def handleRightClick(self,name):
-		rightClickable = False
-		if(self.elementsDict.has_key(name)):
-			if(hasattr(self.elementsDict[name],"onRightClick")):
-				rightClickable = True
-				self.elementsDict[name].onRightClick()
-		if(not rightClickable):
-			self.selectedCityNode.selected = False
-			self.selectedCityNode = None
+		if(self.modal == None):
+			rightClickable = False
+			if(self.elementsDict.has_key(name)):
+				if(hasattr(self.elementsDict[name],"onRightClick")):
+					rightClickable = True
+					self.elementsDict[name].onRightClick()
+			if(not rightClickable):
+				self.selectedCityNode.selected = False
+				self.selectedCityNode = None
 	def handleScrollUp(self,name,deltaTicks):
-		if(name in self.elementsDict and hasattr(self.elementsDict[name],"onScrollUp")):
-			self.elementsDict[name].onScrollUp()
-		else:
-			self.map.translateZ = self.map.translateZ + gameLogic.ZOOM_SPEED*deltaTicks;
-			if(self.map.translateZ > (-10.0-cDefines.defines['minZoom'])):
-				self.map.translateZ = -10.0-cDefines.defines['minZoom']
+		if(self.modal == None):
+			if(name in self.elementsDict and hasattr(self.elementsDict[name],"onScrollUp")):
+				self.elementsDict[name].onScrollUp()
+			else:
+				self.map.translateZ = self.map.translateZ + gameLogic.ZOOM_SPEED*deltaTicks;
+				if(self.map.translateZ > (-10.0-cDefines.defines['minZoom'])):
+					self.map.translateZ = -10.0-cDefines.defines['minZoom']
 	def handleScrollDown(self,name,deltaTicks):
-		if(name in self.elementsDict and hasattr(self.elementsDict[name],"onScrollDown")):
-			self.elementsDict[name].onScrollDown()
-		else:
-			self.map.translateZ = self.map.translateZ - gameLogic.ZOOM_SPEED*deltaTicks;
-			if(self.map.translateZ < (1.0-cDefines.defines['maxZoom'])):
-				self.map.translateZ = 1.0-cDefines.defines['maxZoom']
+		if(self.modal == None):
+			if(name in self.elementsDict and hasattr(self.elementsDict[name],"onScrollDown")):
+				self.elementsDict[name].onScrollDown()
+			else:
+				self.map.translateZ = self.map.translateZ - gameLogic.ZOOM_SPEED*deltaTicks;
+				if(self.map.translateZ < (1.0-cDefines.defines['maxZoom'])):
+					self.map.translateZ = 1.0-cDefines.defines['maxZoom']
 	def handleMouseOver(self,name,isLeftMouseDown):
-		if(isLeftMouseDown > 0):#allows onLeftClickDown to be called for tiles when the mouse is dragged over them
-			if(hasattr(gameState.getGameMode(),"selectedButton")):
-				if(gameState.getGameMode().selectedButton != None):
-					if(gameState.getGameMode().selectedButton.tileType != cDefines.defines['CITY_TILE_INDEX']):
-						if(self.elementsDict.has_key(name)):
-							if(hasattr(self.elementsDict[name],"tileValue")):#node
-								self.elementsDict[name].onLeftClickDown()
-		if(self.mousedOverObject != None):
-			if(self.mousedOverObject.name != name):
-				if(hasattr(self.mousedOverObject,"onMouseOut")):
-					self.mousedOverObject.onMouseOut()
-				self.mousedOverObject = None
-		if(self.elementsDict.has_key(name)):
+		if(self.modal != None):
+			if(self.elementsDict.has_key(name)):
+				if(hasattr(self.elementsDict[name],"modal")):#only modalButton should have am attribute 'modal'
+					self.mousedOverObject = self.elementsDict[name]
+		else:
+			if(isLeftMouseDown > 0):#allows onLeftClickDown to be called for tiles when the mouse is dragged over them
+				if(hasattr(gameState.getGameMode(),"selectedButton")):
+					if(gameState.getGameMode().selectedButton != None):
+						if(gameState.getGameMode().selectedButton.tileType != cDefines.defines['CITY_TILE_INDEX']):
+							if(self.elementsDict.has_key(name)):
+								if(hasattr(self.elementsDict[name],"tileValue")):#node
+									self.elementsDict[name].onLeftClickDown()
 			if(self.mousedOverObject != None):
-				if(self.mouseOverObject.name != name):
+				if(self.mousedOverObject.name != name):
+					if(hasattr(self.mousedOverObject,"onMouseOut")):
+						self.mousedOverObject.onMouseOut()
+					self.mousedOverObject = None
+			if(self.elementsDict.has_key(name)):
+				if(self.mousedOverObject != None):
+					if(self.mouseOverObject.name != name):
+						self.mousedOverObject = self.elementsDict[name]
+						if(hasattr(self.elementsDict[name],"onMouseOver")):
+							self.elementsDict[name].onMouseOver()
+				else:
 					self.mousedOverObject = self.elementsDict[name]
 					if(hasattr(self.elementsDict[name],"onMouseOver")):
 						self.elementsDict[name].onMouseOver()
-			else:
-				self.mousedOverObject = self.elementsDict[name]
-				if(hasattr(self.elementsDict[name],"onMouseOver")):
-					self.elementsDict[name].onMouseOver()
-
 
 class playMode(tiledGameMode):
 	def __init__(self,args):
@@ -322,11 +340,11 @@ class playMode(tiledGameMode):
 #					node.addFire(gameLogic.fire(node))
 					node.addIce(gameLogic.ice(node))
 	
-	def handleKeyDown(self,keycode):
-		if(keycode == "f"):
-			self.selectedNode.addFire(gameLogic.fire(self.selectedNode))
-		if(keycode == "s"):
-			udpClient.udpClient.theUdpClient.send()
+	def keyDown(self,keycode):
+#		if(keycode == "f"):
+#			self.selectedNode.addFire(gameLogic.fire(self.selectedNode))
+#		if(keycode == "s"):
+#			udpClient.udpClient.theUdpClient.send()
 		if(keycode == "left shift" or keycode == "right shift"):
 			self.shiftDown = True
 		if(keycode == "space"):
@@ -385,9 +403,9 @@ class mapEditorMode(tiledGameMode):
 		tiledGameMode.__init__(self)
 	def loadMap(self):
 		self.map = gameLogic.map(gameLogic.mapEditorNode)
-	def handleKeyDown(self,keycode):
-		if(keycode == 'r'):
-			self.resortElems = True
+	def keyDown(self,keycode):
+#		if(keycode == 'r'):
+#			self.resortElems = True
 		try:
 			self.elementWithFocus.onKeyDown(keycode)
 		except:
@@ -442,7 +460,7 @@ class mapEditorMode(tiledGameMode):
 class textBasedMenuMode(gameMode):
 	def __init__(self,args):
 		gameMode.__init__(self,args)
-	def handleKeyDown(self,keycode):
+	def keyDown(self,keycode):
 		if(keycode == "up"):
 			if(uiElements.menuButton.selectedIndex == 0):
 				uiElements.menuButton.buttonsList[uiElements.menuButton.selectedIndex].textColor  = uiElements.menuButton.normalTextColor
@@ -463,7 +481,10 @@ class textBasedMenuMode(gameMode):
 				uiElements.menuButton.buttonsList[uiElements.menuButton.selectedIndex].textColor  =uiElements.menuButton.selectedTextColor
 		elif(keycode == "return"):
 			uiElements.menuButton.buttonsList[uiElements.menuButton.selectedIndex].onClick()
-					
+#		else:
+#			if(hasattr(self.elementWithFocus,"onKeyDown")):
+#				self.elementWithFocus.onKeyDown(keycode)
+
 class newGameScreenMode(textBasedMenuMode):
 	def addUIElements(self):
 		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])
@@ -511,7 +532,9 @@ class newMapMode(gameMode):
 	def addUIElements(self):
 		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])
 		uiElements.uiElement(-0.15,0.2,text="map name")
-		self.setFocus(uiElements.newMapNameInputElement(-0.15,0.15,mapEditorMode,width=(2.0*cDefines.defines['UI_TEXT_INPUT_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_TEXT_INPUT_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),text="",textSize=0.0005,textColor='00 00 00',textureIndex=cDefines.defines['UI_TEXT_INPUT_INDEX'],textYPos=-0.035,textXPos=0.01))
+		self.mapNameInputElement = uiElements.newMapNameInputElement(-0.15,0.15,mapEditorMode,width=(2.0*cDefines.defines['UI_TEXT_INPUT_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_TEXT_INPUT_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),text="",textSize=0.0005,textColor='00 00 00',textureIndex=cDefines.defines['UI_TEXT_INPUT_INDEX'],textYPos=-0.035,textXPos=0.01)
+		self.setFocus(self.mapNameInputElement)
+		uiElements.createMapButton(0.0,0.0,mapEditorMode,text="create map")
 
 class joinLANGameScreenMode(gameMode):
 	def __init__(self,args):
