@@ -8,7 +8,6 @@ import MySQLdb
 import hashlib
 import time
 import sys
-from pprint import pprint as pp
 
 privKey = rsa.PrivateKey(7294827300696961467825209649910612955544688273739654133132828909790861956391138768640249164939907033611860365075051236361359042803639003856587767504588353, 65537, 6977264057202623443995841153775681866813605135283831723778907294830864861810642621995438195929805731219864983148755866749414123928269010901281896813845553, 6795004418806002701275892780554702381414286837297772798037030472995866173266951571, 1073557403510678821257076760372205704035248017469579525573290803741034843)
 
@@ -23,9 +22,10 @@ class Room:
         self.childRooms = []
         self.subscribers = []
         rooms[name] = self
+        print 'self.parent: ' + str(self.parent)
         if(self.parent != None):
             self.parent.childRooms.append(self)
-
+            print 'parents.childRooms: ' + str(self.parent.childRooms)
 class Connection(basic.LineReceiver):
     databaseConnection = MySQLdb.connect(host = "localhost",user = "clay",passwd = "maskboat",db = "ard")
     databaseCursor = databaseConnection.cursor()
@@ -39,16 +39,17 @@ class Connection(basic.LineReceiver):
         self.authenticated = False
     def connectionLost(self, reason):
         print "Lost a client!"
-        if(self.ownedRoom != None):
-            self.destroyRoom(self.ownedRoom)
         if(self.currentRoom != None):
             rooms[self.currentRoom.name].subscribers.remove(self)
+        if(self.ownedRoom != None):
+            self.destroyRoom(self.ownedRoom)
+        del users[self.userName]
         self.factory.clients.remove(self)
     def destroyRoom(self,room):
-        print room.name
-        print room.parent.childRooms
-        room.parent.childRooms.remove(self)
-        del rooms[self.name]
+        room.parent.childRooms.remove(room)
+        del rooms[room.name]
+        for subscriber in room.subscribers:
+            print subscriber
         #TODO: dispatch message to subscribers and subscribe them to parent
     #BEGIN COMMANDS
     def subscribe(self,args):
@@ -56,10 +57,10 @@ class Connection(basic.LineReceiver):
         response = ""
         if(self.currentRoom != None):
             rooms[self.currentRoom.name].subscribers.remove(self)
-        print rooms[roomName].subscribers
         rooms[roomName].subscribers.append(self)
         self.currentRoom = rooms[roomName]
-        print 'currentroom: ' + str(self.currentRoom)
+        print 'subscribedTo: ' + str(self.currentRoom.name)
+        print "subscribers: " + str(self.currentRoom.subscribers)
         if(rooms[roomName].mapName != None):
             response = response + "*" + rooms[roomName].mapName
             self.sendCommand("showGameRoom",roomName + response)
@@ -73,17 +74,20 @@ class Connection(basic.LineReceiver):
             self.destroyRoom(self.ownedRoom)
         self.ownedRoom = Room(tokens[0],self.currentRoom,tokens[2],tokens[1])
         self.subscribe(self.ownedRoom.name)
-        for subscriber in self.ownedRoom.parent:
+        for subscriber in self.ownedRoom.parent.subscribers:
             print subscriber
+            #send new room notification to each subscriber here
     def login(self,args):
 #        strArgs = " ".join(args)
 #        strArgs = str(rsaKey.decrypt(args))
+
+        print users
         strArgs = rsa.decrypt(args, privKey)
         tokens = strArgs.split(" ",1)
         hashFunc = hashlib.sha256()
         hashFunc.update(tokens[1])
         Connection.databaseCursor.execute("SELECT * from users WHERE username = '" + tokens[0] + "' and passhash = '" + hashFunc.digest() + "'")
-        if(Connection.databaseCursor.rowcount > 0):
+        if(Connection.databaseCursor.rowcount > 0 and not users.has_key(tokens[0])):
             users[tokens[0]] = self
             self.loggedIn = True
             self.userName = tokens[0]
