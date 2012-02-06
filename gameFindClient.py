@@ -7,6 +7,8 @@ import gameLogic
 import uiElements
 print '1'
 import rsa
+import hashlib
+
 print '2'
 print rsa.__path__
 (pubKey, privKey) = rsa.newkeys(512)
