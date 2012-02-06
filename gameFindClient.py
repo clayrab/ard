@@ -8,6 +8,7 @@ import uiElements
 print '1'
 import rsa
 print '2'
+print rsa.__path__
 (pubKey, privKey) = rsa.newkeys(512)
 print pubKey
 print privKey
