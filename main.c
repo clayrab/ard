@@ -1350,7 +1350,7 @@ static void initPython(){
   //http://docs.python.org/release/2.6.6/c-api/index.html
   //  char [100] = "-v";
   //	sprintf(path,"%s","hello");
-  //Py_SetPythonHome(".");
+  Py_SetPythonHome(".");
   Py_Initialize();
   char *pyArgv[1];
   pyArgv[0] = "";
