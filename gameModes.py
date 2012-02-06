@@ -1,19 +1,26 @@
-
-#save and resume games
 #icons for each unit
 
-############# PLAYABLE AT THIS POINT ##############
+#server:
+#SSL
+# room for finding games
+# room for each game
 
-#DESIGN OPTIONS
-#cancel movement if any enemy is seen?
+#MISSING FEATURES
+#sound effects
+#mouseover effects
 #limited time to move?
-#show move speed and attack speed?
 
 #BUGS
 #make sure text edit boxes only allow chars and not shift/enter
 #check new/edited city names for duplicates
 #uiElements startingManaSelector???
 #in map editor: nodes created after the ui render the ui unclickable since clicks go 'thru' to the new nodes
+
+############# MINIMUM VIABLE PRODUCT AT THIS POINT ##############
+
+#DESIGN OPTIONS
+#cancel movement if any enemy is seen?
+#show move speed and attack speed?
 
 #POLISH
 #existing movePath and new movePath need to be distinguishable
@@ -24,17 +31,13 @@
 #right-justifiable text
 #add odd/even columns. i.e. every other column will get a new node with you hit +
 
-#MISSING FEATURES
-#sound effects
-#mouseover effects
+#OPTIONAL FEATURES
+#save and resume games
 #music
 #AI
 #campaign
 
-#server:
-#SSL
-# room for finding games
-# room for each game
+
 #unit editor
 import sys
 print sys.path

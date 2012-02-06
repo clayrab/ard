@@ -238,12 +238,12 @@ void drawText(char* str,int fontIndex,int cursorPosition){
     GLdouble projMatrix[16];
   glGetDoublev(GL_MODELVIEW_MATRIX,projMatrix);
   int ix = 0;
-  printf("%s ",str);
+  //  printf("%s ",str);
   //for(;ix < 16; ix++){
   //  printf("%f ",projMatrix[ix]);
   //}
-  printf("%f ",projMatrix[12]);//IT APPEARS THAT THIS IS THE TRANSLATION OF THE LAST CHARACTER
-  printf("\n");
+  //  printf("%f ",projMatrix[12]);//IT APPEARS THAT THIS IS THE TRANSLATION OF THE LAST CHARACTER
+  //printf("\n");
   
 
 }
