@@ -608,14 +608,13 @@ class gameRoomMode(gameMode):
 	def removePlayerElements(self):
 		for name in self.playerElementNames:
 			del gameState.getGameMode().elementsDict[name]
-		self.playerNames = []
+		self.playerElementNames = []
 		gameState.getGameMode().resortElems = True
 #	def redrawPlayers(self):
 #		self.removePlayerElements()
 #		self.drawPlayers()
-	def drawPlayers(self):
-		if(len(self.playerElementNames) > 0):
-			self.removePlayerElements()
+	def redrawPlayers(self):
+		self.removePlayerElements()
 		height = 0.55
 		for playerName in self.playerNames:
 			self.playerElementNames.append(uiElements.uiElement(-0.85,height,text=playerName).name)

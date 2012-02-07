@@ -39,7 +39,7 @@ class Commands:
     def addPlayer(args):	    
         print args
         gameState.getGameMode().playerNames.append(args)
-        gameState.getGameMode().drawPlayers()
+        gameState.getGameMode().redrawPlayers()
     @staticmethod
     def showRoom(args):
         tokens = args.split("|",1)
