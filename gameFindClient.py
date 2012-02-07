@@ -28,16 +28,18 @@ class Commands:
         tokens = args.split("*",3)
         uiElements.uiElement(-0.85,0.8,text=tokens[0])#game name
         uiElements.uiElement(0.05,0.8,text=tokens[1])#map name
-        playerNames = tokens[3].split("*")
-        for playerName in playerNames:
-            gameState.getGameMode().playerNames.append(playerName)
-        gameState.getGameMode().drawPlayers()
+#        playerNames = tokens[3].split("*")
+#        for playerName in playerNames:
+#            gameState.getGameMode().playerNames.append(playerName)
+#        gameState.getGameMode().drawPlayers()
     @staticmethod
     def startGameRoom(args):	    
         gameState.setGameMode(gameModes.gameRoomMode) 
     @staticmethod
     def addPlayer(args):	    
         print args
+        gameState.getGameMode().playerNames.append(args)
+        gameState.getGameMode().drawPlayers()
     @staticmethod
     def showRoom(args):
         tokens = args.split("|",1)
