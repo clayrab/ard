@@ -47,6 +47,8 @@ class udpServer:
             try:
                 with self.socketLock:
                     data,address = self.socket.recvfrom(1024)
+                    print data
+                    print address
             except:
                 data = ''
 #            if(data == str(MESSAGES.CONNECT)):

@@ -15,6 +15,7 @@
 #check new/edited city names for duplicates
 #uiElements startingManaSelector???
 #in map editor: nodes created after the ui render the ui unclickable since clicks go 'thru' to the new nodes
+#make sure room and/or map names do not contain *
 
 ############# MINIMUM VIABLE PRODUCT AT THIS POINT ##############
 
@@ -603,13 +604,23 @@ class gameRoomMode(gameMode):
 	def __init__(self,args):
 		gameMode.__init__(self)
 		self.playerElementNames = []
-	def setMapName(self,mapName):
-		self.mapName = mapName
-		uiElements.uiElement(-0.15,0.9,text=mapName)
-		
+		self.playerNames = []
+	def removePlayerElements(self):
+		for name in self.playerElementNames:
+			del gameState.getGameMode().elementsDict[name]
+		self.playerNames = []
+		gameState.getGameMode().resortElems = True
+	def redrawPlayers(self):
+		self.removePlayerElements()
+		self.drawPlayers()
+	def drawPlayers(self):
+		height = 0.55
+		for playerName in self.playerNames:
+			self.playerElementNames.append(uiElements.uiElement(-0.85,height,text=playerName).name)
+			height = height - 0.1
 	def addUIElements(self):
 		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])	
-		uiElements.uiElement(-0.85,0.8,text="players")
+		uiElements.uiElement(-0.85,0.65,text="players")
 		uiElements.startButton(0.65,-0.8,playMode,text="start")
 
 class loginMode(gameMode):
@@ -632,8 +643,10 @@ class gameFindMode(gameMode):
 		print '1'
 		gameMode.__init__(self)
 		print '2'
+	def setMapName(self,mapName):
+		self.mapName = mapName
+		uiElements.uiElement(-0.15,0.9,text=mapName)
 	def addUIElements(self):
-		self.createGameMode = createGame
 		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])	
 		roomSelectorWidth = (2.0*cDefines.defines['GAME_FIND_MAPS_WIDTH']/cDefines.defines['UI_NEW_GAME_SCREEN_IMAGE_WIDTH'])
 		roomSelectorHeight = (2.0*cDefines.defines['GAME_FIND_MAPS_HEIGHT']/cDefines.defines['UI_NEW_GAME_SCREEN_IMAGE_HEIGHT'])
@@ -643,24 +656,9 @@ class gameFindMode(gameMode):
 		self.chatDisplay = uiElements.chatDisplay(0.55,0.9,["asd","fkfkf"],textSize=0.0005,textureIndex=cDefines.defines['GAME_FIND_CHAT_INDEX'],width=chatDisplayWidth,height=chatDisplayHeight)
 		uiElements.createRoomButton(-0.92,-0.8,text="create game",textSize=0.0006)
 		
-class createGame(gameMode):
+class createGameMode(gameMode):
 	def __init__(self,args):
 		gameMode.__init__(self)
-		self.playerElementNames = []
-	def removePlayerElements(self):
-		for name in self.playerElementNames:
-			del gameState.getGameMode().elementsDict[name]
-		self.playerElementNames = []
-		gameState.getGameMode().resortElems = True
-	def redrawPlayers(self):
-		self.removePlayerElements()
-		height = 0.7
-		for player in gameState.getPlayers():
-			if(player.isOwnPlayer):
-				self.playerElementNames.append(uiElements.uiElement(-0.85,height,text="*player " + str(player.playerNumber) + "*").name)
-			else:
-				self.playerElementNames.append(uiElements.uiElement(-0.85,height,text="player " + str(player.playerNumber)).name)
-			height = height - 0.1
 	def addUIElements(self):
 		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])	
 		self.titleField = uiElements.roomTitleInputElement(-0.5,0.4,textSize=0.0006,text="clayrab's game",textYPos=-0.036,textXPos=0.005)

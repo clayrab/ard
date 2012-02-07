@@ -2,11 +2,14 @@ import os
 import copy
 import gameState
 import gameLogic
+import gameModes
 import nameGenerator
 import cDefines
 import shutil
 import client
 import server
+import udpServer
+import udpClient
 from textureFunctions import texWidth, texHeight, texIndex
 #print pubKey.decrypt(cipher)
 
@@ -753,7 +756,7 @@ class startingManaSelector(scrollableTextFieldsElement):
 
 class createRoomButton(clickableElement):
 	def onClick(self):
-		gameState.setGameMode(gameState.getGameMode().createGameMode)
+		gameState.setGameMode(gameModes.createGameMode)
 
 class chatDisplay(scrollableTextFieldsElement):
 	def foo(self):
@@ -921,13 +924,11 @@ class maxPlayersField(clickableElement):
 class createButton(menuButton):
 	def onClick(self):
 		if(gameState.getGameMode().mapField.mapName != None):
-			print gameState.getGameMode().mapField.mapName
-			print gameState.getGameMode().maxPlayersField.text
-			print gameState.getGameMode().titleField.text
-			
 			gameState.getGameFindClient().sendCommand("createRoom",gameState.getGameMode().titleField.text + "|" + gameState.getGameMode().maxPlayersField.text.split(" ")[0] + "|" + gameState.getGameMode().mapField.mapName)
+			udpServer.startUdpServer()
+			udpClient.startUdpClient()
 		else:
-			print 'choose a map!!'
+			modal("Choose a map!",-0.22)
 
 class roomTitleInputElement(textInputElement):
 	def onKeyDown(self,keycode):
@@ -989,9 +990,9 @@ class modalButton(clickableElement):
 		self.modal.destroy()
 
 class modal(uiElement):
-	def __init__(self,text,textureIndex=cDefines.defines["MODAL_INDEX"]):
+	def __init__(self,text,textYPos=-0.1,textureIndex=cDefines.defines["MODAL_INDEX"]):
 		uiElement.__init__(self,-1.0,1.0,width=2.0,height=2.0,textureIndex=textureIndex)
-		self.textElem = uiElement(-0.1,0.1,text=text)
+		self.textElem = uiElement(textYPos,0.1,text=text)
 		self.buttonElem = modalButton(self)
 		gameState.getGameMode().modal = self
 		

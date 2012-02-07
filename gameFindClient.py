@@ -5,12 +5,8 @@ import gameState
 import gameModes
 import gameLogic
 import uiElements
-print '1'
+import udpClient
 import rsa
-import hashlib
-
-print '2'
-print rsa.__path__
 (pubKey, privKey) = rsa.newkeys(512)
 print pubKey
 print privKey
@@ -26,9 +22,22 @@ SINGLE_PLAYER = -2
 class Commands:
     @staticmethod
     def showGameRoom(args):	    
-        print args
-        gameState.setGameMode(gameModes.gameRoomMode) 
         print 'show game room'
+        print args
+        gameState.setGameMode(gameModes.gameRoomMode)
+        tokens = args.split("*",3)
+        uiElements.uiElement(-0.85,0.8,text=tokens[0])#game name
+        uiElements.uiElement(0.05,0.8,text=tokens[1])#map name
+        playerNames = tokens[3].split("*")
+        for playerName in playerNames:
+            gameState.getGameMode().playerNames.append(playerName)
+        gameState.getGameMode().drawPlayers()
+    @staticmethod
+    def startGameRoom(args):	    
+        gameState.setGameMode(gameModes.gameRoomMode) 
+    @staticmethod
+    def addPlayer(args):	    
+        print args
     @staticmethod
     def showRoom(args):
         tokens = args.split("|",1)
@@ -46,15 +55,16 @@ class Commands:
         if(gameState.getPlayerNumber() != SINGLE_PLAYER):
             gameState.setPlayerNumber(int(playerNumber))
     @staticmethod
-    def addPlayer(playerNumber):
-        player = gameState.addPlayer(int(playerNumber))
-        if(gameState.getPlayerNumber() == player.playerNumber or gameState.getPlayerNumber() == SINGLE_PLAYER):
-            player.isOwnPlayer = True
-        if(hasattr(gameState.getGameMode(),"redrawPlayers")):
-               gameState.getGameMode().redrawPlayers()
-    @staticmethod
     def startGame(args):
         gameState.setGameMode(gameModes.playMode)
+    @staticmethod
+    def showLoginFailed(args):
+        uiElements.modal("Login failed.",-0.17)
+    def removeRoom(args):
+        print 'removeRoom'
+    def removeCurrentRoom(args):
+        print 'removeCurrentRoom'
+
 
 def doCommand(commandName,args=None):
     commandFunc = getattr(Commands,commandName)
