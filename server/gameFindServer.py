@@ -14,27 +14,27 @@ privKey = rsa.PrivateKey(7294827300696961467825209649910612955544688273739654133
 rooms = {}
 users = {}
 class Room:
-    def __init__(self,name,parent,mapName=None,maxPlayers=None):
+    def __init__(self,name,parent,mapName=None,maxPlayers=None,hostAddress=None):
         self.name = name
         self.parent = parent
         self.mapName = mapName
         self.maxPlayers = maxPlayers
+        self.hostAddress = hostAddress
         self.childRooms = []
         self.subscribers = []
         rooms[name] = self
-        print 'self.parent: ' + str(self.parent)
         if(self.parent != None):
             self.parent.childRooms.append(self)
-            print 'parents.childRooms: ' + str(self.parent.childRooms)
 class Connection(basic.LineReceiver):
     databaseConnection = MySQLdb.connect(host = "localhost",user = "clay",passwd = "maskboat",db = "ard")
     databaseCursor = databaseConnection.cursor()
     def connectionMade(self):
-        self.userName = ""
+        self.userName = None
         self.loggedIn = False
         self.currentRoom = None
         self.ownedRoom = None
         print "Got new client!"
+        print self.transport.getPeer().host
         self.factory.clients.append(self)
         self.authenticated = False
     def connectionLost(self, reason):
@@ -43,7 +43,8 @@ class Connection(basic.LineReceiver):
             rooms[self.currentRoom.name].subscribers.remove(self)
         if(self.ownedRoom != None):
             self.destroyRoom(self.ownedRoom)
-        del users[self.userName]
+        if(self.userName != None):
+            del users[self.userName]
         self.factory.clients.remove(self)
     def destroyRoom(self,room):
         room.parent.childRooms.remove(room)
@@ -56,14 +57,17 @@ class Connection(basic.LineReceiver):
         roomName = args
         response = ""
         if(self.currentRoom != None):
-            rooms[self.currentRoom.name].subscribers.remove(self)
-        rooms[roomName].subscribers.append(self)
+            rooms[self.currentRoom.name].subscribers.remove(self) 
         self.currentRoom = rooms[roomName]
-        print 'subscribedTo: ' + str(self.currentRoom.name)
-        print "subscribers: " + str(self.currentRoom.subscribers)
         if(rooms[roomName].mapName != None):
-            response = response + "*" + rooms[roomName].mapName
+            for subscriber in self.currentRoom.subscribers:
+                subscriber.sendCommand("addPlayer",self.userName)
+        rooms[roomName].subscribers.append(self)
+        if(rooms[roomName].mapName != None):
+            response = response + "*" + rooms[roomName].mapName + "*" + rooms[roomName].hostAddress
             self.sendCommand("showGameRoom",roomName + response)
+            for subscriber in self.currentRoom.subscribers:
+                self.sendCommand("addPlayer",subscriber.userName)
         else:
             for room in rooms[roomName].childRooms:
                 response = response + "|" + room.name + "-" + str(len(room.subscribers))
@@ -72,15 +76,15 @@ class Connection(basic.LineReceiver):
         tokens = args.split("|")
         if(self.ownedRoom != None):
             self.destroyRoom(self.ownedRoom)
-        self.ownedRoom = Room(tokens[0],self.currentRoom,tokens[2],tokens[1])
+        self.ownedRoom = Room(tokens[0],self.currentRoom,tokens[2],tokens[1],self.transport.getPeer().host + ":" + str(self.transport.getPeer().port))
         self.subscribe(self.ownedRoom.name)
+#        self.sendCommand("showGameRoom",roomName + response)
         for subscriber in self.ownedRoom.parent.subscribers:
             print subscriber
             #send new room notification to each subscriber here
     def login(self,args):
 #        strArgs = " ".join(args)
 #        strArgs = str(rsaKey.decrypt(args))
-
         print users
         strArgs = rsa.decrypt(args, privKey)
         tokens = strArgs.split(" ",1)
@@ -93,6 +97,8 @@ class Connection(basic.LineReceiver):
             self.userName = tokens[0]
             self.subscribe("lobby")
         else:
+            self.sendCommand("showLoginFailed","")
+                
             print "TODO: Send failed login message to client!"
     #END COMMANDS
     def doCommand(self,commandName,arguments=None):
