@@ -15,9 +15,11 @@ class MESSAGES:
     HANDSHAKE = 1    
 
 class client:
-    def __init__(self,ip):
-        self.ip = ip
-        print self
+    def __init__(self,id):
+        self.id = id
+        self.roundTripCount = 0
+        self.roundTripTimeAvg = 5.0
+        self.sendCommands = {}
 
 class udpServer:
     theUdpServer = None
@@ -47,8 +49,8 @@ class udpServer:
             try:
                 with self.socketLock:
                     data,address = self.socket.recvfrom(1024)
-                    print data
-                    print address
+                    print "data " + data
+                    print "address " + address
             except:
                 data = ''
 #            if(data == str(MESSAGES.CONNECT)):

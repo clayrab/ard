@@ -5,6 +5,7 @@ import gameState
 import gameModes
 import gameLogic
 import uiElements
+import udpService
 
 SERVER = -1
 SINGLE_PLAYER = -2
@@ -226,17 +227,19 @@ class Client:
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.connect((hostIP,port))
         self.socket.setblocking(0)
+        self.udpService = udpService.udpService()
         self.commandLog = []
-        self.delayedCommands = []
-    def sendDelayedCommands(self):
-        for command in self.delayedCommands:
-             self.socket.send(command)
-        self.delayedCommands = []
+#        self.delayedCommands = []
+#    def sendDelayedCommands(self):
+#        for command in self.delayedCommands:
+#             self.socket.send(command)
+#        self.delayedCommands = []
     def checkSocket(self):
         try:
             receivedData = self.socket.recv(1024)
         except:
             receivedData = ''
+        #receivedData = , (SERVER_IP, SERVER_PORT))udpService.checkSocket()
         for command in receivedData.split("|"):
             if(len(command) > 0):
                 tokens = command.split(" ",2)
@@ -267,8 +270,8 @@ class Client:
             else:
                 doCommand(command)
         self.socket.send(command + " " + str(gameState.getPlayerNumber()) + " " + argsString + "|")
+
 def startClient(hostIP):
-    
     gameState.setClient(Client(hostIP))
 #    clientThread = ClientThread(hostIP)
 #    clientThread.daemon = True

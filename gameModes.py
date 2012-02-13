@@ -17,6 +17,15 @@
 #in map editor: nodes created after the ui render the ui unclickable since clicks go 'thru' to the new nodes
 #make sure room and/or map names do not contain *
 
+#saw this when i shift-clicked outside the map somewhere
+#<type 'exceptions.AttributeError'>
+#'NoneType' object has no attribute 'focused'
+#  File "gameModes.py", line 114, in handleLeftClickDown
+#    self.setFocus(None)
+#  File "gameModes.py", line 91, in setFocus
+#    self.elementWithFocus.focused = True
+
+
 ############# MINIMUM VIABLE PRODUCT AT THIS POINT ##############
 
 #DESIGN OPTIONS
