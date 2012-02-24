@@ -223,17 +223,19 @@ def doCommand(commandName,args=None):
 
 
 class Client:
-    def __init__(self,hostIP,port=8080):        
+    def __init__(self,hostIP,port=6688):        
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.connect((hostIP,port))
         self.socket.setblocking(0)
-        self.udpService = udpService.udpService()
+#        self.udpService = udpService.udpService()
         self.commandLog = []
 #        self.delayedCommands = []
 #    def sendDelayedCommands(self):
 #        for command in self.delayedCommands:
 #             self.socket.send(command)
 #        self.delayedCommands = []
+#    def connect(self,ip,port):
+#        udpService.udpService(ip,port,port)
     def checkSocket(self):
         try:
             receivedData = self.socket.recv(1024)

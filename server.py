@@ -79,7 +79,7 @@ def shutdownServer():
 def startServer(serverIP):
     with serverLock:
         global server
-        server = Server((serverIP,8080))
+        server = Server((serverIP,6688))
         server.socket.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,0)
         serverThread = threading.Thread(target=server.serve_forever)
         serverThread.daemon = True

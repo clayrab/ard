@@ -1,6 +1,8 @@
 #icons for each unit
 
 #server:
+#host needs to be able to set port
+#gameFindServer needs to test host tcp port connection
 #SSL
 # room for finding games
 # room for each game
@@ -392,7 +394,9 @@ class playMode(tiledGameMode):
 		if(gameState.getClient() == None):#single player game
 			server.startServer('')
 			udpServer.startUdpServer()
-			client.startClient('127.0.0.1')
+#			client.startClient('127.0.0.1')
+# 			client.startClient('192.168.0.102')
+ 			client.startClient('84.73.77.222')
 			udpClient.startUdpClient()
 			gameState.setPlayerNumber(-2)
 			gameState.addPlayer(1).isOwnPlayer = True
