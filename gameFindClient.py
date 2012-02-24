@@ -5,7 +5,6 @@ import gameState
 import gameModes
 import gameLogic
 import uiElements
-import udpClient
 import rsa
 (pubKey, privKey) = rsa.newkeys(512)
 print pubKey

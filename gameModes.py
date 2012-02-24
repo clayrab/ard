@@ -68,10 +68,8 @@ import cDefines
 import gameLogic
 import uiElements
 import server
-import udpServer
 import client
 import gameFindClient
-import udpClient
 from textureFunctions import texWidth, texHeight, texIndex
 
 print random.__file__
@@ -156,8 +154,6 @@ class gameMode:
 		if(gameState.getGameFindClient() != None):
 			if(hasattr(gameState.getGameFindClient(),"checkSocket")):
 				gameState.getGameFindClient().checkSocket()
-		if(udpClient.udpClient.theUdpClient != None):
-			udpClient.udpClient.theUdpClient.checkSocket()
 			
 class tiledGameMode(gameMode):
 	def __init__(self,args=[]):
@@ -356,10 +352,6 @@ class playMode(tiledGameMode):
 					node.addIce(gameLogic.ice(node))
 	
 	def keyDown(self,keycode):
-#		if(keycode == "f"):
-#			self.selectedNode.addFire(gameLogic.fire(self.selectedNode))
-#		if(keycode == "s"):
-#			udpClient.udpClient.theUdpClient.send()
 		if(keycode == "left shift" or keycode == "right shift"):
 			self.shiftDown = True
 		if(keycode == "space"):
@@ -388,16 +380,15 @@ class playMode(tiledGameMode):
 		self.greenWoodUIElem.text = str(int(math.floor(self.players[self.getPlayerNumber()-1].greenWood)))
 		self.blueWoodUIElem.text = str(int(math.floor(self.players[self.getPlayerNumber()-1].blueWood)))
 		gameMode.onDraw(self)
-#		udpClient.udpClient.theUdpClient.send()
 
 	def addUIElements(self):
 		if(gameState.getClient() == None):#single player game
 			server.startServer('')
-			udpServer.startUdpServer()
+#			udpServer.startUdpServer()
 #			client.startClient('127.0.0.1')
 # 			client.startClient('192.168.0.102')
  			client.startClient('84.73.77.222')
-			udpClient.startUdpClient()
+#			udpClient.startUdpClient()
 			gameState.setPlayerNumber(-2)
 			gameState.addPlayer(1).isOwnPlayer = True
 			gameState.addPlayer(2).isOwnPlayer = True
@@ -648,15 +639,13 @@ class loginMode(gameMode):
 
 class gameFindMode(gameMode):
 	def __init__(self,args):
-		print "args: " + str(args)
 		self.roomName = args[0]
 		self.rooms = []
-		tokens = args[1].split('|')
-		for token in tokens:
-			self.rooms.append(tuple(token.split("-")))
-		print '1'
+		if(len(args) > 1):
+			tokens = args[1].split('|')
+			for token in tokens:
+				self.rooms.append(tuple(token.split("-")))
 		gameMode.__init__(self)
-		print '2'
 	def setMapName(self,mapName):
 		self.mapName = mapName
 		uiElements.uiElement(-0.15,0.9,text=mapName)

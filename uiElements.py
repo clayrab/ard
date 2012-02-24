@@ -8,8 +8,6 @@ import cDefines
 import shutil
 import client
 import server
-import udpServer
-import udpClient
 from textureFunctions import texWidth, texHeight, texIndex
 #print pubKey.decrypt(cipher)
 
@@ -925,8 +923,6 @@ class createButton(menuButton):
 	def onClick(self):
 		if(gameState.getGameMode().mapField.mapName != None):
 			gameState.getGameFindClient().sendCommand("createRoom",gameState.getGameMode().titleField.text + "|" + gameState.getGameMode().maxPlayersField.text.split(" ")[0] + "|" + gameState.getGameMode().mapField.mapName)
-			udpServer.startUdpServer()
-			udpClient.startUdpClient()
 		else:
 			modal("Choose a map!",-0.22)
 

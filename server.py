@@ -4,9 +4,6 @@ import SocketServer
 import time
 import gameState
 import client
-import udpService
-
-#udpService = udpService.udpService()
 
 serverLock = threading.Lock()
 server = None
