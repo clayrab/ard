@@ -8,6 +8,7 @@ import MySQLdb
 import hashlib
 import time
 import sys
+import socket
 
 privKey = rsa.PrivateKey(7294827300696961467825209649910612955544688273739654133132828909790861956391138768640249164939907033611860365075051236361359042803639003856587767504588353, 65537, 6977264057202623443995841153775681866813605135283831723778907294830864861810642621995438195929805731219864983148755866749414123928269010901281896813845553, 6795004418806002701275892780554702381414286837297772798037030472995866173266951571, 1073557403510678821257076760372205704035248017469579525573290803741034843)
 
@@ -73,9 +74,19 @@ class Connection(basic.LineReceiver):
             for room in rooms[roomName].childRooms:
                 response = response + "|" + room.name + "-" + str(len(room.subscribers))
             self.sendCommand("showRoom",roomName + response)
+    def testServer(self,args):
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(5)
+        try:
+            sock.connect((self.transport.getPeer().host,int(args)))
+            self.sendCommand("testConnectSuccess","")
+            print 'success'
+        except:
+            self.subscribe("lobby")
+            self.sendCommand("testConnectFail","")
+            print 'socket connect failed'
     def createGameRoom(self,args):
         tokens = args.split("|")
-        
         if(self.ownedRoom != None):
             self.destroyRoom(self.ownedRoom)
         self.ownedRoom = Room(tokens[0],self.currentRoom,tokens[2],tokens[1],self.transport.getPeer().host + ":" + str(self.transport.getPeer().port))
