@@ -73,8 +73,9 @@ class Connection(basic.LineReceiver):
             for room in rooms[roomName].childRooms:
                 response = response + "|" + room.name + "-" + str(len(room.subscribers))
             self.sendCommand("showRoom",roomName + response)
-    def createRoom(self,args):
+    def createGameRoom(self,args):
         tokens = args.split("|")
+        
         if(self.ownedRoom != None):
             self.destroyRoom(self.ownedRoom)
         self.ownedRoom = Room(tokens[0],self.currentRoom,tokens[2],tokens[1],self.transport.getPeer().host + ":" + str(self.transport.getPeer().port))
