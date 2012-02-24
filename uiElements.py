@@ -617,9 +617,7 @@ class scrollableMapNameElement(uiElement):
 
 class scrollableRoomElement(scrollableElement):
 	def __init__(self,xPos,yPos,roomName,mapName,playerCount,maxPlayerCount,text="",textSize=0.0005):
-		print '1'
 		scrollableElement.__init__(self,xPos,yPos,text="",textSize=textSize)
-		print '2'
 		self.names = []
 		self.names.append(scrollableRoomNameElement(xPos+0.008,yPos,text=roomName,textSize=textSize).name)
 		self.names.append(scrollableMapNameElement(xPos+0.9,yPos,text=mapName,textSize=textSize).name)
@@ -659,7 +657,6 @@ class scrollableTextFieldsElement(uiElement):
 				textFieldElem = scrollingTextElement(self.xPosition+self.xPositionOffset,0.0,self,width=0.2,height=0.1,text=text,textureIndex=-1,textSize=self.textSize,hidden=True)
 			textFieldElem.onScrollUp = self.onScrollUp
 			textFieldElem.onScrollDown = self.onScrollDown
-			print "textfirleelemname: " + str(textFieldElem.name) + "\t\ttext: " + textFieldElem.text
 			self.names.append(textFieldElem.name)
 			self.textFieldElements.append(textFieldElem)
 		self.hideAndShowTextFields()
@@ -768,7 +765,11 @@ class startingManaSelector(scrollableTextFieldsElement):
 
 class createRoomButton(clickableElement):
 	def onClick(self):
+		print gameState.getConfig()["serverPort"]
+		server.startServer('')
+		gameState.getGameFindClient().sendCommand("testServer",gameState.getConfig()["serverPort"])
 		gameState.setGameMode(gameModes.createGameMode)
+		modal("testing connection...",textYPos=-0.3,dismissable=False)
 
 class chatDisplay(scrollableTextFieldsElement):
 	def foo(self):
@@ -936,7 +937,7 @@ class maxPlayersField(clickableElement):
 class createButton(menuButton):
 	def onClick(self):
 		if(gameState.getGameMode().mapField.mapName != None):
-			gameState.getGameFindClient().sendCommand("createRoom",gameState.getGameMode().titleField.text + "|" + gameState.getGameMode().maxPlayersField.text.split(" ")[0] + "|" + gameState.getGameMode().mapField.mapName)
+			gameState.getGameFindClient().sendCommand("createGameRoom",gameState.getGameMode().titleField.text + "|" + gameState.getGameMode().maxPlayersField.text.split(" ")[0] + "|" + gameState.getGameMode().mapField.mapName)
 		else:
 			modal("Choose a map!",-0.22)
 
@@ -1000,16 +1001,18 @@ class modalButton(clickableElement):
 		self.modal.destroy()
 
 class modal(uiElement):
-	def __init__(self,text,textYPos=-0.1,textureIndex=cDefines.defines["MODAL_INDEX"]):
+	def __init__(self,text,textYPos=-0.1,textureIndex=cDefines.defines["MODAL_INDEX"],dismissable=True):
 		uiElement.__init__(self,-1.0,1.0,width=2.0,height=2.0,textureIndex=textureIndex)
+		self.dismissable = dismissable
 		self.textElem = uiElement(textYPos,0.1,text=text)
-		self.buttonElem = modalButton(self)
+		if(self.dismissable):
+			self.buttonElem = modalButton(self)
 		gameState.getGameMode().modal = self
-		
 	def destroy(self):
 		del gameState.getGameMode().elementsDict[self.name]
 		del gameState.getGameMode().elementsDict[self.textElem.name]
-		del gameState.getGameMode().elementsDict[self.buttonElem.name]
+		if(self.dismissable):
+			del gameState.getGameMode().elementsDict[self.buttonElem.name]
 		gameState.getGameMode().resortElems = True
 		gameState.getGameMode().modal = None
 

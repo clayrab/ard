@@ -20,6 +20,20 @@ theUnitTypes = {}
 for unitType in unitTypesList:
 	theUnitTypes[unitType.name] = unitType
 
+configOptions = {}
+
+configFile = open("config.txt")
+for line in configFile:
+	tokens = line.split("=")
+	configOptions[tokens[0]] = tokens[1].strip()
+configFile.close()
+print configOptions
+def getConfig():
+	global configOptions
+	return configOptions
+
+
+
 userName = "clayrab"
 def getUserName():
 	global userName

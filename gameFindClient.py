@@ -62,11 +62,7 @@ class Commands:
         uiElements.modal("Login failed.",-0.17)
     @staticmethod
     def addRoom(args):
-#        gameState.getGameMode().roomSelector.rooms.append(tuple(args.split("-")))
-#        gameState.getGameMode().roomSelector.foo()
         gameState.getGameMode().roomSelector.addRoom(args)
-        print args
-        print 'removeRoom'
     @staticmethod
     def removeRoom(args):
         print 'removeRoom'
@@ -76,8 +72,12 @@ class Commands:
     @staticmethod    
     def showMessage(args):
         uiElements.modal(args)
-
-
+    @staticmethod    
+    def testConnectSuccess(args):
+        gameState.getGameMode().modal.destroy()
+    @staticmethod    
+    def testConnectFail(args):
+        uiElements.modal("host test failed.\n See http:// for details",textYPos=-0.1)
         
 def doCommand(commandName,args=None):
     commandFunc = getattr(Commands,commandName)

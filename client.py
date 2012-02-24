@@ -43,7 +43,6 @@ class Commands:
     @staticmethod
     def moveToRedo(args):
         tokens = args.split(" ")
-
     @staticmethod
     def gatherTo(args):
         tokens = args.split(" ")
@@ -222,7 +221,9 @@ def doCommand(commandName,args=None):
 
 
 class Client:
-    def __init__(self,hostIP,port=6688):        
+    def __init__(self,hostIP,port=-1):
+        if(port < 0):
+            port = int(gameState.getConfig()["serverPort"])
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.connect((hostIP,port))
         self.socket.setblocking(0)
