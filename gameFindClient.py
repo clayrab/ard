@@ -44,7 +44,6 @@ class Commands:
         tokens = args.split("|",1)
         gameState.setGameMode(gameModes.gameFindMode,tokens)
 #        gameState.getGameMode().roomSelector.drawRooms(tokens[1])
-
     @staticmethod
     def seedRNG(seed):
         random.seed(seed)
@@ -61,12 +60,25 @@ class Commands:
     @staticmethod
     def showLoginFailed(args):
         uiElements.modal("Login failed.",-0.17)
+    @staticmethod
+    def addRoom(args):
+#        gameState.getGameMode().roomSelector.rooms.append(tuple(args.split("-")))
+#        gameState.getGameMode().roomSelector.foo()
+        gameState.getGameMode().roomSelector.addRoom(args)
+        print args
+        print 'removeRoom'
+    @staticmethod
     def removeRoom(args):
         print 'removeRoom'
+    @staticmethod
     def removeCurrentRoom(args):
         print 'removeCurrentRoom'
+    @staticmethod    
+    def showMessage(args):
+        uiElements.modal(args)
 
 
+        
 def doCommand(commandName,args=None):
     commandFunc = getattr(Commands,commandName)
     if(commandFunc != None):

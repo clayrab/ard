@@ -617,11 +617,18 @@ class scrollableMapNameElement(uiElement):
 
 class scrollableRoomElement(scrollableElement):
 	def __init__(self,xPos,yPos,roomName,mapName,playerCount,maxPlayerCount,text="",textSize=0.0005):
+		print '1'
 		scrollableElement.__init__(self,xPos,yPos,text="",textSize=textSize)
+		print '2'
 		self.names = []
 		self.names.append(scrollableRoomNameElement(xPos+0.008,yPos,text=roomName,textSize=textSize).name)
 		self.names.append(scrollableMapNameElement(xPos+0.9,yPos,text=mapName,textSize=textSize).name)
 		self.names.append(uiElement(xPos+1.36,yPos,text=str(playerCount) + "/" + str(maxPlayerCount),textSize=textSize).name)
+#		gameState.getGameMode().elementsDict[self.name] = self
+#		gameState.getGameMode().resortElems = True
+		
+
+
 
 class scrollableTextFieldsElement(uiElement):
 	def __init__(self,xPos,yPos,textFields,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,xPositionOffset=0.0,yPositionOffset=-0.04,yOffset=-0.041,numFields=25,scrollSpeed=1):
@@ -652,6 +659,7 @@ class scrollableTextFieldsElement(uiElement):
 				textFieldElem = scrollingTextElement(self.xPosition+self.xPositionOffset,0.0,self,width=0.2,height=0.1,text=text,textureIndex=-1,textSize=self.textSize,hidden=True)
 			textFieldElem.onScrollUp = self.onScrollUp
 			textFieldElem.onScrollDown = self.onScrollDown
+			print "textfirleelemname: " + str(textFieldElem.name) + "\t\ttext: " + textFieldElem.text
 			self.names.append(textFieldElem.name)
 			self.textFieldElements.append(textFieldElem)
 		self.hideAndShowTextFields()
@@ -690,13 +698,13 @@ class scrollableTextFieldsElement(uiElement):
 		for name in self.names:
 			if(hasattr(gameState.getGameMode().elementsDict[name],"destroy")):
 				gameState.getGameMode().elementsDict[name].destroy()
-			del gameState.getGameMode().elementsDict[name]
+			#it appears this line is no longer needed because uiElement.destroy dels the elem from elementsDict
+			#del gameState.getGameMode().elementsDict[name]
 		self.names = []
 		self.textFieldElements = []
 
 class roomSelector(scrollableTextFieldsElement):
 	def __init__(self,xPos,yPos,rooms,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,xPositionOffset=0.0,yPositionOffset=-0.04,yOffset=-0.041,numFields=25,scrollSpeed=1):
-		print 'foo'
 		scrollableTextFieldsElement.__init__(self,xPos,yPos,[],width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,color=color,mouseOverColor=mouseOverColor,xPositionOffset=xPositionOffset,yPositionOffset=yPositionOffset,yOffset=yOffset)
 		self.rooms = rooms
 		for room in rooms:
@@ -705,8 +713,14 @@ class roomSelector(scrollableTextFieldsElement):
 	def handleClick(self,textFieldElem):
 		print textFieldElem
 	
-	def drawRooms(self,roomsStr):
-		print 'drawrooms'
+#	def drawRooms(self,roomsStr):
+#		print 'drawrooms'
+	def addRoom(self,roomStr):
+		self.rooms.append(tuple(roomStr.split("-")))
+#		self.reset()
+		for room in self.rooms:
+			self.textFields.append(scrollableRoomElement(self.xPosition+self.xPositionOffset,0.0,room[0],"mapname",0,8))
+		self.redraw()
 	def foo(self):
 		self.reset()
 		tokens = roomsStr.split('|')

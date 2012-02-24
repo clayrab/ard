@@ -4,13 +4,16 @@
 #host needs to be able to set port
 #gameFindServer needs to test host tcp port connection
 #SSL
-# room for finding games
-# room for each game
+#room for finding games
+#room for each game
+
 
 #MISSING FEATURES
 #sound effects
 #mouseover effects
 #limited time to move?
+#modals should be dismissed by esc, space, or enter
+#handle disconnections/reconnections gracefully
 
 #BUGS
 #make sure text edit boxes only allow chars and not shift/enter
@@ -130,7 +133,7 @@ class gameMode:
 					self.elementWithFocus.onLeftClickUp()
 	def handleKeyDown(self,keycode):
 		if(keycode == "m"):
-			uiElements.modal("Hi Ban")
+			uiElements.modal("Hi")
 		if(self.modal == None):
 			if(hasattr(self,"keyDown")):
 				self.keyDown(keycode)
