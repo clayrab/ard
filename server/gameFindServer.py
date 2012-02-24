@@ -48,9 +48,10 @@ class Connection(basic.LineReceiver):
         self.factory.clients.remove(self)
     def destroyRoom(self,room):
         room.parent.childRooms.remove(room)
-        del rooms[room.name]
         for subscriber in room.subscribers:
-            print subscriber
+            subscriber.subscribe(room.parent.name)
+            subscriber.sendCommand("showMessage","The game you are in no longer exists")
+        del rooms[room.name]
         #TODO: dispatch message to subscribers and subscribe them to parent
     #BEGIN COMMANDS
     def subscribe(self,args):
@@ -80,6 +81,7 @@ class Connection(basic.LineReceiver):
         self.subscribe(self.ownedRoom.name)
 #        self.sendCommand("showGameRoom",roomName + response)
         for subscriber in self.ownedRoom.parent.subscribers:
+            subscriber.sendCommand("addRoom",self.ownedRoom.name + "-" + str(len(self.ownedRoom.subscribers)))
             print subscriber
             #send new room notification to each subscriber here
     def login(self,args):
