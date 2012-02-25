@@ -875,7 +875,7 @@ class menuButton(clickableElement):
 
 class mapEditSelectButton(menuButton):
 	def onClick(self):
-		if(self.text == "create new map"):#TODO: someone naming a map "create new map" would fuck this up
+		if(self.text == "create new map"):#TODO: someone naming a map "create new map" would fuck this up, break this into separate classes
 			gameState.setGameMode(self.gameMode)
 		else:
 			gameState.setMapName(self.text)
@@ -1028,6 +1028,8 @@ class createMapButton(clickableElement):
 				shutil.copyfile("maps/defaultMap","maps/" + mapName + ".map")
 				gameState.setMapName(mapName)
 				gameState.setGameMode(self.gameMode)
+				for playerNum in range(0,numPlayers+1):
+					gameState.getGameMode().map.nodes[0][playerNum-1].playerStartValue = playerNum
 
 class newMapNameInputElement(textInputElement):
 	def __init__(self,xPos,yPos,gameMode,width=0.0,height=0.0,text="",textSize=0.001,textureIndex=-1,textColor='FF FF FF',textXPos=0.0,textYPos=0.0):

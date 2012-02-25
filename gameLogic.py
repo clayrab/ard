@@ -590,14 +590,15 @@ class mapEditorNode(node):
 				else:
 					self.tileValue = gameState.getGameMode().selectedButton.tileType
 			else:
-				if(self.playerStartValue == gameState.getGameMode().selectedButton.playerNumber):
-					self.playerStartValue = 0
-					if(gameState.getGameMode().map.numPlayers == gameState.getGameMode().selectedButton.playerNumber and gameState.getGameMode().map.numPlayers != 1):
-						for button in playerStartLocationButton.playerStartLocationButtons:
-							if(button.playerNumber == gameState.getGameMode().map.numPlayers + 1):
-								button.color = "55 55 55"
-						gameState.getGameMode().map.numPlayers = gameState.getGameMode().map.numPlayers - 1
-				else:
+#				if(self.playerStartValue == gameState.getGameMode().selectedButton.playerNumber):
+#					self.playerStartValue = 0
+#					if(gameState.getGameMode().map.numPlayers == gameState.getGameMode().selectedButton.playerNumber and gameState.getGameMode().map.numPlayers != 1):
+#						for button in playerStartLocationButton.playerStartLocationButtons:
+#							if(button.playerNumber == gameState.getGameMode().map.numPlayers + 1):
+#								button.color = "55 55 55"
+#						gameState.getGameMode().map.numPlayers = gameState.getGameMode().map.numPlayers - 1
+#				else:
+				if(self.playerStartValue != gameState.getGameMode().selectedButton.playerNumber):	
 					for row in gameState.getGameMode().map.nodes:
 						for node in row:
 							if(node.playerStartValue == gameState.getGameMode().selectedButton.playerNumber):
@@ -626,7 +627,9 @@ class map:
 				self.polarity = int(line)
 #				self.numPlayers = 2
 			elif(count == 1):
+				print "map: " + str(self)
 				self.numPlayers = int(line)
+				print self.numPlayers
 			else:
 				yPos = yPos + 1
 				xPos = -1
@@ -638,7 +641,7 @@ class map:
 						if(char != '\n'):
 							intValue = ord(char)
 							tileValue = intValue & 15
-							roadValue = (intValue & 128)>>4
+							roadValue = (intValue & 128)>>7
 #							playerStartValue = (intValue & (32+64+128))>>5)
 							playerStartValue = 0
 							newNode = self.nodeType(xPos,yPos,tileValue,roadValue,None,playerStartValue=playerStartValue)
@@ -679,8 +682,6 @@ class map:
 					coords = tokens[0].strip("@").split(",")
 					playerStartValue = int(tokens[1])
 					self.nodes[int(coords[1])][int(coords[0])].playerStartValue = playerStartValue
-					print tokens
-					
 			count = count + 1
 		mapFile.close()
 #		fauxRowTop = []
@@ -693,8 +694,6 @@ class map:
 #		self.nodes.append(fauxRowTop)
 #		self.polarity = 1 if self.polarity == 0 else 0
 #		self.nodes.insert(0,fauxRowBottom)
-
-
 	def save(self):
 		mapFile = open('maps/' + gameState.getMapName() + ".map",'w')
 		yPos = 0
@@ -710,6 +709,9 @@ class map:
 			line = "#"
 			for node in row:
 				xPos = xPos + 1
+				print node.tileValue + (128*node.roadValue)
+				print node.tileValue
+				print node.roadValue
 				line = line + chr(node.tileValue + (128*node.roadValue))#DON'T GO PAST 256, THIS NEEDS TO FIT INTO ONE BYTE
 				if(node.city != None):
 					unitTypes = ""
