@@ -152,7 +152,7 @@ void make_dlist ( FT_Face face, char charIndex, GLuint list_base, GLuint * tex_b
 
   // Increment The Raster Position As If We Were A Bitmap Font.
   // (Only Needed If You Want To Calculate Text Length)
-  glBitmap(0,0,0,0,face->glyph->advance.x >> 6,0,NULL);
+  // glBitmap(0,0,0,0,face->glyph->advance.x >> 6,0,NULL);
 
   // Finish The Display List
   glEndList();
@@ -209,6 +209,7 @@ void drawCursor(){
 int strCount;
 float modelview_matrix[16];
 void drawText(char* str,int fontIndex,int cursorPosition){
+  glPushMatrix();
   textName = 0;
   glPushAttrib(GL_LIST_BIT | GL_CURRENT_BIT | GL_ENABLE_BIT | GL_TRANSFORM_BIT); 
   //glMatrixMode(GL_MODELVIEW);
@@ -224,6 +225,12 @@ void drawText(char* str,int fontIndex,int cursorPosition){
     if(strCount == cursorPosition){
       drawCursor();
     }
+    if(strCount == 10){
+      glPopMatrix();
+      glTranslatef(0.0,-80.0,0.0);
+      glPushMatrix();
+    }
+
     glPushName(strCount);
     glCallList(list_base+(fontIndex*128)+str[strCount]);
     glPopName();
@@ -235,7 +242,7 @@ void drawText(char* str,int fontIndex,int cursorPosition){
   glCallList(list_base+32);//draw a space at the end
   glPopName();
 
-    GLdouble projMatrix[16];
+  GLdouble projMatrix[16];
   glGetDoublev(GL_MODELVIEW_MATRIX,projMatrix);
   int ix = 0;
   //  printf("%s ",str);
@@ -245,5 +252,5 @@ void drawText(char* str,int fontIndex,int cursorPosition){
   //  printf("%f ",projMatrix[12]);//IT APPEARS THAT THIS IS THE TRANSLATION OF THE LAST CHARACTER
   //printf("\n");
   
-
+  glPopMatrix();
 }

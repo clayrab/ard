@@ -8,16 +8,15 @@
 #how to host instructions page
 
 #server:
-#map player count
 #room player count
-#map editor should place all player start positions and not allow them to be removed
+#kick player from room if it's full when they join
 #update room player count
 #polish gameroom view
 #    show each player status (connecting, connected, ready)
-#    host port test failure
 #show map info(perhaps just size, units available, and city count would be sufficient?)
 
 #MISSING FEATURES
+#text width
 #roads
 #mountains should be impassable, hills less passable, hills give defense bonus
 #hash commands to hide from hackers
