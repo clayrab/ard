@@ -1014,16 +1014,39 @@ class createMapButton(clickableElement):
 		clickableElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=menuButton.normalTextColor,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],mouseOverColor="66 66 66",textSize=0.0013,fontIndex=1)
 		self.gameMode = gameMode
 	def onClick(self):
-		text = gameState.getGameMode().mapNameInputElement.text
-		if(len(text) > 0):
-			shutil.copyfile("maps/defaultMap","maps/" + text + ".map")
-			gameState.setMapName(text)
-			gameState.setGameMode(self.gameMode)
+		mapName = gameState.getGameMode().mapNameInputElement.text
+		try:
+			numPlayers = int(gameState.getGameMode().mapPlayerCountInputElement.text)
+		except:
+			numPlayers = -1
+		if(numPlayers < 2 or numPlayers > 8):
+			modal("player count must be between 2 and 8")
+		else:
+			if(len(mapName) < 1):
+				modal("you must enter a map name")
+			else:
+				shutil.copyfile("maps/defaultMap","maps/" + mapName + ".map")
+				gameState.setMapName(mapName)
+				gameState.setGameMode(self.gameMode)
 
 class newMapNameInputElement(textInputElement):
 	def __init__(self,xPos,yPos,gameMode,width=0.0,height=0.0,text="",textSize=0.001,textureIndex=-1,textColor='FF FF FF',textXPos=0.0,textYPos=0.0):
 		textInputElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textSize=textSize,textColor=textColor,textXPos=textXPos,textYPos=textYPos)
 		self.gameMode = gameMode
 	def onKeyDown(self,keycode):
-		if(keycode != "return"):
-			textInputElement.onKeyDown(self,keycode)
+		if(keycode == "tab"):
+			gameState.getGameMode().setFocus(gameState.getGameMode().mapPlayerCountInputElement)
+		else:
+			if(keycode != "return"):
+				textInputElement.onKeyDown(self,keycode)
+
+class newMapPlayerCountInputElement(textInputElement):
+	def __init__(self,xPos,yPos,gameMode,width=0.0,height=0.0,text="",textSize=0.001,textureIndex=-1,textColor='FF FF FF',textXPos=0.0,textYPos=0.0):
+		textInputElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textSize=textSize,textColor=textColor,textXPos=textXPos,textYPos=textYPos)
+		self.gameMode = gameMode
+	def onKeyDown(self,keycode):
+		if(keycode == "tab"):
+			gameState.getGameMode().setFocus(gameState.getGameMode().mapNameInputElement)
+		else:
+			if(keycode == "0" or keycode == "1" or keycode == "2" or keycode == "3" or keycode == "4" or keycode == "5" or keycode == "6" or keycode == "7" or keycode == "8" or keycode == "9" or keycode == "backspace"):
+				textInputElement.onKeyDown(self,keycode)

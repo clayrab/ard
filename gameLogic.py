@@ -638,8 +638,9 @@ class map:
 						if(char != '\n'):
 							intValue = ord(char)
 							tileValue = intValue & 15
-							roadValue = (intValue & 16)>>4
-							playerStartValue = (intValue & (32+64+128))>>5
+							roadValue = (intValue & 128)>>4
+#							playerStartValue = (intValue & (32+64+128))>>5)
+							playerStartValue = 0
 							newNode = self.nodeType(xPos,yPos,tileValue,roadValue,None,playerStartValue=playerStartValue)
 							if(xPos > 0):#add neighbor to the left
 								newNode.neighbors.append(newRow[len(newRow)-1])
@@ -673,6 +674,13 @@ class map:
 							unitTypes.append(theUnitType)
 					costOfOwnership = tokens[3]
 					self.nodes[int(coords[1])][int(coords[0])].city = city(cityName,self.nodes[int(coords[1])][int(coords[0])],unitTypes,costOfOwnership)
+				elif(line.startswith("@")):#playerStartPosition
+					tokens = line.split(":")
+					coords = tokens[0].strip("@").split(",")
+					playerStartValue = int(tokens[1])
+					self.nodes[int(coords[1])][int(coords[0])].playerStartValue = playerStartValue
+					print tokens
+					
 			count = count + 1
 		mapFile.close()
 #		fauxRowTop = []
@@ -691,16 +699,18 @@ class map:
 		mapFile = open('maps/' + gameState.getMapName() + ".map",'w')
 		yPos = 0
 		xPos = 0
+		playerStartLines = []
 		cityLines = []
 		nodeLines = []
 		nodeLines.append(str(self.polarity) + "\n")
+		nodeLines.append(str(self.numPlayers) + "\n")
 		for row in self.nodes:
 			xPos = 0
 			yPos = yPos + 1
 			line = "#"
 			for node in row:
 				xPos = xPos + 1
-				line = line + chr(node.tileValue + (16*node.roadValue)+ (32*node.playerStartValue) + (512*0))#USE 512 NEXT BECAUSE 8 PLAYERS NEEDS 3 BITS
+				line = line + chr(node.tileValue + (128*node.roadValue))#DON'T GO PAST 256, THIS NEEDS TO FIT INTO ONE BYTE
 				if(node.city != None):
 					unitTypes = ""
 					for unitType in node.city.unitTypes:
@@ -708,9 +718,13 @@ class map:
 							unitTypes = unitTypes + "," + unitType.name
 					unitTypes = unitTypes[1:]
 					cityLines.append("*" + str(xPos-1) + "," + str(yPos-1) + ":" + node.city.name + ":" + unitTypes + ":" + str(node.city.costOfOwnership) + "\n")
+				if(node.playerStartValue > 0):
+					playerStartLines.append("@" + str(xPos-1) + "," + str(yPos-1) + ":" + str(node.playerStartValue) + "\n")
+					
 			nodeLines.append(line + "\n")
 		mapFile.writelines(nodeLines)
 		mapFile.writelines(cityLines)
+		mapFile.writelines(playerStartLines)
 		mapFile.close()
 		print "saved"
 	def getNodes(self):

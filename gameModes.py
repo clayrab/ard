@@ -6,12 +6,11 @@
 #distribution
 #general instructions page
 #how to host instructions page
-#about
 
 #server:
 #map player count
-
 #room player count
+#map editor should place all player start positions and not allow them to be removed
 #update room player count
 #polish gameroom view
 #    show each player status (connecting, connected, ready)
@@ -19,6 +18,7 @@
 #show map info(perhaps just size, units available, and city count would be sufficient?)
 
 #MISSING FEATURES
+#roads
 #mountains should be impassable, hills less passable, hills give defense bonus
 #hash commands to hide from hackers
 #sound effects
@@ -41,6 +41,16 @@
 #    self.setFocus(None)
 #  File "gameModes.py", line 91, in setFocus
 #    self.elementWithFocus.focused = True
+
+#this occurs when placing player 8 start point and hitting save:
+#<type 'exceptions.ValueError'>
+#chr() arg not in range(256)
+#  File "gameModes.py", line 136, in handleLeftClickDown
+#    self.elementsDict[name].onClick()
+#  File "uiElements.py", line 80, in onClick
+#    gameState.getGameMode().map.save()
+#  File "gameLogic.py", line 704, in save
+#    line = line + chr(node.tileValue + (16*node.roadValue)+ (32*node.playerStartValue) + (512*0))#USE 512 NEXT BECAUSE 8 PLAYERS NEEDS 3 BITS
 
 
 ############# MINIMUM VIABLE PRODUCT AT THIS POINT ##############
@@ -558,8 +568,12 @@ class newMapMode(gameMode):
 		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])
 		uiElements.uiElement(-0.15,0.2,text="map name")
 		self.mapNameInputElement = uiElements.newMapNameInputElement(-0.15,0.15,mapEditorMode,width=(2.0*cDefines.defines['UI_TEXT_INPUT_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_TEXT_INPUT_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),text="",textSize=0.0005,textColor='00 00 00',textureIndex=cDefines.defines['UI_TEXT_INPUT_INDEX'],textYPos=-0.035,textXPos=0.01)
+		uiElements.uiElement(-0.15,0.0,text="number of players")
+		self.mapPlayerCountInputElement = uiElements.newMapPlayerCountInputElement(-0.15,-0.05,mapEditorMode,width=(2.0*cDefines.defines['UI_TEXT_INPUT_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_TEXT_INPUT_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),text="",textSize=0.0005,textColor='00 00 00',textureIndex=cDefines.defines['UI_TEXT_INPUT_INDEX'],textYPos=-0.035,textXPos=0.01)
+
+
 		self.setFocus(self.mapNameInputElement)
-		uiElements.createMapButton(0.0,0.0,mapEditorMode,text="create map")
+		uiElements.createMapButton(0.0,-0.3,mapEditorMode,text="create map")
 
 class joinLANGameScreenMode(gameMode):
 	def __init__(self,args):
