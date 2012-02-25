@@ -624,7 +624,9 @@ class map:
 			if(count == 0):#header
 				#TODO add players and starting positions to map data
 				self.polarity = int(line)
-				self.numPlayers = 2
+#				self.numPlayers = 2
+			elif(count == 1):
+				self.numPlayers = int(line)
 			else:
 				yPos = yPos + 1
 				xPos = -1

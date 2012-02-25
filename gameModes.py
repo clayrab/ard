@@ -1,14 +1,26 @@
 #icons for each unit
 
-#server:
-#host needs to be able to set port
-#gameFindServer needs to test host tcp port connection
+#webpage
 #SSL
-#room for finding games
-#room for each game
+#registration
+#distribution
+#general instructions page
+#how to host instructions page
+#about
 
+#server:
+#map player count
+
+#room player count
+#update room player count
+#polish gameroom view
+#    show each player status (connecting, connected, ready)
+#    host port test failure
+#show map info(perhaps just size, units available, and city count would be sufficient?)
 
 #MISSING FEATURES
+#mountains should be impassable, hills less passable, hills give defense bonus
+#hash commands to hide from hackers
 #sound effects
 #mouseover effects
 #limited time to move?
@@ -54,11 +66,11 @@
 
 
 #unit editor
+
 import sys
-print sys.path
+#print sys.path
 #sys.path.insert(0,"python26.zip")
 #sys.path.insert(0,".")
-#print sys.path
 import os
 import random
 import math
@@ -132,8 +144,10 @@ class gameMode:
 				elif(hasattr(self.elementWithFocus,"onLeftClickUp")):
 					self.elementWithFocus.onLeftClickUp()
 	def handleKeyDown(self,keycode):
-		if(keycode == "m"):
-			uiElements.modal("Hi")
+		if(keycode == "t"):
+			self.roomSelector.addRoom("asdf-1")
+		if(keycode == "y"):
+			self.roomSelector.removeRoom("asdf")
 		if(self.modal == None):
 			if(hasattr(self,"keyDown")):
 				self.keyDown(keycode)
