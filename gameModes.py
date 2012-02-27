@@ -16,13 +16,16 @@
 #show map info(perhaps just size, units available, and city count would be sufficient?)
 
 #MISSING FEATURES
-#text width
+#chat
 #roads
+#sort room columns
 #mountains should be impassable, hills less passable, hills give defense bonus
 #hash commands to hide from hackers
 #sound effects
 #mouseover effects
 #limited time to move?
+#player stats(wins,losses,rank,etc)
+#player rewards
 #modals should be dismissed by esc, space, or enter
 #handle disconnections/reconnections gracefully
 
@@ -32,6 +35,7 @@
 #uiElements startingManaSelector???
 #in map editor: nodes created after the ui render the ui unclickable since clicks go 'thru' to the new nodes
 #make sure room and/or map names do not contain *
+# + buttons in map edit mode are wrong
 
 #saw this when i shift-clicked outside the map somewhere
 #<type 'exceptions.AttributeError'>
@@ -154,7 +158,7 @@ class gameMode:
 					self.elementWithFocus.onLeftClickUp()
 	def handleKeyDown(self,keycode):
 		if(keycode == "t"):
-			self.roomSelector.addRoom("asdf-1")
+			uiElements.smallModal("test adsfasdfa dsfadsfas dfadsf oiasdf adsop fbasdpfoia sdfa dsfoaiuadsfadsf idfu dfdi")
 		if(keycode == "y"):
 			self.roomSelector.removeRoom("asdf")
 		if(self.modal == None):

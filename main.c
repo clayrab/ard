@@ -261,6 +261,15 @@
 #define OK_BUTTON_WIDTH 177
 #define OK_BUTTON_INDEX 55
 
+#define MODAL_BACKGROUND "assets/modalBackground.png"
+#define MODAL_BACKGROUND_HEIGHT 1200
+#define MODAL_BACKGROUND_WIDTH 1600
+#define MODAL_BACKGROUND_INDEX 56
+
+#define MODAL_SMALL "assets/modalSmall.png"
+#define MODAL_SMALL_HEIGHT 200
+#define MODAL_SMALL_WIDTH 600
+#define MODAL_SMALL_INDEX 57
 
 #define DESERT_TILE_INDEX 0
 #define GRASS_TILE_INDEX 1
@@ -1272,6 +1281,8 @@ static void initGL (){
   pngLoad(&texturesArray[GAME_FIND_CHAT_INDEX],GAME_FIND_CHAT);
   pngLoad(&texturesArray[MODAL_INDEX],MODAL);
   pngLoad(&texturesArray[OK_BUTTON_INDEX],OK_BUTTON);
+  pngLoad(&texturesArray[MODAL_BACKGROUND_INDEX],MODAL_BACKGROUND);
+  pngLoad(&texturesArray[MODAL_SMALL_INDEX],MODAL_SMALL);
 
   vertexArrays[DESERT_TILE_INDEX] = *desertVertices;
   vertexArrays[GRASS_TILE_INDEX] = *grassVertices;
@@ -1283,7 +1294,7 @@ static void initGL (){
   vertexArrays[CITY_TILE_INDEX] = *cityVertices;
   vertexArrays[PLAYER_START_TILE_INDEX] = *playerStartVertices;
   
-    tilesLists = glGenLists(30);
+  tilesLists = glGenLists(30);
 
   int c = 0;
   for(;c<9;c++){
@@ -1658,12 +1669,17 @@ int main(int argc, char **argv){
   int * value;
   //  SDL_GL_GetAttribute(SDL_GL_DEPTH_SIZE,value);
   //printf("depth size: %d\n",*value);
+  printf("%d\n",1);						
   
   SDL_ShowCursor(0);
+  printf("%d\n",2);				   	
   
   initGL();
+  printf("%d\n",3);						
   const GLubyte * glVersion = glGetString(GL_VERSION);
+  printf("%d\n",1);						
   printf("OpenGL Version: %s\n",glVersion);
+  printf("%d\n",1);						
   initPython();
   initFonts();
   //SDL_EnableUNICODE(1);

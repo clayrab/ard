@@ -986,27 +986,31 @@ class loginPassword(loginInputElement):
 		loginInputElement.passwordElem = self
 
 class modalButton(clickableElement):
-	def __init__(self,modal,text="ok",textureIndex=cDefines.defines["OK_BUTTON_INDEX"]):
+	def __init__(self,modal,yPos=-0.05,text="ok",textureIndex=cDefines.defines["OK_BUTTON_INDEX"]):
 		self.modal = modal
-		clickableElement.__init__(self,texWidth("OK_BUTTON")/-2.0,-0.1,text=text,width=texWidth("OK_BUTTON"),height=texHeight("OK_BUTTON"),textureIndex=textureIndex,textXPos=0.1,textYPos=-0.1)
+		clickableElement.__init__(self,texWidth("OK_BUTTON")/-2.0,yPos,text=text,width=texWidth("OK_BUTTON"),height=texHeight("OK_BUTTON"),textureIndex=textureIndex,textXPos=0.1,textYPos=-0.1)
 	def onClick(self):
 		self.modal.destroy()
 
 class modal(uiElement):
-	def __init__(self,text,textYPos=-0.1,textureIndex=cDefines.defines["MODAL_INDEX"],dismissable=True):
-		uiElement.__init__(self,-1.0,1.0,width=2.0,height=2.0,textureIndex=textureIndex)
-		self.dismissable = dismissable
-		self.textElem = uiElement(textYPos,0.1,text=text)
-		if(self.dismissable):
-			self.buttonElem = modalButton(self)
-		gameState.getGameMode().modal = self
 	def destroy(self):
 		del gameState.getGameMode().elementsDict[self.name]
 		del gameState.getGameMode().elementsDict[self.textElem.name]
+		del gameState.getGameMode().elementsDict[self.backgroundElem.name]
 		if(self.dismissable):
 			del gameState.getGameMode().elementsDict[self.buttonElem.name]
 		gameState.getGameMode().resortElems = True
 		gameState.getGameMode().modal = None
+
+class smallModal(modal):
+	def __init__(self,text,dismissable=True):
+		uiElement.__init__(self,texWidth("MODAL_SMALL")/-2.0,texHeight("MODAL_SMALL")/2.0,width=texWidth("MODAL_SMALL"),height=texHeight("MODAL_SMALL"),textureIndex=cDefines.defines["MODAL_SMALL_INDEX"])
+		self.dismissable = dismissable
+		self.backgroundElem = uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines["MODAL_BACKGROUND_INDEX"])
+		self.textElem = uiElement((texWidth("MODAL_SMALL")/-2.0)+0.03,0.16,width=texWidth("MODAL_SMALL")-0.06,text=text,textSize=0.0007)
+		if(self.dismissable):
+			self.buttonElem = modalButton(self)
+		gameState.getGameMode().modal = self
 
 class createMapButton(clickableElement):
 	def __init__(self,xPos,yPos,gameMode,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",selected=False):
