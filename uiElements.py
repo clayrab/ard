@@ -674,20 +674,20 @@ class scrollableTextFieldsElement(uiElement):
 				yPosOffset = yPosOffset + self.yOffset
 			else:
 				textFieldElement.hidden = True
-	def onScrollUp(self):
-		if(self.scrollPadElem != None):
-			self.scrollPosition = self.scrollPosition - self.scrollSpeed
-			if(self.scrollPosition < 0):
-				self.scrollPosition = 0
-			self.hideAndShowTextFields()
-			self.scrollPadElem.setScrollPosition(self.scrollPosition)
-	def onScrollDown(self):
-		if(self.scrollPadElem != None):
-			self.scrollPosition =self.scrollPosition + self.scrollSpeed
-			if(self.scrollPosition > len(self.textFieldElements) - self.numFields + 1):
-				self.scrollPosition = len(self.textFieldElements) - self.numFields + 1
-			self.hideAndShowTextFields()
-			self.scrollPadElem.setScrollPosition(self.scrollPosition)
+#	def onScrollUp(self):
+#		if(self.scrollPadElem != None):
+#			self.scrollPosition = self.scrollPosition - self.scrollSpeed
+#			if(self.scrollPosition < 0):
+#				self.scrollPosition = 0
+#			self.hideAndShowTextFields()
+#			self.scrollPadElem.setScrollPosition(self.scrollPosition)
+#	def onScrollDown(self):
+#		if(self.scrollPadElem != None):
+#			self.scrollPosition =self.scrollPosition + self.scrollSpeed
+#			if(self.scrollPosition > len(self.textFieldElements) - self.numFields + 1):
+#				self.scrollPosition = len(self.textFieldElements) - self.numFields + 1
+#			self.hideAndShowTextFields()
+#			self.scrollPadElem.setScrollPosition(self.scrollPosition)
 	def reset(self):
 		for name in self.names:
 			if(hasattr(gameState.getGameMode().elementsDict[name],"destroy")):
