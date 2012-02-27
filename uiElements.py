@@ -26,7 +26,7 @@ class uiElement:
 #			uiElement.focusedElem.focused = False
 #		uiElement.focusedElem = elem
 #		uiElement.focusedElem.focused = True
-	def __init__(self,xPos,yPos,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor=None,textSize=0.001,color=None,mouseOverColor=None,textXPos=0.0,textYPos=0.0,cursorPosition=-1,fontIndex=0):
+	def __init__(self,xPos,yPos,width=1.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor=None,textSize=0.001,color=None,mouseOverColor=None,textXPos=0.0,textYPos=0.0,cursorPosition=-1,fontIndex=0):
 		self.name = nameGenerator.getNextName()
 		self.xPosition = xPos
 		self.yPosition = yPos
@@ -232,7 +232,7 @@ class viewResearchButton(clickableElement):
 		unitTypeResearchViewer.theUnitTypeResearchViewer = unitTypeResearchViewer(self.unitType)
 
 class viewUnitTypeButton(clickableElement):
-       	def __init__(self,xPos,yPos,unitType,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,textXPos=0.0,textYPos=0.0):
+       	def __init__(self,xPos,yPos,unitType,width=0.3,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,textXPos=0.0,textYPos=0.0):
 		clickableElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],color=color,mouseOverColor=mouseOverColor,textXPos=textXPos,textYPos=textYPos)
 		self.unitType = unitType
 	def onClick(self):
@@ -309,7 +309,7 @@ class actionViewer(uiElement):
 				for unitType in self.node.city.researchProgress:
 					if(self.node.city.researchProgress[unitType][0] > 0):
 						
-						self.names.append(viewUnitTypeButton(-0.965,height,unitType,text=unitType.name + "(lvl " + str(self.node.city.researchProgress[unitType][0]) + ")",textSize=0.0005).name)
+						self.names.append(viewUnitTypeButton(-0.965,height,unitType,text=unitType.name + " lvl " + str(self.node.city.researchProgress[unitType][0]),textSize=0.0005).name)
 						self.names.append(uiElement(-0.93,height-0.04,text=str(unitType.costGreen*self.node.city.researchProgress[unitType][0]),textSize=0.0005).name)
 						self.names.append(uiElement(-0.83,height-0.04,text=str(unitType.costBlue*self.node.city.researchProgress[unitType][0]),textSize=0.0005).name)
 						self.names.append(uiElement(-0.73,height-0.04,text=str(unitType.buildTime),textSize=0.0005).name)
@@ -758,7 +758,6 @@ class startingManaSelector(scrollableTextFieldsElement):
 
 class createRoomButton(clickableElement):
 	def onClick(self):
-		print gameState.getConfig()["serverPort"]
 		server.startServer('')
 		gameState.getGameFindClient().sendCommand("testServer",gameState.getConfig()["serverPort"])
 		gameState.setGameMode(gameModes.createGameMode)
@@ -856,7 +855,7 @@ class menuButton(clickableElement):
 	selectedTextColor = "AA AA AA"
 	normalTextColor = "EE EE EE"
 	gameMode = None
-	def __init__(self,xPos,yPos,gameMode,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",selected=False):
+	def __init__(self,xPos,yPos,gameMode,width=1.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",selected=False):
 		clickableElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=menuButton.normalTextColor,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],mouseOverColor="66 66 66",textSize=0.0013,fontIndex=1)
 		if(menuButton.gameMode != gameState.getGameMode()):
 			menuButton.index = 0

@@ -94,10 +94,9 @@ void make_dlist ( FT_Face face, char charIndex, GLuint list_base, GLuint * tex_b
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, dataWidth, dataHeight, 0, GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE, expanded_data);
   //delete expanded_data;
 
-  glNewList(list_base+charIndex,GL_COMPILE);
 
+  glNewList(list_base+(2*charIndex),GL_COMPILE);
   glPushMatrix();
-
   // We Need To Account For The Fact That Many Of
   // Our Textures Are Filled With Empty Padding Space.
   // We Figure What Portion Of The Texture Is Used By 
@@ -107,7 +106,6 @@ void make_dlist ( FT_Face face, char charIndex, GLuint list_base, GLuint * tex_b
   // That Contains The Character Itself.
   x=(float)glyphWidth / (float)dataWidth;
   y=(float)glyphHeight / (float)dataHeight;
-
   // Move Down A Little In The Case That The
   // Bitmap Extends Past The Bottom Of The Line 
   // This Is Only True For Characters Like 'g' Or 'y'.
@@ -156,6 +154,15 @@ void make_dlist ( FT_Face face, char charIndex, GLuint list_base, GLuint * tex_b
 
   // Finish The Display List
   glEndList();
+
+
+  //make another list with just the translations so we can call this to find the width of text before we draw it
+  glNewList(list_base+(2*charIndex)+1,GL_COMPILE);
+  //  glPushMatrix();
+  glTranslatef(face->glyph->advance.x >> 6, 0, 0);
+  glTranslatef(bitmap_glyph->left,0,0);
+  //  glPopMatrix();
+  glEndList();
 }
 
 
@@ -168,9 +175,9 @@ static void initFonts(){
     //XXII ARABIAN-ONENIGHTSTAND.ttf
   
   long int fontCount = sizeof(fontFiles)/FONT_NAME_SIZE;
-  GLuint textures[128*fontCount];
-  list_base=glGenLists(128*fontCount);
-  glGenTextures(128*fontCount,textures);
+  GLuint textures[256*fontCount];
+  list_base=glGenLists(256*fontCount);
+  glGenTextures(256*fontCount,textures);
 
   int index = 0;
   for(;index < fontCount;index++){
@@ -184,7 +191,7 @@ static void initFonts(){
     }
     int i;
     for(i=0;i<128;i++){
-      make_dlist(face,i,list_base+(128*index),textures+(128*index));
+      make_dlist(face,i,list_base+(256*index),textures+(128*index));
     }
     FT_Done_Face(face);
   }
@@ -206,51 +213,60 @@ void drawCursor(){
   glPopMatrix();
 }
 
-int strCount;
+GLdouble projMatrix[16];
+int checkRightMargin(int fontIndex, char* str, int strPosition, float rightMargin){
+  if(rightMargin < -1.0){
+    return 0;
+  }
+  glPushMatrix();
+  while(str[strPosition] != 32 && str[strPosition] != 0){//while the next char is not a space or end of string
+    glCallList(list_base+(fontIndex*256)+(2*str[strPosition])+1);
+    glGetDoublev(GL_MODELVIEW_MATRIX,projMatrix);
+    if(projMatrix[12] > rightMargin){
+      glPopMatrix();
+      return 1;
+    }
+    strPosition++;
+  }
+  glPopMatrix();
+  return 0;
+  //  printf("%f ",projMatrix[12]);//IT APPEARS THAT THIS IS THE TRANSLATION OF THE LAST CHARACTER
+  //  printf("\n");
+
+}
+void drawChar(int fontIndex,char* str, int strPosition,int cursorPosition){
+  if(strPosition == cursorPosition){
+    drawCursor();
+  }
+  glPushName(strPosition);
+  glCallList(list_base+(fontIndex*256)+(2*str[strPosition]));
+  glPopName();
+
+}
+int strPosition;
 float modelview_matrix[16];
-void drawText(char* str,int fontIndex,int cursorPosition){
+void drawText(char* str,int fontIndex,int cursorPosition,float rightMargin,GLdouble* initTranslation){
   glPushMatrix();
   textName = 0;
   glPushAttrib(GL_LIST_BIT | GL_CURRENT_BIT | GL_ENABLE_BIT | GL_TRANSFORM_BIT); 
-  //glMatrixMode(GL_MODELVIEW);
   glDisable(GL_LIGHTING);
   glEnable(GL_TEXTURE_2D);
-  //glDisable(GL_DEPTH_TEST);
-  //glEnable(GL_BLEND);
-  //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);      
   glGetFloatv(GL_MODELVIEW_MATRIX, modelview_matrix);
-  //glListBase(list_base);
-  //glCallLists(strlen(str), GL_UNSIGNED_BYTE, str);
-  for(strCount = 0;str[strCount] != 0;strCount++){
-    if(strCount == cursorPosition){
-      drawCursor();
-    }
-    if(strCount == 10){
+  strPosition = 0;
+  while(str[strPosition] != 0){
+    drawChar(fontIndex, str, strPosition, cursorPosition);
+    strPosition++;
+    if(str[strPosition-1] == 32 && str[strPosition] != 32 && checkRightMargin(fontIndex, str, strPosition+1,rightMargin)){
       glPopMatrix();
       glTranslatef(0.0,-80.0,0.0);
       glPushMatrix();
     }
-
-    glPushName(strCount);
-    glCallList(list_base+(fontIndex*128)+str[strCount]);
-    glPopName();
   }
-  if(strCount == cursorPosition){
+  if(strPosition == cursorPosition){
     drawCursor();
   }
-  glPushName(strCount);
-  glCallList(list_base+32);//draw a space at the end
+  glPushName(strPosition);
+  glCallList(list_base+(2*32));//draw a space at the end for cursor position
   glPopName();
-
-  GLdouble projMatrix[16];
-  glGetDoublev(GL_MODELVIEW_MATRIX,projMatrix);
-  int ix = 0;
-  //  printf("%s ",str);
-  //for(;ix < 16; ix++){
-  //  printf("%f ",projMatrix[ix]);
-  //}
-  //  printf("%f ",projMatrix[12]);//IT APPEARS THAT THIS IS THE TRANSLATION OF THE LAST CHARACTER
-  //printf("\n");
-  
   glPopMatrix();
 }

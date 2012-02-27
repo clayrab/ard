@@ -570,7 +570,7 @@ void drawFire(){
   glTranslatef(-0.8,0.0,0.0);
   glScalef(0.01,0.01,0.0);
   sprintf(fireVit,"%f",fireVitality);
-  drawText(fireVit,0,-1);
+  drawText(fireVit,0,-1,-9999.9,NULL);
   glPopMatrix();
   
 }
@@ -662,7 +662,7 @@ void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long 
     glPushMatrix();
     glTranslatef(-0.4,0.3,0.0);
     glScalef(0.01,0.01,0.0);
-    drawText(playerStartVal,0,-1);
+    drawText(playerStartVal,0,-1,-9999.9,NULL);
     glPopMatrix();
   }
 
@@ -704,7 +704,7 @@ void drawTilesText(){
     glPushMatrix();
     glTranslatef(cityNamesXs[i]-(0.18*cityNameLength),cityNamesYs[i]+0.5,0.0);
     glScalef(0.010,0.010,0.0);
-    drawText(cityNames[i],0);
+    drawText(cityNames[i],0,-9999.9,NULL);
     glPopMatrix();
   }
   cityNamesCount = 0;*/
@@ -719,7 +719,7 @@ void drawTilesText(){
     glPushMatrix();
     glTranslatef(unitNamesXs[i]-(0.3*j),unitNamesYs[i]+0.5,0.0);
     glScalef(0.009,0.009,0.0);
-    drawText(unitNames[i],0);
+    drawText(unitNames[i],0,-9999.9,NULL);
     glPopMatrix();
   }
   unitNamesCount = 0;*/
@@ -1122,9 +1122,9 @@ void drawUIElement(PyObject * uiElement){
 	  glScalef(textSize,textSize,0.0);
 	  glPushName(name);
 	  if(isFocused){
-	    drawText(text,fontIndex,cursorPosition);
+	    drawText(text,fontIndex,cursorPosition,xPosition+width,NULL);
 	  }else{
-	    drawText(text,fontIndex,-1);
+	    drawText(text,fontIndex,-1,xPosition+width,NULL);
 	  }	    
 	  glPopName();
 	  glPopMatrix();
@@ -1188,7 +1188,7 @@ void drawUI(){
     glLoadIdentity();
     glTranslatef(-1.0,-1.0,0.0);
     glScalef(0.0005,0.0005,0.0);
-    drawText(frameRate,0,-1);
+    drawText(frameRate,0,-1,-9999.9,NULL);
     glPopMatrix();
   }
 }
