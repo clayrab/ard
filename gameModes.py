@@ -8,7 +8,9 @@
 #how to host instructions page
 
 #server:
+#chat
 #room player count
+#sort room columns
 #kick player from room if it's full when they join
 #update room player count
 #polish gameroom view
@@ -16,9 +18,8 @@
 #show map info(perhaps just size, units available, and city count would be sufficient?)
 
 #MISSING FEATURES
-#chat
+#proper quit and options menus
 #roads
-#sort room columns
 #mountains should be impassable, hills less passable, hills give defense bonus
 #hash commands to hide from hackers
 #sound effects

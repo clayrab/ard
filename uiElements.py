@@ -761,7 +761,7 @@ class createRoomButton(clickableElement):
 		server.startServer('')
 		gameState.getGameFindClient().sendCommand("testServer",gameState.getConfig()["serverPort"])
 		gameState.setGameMode(gameModes.createGameMode)
-		modal("testing connection...",textYPos=-0.3,dismissable=False)
+		smallModal("testing connection...",dismissable=False)
 
 class chatDisplay(scrollableTextFieldsElement):
 	def foo(self):
@@ -931,7 +931,7 @@ class createButton(menuButton):
 		if(gameState.getGameMode().mapField.mapName != None):
 			gameState.getGameFindClient().sendCommand("createGameRoom",gameState.getGameMode().titleField.text + "|" + gameState.getGameMode().maxPlayersField.text.split(" ")[0] + "|" + gameState.getGameMode().mapField.mapName)
 		else:
-			modal("Choose a map!",-0.22)
+			smallModal("Choose a map!")
 
 class roomTitleInputElement(textInputElement):
 	def onKeyDown(self,keycode):
@@ -1023,10 +1023,10 @@ class createMapButton(clickableElement):
 		except:
 			numPlayers = -1
 		if(numPlayers < 2 or numPlayers > 8):
-			modal("player count must be between 2 and 8")
+			smallModal("player count must be between 2 and 8")
 		else:
 			if(len(mapName) < 1):
-				modal("you must enter a map name")
+				smallModal("you must enter a map name")
 			else:
 				shutil.copyfile("maps/defaultMap","maps/" + mapName + ".map")
 				gameState.setMapName(mapName)
