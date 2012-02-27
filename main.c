@@ -25,7 +25,7 @@
 #define focusSpeed 5.0//lower is faster
 
 #define SCREEN_WIDTH 1280
-#define SCREEN_HEIGHT 800
+#define SCREEN_HEIGHT 960
 //#define SCREEN_WIDTH 1600
 //#define SCREEN_HEIGHT 1000
 //#define SCREEN_WIDTH 1920
@@ -998,6 +998,8 @@ PyObject * pyName;
 PyObject * pyTextureIndex;
 PyObject * pyCursorIndex;
 PyObject * pyText;
+PyObject * pyQueuedText;
+PyObject * pyDecrementMe;
 PyObject * pyTextColor;
 PyObject * pyTextSize;
 PyObject * pyColor;
@@ -1016,6 +1018,8 @@ long name;
 long textureIndex;
 long cursorIndex;
 char * text;
+int wordWidth;
+char * queuedText;
 char * textColor;
 double textSize;
 char * color;
@@ -1094,7 +1098,6 @@ void drawUIElement(PyObject * uiElement){
       previousMousedoverName = selectedName;
     }
     printPyStackTrace();
-
     if(!hidden){
       if(PyObject_HasAttrString(uiElement,"tileType")){//gameModeTileSelectButton
 	drawTileSelect(xPosition,yPosition,name,PyLong_AsLong(PyObject_GetAttrString(uiElement,"tileType")),PyLong_AsLong(PyObject_GetAttrString(uiElement,"selected")));
@@ -1117,6 +1120,22 @@ void drawUIElement(PyObject * uiElement){
 	  glPopMatrix();
 	}
 	//      printf("index: %ld %ld %f %f %f %f\n",name,textureIndex,xPosition,yPosition,width,height);
+	if(PyObject_HasAttrString(uiElement,"textQueue")){
+	  pyQueuedText = PyObject_CallMethod(uiElement,"getText",NULL);
+	  queuedText = PyString_AsString(pyQueuedText);
+	  if(queuedText[0] != 0){
+	    glPushMatrix();
+	    glLoadIdentity();
+	    glTranslatef(xPosition+textXPosition,yPosition+textYPosition,0.0);
+	    glScalef(textSize,textSize,0.0);
+	    wordWidth = findWordWidth(fontIndex,queuedText,xPosition+width);
+	    glPopMatrix();
+	    pyDecrementMe = PyObject_CallMethod(uiElement,"addLine","i",wordWidth);
+	    
+	    //	    printf("%s\n",queuedText);
+	  }
+	  Py_DECREF(pyQueuedText);
+	}
 	if(PyObject_HasAttrString(uiElement,"text")){
 	  glColor3f(*red/255.0, *green/255.0, *blue/255.0);
 	  if(selectedName == name){

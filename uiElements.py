@@ -9,6 +9,7 @@ import shutil
 import client
 import server
 from textureFunctions import texWidth, texHeight, texIndex
+from Queue import Queue
 #print pubKey.decrypt(cipher)
 
 
@@ -579,13 +580,13 @@ class scrollPadElement(uiElement):
 	def onLeftClickUp(self):
 		self.scrolling = False
 	def onMouseMovement(self):
+		print 'on mouse move'
 		if(self.scrolling):
 			self.yPosition = self.initYPos-(2.0*(gameState.getGameMode().mouseY-self.initMouseYPos)/cDefines.defines['SCREEN_HEIGHT'])
 			if(self.yPosition > self.scrollableElement.yPosition - self.topOffset):
 				self.yPosition = self.scrollableElement.yPosition - self.topOffset
 			elif(self.yPosition < self.scrollableElement.yPosition - self.scrollableElement.height + self.height + self.bottomOffset):
 				self.yPosition = self.scrollableElement.yPosition - self.scrollableElement.height + self.height + self.bottomOffset
-
 
 		self.scrollableElement.scrollPosition = int((1+self.numScrollableElements)*(self.scrollableElement.yPosition-self.topOffset-self.yPosition)/self.totalScrollableHeight)
 		self.scrollableElement.hideAndShowTextFields()
@@ -605,6 +606,7 @@ class scrollableElement(uiElement):
 class scrollingTextElement(scrollableElement):
 	def __init__(self,xPos,yPos,scrollableElement,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None):
 		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,color=color,mouseOverColor=mouseOverColor,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'])
+		self.hidden = True
 		self.lineHeight = 0
 		self.scrollableElement = scrollableElement
 		
@@ -649,7 +651,7 @@ class scrollableTextFieldsElement(uiElement):
 					text = field.name
 				else:
 					text=field
-				textFieldElem = scrollingTextElement(self.xPosition+self.xPositionOffset,0.0,self,width=0.2,height=0.1,text=text,textureIndex=-1,textSize=self.textSize,hidden=True)
+				textFieldElem = scrollingTextElement(self.xPosition+self.xPositionOffset,0.0,self,width=2.0,height=0.1,text=text,textureIndex=-1,textSize=self.textSize,hidden=True)
 			textFieldElem.onScrollUp = self.onScrollUp
 			textFieldElem.onScrollDown = self.onScrollDown
 			self.names.append(textFieldElem.name)
@@ -658,7 +660,7 @@ class scrollableTextFieldsElement(uiElement):
 		if(len(self.textFields) < self.numFields):
 			self.scrollPadElem = None
 		else:
-			self.scrollPadElem = scrollPadElement(self.xPosition + self.width - (2.0*cDefines.defines['UI_SCROLL_PAD_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),self.yPosition,scrollableElement=self,width=(2.0*cDefines.defines['UI_SCROLL_PAD_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_SCROLL_PAD_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),textureIndex=cDefines.defines['UI_SCROLL_PAD_INDEX'])
+			self.scrollPadElem = scrollPadElement(self.xPosition + self.width - (2.0*cDefines.defines['UI_SCROLL_PAD_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),self.yPosition,scrollableElement=self,width=(2.0*cDefines.defines['UI_SCROLL_PAD_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_SCROLL_PAD_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),textureIndex=cDefines.defines['UI_SCROLL_PAD_INDEX'],hidden=True)
 			self.names.append(self.scrollPadElem.name)
 #			self.scrollPadElem.hidden = True
 	def hideAndShowTextFields(self):
@@ -695,6 +697,37 @@ class scrollableTextFieldsElement(uiElement):
 		self.names = []
 #		self.textFields = []
 		self.textFieldElements = []
+
+class chatDisplay(scrollableTextFieldsElement):
+	#The goal here is to hold lines of text that are too long in textQueue and run them thru a function in fonts.h which will tell us how many words will constitute one line. This way we can add the text as a textFieldElement in order to reuse all the scrollableTextFields code.
+	def __init__(self):
+		scrollableTextFieldsElement.__init__(self,0.55,0.9,[],textSize=0.0005,textureIndex=cDefines.defines['GAME_FIND_CHAT_INDEX'],width=texWidth("GAME_FIND_CHAT"),height=texHeight("GAME_FIND_CHAT"),numFields=40)
+		self.textQueue = Queue()
+		self.linesQueue = Queue()
+		self.currentText = ""
+		print self.currentText
+	def addLine(self,wordLength):
+		if(self.currentText != "" and wordLength > 0):
+			wordTokens = self.currentText.split(" ",wordLength)
+			if(len(wordTokens) > wordLength):
+				self.currentText = wordTokens[wordLength]
+			else:
+				self.currentText = ""
+			self.textFields.append(" ".join(wordTokens[:wordLength]))
+			self.redraw()
+#			self.scrollPosition = len(self.textFieldElements) - self.numFields + 1
+			if(self.scrollPadElem != None):
+				self.scrollPosition = self.scrollPosition + 1
+				self.scrollPadElem.setScrollPosition(self.scrollPosition)
+				self.hideAndShowTextFields()
+				self.scrollPadElem.setScrollPosition(self.scrollPosition)
+
+	def addText(self,text):
+		self.textQueue.put(text)
+	def getText(self):
+		if(self.currentText == "" and not self.textQueue.empty()):
+			self.currentText = self.textQueue.get()
+		return self.currentText
 
 class roomSelector(scrollableTextFieldsElement):
 	def __init__(self,xPos,yPos,rooms,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,xPositionOffset=0.0,yPositionOffset=-0.04,yOffset=-0.041,numFields=25,scrollSpeed=1):
@@ -764,9 +797,6 @@ class createRoomButton(clickableElement):
 		gameState.setGameMode(gameModes.createGameMode)
 		smallModal("testing connection...",dismissable=False)
 
-class chatDisplay(scrollableTextFieldsElement):
-	def foo(self):
-		print 'asf'
 
 class chatBox(textInputElement):
 	def onKeyDown(self,keycode):
@@ -1008,7 +1038,7 @@ class smallModal(modal):
 		uiElement.__init__(self,texWidth("MODAL_SMALL")/-2.0,texHeight("MODAL_SMALL")/2.0,width=texWidth("MODAL_SMALL"),height=texHeight("MODAL_SMALL"),textureIndex=cDefines.defines["MODAL_SMALL_INDEX"])
 		self.dismissable = dismissable
 		self.backgroundElem = uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines["MODAL_BACKGROUND_INDEX"])
-		self.textElem = uiElement((texWidth("MODAL_SMALL")/-2.0)+0.03,0.16,width=texWidth("MODAL_SMALL")-0.06,text=text,textSize=0.0007)
+		self.textElem = uiElement((texWidth("MODAL_SMALL")/-2.0)+0.03,0.1,width=texWidth("MODAL_SMALL")-0.06,text=text,textSize=0.0007)
 		if(self.dismissable):
 			self.buttonElem = modalButton(self)
 		gameState.getGameMode().modal = self

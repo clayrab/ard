@@ -212,9 +212,37 @@ void drawCursor(){
   glEnd();
   glPopMatrix();
 }
-
-int numLines;
+int wordCount;
+int strPosition;
 GLdouble projMatrix[16];
+int findWordWidth(int fontIndex, char* str, float rightMargin){
+  rightMargin = rightMargin-0.12;
+  glPushMatrix();
+  wordCount = 0;
+  strPosition = 0;
+  while(str[strPosition] != 0){
+    glCallList(list_base+(fontIndex*256)+(2*str[strPosition])+1);
+    strPosition++;
+    wordCount++;
+    glGetDoublev(GL_MODELVIEW_MATRIX,projMatrix);
+    if(projMatrix[12] > rightMargin){
+      glPopMatrix();
+      return wordCount;
+    }
+    while(str[strPosition] != 32 && str[strPosition] != 0){
+      glCallList(list_base+(fontIndex*256)+(2*str[strPosition])+1);
+      strPosition++;
+      glGetDoublev(GL_MODELVIEW_MATRIX,projMatrix);
+      if(projMatrix[12] > rightMargin){
+	glPopMatrix();
+	return wordCount;
+      }
+    }
+  }
+  glPopMatrix();
+  return wordCount;
+}
+int numLines;
 int checkRightMargin(int fontIndex, char* str, int strPosition, float rightMargin){
   if(rightMargin < -1.0){
     return 0;
@@ -245,17 +273,16 @@ void drawChar(int fontIndex,char* str, int strPosition,int cursorPosition){
   glPopName();
 
 }
-int strPosition;
 float modelview_matrix[16];
 int drawText(char* str,int fontIndex,int cursorPosition,float rightMargin,GLdouble* initTranslation){
   numLines = 1;
   glPushMatrix();
   textName = 0;
+  strPosition = 0;
   glPushAttrib(GL_LIST_BIT | GL_CURRENT_BIT | GL_ENABLE_BIT | GL_TRANSFORM_BIT); 
   glDisable(GL_LIGHTING);
   glEnable(GL_TEXTURE_2D);
   glGetFloatv(GL_MODELVIEW_MATRIX, modelview_matrix);
-  strPosition = 0;
   while(str[strPosition] != 0){
     drawChar(fontIndex, str, strPosition, cursorPosition);
     strPosition++;

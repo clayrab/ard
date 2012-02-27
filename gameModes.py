@@ -1,3 +1,4 @@
+#ALL GRAPHICS SHOULD BE CREATED BASED ON 1600x1200 RESOLUTION WHICH WILL BE RENDERED DOWN TO 1280x960 FOR NOW
 #icons for each unit
 
 #webpage
@@ -29,6 +30,7 @@
 #player rewards
 #modals should be dismissed by esc, space, or enter
 #handle disconnections/reconnections gracefully
+#test and fix various display sizes
 
 #BUGS
 #make sure text edit boxes only allow chars and not shift/enter
@@ -168,9 +170,12 @@ class gameMode:
 					self.elementsDict[name].onLeftClickUp()
 				elif(hasattr(self.elementWithFocus,"onLeftClickUp")):
 					self.elementWithFocus.onLeftClickUp()
+	foo = 0
 	def handleKeyDown(self,keycode):
 		if(keycode == "t"):
-			uiElements.smallModal("test adsfasdfa dsfadsfas dfadsf oiasdf adsop fbasdpfoia sdfa dsfoaiuadsfadsf idfu dfdi")
+#			uiElements.smallModal("test adsfasdfa dsfadsfas dfadsf oiasdf adsop fbasdpfoia sdfa dsfoaiuadsfadsf idfu dfdi asdfas dfas dfi asdfadsbf bafb adsbfi adfs  ioadfsdfhiosadfiosadfsiadiosfufadsf ifds iuadfs adsf adfisu adfisu adfsu ")
+			self.chatDisplay.addText("adsfiodfsaiodfsiodio dfios iodfs iodfs ioadfs ioadfs dio iodfs ioadfsio dfs sdasd asd f asfasdf df d df d f d f ad sf df" + str(gameMode.foo))
+			gameMode.foo = gameMode.foo + 1
 		if(keycode == "y"):
 			self.roomSelector.removeRoom("asdf")
 		if(self.modal == None):
@@ -532,6 +537,7 @@ class newGameScreenMode(textBasedMenuMode):
 		uiElements.menuButton(-0.29,-0.52,multiplayerGameScreenMode,text="Play LAN Game")
 		uiElements.menuButton(-0.19,-0.64,loginMode,text="Play Online")
 		uiElements.menuButton(-0.19,-0.76,mapEditorSelectMode,text="Map Editor")
+		self.chatDisplay = uiElements.chatDisplay()
 
 class multiplayerGameScreenMode(textBasedMenuMode):
 	def addUIElements(self):
@@ -689,11 +695,10 @@ class gameFindMode(gameMode):
 		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])	
 		roomSelectorWidth = (2.0*cDefines.defines['GAME_FIND_MAPS_WIDTH']/cDefines.defines['UI_NEW_GAME_SCREEN_IMAGE_WIDTH'])
 		roomSelectorHeight = (2.0*cDefines.defines['GAME_FIND_MAPS_HEIGHT']/cDefines.defines['UI_NEW_GAME_SCREEN_IMAGE_HEIGHT'])
-		chatDisplayWidth =  (2.0*cDefines.defines['GAME_FIND_CHAT_WIDTH']/cDefines.defines['UI_NEW_GAME_SCREEN_IMAGE_WIDTH'])
-		chatDisplayHeight = (2.0*cDefines.defines['GAME_FIND_CHAT_HEIGHT']/cDefines.defines['UI_NEW_GAME_SCREEN_IMAGE_HEIGHT'])
 		self.roomSelector = uiElements.roomSelector(-0.925,0.9,self.rooms,textSize=0.0005,textureIndex=cDefines.defines['GAME_FIND_MAPS_INDEX'],width=roomSelectorWidth,height=roomSelectorHeight,xPositionOffset=0.01,yPositionOffset=-0.06)
 		uiElements.createRoomButton(-0.92,-0.8,text="create game",textSize=0.0006)
-		self.chatDisplay = uiElements.chatDisplay(0.55,0.9,["asd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","END"],textSize=0.0005,textureIndex=cDefines.defines['GAME_FIND_CHAT_INDEX'],width=chatDisplayWidth,height=chatDisplayHeight)
+#		self.chatDisplay = uiElements.chatDisplay(0.55,0.9,["asd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","END"],textSize=0.0005,textureIndex=cDefines.defines['GAME_FIND_CHAT_INDEX'],width=chatDisplayWidth,height=chatDisplayHeight)
+		self.chatDisplay = uiElements.chatDisplay()
 		
 class createGameMode(gameMode):
 	def __init__(self,args):
