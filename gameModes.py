@@ -122,6 +122,17 @@ class gameMode:
 		self.resortElems = True
 		self.mouseTextPosition = -1
 		self.modal = None
+		self.mouseX = 0
+		self.mouseY = 0
+	def handleMouseMovement(self,name,mouseX,mouseY):
+		self.mouseX = mouseX
+		self.mouseY = mouseY
+		if(self.elementsDict.has_key(name)):
+			if(hasattr(self.elementsDict[name],"onMouseMovement")):
+				self.elementsDict[name].onMouseMovement()
+			elif(hasattr(self.elementWithFocus,"onMouseMovement")):
+				self.elementWithFocus.onMouseMovement()
+
 	def setFocus(self,elem):
 		if(self.elementWithFocus != None):
 			self.elementWithFocus.focused = False
@@ -189,18 +200,7 @@ class gameMode:
 class tiledGameMode(gameMode):
 	def __init__(self,args=[]):
 		self.mousedOverObject = None
-		self.mouseX = 0
-		self.mouseY = 0
 		gameMode.__init__(self)
-	def handleMouseMovement(self,name,mouseX,mouseY):
-		self.mouseX = mouseX
-		self.mouseY = mouseY
-		if(self.elementsDict.has_key(name)):
-			if(hasattr(self.elementsDict[name],"onMouseMovement")):
-				self.elementsDict[name].onMouseMovement()
-			elif(hasattr(self.elementWithFocus,"onMouseMovement")):
-				self.elementWithFocus.onMouseMovement()
-
 	def handleRightClick(self,name):
 		if(self.modal == None):
 			rightClickable = False
@@ -692,8 +692,8 @@ class gameFindMode(gameMode):
 		chatDisplayWidth =  (2.0*cDefines.defines['GAME_FIND_CHAT_WIDTH']/cDefines.defines['UI_NEW_GAME_SCREEN_IMAGE_WIDTH'])
 		chatDisplayHeight = (2.0*cDefines.defines['GAME_FIND_CHAT_HEIGHT']/cDefines.defines['UI_NEW_GAME_SCREEN_IMAGE_HEIGHT'])
 		self.roomSelector = uiElements.roomSelector(-0.925,0.9,self.rooms,textSize=0.0005,textureIndex=cDefines.defines['GAME_FIND_MAPS_INDEX'],width=roomSelectorWidth,height=roomSelectorHeight,xPositionOffset=0.01,yPositionOffset=-0.06)
-		self.chatDisplay = uiElements.chatDisplay(0.55,0.9,["asd","fkfkf"],textSize=0.0005,textureIndex=cDefines.defines['GAME_FIND_CHAT_INDEX'],width=chatDisplayWidth,height=chatDisplayHeight)
 		uiElements.createRoomButton(-0.92,-0.8,text="create game",textSize=0.0006)
+		self.chatDisplay = uiElements.chatDisplay(0.55,0.9,["asd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","asdisdifa df sdd","fkfkf","END"],textSize=0.0005,textureIndex=cDefines.defines['GAME_FIND_CHAT_INDEX'],width=chatDisplayWidth,height=chatDisplayHeight)
 		
 class createGameMode(gameMode):
 	def __init__(self,args):

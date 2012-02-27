@@ -1669,17 +1669,10 @@ int main(int argc, char **argv){
   int * value;
   //  SDL_GL_GetAttribute(SDL_GL_DEPTH_SIZE,value);
   //printf("depth size: %d\n",*value);
-  printf("%d\n",1);						
-  
   SDL_ShowCursor(0);
-  printf("%d\n",2);				   	
-  
   initGL();
-  printf("%d\n",3);						
   const GLubyte * glVersion = glGetString(GL_VERSION);
-  printf("%d\n",1);						
   printf("OpenGL Version: %s\n",glVersion);
-  printf("%d\n",1);						
   initPython();
   initFonts();
   //SDL_EnableUNICODE(1);

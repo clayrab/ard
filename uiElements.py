@@ -605,6 +605,7 @@ class scrollableElement(uiElement):
 class scrollingTextElement(scrollableElement):
 	def __init__(self,xPos,yPos,scrollableElement,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None):
 		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,color=color,mouseOverColor=mouseOverColor,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'])
+		self.lineHeight = 0
 		self.scrollableElement = scrollableElement
 		
 class scrollableRoomNameElement(uiElement):

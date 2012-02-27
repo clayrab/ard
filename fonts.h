@@ -213,6 +213,7 @@ void drawCursor(){
   glPopMatrix();
 }
 
+int numLines;
 GLdouble projMatrix[16];
 int checkRightMargin(int fontIndex, char* str, int strPosition, float rightMargin){
   if(rightMargin < -1.0){
@@ -224,6 +225,7 @@ int checkRightMargin(int fontIndex, char* str, int strPosition, float rightMargi
     glGetDoublev(GL_MODELVIEW_MATRIX,projMatrix);
     if(projMatrix[12] > rightMargin){
       glPopMatrix();
+      numLines++;
       return 1;
     }
     strPosition++;
@@ -245,7 +247,8 @@ void drawChar(int fontIndex,char* str, int strPosition,int cursorPosition){
 }
 int strPosition;
 float modelview_matrix[16];
-void drawText(char* str,int fontIndex,int cursorPosition,float rightMargin,GLdouble* initTranslation){
+int drawText(char* str,int fontIndex,int cursorPosition,float rightMargin,GLdouble* initTranslation){
+  numLines = 1;
   glPushMatrix();
   textName = 0;
   glPushAttrib(GL_LIST_BIT | GL_CURRENT_BIT | GL_ENABLE_BIT | GL_TRANSFORM_BIT); 
@@ -269,4 +272,5 @@ void drawText(char* str,int fontIndex,int cursorPosition,float rightMargin,GLdou
   glCallList(list_base+(2*32));//draw a space at the end for cursor position
   glPopName();
   glPopMatrix();
+  return numLines;
 }

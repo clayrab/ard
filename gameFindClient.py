@@ -77,7 +77,7 @@ class Commands:
         gameState.getGameMode().modal.destroy()
     @staticmethod    
     def testConnectFail(args):
-        uiElements.smallModal("host test failed.\n See http://haqala.com/ard/hosting for details")
+        uiElements.smallModal("host test failed.\n See http://naqala.com/ard/hosting for details")
         
 def doCommand(commandName,args=None):
     commandFunc = getattr(Commands,commandName)
