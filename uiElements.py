@@ -146,6 +146,13 @@ class textInputElement(uiElement):
 	def __init__(self,xPos,yPos,width=texWidth('UI_TEXT_INPUT_IMAGE'),height=texHeight('UI_TEXT_INPUT_IMAGE'),text="",textSize=0.0004,textureIndex=texIndex('UI_TEXT_INPUT'),textColor='00 00 00',textXPos=0.0,textYPos=-0.05):
 		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textSize=textSize,textColor=textColor,textXPos=textXPos,textYPos=textYPos,cursorPosition=len(text))
 		textInputElement.elements.append(self)
+		self.realText = text
+		#store real text in background
+		#when real text changes or cursormoves left of 0 or right of len(text) then call a font function which returns the lengthe of fittable text
+		#font function must start from rightmost char if cursorposition is at len(text) or must start at left as usual if cursorPosition is at 0 or lower
+		#if realtext fits, draw from left, otherwise if cursorPosition is at len(text) then we push the text to the left(cut off leftmost chars), otherwise(if the cursor is on the left of in the middle) we push the chars off the right(cut off rightmost chars)
+		#call func here with 2 values, leftmost char position and rightmost char position
+		#set self.text in this function
 	def __del__(self):
 		textInputElement.elements.remove(self)
 	def onKeyDown(self,keycode):

@@ -27,13 +27,12 @@
 #define FULL_SCREEN 0
 #define SCREEN_WIDTH 1280
 #define SCREEN_HEIGHT 960
-#define SCREEN_BASE_WIDTH 1600
-#define SCREEN_BASE_HEIGHT 1200
-
 //#define SCREEN_WIDTH 1600
 //#define SCREEN_HEIGHT 1200
 //#define SCREEN_WIDTH 1920
 //#define SCREEN_HEIGHT 1200
+#define SCREEN_BASE_WIDTH 1600
+#define SCREEN_BASE_HEIGHT 1200
 
 #define TILES_IMAGE "assets/tiles2.png"
 #define UI_IMAGE "assets/UI.png"
