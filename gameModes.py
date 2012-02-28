@@ -174,7 +174,7 @@ class gameMode:
 	def handleKeyDown(self,keycode):
 		if(keycode == "t"):
 #			uiElements.smallModal("test adsfasdfa dsfadsfas dfadsf oiasdf adsop fbasdpfoia sdfa dsfoaiuadsfadsf idfu dfdi asdfas dfas dfi asdfadsbf bafb adsbfi adfs  ioadfsdfhiosadfiosadfsiadiosfufadsf ifds iuadfs adsf adfisu adfisu adfsu ")
-			self.chatDisplay.addText("adsfiodfsaiodfsiodio dfios iodfs iodfs ioadfs ioadfs dio iodfs ioadfsio dfs sdasd asd f asfasdf df d df d f d f ad sf df" + str(gameMode.foo))
+			self.chatDisplay.addText("adsfiodfsaiodfsiodio dfios iodfs iodfs ioadfs ioadfs dio iodfs ioadfsio dfs sdasd asd f asfasdf df d df d f d f ad sf df  " + str(gameMode.foo))
 			gameMode.foo = gameMode.foo + 1
 		if(keycode == "y"):
 			self.roomSelector.removeRoom("asdf")

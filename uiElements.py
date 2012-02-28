@@ -580,16 +580,15 @@ class scrollPadElement(uiElement):
 	def onLeftClickUp(self):
 		self.scrolling = False
 	def onMouseMovement(self):
-		print 'on mouse move'
 		if(self.scrolling):
 			self.yPosition = self.initYPos-(2.0*(gameState.getGameMode().mouseY-self.initMouseYPos)/cDefines.defines['SCREEN_HEIGHT'])
 			if(self.yPosition > self.scrollableElement.yPosition - self.topOffset):
 				self.yPosition = self.scrollableElement.yPosition - self.topOffset
 			elif(self.yPosition < self.scrollableElement.yPosition - self.scrollableElement.height + self.height + self.bottomOffset):
 				self.yPosition = self.scrollableElement.yPosition - self.scrollableElement.height + self.height + self.bottomOffset
-
-		self.scrollableElement.scrollPosition = int((1+self.numScrollableElements)*(self.scrollableElement.yPosition-self.topOffset-self.yPosition)/self.totalScrollableHeight)
-		self.scrollableElement.hideAndShowTextFields()
+				
+			self.scrollableElement.scrollPosition = int((1+self.numScrollableElements)*(self.scrollableElement.yPosition-self.topOffset-self.yPosition)/self.totalScrollableHeight)
+			self.scrollableElement.hideAndShowTextFields()
 	def setScrollPosition(self,scrollPos):
 		self.yPosition = 0.0-((self.totalScrollableHeight*scrollPos/(1+self.numScrollableElements))+self.topOffset-self.scrollableElement.yPosition)
 #		self.yPosition = (self.totalScrollableHeight*scrollPos/(1+self.numScrollableElements))+self.topOffset-self.scrollableElement.yPosition
@@ -662,7 +661,7 @@ class scrollableTextFieldsElement(uiElement):
 		else:
 			self.scrollPadElem = scrollPadElement(self.xPosition + self.width - (2.0*cDefines.defines['UI_SCROLL_PAD_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),self.yPosition,scrollableElement=self,width=(2.0*cDefines.defines['UI_SCROLL_PAD_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_SCROLL_PAD_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),textureIndex=cDefines.defines['UI_SCROLL_PAD_INDEX'],hidden=True)
 			self.names.append(self.scrollPadElem.name)
-#			self.scrollPadElem.hidden = True
+			self.scrollPadElem.setScrollPosition(self.scrollPosition)
 	def hideAndShowTextFields(self):
 		count = 0
 		yPosOffset = self.yPositionOffset
@@ -674,20 +673,20 @@ class scrollableTextFieldsElement(uiElement):
 				yPosOffset = yPosOffset + self.yOffset
 			else:
 				textFieldElement.hidden = True
-#	def onScrollUp(self):
-#		if(self.scrollPadElem != None):
-#			self.scrollPosition = self.scrollPosition - self.scrollSpeed
-#			if(self.scrollPosition < 0):
-#				self.scrollPosition = 0
-#			self.hideAndShowTextFields()
-#			self.scrollPadElem.setScrollPosition(self.scrollPosition)
-#	def onScrollDown(self):
-#		if(self.scrollPadElem != None):
-#			self.scrollPosition =self.scrollPosition + self.scrollSpeed
-#			if(self.scrollPosition > len(self.textFieldElements) - self.numFields + 1):
-#				self.scrollPosition = len(self.textFieldElements) - self.numFields + 1
-#			self.hideAndShowTextFields()
-#			self.scrollPadElem.setScrollPosition(self.scrollPosition)
+	def onScrollUp(self):
+		if(self.scrollPadElem != None):
+			self.scrollPosition = self.scrollPosition - self.scrollSpeed
+			if(self.scrollPosition < 0):
+				self.scrollPosition = 0
+			self.hideAndShowTextFields()
+			self.scrollPadElem.setScrollPosition(self.scrollPosition)
+	def onScrollDown(self):
+		if(self.scrollPadElem != None):
+			self.scrollPosition =self.scrollPosition + self.scrollSpeed
+			if(self.scrollPosition > len(self.textFieldElements) - self.numFields + 1):
+				self.scrollPosition = len(self.textFieldElements) - self.numFields + 1
+			self.hideAndShowTextFields()
+			self.scrollPadElem.setScrollPosition(self.scrollPosition)
 	def reset(self):
 		for name in self.names:
 			if(hasattr(gameState.getGameMode().elementsDict[name],"destroy")):
@@ -705,7 +704,6 @@ class chatDisplay(scrollableTextFieldsElement):
 		self.textQueue = Queue()
 		self.linesQueue = Queue()
 		self.currentText = ""
-		print self.currentText
 	def addLine(self,wordLength):
 		if(self.currentText != "" and wordLength > 0):
 			wordTokens = self.currentText.split(" ",wordLength)
@@ -715,13 +713,9 @@ class chatDisplay(scrollableTextFieldsElement):
 				self.currentText = ""
 			self.textFields.append(" ".join(wordTokens[:wordLength]))
 			self.redraw()
-#			self.scrollPosition = len(self.textFieldElements) - self.numFields + 1
-			if(self.scrollPadElem != None):
-				self.scrollPosition = self.scrollPosition + 1
-				self.scrollPadElem.setScrollPosition(self.scrollPosition)
-				self.hideAndShowTextFields()
-				self.scrollPadElem.setScrollPosition(self.scrollPosition)
-
+			if(self.scrollPadElem != None and self.scrollPosition >= self.scrollPadElem.numScrollableElements):
+				self.scrollPosition = self.scrollPadElem.numScrollableElements+1
+				self.redraw()
 	def addText(self,text):
 		self.textQueue.put(text)
 	def getText(self):
