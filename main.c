@@ -24,10 +24,12 @@
 #define zoomSpeed 5.0//lower is faster
 #define focusSpeed 5.0//lower is faster
 
+#define FULL_SCREEN 0
 #define SCREEN_WIDTH 1280
 #define SCREEN_HEIGHT 960
 #define SCREEN_BASE_WIDTH 1600
 #define SCREEN_BASE_HEIGHT 1200
+
 //#define SCREEN_WIDTH 1600
 //#define SCREEN_HEIGHT 1200
 //#define SCREEN_WIDTH 1920
@@ -872,8 +874,6 @@ void calculateTranslation(){
   convertWindowCoordsToViewportCoords((SCREEN_WIDTH-UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH),0.0,translateZ,&convertedTopRightX,&convertedTopRightY,&convertedTopRightZ);
   //  convertWindowCoordsToViewportCoords(UI_MAP_EDITOR_LEFT_IMAGE_WIDTH,SCREEN_BASE_HEIGHT-UI_MAP_EDITOR_TOP_IMAGE_HEIGHT-UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT,translateZ,&convertedBottomLeftX,&convertedBottomLeftY,&convertedBottomLeftZ);
   //  convertWindowCoordsToViewportCoords(SCREEN_WIDTH-UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH,0.0,translateZ,&convertedTopRightX,&convertedTopRightY,&convertedTopRightZ);
-
-
   convertWindowCoordsToViewportCoords(mouseX,mouseY,translateZ,&mouseMapPosX,&mouseMapPosY,&mouseMapPosZ);
 	if(theMap != NULL){
 		pyTranslateZ = PyObject_GetAttrString(theMap,"translateZ");
@@ -1690,7 +1690,9 @@ int main(int argc, char **argv){
   SDL_GL_SetAttribute (SDL_GL_DEPTH_SIZE, 16);
   //  SDL_GL_SetAttribute (SDL_GL_DOUBLEBUFFER, 1);
   Uint32 flags = SDL_OPENGL;
-  //flags |= SDL_FULLSCREEN;
+  if(FULL_SCREEN){
+    flags |= SDL_FULLSCREEN;
+  }
   gScreen = SDL_SetVideoMode (SCREEN_WIDTH, SCREEN_HEIGHT, 0, flags);
   if (gScreen == NULL) {
     fprintf (stderr, "Could not set OpenGL video mode: %s\n",
