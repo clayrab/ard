@@ -20,44 +20,27 @@
 
 #MISSING FEATURES
 #proper quit and options menus
-#roads
+#draw roads properly
 #mountains should be impassable, hills less passable, hills give defense bonus
 #hash commands to hide from hackers
 #sound effects
 #mouseover effects
-#limited time to move?
-#player stats(wins,losses,rank,etc)
-#player rewards
+#limited time to move
 #modals should be dismissed by esc, space, or enter
 #handle disconnections/reconnections gracefully
 #test and fix various display sizes
 
+#BONUS FEATURES
+#player stats(wins,losses,rank,etc)
+#player rewards
+
 #BUGS
 #make sure text edit boxes only allow chars and not shift/enter
 #check new/edited city names for duplicates
-#uiElements startingManaSelector???
-#in map editor: nodes created after the ui render the ui unclickable since clicks go 'thru' to the new nodes
+#uiElements startingManaSelector needs to be removed
+#map editor: nodes created after the ui render the ui unclickable since clicks go 'thru' to the new nodes
 #make sure room and/or map names do not contain *
 # + buttons in map edit mode are wrong
-
-#saw this when i shift-clicked outside the map somewhere
-#<type 'exceptions.AttributeError'>
-#'NoneType' object has no attribute 'focused'
-#  File "gameModes.py", line 114, in handleLeftClickDown
-#    self.setFocus(None)
-#  File "gameModes.py", line 91, in setFocus
-#    self.elementWithFocus.focused = True
-
-#this occurs when placing player 8 start point and hitting save:
-#<type 'exceptions.ValueError'>
-#chr() arg not in range(256)
-#  File "gameModes.py", line 136, in handleLeftClickDown
-#    self.elementsDict[name].onClick()
-#  File "uiElements.py", line 80, in onClick
-#    gameState.getGameMode().map.save()
-#  File "gameLogic.py", line 704, in save
-#    line = line + chr(node.tileValue + (16*node.roadValue)+ (32*node.playerStartValue) + (512*0))#USE 512 NEXT BECAUSE 8 PLAYERS NEEDS 3 BITS
-
 
 ############# MINIMUM VIABLE PRODUCT AT THIS POINT ##############
 
@@ -139,7 +122,8 @@ class gameMode:
 		if(self.elementWithFocus != None):
 			self.elementWithFocus.focused = False
 		self.elementWithFocus = elem
-		self.elementWithFocus.focused = True
+		if(self.elementWithFocus != None):#no idea how this would occur but it did... TODO: figure out how
+			self.elementWithFocus.focused = True
 	def getUIElementsIterator(self):
 		if(self.resortElems):
 			self.resortElems = False
