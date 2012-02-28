@@ -35,6 +35,8 @@
 #player rewards
 
 #BUGS
+#scrolling map breaks after zoom out from near edge of map
+#scrolling to bottom of map broke when i changed the ui size
 #make sure text edit boxes only allow chars and not shift/enter
 #check new/edited city names for duplicates
 #uiElements startingManaSelector needs to be removed

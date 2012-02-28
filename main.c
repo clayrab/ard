@@ -867,8 +867,13 @@ void calculateTranslation(){
   pyMapHeight = PyObject_CallMethod(theMap,"getHeight",NULL);//New reference
   mapWidth = PyLong_AsLong(pyMapWidth);
   mapHeight = PyLong_AsLong(pyMapHeight);
-  convertWindowCoordsToViewportCoords(UI_MAP_EDITOR_LEFT_IMAGE_WIDTH,SCREEN_BASE_HEIGHT-UI_MAP_EDITOR_TOP_IMAGE_HEIGHT-UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT,translateZ,&convertedBottomLeftX,&convertedBottomLeftY,&convertedBottomLeftZ);
-  convertWindowCoordsToViewportCoords(SCREEN_WIDTH-UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH,0.0,translateZ,&convertedTopRightX,&convertedTopRightY,&convertedTopRightZ);
+  //  glViewport(UI_MAP_EDITOR_LEFT_IMAGE_WIDTH*SCREEN_WIDTH/SCREEN_BASE_WIDTH,UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT*SCREEN_HEIGHT/SCREEN_BASE_HEIGHT,(SCREEN_BASE_WIDTH - UI_MAP_EDITOR_LEFT_IMAGE_WIDTH - UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH)*SCREEN_WIDTH/SCREEN_BASE_WIDTH, (SCREEN_BASE_HEIGHT - UI_MAP_EDITOR_TOP_IMAGE_HEIGHT - UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT)*SCREEN_HEIGHT/SCREEN_BASE_HEIGHT);
+  convertWindowCoordsToViewportCoords(UI_MAP_EDITOR_LEFT_IMAGE_WIDTH*SCREEN_WIDTH/SCREEN_BASE_WIDTH,(SCREEN_BASE_HEIGHT-UI_MAP_EDITOR_TOP_IMAGE_HEIGHT-UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT)*SCREEN_HEIGHT/SCREEN_BASE_HEIGHT,translateZ,&convertedBottomLeftX,&convertedBottomLeftY,&convertedBottomLeftZ);
+  convertWindowCoordsToViewportCoords((SCREEN_WIDTH-UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH),0.0,translateZ,&convertedTopRightX,&convertedTopRightY,&convertedTopRightZ);
+  //  convertWindowCoordsToViewportCoords(UI_MAP_EDITOR_LEFT_IMAGE_WIDTH,SCREEN_BASE_HEIGHT-UI_MAP_EDITOR_TOP_IMAGE_HEIGHT-UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT,translateZ,&convertedBottomLeftX,&convertedBottomLeftY,&convertedBottomLeftZ);
+  //  convertWindowCoordsToViewportCoords(SCREEN_WIDTH-UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH,0.0,translateZ,&convertedTopRightX,&convertedTopRightY,&convertedTopRightZ);
+
+
   convertWindowCoordsToViewportCoords(mouseX,mouseY,translateZ,&mouseMapPosX,&mouseMapPosY,&mouseMapPosZ);
 	if(theMap != NULL){
 		pyTranslateZ = PyObject_GetAttrString(theMap,"translateZ");
