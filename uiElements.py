@@ -157,7 +157,6 @@ class textInputElement(uiElement):
 		self.leftmostCharPosition = 0
 		self.rightmostCharPosition = self.cursorPosition
 	def positionText(self,leftmostCharPosition,rightmostCharPosition):
-		#if cursorPosition > klen(text), set it down to len(text)
 		self.recalculateText = 0
 		self.leftmostCharPosition = leftmostCharPosition
 		self.rightmostCharPosition = rightmostCharPosition
@@ -173,7 +172,6 @@ class textInputElement(uiElement):
 			self.recalculateText = 1
 		elif(keycode == "space"):
 			self.realText = self.realText[0:self.leftmostCharPosition+self.cursorPosition] + " " + self.realText[self.leftmostCharPosition+self.cursorPosition:]
-#			self.realText = self.realText + " "
 			self.cursorPosition = self.cursorPosition + 1
 			if(self.cursorPosition == len(self.text)):
 				self.recalculateText = -1
@@ -182,7 +180,6 @@ class textInputElement(uiElement):
 		elif(keycode == "left"):
 			if(self.cursorPosition > 0):
 				self.cursorPosition = self.cursorPosition - 1
-#				self.recalculateText = 0
 			elif(self.leftmostCharPosition != 0):
 				self.leftmostCharPosition = self.leftmostCharPosition - 1
 				self.recalculateText = 1
@@ -191,21 +188,15 @@ class textInputElement(uiElement):
 				self.cursorPosition = self.cursorPosition + 1
 				self.recalculateText = 0
 			elif(self.leftmostCharPosition + self.cursorPosition < len(self.realText)):
-#				self.cursorPosition = self.cursorPosition + 1
 				self.rightmostCharPosition = self.rightmostCharPosition + 1
 				self.recalculateText = -1
 		elif(keycode == "up" or keycode == "down" or keycode == "left shift" or keycode == "right shift"):
 			self.realText = self.realText
 		else:
 			self.realText = self.realText[0:self.leftmostCharPosition+self.cursorPosition] + keycode + self.realText[self.leftmostCharPosition+self.cursorPosition:]
-			print "self.leftmostCharPosition"
-			print self.leftmostCharPosition
-			print self.cursorPosition
-			print len(self.realText)
 			if(self.cursorPosition < len(self.text)):
 				self.cursorPosition = self.cursorPosition + 1
                                 self.recalculateText = 1
-#			elif(self.rightmostCharPosition < len(self.realText)):
 			else:
                                 self.cursorPosition = self.cursorPosition + 1
 				self.rightmostCharPosition = self.rightmostCharPosition + 1
