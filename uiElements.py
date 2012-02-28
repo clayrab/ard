@@ -147,32 +147,70 @@ class textInputElement(uiElement):
 		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textSize=textSize,textColor=textColor,textXPos=textXPos,textYPos=textYPos,cursorPosition=len(text))
 		textInputElement.elements.append(self)
 		self.realText = text
-		#store real text in background
-		#when real text changes or cursormoves left of 0 or right of len(text) then call a font function which returns the lengthe of fittable text
-		#font function must start from rightmost char if cursorposition is at len(text) or must start at left as usual if cursorPosition is at 0 or lower
-		#if realtext fits, draw from left, otherwise if cursorPosition is at len(text) then we push the text to the left(cut off leftmost chars), otherwise(if the cursor is on the left of in the middle) we push the chars off the right(cut off rightmost chars)
-		#call func here with 2 values, leftmost char position and rightmost char position
-		#set self.text in this function
+		self.leftmostCharPosition = 0
+		self.rightmostCharPosition = 0
+		self.recalculateText = 0
 	def __del__(self):
 		textInputElement.elements.remove(self)
+	def textOkay(self):
+		self.text = self.realText
+		self.leftmostCharPosition = 0
+		self.rightmostCharPosition = self.cursorPosition
+	def positionText(self,leftmostCharPosition,rightmostCharPosition):
+		#if cursorPosition > klen(text), set it down to len(text)
+		self.recalculateText = 0
+		self.leftmostCharPosition = leftmostCharPosition
+		self.rightmostCharPosition = rightmostCharPosition
+		if(self.leftmostCharPosition < 0):
+			self.leftmostCharPosition = 0
+		self.text = self.realText[leftmostCharPosition:rightmostCharPosition]
+		if(self.cursorPosition > len(self.text)):
+			self.cursorPosition = len(self.text)
 	def onKeyDown(self,keycode):
 		if(keycode == "backspace"):
-			self.text = self.text[0:self.cursorPosition-1] + self.text[self.cursorPosition:]
+			self.realText = self.realText[0:self.leftmostCharPosition+self.cursorPosition-1] + self.realText[self.leftmostCharPosition+self.cursorPosition:]
 			self.cursorPosition = self.cursorPosition - 1
+			self.recalculateText = 1
 		elif(keycode == "space"):
-			self.text = self.text + " "
+			self.realText = self.realText[0:self.leftmostCharPosition+self.cursorPosition] + " " + self.realText[self.leftmostCharPosition+self.cursorPosition:]
+#			self.realText = self.realText + " "
 			self.cursorPosition = self.cursorPosition + 1
+			if(self.cursorPosition == len(self.text)):
+				self.recalculateText = -1
+			else:
+				self.recalculateText = 1
 		elif(keycode == "left"):
 			if(self.cursorPosition > 0):
 				self.cursorPosition = self.cursorPosition - 1
+#				self.recalculateText = 0
+			elif(self.leftmostCharPosition != 0):
+				self.leftmostCharPosition = self.leftmostCharPosition - 1
+				self.recalculateText = 1
 		elif(keycode == "right"):
 			if(self.cursorPosition < len(self.text)):
 				self.cursorPosition = self.cursorPosition + 1
+				self.recalculateText = 0
+			elif(self.leftmostCharPosition + self.cursorPosition < len(self.realText)):
+#				self.cursorPosition = self.cursorPosition + 1
+				self.rightmostCharPosition = self.rightmostCharPosition + 1
+				self.recalculateText = -1
 		elif(keycode == "up" or keycode == "down" or keycode == "left shift" or keycode == "right shift"):
-			self.text = self.text
+			self.realText = self.realText
 		else:
-			self.text = self.text[0:self.cursorPosition] + keycode + self.text[self.cursorPosition:]
-			self.cursorPosition = self.cursorPosition + 1
+			self.realText = self.realText[0:self.leftmostCharPosition+self.cursorPosition] + keycode + self.realText[self.leftmostCharPosition+self.cursorPosition:]
+			print "self.leftmostCharPosition"
+			print self.leftmostCharPosition
+			print self.cursorPosition
+			print len(self.realText)
+			if(self.cursorPosition < len(self.text)):
+				self.cursorPosition = self.cursorPosition + 1
+                                self.recalculateText = 1
+#			elif(self.rightmostCharPosition < len(self.realText)):
+			else:
+                                self.cursorPosition = self.cursorPosition + 1
+				self.rightmostCharPosition = self.rightmostCharPosition + 1
+                                self.recalculateText = -1
+			
 	def onClick(self):
 #		uiElement.setFocused(self)
 		if(gameState.getGameMode().mouseTextPosition >=0):
@@ -989,8 +1027,8 @@ class startButton(menuButton):
 class loginInputElement(textInputElement):
 	usernameElem = None
 	passwordElem = None
-	def __init__(self,xPos,yPos,text,textXPos,textYPos):
-		textInputElement.__init__(self,xPos,yPos,text=text,textSize=0.0006,textXPos=textXPos,textYPos=textYPos)
+	def __init__(self,xPos,yPos,text,textXPos,textYPos,width=0.2):
+		textInputElement.__init__(self,xPos,yPos,text=text,textSize=0.0006,textXPos=textXPos,textYPos=textYPos,width=width)
 	def onKeyDown(self,keycode):
 		if(keycode == "return"):
 			

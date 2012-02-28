@@ -260,9 +260,72 @@ int checkRightMargin(int fontIndex, char* str, int strPosition, float rightMargi
   }
   glPopMatrix();
   return 0;
-  //  printf("%f ",projMatrix[12]);//IT APPEARS THAT THIS IS THE TRANSLATION OF THE LAST CHARACTER
-  //  printf("\n");
+}
 
+PyObject * pyObj;
+void findTextWidthFromRight(PyObject * uiElement, int fontIndex, char* realStr, float rightMargin, int rightmostCharPosition){
+  glPushMatrix();
+  glGetDoublev(GL_MODELVIEW_MATRIX,projMatrix);
+  strPosition = rightmostCharPosition;
+  while(strPosition >= 0){
+    //    strPosition = strPosition - 1;
+    glCallList(list_base+(fontIndex*256)+(2*realStr[strPosition])+1);
+    glGetDoublev(GL_MODELVIEW_MATRIX,projMatrix);
+    if(projMatrix[12] > rightMargin){
+      glPopMatrix();
+      pyObj = PyObject_CallMethod(uiElement,"positionText","(ii)",strPosition-1,rightmostCharPosition);
+      Py_DECREF(pyObj);
+      return;
+    }
+    strPosition--;
+  }
+  printf("ERROR, THIS CODE SHOUDL NEVER RUN!!");
+  glPopMatrix();  
+  pyObj = PyObject_CallMethod(uiElement,"positionText","(ii)",strPosition-1,rightmostCharPosition);
+  Py_DECREF(pyObj);
+}
+void findTextWidthFromLeft(PyObject * uiElement, int fontIndex, char* realStr, float rightMargin, int leftmostCharPosition){
+  glPushMatrix();
+  glGetDoublev(GL_MODELVIEW_MATRIX,projMatrix);
+  strPosition = leftmostCharPosition;
+  while(realStr[strPosition] != 0){
+    glCallList(list_base+(fontIndex*256)+(2*realStr[strPosition])+1);
+    glGetDoublev(GL_MODELVIEW_MATRIX,projMatrix);
+    if(projMatrix[12] > rightMargin){
+      glPopMatrix();
+      pyObj = PyObject_CallMethod(uiElement,"positionText","(ii)",leftmostCharPosition,strPosition+1);
+      Py_DECREF(pyObj);
+      return;
+    }
+    strPosition++;
+  }
+  glPopMatrix();
+  pyObj = PyObject_CallMethod(uiElement,"positionText","(ii)",leftmostCharPosition,strPosition+1);
+  Py_DECREF(pyObj);
+}
+void findTextWidth(PyObject * uiElement, int fontIndex, char* realStr, float rightMargin, int leftmostCharPosition, int rightmostCharPosition, int cursorPosition, int recalcValu){
+  rightMargin = rightMargin-0.003;
+  strPosition = 0;
+  glPushMatrix();
+  glGetDoublev(GL_MODELVIEW_MATRIX,projMatrix);
+  while(realStr[strPosition] != 0){//while the next char is not a space or end of string
+    glCallList(list_base+(fontIndex*256)+(2*realStr[strPosition])+1);
+    glGetDoublev(GL_MODELVIEW_MATRIX,projMatrix);
+    if(projMatrix[12] > rightMargin){
+      glPopMatrix();
+      //recalcValu comes straight from python
+      if(recalcValu > 0){//calculate length from left
+	findTextWidthFromLeft(uiElement,fontIndex,realStr,rightMargin,leftmostCharPosition);
+      }else{//calculate length from right
+	findTextWidthFromRight(uiElement,fontIndex,realStr,rightMargin,rightmostCharPosition);
+      }
+      return;
+    }
+    strPosition++;
+  }
+  glPopMatrix();
+  pyObj = PyObject_CallMethod(uiElement,"textOkay",NULL);
+  Py_DECREF(pyObj);  
 }
 void drawChar(int fontIndex,char* str, int strPosition,int cursorPosition){
   if(strPosition == cursorPosition){

@@ -15,6 +15,18 @@
 #include <freetype/ftoutln.h>
 #include <freetype/fttrigon.h>
 
+PyObject *exc_type, *exc_value, *exc_traceback,*pyObj,*gameModule;
+static void printPyStackTrace(){
+  //put this thing after the call that is causing your problem!
+    PyErr_Fetch(&exc_type, &exc_value, &exc_traceback);
+    if(exc_type && exc_traceback){
+      pyObj = PyObject_CallMethodObjArgs(gameModule,PyString_FromString("printTraceBack"),exc_type,exc_value,exc_traceback,NULL);
+      if(pyObj != NULL){
+	//Py_DECREF(pyObj);
+      }
+      PyErr_Print();//This is supposed to print it but doesn't. i left it here so the exception gets cleared...
+    }
+}
 #include "fonts.h"
 
 #define maxZoom 40.0
@@ -346,7 +358,7 @@ long playerNumber;
 long unitTextureIndex;
 double healthBarLength;
 PyObject * uiElement;
-PyObject * gameModule;
+//PyObject * gameModule;
 PyObject * gameState;
 PyObject * gameMode;
 PyObject * theMap;
@@ -356,7 +368,7 @@ PyObject * UIElementsIterator;
 PyObject * rowIterator;
 PyObject * pyMapWidth;
 PyObject * pyMapHeight;
-PyObject * pyObj;
+//PyObject * pyObj;
 //PyObject * playableMode;
 long mapWidth;
 long mapHeight;
@@ -479,18 +491,6 @@ float hexagonVertices[6][2] = {
   {SIN60+0.01, -COS60-0.01},
   {0.01, -1.01}
 };
-PyObject *exc_type, *exc_value, *exc_traceback;
-static void printPyStackTrace(){
-  //put this thing after the call that is causing your problem!
-    PyErr_Fetch(&exc_type, &exc_value, &exc_traceback);
-    if(exc_type && exc_traceback){
-      pyObj = PyObject_CallMethodObjArgs(gameModule,PyString_FromString("printTraceBack"),exc_type,exc_value,exc_traceback,NULL);
-      if(pyObj != NULL){
-	//Py_DECREF(pyObj);
-      }
-      PyErr_Print();//This is supposed to print it but doesn't. i left it here so the exception gets cleared...
-    }
-}
 /**************************** mouse hover object selection ********************************/
 GLuint *bufferPtr,*ptrNames, numberOfNames;
 int count;
@@ -1010,6 +1010,10 @@ PyObject * pyTextureIndex;
 PyObject * pyCursorIndex;
 PyObject * pyText;
 PyObject * pyQueuedText;
+PyObject * pyRealText;
+PyObject * pyLeftmostCharPosition;
+PyObject * pyRightmostCharPosition;
+PyObject * pyRecalculateText;
 PyObject * pyDecrementMe;
 PyObject * pyTextColor;
 PyObject * pyTextSize;
@@ -1031,6 +1035,10 @@ long cursorIndex;
 char * text;
 int wordWidth;
 char * queuedText;
+char * realText;
+int leftmostCharPosition;
+int rightmostCharPosition;
+int recalculateText;
 char * textColor;
 double textSize;
 char * color;
@@ -1129,6 +1137,28 @@ void drawUIElement(PyObject * uiElement){
 	  glEnd();
 	  glPopName();
 	  glPopMatrix();
+	}
+	if(PyObject_HasAttrString(uiElement,"realText")){
+	  pyRecalculateText = PyObject_GetAttrString(uiElement,"recalculateText");
+	  recalculateText = PyLong_AsLong(pyRecalculateText);
+	  if(recalculateText){
+	    pyRealText = PyObject_GetAttrString(uiElement,"realText");
+	    pyLeftmostCharPosition = PyObject_GetAttrString(uiElement,"leftmostCharPosition");
+	    pyRightmostCharPosition = PyObject_GetAttrString(uiElement,"rightmostCharPosition");
+	    leftmostCharPosition = PyLong_AsLong(pyLeftmostCharPosition);
+	    rightmostCharPosition = PyLong_AsLong(pyRightmostCharPosition);
+	    realText = PyString_AsString(pyRealText);
+	    glPushMatrix();
+	    glLoadIdentity();
+	    glTranslatef(xPosition+textXPosition,yPosition+textYPosition,0.0);
+	    glScalef(textSize,textSize,0.0);
+	    findTextWidth(uiElement,fontIndex,realText,xPosition+width,leftmostCharPosition,rightmostCharPosition,cursorPosition,recalculateText);
+	    glPopMatrix();
+	    Py_DECREF(pyLeftmostCharPosition);
+	    Py_DECREF(pyRightmostCharPosition);
+	    Py_DECREF(pyRealText);
+	  }
+	  Py_DECREF(pyRecalculateText);	  
 	}
 	//      printf("index: %ld %ld %f %f %f %f\n",name,textureIndex,xPosition,yPosition,width,height);
 	if(PyObject_HasAttrString(uiElement,"textQueue")){
