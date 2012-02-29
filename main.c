@@ -109,8 +109,8 @@ static void printPyStackTrace(){
 #define UI_SCROLL_PAD_INDEX 12
 
 #define UI_TEXT_INPUT_IMAGE "assets/textInput.png"
-#define UI_TEXT_INPUT_IMAGE_HEIGHT 20
-#define UI_TEXT_INPUT_IMAGE_WIDTH 200
+#define UI_TEXT_INPUT_IMAGE_HEIGHT 30
+#define UI_TEXT_INPUT_IMAGE_WIDTH 300
 #define UI_TEXT_INPUT_INDEX 13
 
 #define MEEPLE_IMAGE "assets/meeple.png"

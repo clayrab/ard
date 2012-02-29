@@ -12,8 +12,6 @@ from textureFunctions import texWidth, texHeight, texIndex
 from Queue import Queue
 #print pubKey.decrypt(cipher)
 
-
-
 cityCosts = ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20"]
 unitCosts = ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20"]
 startingManas = ["5","10","15","20","30","40","50","60","70","80","90","100"]
@@ -1018,8 +1016,8 @@ class startButton(menuButton):
 class loginInputElement(textInputElement):
 	usernameElem = None
 	passwordElem = None
-	def __init__(self,xPos,yPos,text,textXPos,textYPos,width=0.2):
-		textInputElement.__init__(self,xPos,yPos,text=text,textSize=0.0006,textXPos=textXPos,textYPos=textYPos,width=width)
+	def __init__(self,xPos,yPos,text,textXPos,textYPos):
+		textInputElement.__init__(self,xPos,yPos,text=text,textSize=0.0006,textXPos=textXPos,textYPos=textYPos)
 	def onKeyDown(self,keycode):
 		if(keycode == "return"):
 			

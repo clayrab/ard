@@ -16,7 +16,7 @@
 #update room player count
 #polish gameroom view
 #    show each player status (connecting, connected, ready)
-#show map info(perhaps just size, units available, and city count would be sufficient?)
+#show map info(perhaps just size, units available, and city count would be sufficient for now?)
 
 #MISSING FEATURES
 #proper quit and options menus
