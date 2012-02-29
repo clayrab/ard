@@ -36,11 +36,11 @@ static void printPyStackTrace(){
 #define zoomSpeed 5.0//lower is faster
 #define focusSpeed 5.0//lower is faster
 
-#define FULL_SCREEN 0
-#define SCREEN_WIDTH 1280
-#define SCREEN_HEIGHT 960
-//#define SCREEN_WIDTH 1600
-//#define SCREEN_HEIGHT 1200
+#define FULL_SCREEN 1
+//#define SCREEN_WIDTH 1280
+//#define SCREEN_HEIGHT 960
+#define SCREEN_WIDTH 1600
+#define SCREEN_HEIGHT 1200
 //#define SCREEN_WIDTH 1920
 //#define SCREEN_HEIGHT 1200
 #define SCREEN_BASE_WIDTH 1600
@@ -256,20 +256,21 @@ static void printPyStackTrace(){
 #define ICE_IMAGE "assets/ice.png"
 #define ICE_INDEX 50
 
-#define GAME_FIND_BACKGROUND "assets/GameFindBackground.png"
+#define GAME_FIND_BACKGROUND "assets/gameFindBackground.png"
 #define GAME_FIND_BACKGROUND_HEIGHT 1200
 #define GAME_FIND_BACKGROUND_WIDTH 1600
 #define GAME_FIND_BACKGROUND_INDEX 51
 
-#define GAME_FIND_MAPS "assets/GameFindMaps.png"
-#define GAME_FIND_MAPS_HEIGHT 978
-#define GAME_FIND_MAPS_WIDTH 1156
-#define GAME_FIND_MAPS_INDEX 52
+//DEPRECATED
+#define DEPRECATED "assets/GameFindMaps.png"
+#define DEPRECATED_HEIGHT 978
+#define DEPRECATED_WIDTH 1156
+#define DEPRECATED_INDEX 52
 
-#define GAME_FIND_CHAT "assets/GameFindChat.png"
-#define GAME_FIND_CHAT_HEIGHT 976
-#define GAME_FIND_CHAT_WIDTH 304
-#define GAME_FIND_CHAT_INDEX 53
+#define ROOMS_DISPLAY "assets/roomsDisplay.png"
+#define ROOMS_DISPLAY_HEIGHT 976
+#define ROOMS_DISPLAY_WIDTH 1154
+#define ROOMS_DISPLAY_INDEX 53
 
 #define MODAL "assets/modal.png"
 #define MODAL_HEIGHT 1200
@@ -290,6 +291,21 @@ static void printPyStackTrace(){
 #define MODAL_SMALL_HEIGHT 200
 #define MODAL_SMALL_WIDTH 600
 #define MODAL_SMALL_INDEX 57
+
+#define SEND_BUTTON "assets/sendButton.png"
+#define SEND_BUTTON_HEIGHT 30
+#define SEND_BUTTON_WIDTH 72
+#define SEND_BUTTON_INDEX 58
+
+#define CHAT_BOX "assets/chatBox.png"
+#define CHAT_BOX_HEIGHT 41
+#define CHAT_BOX_WIDTH 304
+#define CHAT_BOX_INDEX 59
+
+#define CHAT_DISPLAY "assets/chatDisplay.png"
+#define CHAT_DISPLAY_HEIGHT 912
+#define CHAT_DISPLAY_WIDTH 304
+#define CHAT_DISPLAY_INDEX 60
 
 #define DESERT_TILE_INDEX 0
 #define GRASS_TILE_INDEX 1
@@ -1337,12 +1353,15 @@ static void initGL (){
   pngLoad(&texturesArray[BLUE_MAGE_INDEX],BLUE_MAGE_IMAGE);
   pngLoad(&texturesArray[ICE_INDEX],ICE_IMAGE);
   pngLoad(&texturesArray[GAME_FIND_BACKGROUND_INDEX],GAME_FIND_BACKGROUND);
-  pngLoad(&texturesArray[GAME_FIND_MAPS_INDEX],GAME_FIND_MAPS);
-  pngLoad(&texturesArray[GAME_FIND_CHAT_INDEX],GAME_FIND_CHAT);
+  pngLoad(&texturesArray[DEPRECATED_INDEX],DEPRECATED);
+  pngLoad(&texturesArray[ROOMS_DISPLAY_INDEX],ROOMS_DISPLAY);
   pngLoad(&texturesArray[MODAL_INDEX],MODAL);
   pngLoad(&texturesArray[OK_BUTTON_INDEX],OK_BUTTON);
   pngLoad(&texturesArray[MODAL_BACKGROUND_INDEX],MODAL_BACKGROUND);
   pngLoad(&texturesArray[MODAL_SMALL_INDEX],MODAL_SMALL);
+  pngLoad(&texturesArray[SEND_BUTTON_INDEX],SEND_BUTTON);
+  pngLoad(&texturesArray[CHAT_BOX_INDEX],CHAT_BOX);
+  pngLoad(&texturesArray[CHAT_DISPLAY_INDEX],CHAT_DISPLAY);
 
   vertexArrays[DESERT_TILE_INDEX] = *desertVertices;
   vertexArrays[GRASS_TILE_INDEX] = *grassVertices;

@@ -22,7 +22,6 @@
 #proper quit and options menus
 #draw roads properly
 #mountains should be impassable, hills less passable, hills give defense bonus
-#hash commands to hide from hackers
 #sound effects
 #mouseover effects
 #limited time to move
@@ -676,12 +675,13 @@ class gameFindMode(gameMode):
 		uiElements.uiElement(-0.15,0.9,text=mapName)
 	def addUIElements(self):
 		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])	
-		roomSelectorWidth = (2.0*cDefines.defines['GAME_FIND_MAPS_WIDTH']/cDefines.defines['UI_NEW_GAME_SCREEN_IMAGE_WIDTH'])
-		roomSelectorHeight = (2.0*cDefines.defines['GAME_FIND_MAPS_HEIGHT']/cDefines.defines['UI_NEW_GAME_SCREEN_IMAGE_HEIGHT'])
-		self.roomSelector = uiElements.roomSelector(-0.925,0.9,self.rooms,textSize=0.0005,textureIndex=cDefines.defines['GAME_FIND_MAPS_INDEX'],width=roomSelectorWidth,height=roomSelectorHeight,xPositionOffset=0.01,yPositionOffset=-0.06)
+		self.roomSelector = uiElements.roomSelector(-0.925,0.9,self.rooms,textSize=0.0005)
 		uiElements.createRoomButton(-0.92,-0.8,width=1.0,text="create game",textSize=0.0006)
-#		self.chatDisplay = uiElements.chatDisplay()
-		
+
+		self.chatDisplay = uiElements.chatDisplay()
+		self.chatBox = uiElements.chatBox()
+		uiElements.sendChatButton(0.62,-0.8,width=1.0,text="send",textSize=0.0006)
+
 class createGameMode(gameMode):
 	def __init__(self,args):
 		gameMode.__init__(self)
