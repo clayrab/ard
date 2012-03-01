@@ -165,20 +165,16 @@ class textInputElement(uiElement):
 			self.cursorPosition = len(self.text)
 	def onKeyDown(self,keycode):
 		if(keycode == "backspace"):
-			self.realText = self.realText[0:self.leftmostCharPosition+self.cursorPosition-1] + self.realText[self.leftmostCharPosition+self.cursorPosition:]
-			self.cursorPosition = self.cursorPosition - 1
-			self.recalculateText = 1
-		elif(keycode == "space"):
-			self.realText = self.realText[0:self.leftmostCharPosition+self.cursorPosition] + " " + self.realText[self.leftmostCharPosition+self.cursorPosition:]
-			self.cursorPosition = self.cursorPosition + 1
-			if(self.cursorPosition == len(self.text)):
-				self.recalculateText = -1
-			else:
+			if(self.cursorPosition > 0 or self.leftmostCharPosition > 0):
+				self.realText = self.realText[0:self.leftmostCharPosition+self.cursorPosition-1] + self.realText[self.leftmostCharPosition+self.cursorPosition:]
 				self.recalculateText = 1
+				self.cursorPosition = self.cursorPosition - 1
+				if(self.leftmostCharPosition >= 1):
+					self.leftmostCharPosition = self.leftmostCharPosition - 1
 		elif(keycode == "left"):
 			if(self.cursorPosition > 0):
 				self.cursorPosition = self.cursorPosition - 1
-			elif(self.leftmostCharPosition != 0):
+			elif(self.leftmostCharPosition >= 0):
 				self.leftmostCharPosition = self.leftmostCharPosition - 1
 				self.recalculateText = 1
 		elif(keycode == "right"):
@@ -191,6 +187,8 @@ class textInputElement(uiElement):
 		elif(keycode == "up" or keycode == "down" or keycode == "left shift" or keycode == "right shift"):
 			self.realText = self.realText
 		else:
+			if(keycode == "space"):
+				keycode = " "
 			self.realText = self.realText[0:self.leftmostCharPosition+self.cursorPosition] + keycode + self.realText[self.leftmostCharPosition+self.cursorPosition:]
 			if(self.cursorPosition < len(self.text)):
 				self.cursorPosition = self.cursorPosition + 1
@@ -831,7 +829,7 @@ class createRoomButton(clickableElement):
 
 class chatBox(textInputElement):
 	def __init__(self):
-		textInputElement.__init__(self,0.55,-0.678,text="",textSize=0.0006,textureIndex=texIndex("CHAT_BOX"),width=texWidth("CHAT_BOX"),textColor="FF FF FF",textXPos=0.0,textYPos=-0.05)
+		textInputElement.__init__(self,0.55,-0.678,text="",textSize=0.0005,textureIndex=texIndex("CHAT_BOX"),width=texWidth("CHAT_BOX"),textColor="FF FF FF",textXPos=0.02,textYPos=-0.035)
 	def onKeyDown(self,keycode):
 		if(keycode == "return"):
 			print 'return'

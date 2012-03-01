@@ -6,11 +6,6 @@
 #define ARIAL 0
 #define HERCULANUM 1
 
-#define TRANSPARENT_PIXEL_IMAGE "assets/transparentPixel.png"
-#define TRANSPARENT_PIXEL_INDEX 0
-#define WHITE_PIXEL_IMAGE "assets/whitePixel.png"
-#define WHITE_PIXEL_INDEX 1
-
 #define FONT_NAME_SIZE 50
 
 char fontFiles[3][FONT_NAME_SIZE] = {
@@ -18,6 +13,7 @@ char fontFiles[3][FONT_NAME_SIZE] = {
   "assets/fonts/XXII ARABIAN-ONENIGHTSTAND.ttf",
   "assets/fonts/Herculanum.ttf",
 };
+GLuint textCursor;
 
 int TextureWidth;
 int TextureHeight;
@@ -85,16 +81,10 @@ void make_dlist ( FT_Face face, char charIndex, GLuint list_base, GLuint * tex_b
 	0 : bitmap.buffer[i + glyphWidth*j];
     }
   }
-  //TextureWidth = glyphWidth;
-  //TextureHeight = glyphHeight;
-
   glBindTexture(GL_TEXTURE_2D, tex_base[charIndex]);
   glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, dataWidth, dataHeight, 0, GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE, expanded_data);
-  //delete expanded_data;
-
-
   glNewList(list_base+(2*charIndex),GL_COMPILE);
   glPushMatrix();
   // We Need To Account For The Fact That Many Of
@@ -139,13 +129,6 @@ void make_dlist ( FT_Face face, char charIndex, GLuint list_base, GLuint * tex_b
   glTexCoord2d(x,0); glVertex2f(glyphWidth,glyphHeight);
   glEnd();
   glPopMatrix();
-  //glTranslatef(glyphWidth+5,0,0);
-  /*glBegin(GL_QUADS);
-  glTexCoord2d(0,0); glVertex2f(glyphWidth,glyphHeight);
-  glTexCoord2d(0,y); glVertex2f(glyphWidth,0);
-  glTexCoord2d(x,y); glVertex2f((face->glyph->advance.x>>6),0);
-  glTexCoord2d(x,0); glVertex2f((face->glyph->advance.x>>6),glyphHeight);
-  glEnd();*/
   glTranslatef(face->glyph->advance.x >> 6, 0, 0);
 
   // Increment The Raster Position As If We Were A Bitmap Font.
@@ -154,7 +137,6 @@ void make_dlist ( FT_Face face, char charIndex, GLuint list_base, GLuint * tex_b
 
   // Finish The Display List
   glEndList();
-
 
   //make another list with just the translations so we can call this to find the width of text before we draw it
   glNewList(list_base+(2*charIndex)+1,GL_COMPILE);
@@ -168,6 +150,8 @@ void make_dlist ( FT_Face face, char charIndex, GLuint list_base, GLuint * tex_b
 
 static void initFonts(){
   //loadFont(ARIAL,16);
+  pngLoad(&textCursor,"assets/cursor.png");
+
   FT_Library library;
   FT_Face face; 
   int error = FT_Init_FreeType( &library );
@@ -199,16 +183,17 @@ static void initFonts(){
 }
 void drawCursor(){
   glPushMatrix();
+  glTranslatef(-3.0,0.0,0.0);
   float currentColor[4];
   glGetFloatv(GL_CURRENT_COLOR,currentColor);
-  glBindTexture(GL_TEXTURE_2D,0);
+  glBindTexture(GL_TEXTURE_2D,textCursor);
   glColor4f(currentColor[0],currentColor[1],currentColor[2],currentColor[3]);
-  glTranslatef(-3.0,0.0,100.0);
-  glBegin(GL_QUADS);
-  glTexCoord2d(0,0); glVertex2f(0,60);
-  glTexCoord2d(0,1); glVertex2f(0,-10);
-  glTexCoord2d(1,1); glVertex2f(6,-10);
-  glTexCoord2d(1,0); glVertex2f(6,60);
+  //glColor3f(1.0,0.0,0.0);
+  glBegin(GL_POLYGON);
+  glTexCoord2f(0.0,1.0); glVertex3f(-3.0,70.0,0.001);
+  glTexCoord2f(0.0,0.0); glVertex3f(-3.0,-2.0,0.001);
+  glTexCoord2f(1.0,0.0); glVertex3f(8.0,-2.0,0.001);
+  glTexCoord2f(1.0,1.0); glVertex3f(8.0,70.0,0.001);
   glEnd();
   glPopMatrix();
 }
@@ -274,7 +259,7 @@ void findTextWidthFromRight(PyObject * uiElement, int fontIndex, char* realStr, 
     if(projMatrix[12] > rightMargin){
       glPopMatrix();
       pyObj = PyObject_CallMethod(uiElement,"positionText","(ii)",strPosition-1,rightmostCharPosition);
-      Py_DECREF(pyObj);
+      //  Py_DECREF(pyObj);
       return;
     }
     strPosition--;
@@ -282,7 +267,7 @@ void findTextWidthFromRight(PyObject * uiElement, int fontIndex, char* realStr, 
   printf("ERROR, THIS CODE SHOUDL NEVER RUN!!");
   glPopMatrix();  
   pyObj = PyObject_CallMethod(uiElement,"positionText","(ii)",strPosition-1,rightmostCharPosition);
-  Py_DECREF(pyObj);
+  //  Py_DECREF(pyObj);
 }
 void findTextWidthFromLeft(PyObject * uiElement, int fontIndex, char* realStr, float rightMargin, int leftmostCharPosition){
   glPushMatrix();
@@ -294,14 +279,14 @@ void findTextWidthFromLeft(PyObject * uiElement, int fontIndex, char* realStr, f
     if(projMatrix[12] > rightMargin){
       glPopMatrix();
       pyObj = PyObject_CallMethod(uiElement,"positionText","(ii)",leftmostCharPosition,strPosition+1);
-      Py_DECREF(pyObj);
+      //      Py_DECREF(pyObj);
       return;
     }
     strPosition++;
   }
   glPopMatrix();
   pyObj = PyObject_CallMethod(uiElement,"positionText","(ii)",leftmostCharPosition,strPosition+1);
-  Py_DECREF(pyObj);
+  //  Py_DECREF(pyObj);
 }
 void findTextWidth(PyObject * uiElement, int fontIndex, char* realStr, float rightMargin, int leftmostCharPosition, int rightmostCharPosition, int cursorPosition, int recalcValu){
   rightMargin = rightMargin-0.003;
@@ -325,16 +310,16 @@ void findTextWidth(PyObject * uiElement, int fontIndex, char* realStr, float rig
   }
   glPopMatrix();
   pyObj = PyObject_CallMethod(uiElement,"textOkay",NULL);
-  Py_DECREF(pyObj);  
+  //  Py_DECREF(pyObj);  
 }
 void drawChar(int fontIndex,char* str, int strPosition,int cursorPosition){
   if(strPosition == cursorPosition){
     drawCursor();
   }
   glPushName(strPosition);
+  glGetDoublev(GL_MODELVIEW_MATRIX,projMatrix);
   glCallList(list_base+(fontIndex*256)+(2*str[strPosition]));
   glPopName();
-
 }
 float modelview_matrix[16];
 int drawText(char* str,int fontIndex,int cursorPosition,float rightMargin,GLdouble* initTranslation){
@@ -342,14 +327,14 @@ int drawText(char* str,int fontIndex,int cursorPosition,float rightMargin,GLdoub
   glPushMatrix();
   textName = 0;
   strPosition = 0;
-  glPushAttrib(GL_LIST_BIT | GL_CURRENT_BIT | GL_ENABLE_BIT | GL_TRANSFORM_BIT); 
-  glDisable(GL_LIGHTING);
-  glEnable(GL_TEXTURE_2D);
+  //glPushAttrib(GL_LIST_BIT | GL_CURRENT_BIT | GL_ENABLE_BIT | GL_TRANSFORM_BIT); 
+  //glDisable(GL_LIGHTING);
+  //glEnable(GL_TEXTURE_2D);
   glGetFloatv(GL_MODELVIEW_MATRIX, modelview_matrix);
   while(str[strPosition] != 0){
     drawChar(fontIndex, str, strPosition, cursorPosition);
     strPosition++;
-    if(str[strPosition-1] == 32 && str[strPosition] != 32 && checkRightMargin(fontIndex, str, strPosition+1,rightMargin)){
+    if(str[strPosition] == 32 && str[strPosition] != 32 && str[strPosition] != 0 && checkRightMargin(fontIndex, str, strPosition+1,rightMargin)){
       glPopMatrix();
       glTranslatef(0.0,-80.0,0.0);
       glPushMatrix();

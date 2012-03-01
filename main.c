@@ -36,11 +36,11 @@ static void printPyStackTrace(){
 #define zoomSpeed 5.0//lower is faster
 #define focusSpeed 5.0//lower is faster
 
-#define FULL_SCREEN 1
-//#define SCREEN_WIDTH 1280
-//#define SCREEN_HEIGHT 960
-#define SCREEN_WIDTH 1600
-#define SCREEN_HEIGHT 1200
+#define FULL_SCREEN 0
+#define SCREEN_WIDTH 1280
+#define SCREEN_HEIGHT 960
+//#define SCREEN_WIDTH 1600
+//#define SCREEN_HEIGHT 1200
 //#define SCREEN_WIDTH 1920
 //#define SCREEN_HEIGHT 1200
 #define SCREEN_BASE_WIDTH 1600
@@ -307,6 +307,11 @@ static void printPyStackTrace(){
 #define CHAT_DISPLAY_WIDTH 304
 #define CHAT_DISPLAY_INDEX 60
 
+#define TEXT_CURSOR "assets/cursor.png"
+#define TEXT_CURSOR_HEIGHT 1
+#define TEXT_CURSOR_WIDTH 1
+#define TEXT_CURSOR_INDEX 61
+
 #define DESERT_TILE_INDEX 0
 #define GRASS_TILE_INDEX 1
 #define MOUNTAIN_TILE_INDEX 2
@@ -347,6 +352,11 @@ int previousTick = 0;
 int deltaTicks = 0;
 int avgDeltaTicks = 0;
 int totalDeltaTicksDataPoints = 0;
+
+int keyHeld;
+int repeatKey;
+Uint32 keyHeldTime;
+
 
 GLfloat mapDepth,mapDepthTest1,mapDepthTest2,mapDepthTest3;
 float translateX = 0.0;
@@ -1299,7 +1309,7 @@ static void initGL (){
   glDepthFunc(GL_LEQUAL);
   screenRatio = (GLfloat)SCREEN_WIDTH/(GLfloat)SCREEN_HEIGHT;
 
-  char file[100] = TILES_IMAGE;
+  //  char file[100] = TILES_IMAGE;
 
   pngLoad(&tilesTexture, TILES_IMAGE);	/******************** /image init ***********************/
   pngLoad(&texturesArray[TILE_SELECT_BOX_INDEX],TILE_SELECT_BOX_IMAGE);
@@ -1362,6 +1372,7 @@ static void initGL (){
   pngLoad(&texturesArray[SEND_BUTTON_INDEX],SEND_BUTTON);
   pngLoad(&texturesArray[CHAT_BOX_INDEX],CHAT_BOX);
   pngLoad(&texturesArray[CHAT_DISPLAY_INDEX],CHAT_DISPLAY);
+  pngLoad(&texturesArray[TEXT_CURSOR_INDEX],TEXT_CURSOR);
 
   vertexArrays[DESERT_TILE_INDEX] = *desertVertices;
   vertexArrays[GRASS_TILE_INDEX] = *grassVertices;
@@ -1478,6 +1489,22 @@ static void handleInput(){
     }
   }
   //SDL_Delay(20);//for framerate testing...
+
+  if(keyHeld){
+    if(repeatKey){
+      if(SDL_GetTicks() - keyHeldTime > 40){
+	keyHeldTime = SDL_GetTicks();
+	if(PyObject_HasAttrString(gameMode,"handleKeyDown")){
+	  pyObj = PyObject_CallMethod(gameMode,"handleKeyDown","s",keyArray);
+	  printPyStackTrace();
+	  Py_DECREF(pyObj);
+	}
+      }
+    }else if(SDL_GetTicks() - keyHeldTime > 500){
+      repeatKey = 1;
+      keyHeldTime = SDL_GetTicks();
+    }
+  }
   while(SDL_PollEvent(&event)){
     switch(event.type){
     case SDL_MOUSEMOTION:
@@ -1550,6 +1577,9 @@ static void handleInput(){
       }
       break;
     case SDL_KEYDOWN:
+      keyHeld = 1;
+      repeatKey = 0;
+      keyHeldTime = SDL_GetTicks();
       if(event.key.keysym.sym == SDLK_ESCAPE){
 	done = 1;
       }else if(event.key.keysym.sym == SDLK_BACKQUOTE){
@@ -1575,7 +1605,7 @@ static void handleInput(){
 	}else{
 	  sprintf(keyArray,"%s",SDL_GetKeyName(event.key.keysym.sym));
 	}
-	if(PyObject_HasAttrString(gameMode,"handleKeyDown")){
+	if(PyObject_HasAttrString(gameMode,"handleKeyDown")){	
 	  pyObj = PyObject_CallMethod(gameMode,"handleKeyDown","s",keyArray); 
 	  printPyStackTrace();
 	  Py_DECREF(pyObj);
@@ -1586,6 +1616,8 @@ static void handleInput(){
       }
       break;
     case SDL_KEYUP:
+      keyHeld = 0;
+      repeatKey = 0;
       if(event.key.keysym.sym == SDLK_BACKQUOTE){
 	clickScroll = 0;
       }else if(event.key.keysym.sym == 303//rightshift

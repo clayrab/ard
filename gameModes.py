@@ -28,12 +28,9 @@
 #modals should be dismissed by esc, space, or enter
 #handle disconnections/reconnections gracefully
 #test and fix various display sizes
-
-#BONUS FEATURES
-#player stats(wins,losses,rank,etc)
-#player rewards
-
 #BUGS
+#'space' is not working correctly in textInputElements
+#fix py_decrefs in fonts.h
 #scrolling map breaks after zoom out from near edge of map
 #make sure text edit boxes only allow chars and not shift/enter
 #check new/edited city names for duplicates
@@ -42,11 +39,16 @@
 #make sure room and/or map names do not contain *
 # + buttons in map edit mode are wrong
 
-############# MINIMUM VIABLE PRODUCT AT THIS POINT ##############
+#BONUS FEATURES
+#player stats(wins,losses,rank,etc)
+#player rewards
 
 #DESIGN OPTIONS
 #cancel movement if any enemy is seen?
 #show move speed and attack speed?
+
+############# MINIMUM VIABLE PRODUCT AT THIS POINT ##############
+
 
 #POLISH
 #existing movePath and new movePath need to be distinguishable
@@ -156,7 +158,7 @@ class gameMode:
 					self.elementWithFocus.onLeftClickUp()
 	def handleKeyDown(self,keycode):
 		if(keycode == "t"):
-#			uiElements.smallModal("test adsfasdfa dsfadsfas dfadsf oiasdf adsop fbasdpfoia sdfa dsfoaiuadsfadsf idfu dfdi asdfas dfas dfi asdfadsbf bafb adsbfi adfs  ioadfsdfhiosadfiosadfsiadiosfufadsf ifds iuadfs adsf adfisu adfisu adfsu ")
+			uiElements.smallModal("test adsfasdfa dsfadsfas dfadsf oiasdf adsop fbasdpfoia sdfa dsfoaiuadsfadsf idfu dfdi asdfas dfas dfi asdfadsbf bafb adsbfi adfs  ioadfsdfhiosadfiosadfsiadiosfufadsf ifds iuadfs adsf adfisu adfisu adfsu ")
 #			self.chatDisplay.addText("adsfiodfsaiodfsiodio dfios iodfs iodfs ioadfs ioadfs dio iodfs ioadfsio dfs sdasd asd f asfasdf df d df d f d f ad sf df  " + str(gameMode.foo))
 			print 'test'
 		if(keycode == "y"):
@@ -674,7 +676,8 @@ class gameFindMode(gameMode):
 		self.mapName = mapName
 		uiElements.uiElement(-0.15,0.9,text=mapName)
 	def addUIElements(self):
-		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])	
+		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=texIndex("GAME_FIND_BACKGROUND"))
+#cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])	
 		self.roomSelector = uiElements.roomSelector(-0.925,0.9,self.rooms,textSize=0.0005)
 		uiElements.createRoomButton(-0.92,-0.8,width=1.0,text="create game",textSize=0.0006)
 
