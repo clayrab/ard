@@ -673,13 +673,14 @@ class gameFindMode(gameMode):
 		self.mapName = mapName
 		uiElements.uiElement(-0.15,0.9,text=mapName)
 	def addUIElements(self):
-		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=texIndex("GAME_FIND_BACKGROUND"))
+#		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=texIndex("GAME_FIND_BACKGROUND"))
+		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=texIndex("UI_NEW_GAME_SCREEN"))
 #cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])	
-		self.roomSelector = uiElements.roomSelector(-0.925,0.9,self.rooms,textSize=0.0005)
-		uiElements.createRoomButton(-0.92,-0.8,width=1.0,text="create game",textSize=0.0006)
-		self.chatDisplay = uiElements.chatDisplay()
-		self.chatBox = uiElements.chatBox(gameState.getGameFindClient())
-		uiElements.sendChatButton(0.62,-0.8,width=1.0,text="send",textSize=0.0006)
+		self.roomSelector = uiElements.roomSelector(-0.930,0.82,self.rooms,textSize=0.0005)
+		uiElements.createRoomButton(-0.92,-0.6,width=1.0,text="create game",textSize=0.0006)
+		self.chatDisplay = uiElements.chatDisplay(0.556,0.82)
+		self.chatBox = uiElements.chatBox(0.556,-0.756,gameState.getGameFindClient())
+		uiElements.sendChatButton(0.858,-0.82)
 		self.setFocus(self.chatBox)
 
 class createGameMode(gameMode):

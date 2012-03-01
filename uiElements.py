@@ -168,7 +168,6 @@ class textInputElement(uiElement):
 		if(self.cursorPosition > len(self.text)):
 			self.cursorPosition = len(self.text)
 	def onKeyDown(self,keycode):
-		print self.realText
 		if(keycode == "backspace"):
 			if(self.cursorPosition > 0 or self.leftmostCharPosition > 0):
 				self.realText = self.realText[0:self.leftmostCharPosition+self.cursorPosition-1] + self.realText[self.leftmostCharPosition+self.cursorPosition:]
@@ -747,8 +746,8 @@ class scrollableTextFieldsElement(uiElement):
 
 class chatDisplay(scrollableTextFieldsElement):
 	#The goal here is to hold lines of text that are too long in textQueue and run them thru a function in fonts.h which will tell us how many words will constitute one line. This way we can add the text as a textFieldElement in order to reuse all the scrollableTextFields code.
-	def __init__(self):
-		scrollableTextFieldsElement.__init__(self,0.55,0.9,[],textSize=0.0005,textureIndex=texIndex("CHAT_DISPLAY"),width=texWidth("CHAT_DISPLAY"),height=texHeight("CHAT_DISPLAY"),numFields=40)
+	def __init__(self,xPos,yPos):
+		scrollableTextFieldsElement.__init__(self,xPos,yPos,[],textSize=0.0005,textureIndex=texIndex("CHAT_DISPLAY"),width=texWidth("CHAT_DISPLAY"),height=texHeight("CHAT_DISPLAY"),numFields=40)
 		self.textQueue = Queue()
 		self.linesQueue = Queue()
 		self.currentText = ""
@@ -841,8 +840,8 @@ class createRoomButton(clickableElement):
 
 
 class chatBox(textInputElement):
-	def __init__(self,klient):
-		textInputElement.__init__(self,0.55,-0.678,text="",textSize=0.0005,textureIndex=texIndex("CHAT_BOX"),width=texWidth("CHAT_BOX"),textColor="FF FF FF",textXPos=0.02,textYPos=-0.035)
+	def __init__(self,xPos,yPos,klient):
+		textInputElement.__init__(self,xPos,yPos,text="",textSize=0.0005,textureIndex=texIndex("CHAT_BOX"),width=texWidth("CHAT_BOX"),textColor="FF FF FF",textXPos=0.02,textYPos=-0.035)
 		self.klient = klient
 	def sendChat(self):
 		if(len(self.realText) > 0):
@@ -861,6 +860,8 @@ class chatBox(textInputElement):
 			textInputElement.onKeyDown(self,keycode)
 
 class sendChatButton(clickableElement):
+	def __init__(self,xPos,yPos):
+		clickableElement.__init__(self,xPos,yPos,width=texWidth("SEND_BUTTON"),height=texHeight("SEND_BUTTON"),textureIndex=texIndex("SEND_BUTTON"))
 	def onClick(self):
 		gameState.getGameMode().chatBox.sendChat()
 

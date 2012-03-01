@@ -293,8 +293,8 @@ static void printPyStackTrace(){
 #define MODAL_SMALL_INDEX 57
 
 #define SEND_BUTTON "assets/sendButton.png"
-#define SEND_BUTTON_HEIGHT 30
-#define SEND_BUTTON_WIDTH 72
+#define SEND_BUTTON_HEIGHT 32
+#define SEND_BUTTON_WIDTH 62
 #define SEND_BUTTON_INDEX 58
 
 #define CHAT_BOX "assets/chatBox.png"
@@ -307,10 +307,15 @@ static void printPyStackTrace(){
 #define CHAT_DISPLAY_WIDTH 304
 #define CHAT_DISPLAY_INDEX 60
 
-#define TEXT_CURSOR "assets/cursor.png"
-#define TEXT_CURSOR_HEIGHT 1
-#define TEXT_CURSOR_WIDTH 1
-#define TEXT_CURSOR_INDEX 61
+#define CREATE_GAME_BUTTON "assets/createGameButton.png"
+#define CREATE_GAME_BUTTON_HEIGHT 33
+#define CREATE_GAME_BUTTON_WIDTH 128
+#define CREATE_GAME_BUTTON_INDEX 61
+
+#define BACK_BUTTON "assets/backButton.png"
+#define BACK_BUTTON_HEIGHT 33
+#define BACK_BUTTON_WIDTH 85
+#define BACK_BUTTON_INDEX 62
 
 #define DESERT_TILE_INDEX 0
 #define GRASS_TILE_INDEX 1
@@ -1372,7 +1377,8 @@ static void initGL (){
   pngLoad(&texturesArray[SEND_BUTTON_INDEX],SEND_BUTTON);
   pngLoad(&texturesArray[CHAT_BOX_INDEX],CHAT_BOX);
   pngLoad(&texturesArray[CHAT_DISPLAY_INDEX],CHAT_DISPLAY);
-  pngLoad(&texturesArray[TEXT_CURSOR_INDEX],TEXT_CURSOR);
+  pngLoad(&texturesArray[CREATE_GAME_BUTTON_INDEX],CREATE_GAME_BUTTON);
+  pngLoad(&texturesArray[BACK_BUTTON_INDEX],BACK_BUTTON);
 
   vertexArrays[DESERT_TILE_INDEX] = *desertVertices;
   vertexArrays[GRASS_TILE_INDEX] = *grassVertices;
