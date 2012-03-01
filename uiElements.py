@@ -832,6 +832,8 @@ class startingManaSelector(scrollableTextFieldsElement):
 		self.destroy()
 
 class createRoomButton(clickableElement):
+	def __init__(self,xPos,yPos):
+		clickableElement.__init__(self,xPos,yPos,width=texWidth("CREATE_GAME_BUTTON"),height=texHeight("CREATE_GAME_BUTTON"),textureIndex=texIndex("CREATE_GAME_BUTTON"))
 	def onClick(self):
 		server.startServer('')
 		gameState.getGameFindClient().sendCommand("testServer",gameState.getConfig()["serverPort"])

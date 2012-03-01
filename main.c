@@ -36,9 +36,10 @@ static void printPyStackTrace(){
 #define zoomSpeed 5.0//lower is faster
 #define focusSpeed 5.0//lower is faster
 
-#define FULL_SCREEN 0
+#define FULL_SCREEN 1
 #define SCREEN_WIDTH 1280
-#define SCREEN_HEIGHT 960
+//#define SCREEN_HEIGHT 960
+#define SCREEN_HEIGHT 800
 //#define SCREEN_WIDTH 1600
 //#define SCREEN_HEIGHT 1200
 //#define SCREEN_WIDTH 1920
