@@ -172,7 +172,11 @@ class textInputElement(uiElement):
 				if(self.leftmostCharPosition >= 1):
 					self.leftmostCharPosition = self.leftmostCharPosition - 1
 		elif(keycode == "delete"):
-			print 'delete'
+			if(self.cursorPosition < len(self.realText)):
+				self.realText = self.realText[0:self.leftmostCharPosition+self.cursorPosition] + self.realText[self.leftmostCharPosition+self.cursorPosition+1:]
+				self.recalculateText = 1
+#				if(self.rightmostCharPosition == len(self.realText)):
+#					self.rightmostCharPosition = self.rightmostCharPosition -1
 		elif(keycode == "left"):
 			if(self.cursorPosition > 0):
 				self.cursorPosition = self.cursorPosition - 1
