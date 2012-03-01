@@ -739,13 +739,11 @@ class chatDisplay(scrollableTextFieldsElement):
 	#The goal here is to hold lines of text that are too long in textQueue and run them thru a function in fonts.h which will tell us how many words will constitute one line. This way we can add the text as a textFieldElement in order to reuse all the scrollableTextFields code.
 	def __init__(self):
 		scrollableTextFieldsElement.__init__(self,0.55,0.9,[],textSize=0.0005,textureIndex=texIndex("CHAT_DISPLAY"),width=texWidth("CHAT_DISPLAY"),height=texHeight("CHAT_DISPLAY"),numFields=40)
-		print texHeight("CHAT_DISPLAY")
-		print texHeight("ROOMS_DISPLAY")
-
 		self.textQueue = Queue()
 		self.linesQueue = Queue()
 		self.currentText = ""
 	def addLine(self,wordLength):
+		print wordLength
 		if(self.currentText != "" and wordLength > 0):
 			wordTokens = self.currentText.split(" ",wordLength)
 			if(len(wordTokens) > wordLength):
@@ -837,9 +835,11 @@ class chatBox(textInputElement):
 	def __init__(self):
 		textInputElement.__init__(self,0.55,-0.678,text="",textSize=0.0005,textureIndex=texIndex("CHAT_BOX"),width=texWidth("CHAT_BOX"),textColor="FF FF FF",textXPos=0.02,textYPos=-0.035)
 	def sendChat(self):
-		gameState.getGameFindClient().sendCommand("chat",self.text)
-		self.realText = ""
-		self.text = ""
+		if(len(self.realText) > 0):
+			gameState.getGameFindClient().sendCommand("chat",self.realText)
+			self.realText = ""
+			self.text = ""
+			self.cursorPosition = 0
 	def onKeyDown(self,keycode):
 		if(keycode == "return"):
 			self.sendChat()

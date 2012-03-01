@@ -684,6 +684,7 @@ class gameFindMode(gameMode):
 		self.chatDisplay = uiElements.chatDisplay()
 		self.chatBox = uiElements.chatBox()
 		uiElements.sendChatButton(0.62,-0.8,width=1.0,text="send",textSize=0.0006)
+		self.setFocus(self.chatBox)
 
 class createGameMode(gameMode):
 	def __init__(self,args):
