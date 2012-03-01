@@ -78,6 +78,9 @@ class Commands:
     @staticmethod    
     def testConnectFail(args):
         uiElements.smallModal("host test failed.\n See http://naqala.com/ard/hosting for details")
+    @staticmethod
+    def showChat(args):
+        gameState.getGameMode().chatDisplay.addText(args)
         
 def doCommand(commandName,args=None):
     commandFunc = getattr(Commands,commandName)

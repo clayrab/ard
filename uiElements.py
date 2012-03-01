@@ -836,18 +836,22 @@ class createRoomButton(clickableElement):
 class chatBox(textInputElement):
 	def __init__(self):
 		textInputElement.__init__(self,0.55,-0.678,text="",textSize=0.0005,textureIndex=texIndex("CHAT_BOX"),width=texWidth("CHAT_BOX"),textColor="FF FF FF",textXPos=0.02,textYPos=-0.035)
+	def sendChat(self):
+		gameState.getGameFindClient().sendCommand("chat",self.text)
+		self.realText = ""
+		self.text = ""
 	def onKeyDown(self,keycode):
 		if(keycode == "return"):
-			print 'return'
+			self.sendChat()
 			return
 		elif(keycode == "tab"):
 			return
 		else:
 			textInputElement.onKeyDown(self,keycode)
 
-class sendChatButton(clickableElement):	
+class sendChatButton(clickableElement):
 	def onClick(self):
-		print 'send chat command'
+		print gameState.getGameMode().chatBox.sendChat()
 
 class playerStartLocationButton(clickableElement):
 	playerStartLocationButtons = []
