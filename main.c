@@ -1590,6 +1590,7 @@ static void handleInput(){
 	       (event.key.keysym.sym >= 0x61 && event.key.keysym.sym <= 0x7A)//a-z
 	       || (event.key.keysym.sym >= 0x30 && event.key.keysym.sym <= 0x39)//0-9
 	       || event.key.keysym.sym == 8//backspace
+	       || event.key.keysym.sym == 127//delete
 	       || event.key.keysym.sym == 32//space
 	       || event.key.keysym.sym == 45//-
 	       || event.key.keysym.sym == 46//.
