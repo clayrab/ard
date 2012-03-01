@@ -9,11 +9,10 @@
 #how to host instructions page
 
 #server:
-#chat
+#player count
 #room player count
-#sort room columns
-#kick player from room if it's full when they join
-#update room player count
+#chat
+#player count#kick player from room if it's full when they join
 #polish gameroom view
 #    show each player status (connecting, connected, ready)
 #show map info(perhaps just size, units available, and city count would be sufficient for now?)
@@ -27,9 +26,8 @@
 #limited time to move
 #modals should be dismissed by esc, space, or enter
 #handle disconnections/reconnections gracefully
-#test and fix various display sizes
+
 #BUGS
-#'space' is not working correctly in textInputElements
 #fix py_decrefs in fonts.h
 #scrolling map breaks after zoom out from near edge of map
 #make sure text edit boxes only allow chars and not shift/enter
@@ -40,6 +38,7 @@
 # + buttons in map edit mode are wrong
 
 #BONUS FEATURES
+#sort room columns
 #player stats(wins,losses,rank,etc)
 #player rewards
 
@@ -161,8 +160,6 @@ class gameMode:
 			uiElements.smallModal("test adsfasdfa dsfadsfas dfadsf oiasdf adsop fbasdpfoia sdfa dsfoaiuadsfadsf idfu dfdi asdfas dfas dfi asdfadsbf bafb adsbfi adfs  ioadfsdfhiosadfiosadfsiadiosfufadsf ifds iuadfs adsf adfisu adfisu adfsu ")
 #			self.chatDisplay.addText("adsfiodfsaiodfsiodio dfios iodfs iodfs ioadfs ioadfs dio iodfs ioadfsio dfs sdasd asd f asfasdf df d df d f d f ad sf df  " + str(gameMode.foo))
 			print 'test'
-		if(keycode == "y"):
-			self.roomSelector.removeRoom("asdf")
 		if(self.modal == None):
 			if(hasattr(self,"keyDown")):
 				self.keyDown(keycode)

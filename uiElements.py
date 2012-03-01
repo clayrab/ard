@@ -151,11 +151,15 @@ class textInputElement(uiElement):
 	def __del__(self):
 		textInputElement.elements.remove(self)
 	def textOkay(self):
+		self.recalculateText = 0
 		self.text = self.realText
+		self.cursorPosition = self.cursorPosition + self.leftmostCharPosition
 		self.leftmostCharPosition = 0
-		self.rightmostCharPosition = self.cursorPosition
+		self.rightmostCharPosition = len(self.realText)
 	def positionText(self,leftmostCharPosition,rightmostCharPosition):
 		self.recalculateText = 0
+		if(leftmostCharPosition < self.leftmostCharPosition):
+			self.cursorPosition = self.cursorPosition - (self.leftmostCharPosition - leftmostCharPosition)
 		self.leftmostCharPosition = leftmostCharPosition
 		self.rightmostCharPosition = rightmostCharPosition
 		if(self.leftmostCharPosition < 0):
@@ -164,13 +168,19 @@ class textInputElement(uiElement):
 		if(self.cursorPosition > len(self.text)):
 			self.cursorPosition = len(self.text)
 	def onKeyDown(self,keycode):
+		print self.realText
 		if(keycode == "backspace"):
 			if(self.cursorPosition > 0 or self.leftmostCharPosition > 0):
 				self.realText = self.realText[0:self.leftmostCharPosition+self.cursorPosition-1] + self.realText[self.leftmostCharPosition+self.cursorPosition:]
 				self.recalculateText = 1
-				self.cursorPosition = self.cursorPosition - 1
-				if(self.leftmostCharPosition >= 1):
+				if(self.cursorPosition > 1):
+					self.cursorPosition = self.cursorPosition - 1
+				else:
 					self.leftmostCharPosition = self.leftmostCharPosition - 1
+#				if(self.rightmostCharPosition > len(self.realText)):
+#					   self.rightmostCharPosition = len(self.realText)
+#				if(self.leftmostCharPosition >= 1):
+#					self.leftmostCharPosition = self.leftmostCharPosition - 1
 		elif(keycode == "delete"):
 			if(self.cursorPosition < len(self.realText)):
 				self.realText = self.realText[0:self.leftmostCharPosition+self.cursorPosition] + self.realText[self.leftmostCharPosition+self.cursorPosition+1:]
