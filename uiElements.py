@@ -743,7 +743,6 @@ class chatDisplay(scrollableTextFieldsElement):
 		self.linesQueue = Queue()
 		self.currentText = ""
 	def addLine(self,wordLength):
-		print wordLength
 		if(self.currentText != "" and wordLength > 0):
 			wordTokens = self.currentText.split(" ",wordLength)
 			if(len(wordTokens) > wordLength):
@@ -832,11 +831,13 @@ class createRoomButton(clickableElement):
 
 
 class chatBox(textInputElement):
-	def __init__(self):
+	def __init__(self,klient):
 		textInputElement.__init__(self,0.55,-0.678,text="",textSize=0.0005,textureIndex=texIndex("CHAT_BOX"),width=texWidth("CHAT_BOX"),textColor="FF FF FF",textXPos=0.02,textYPos=-0.035)
+		self.klient = klient
 	def sendChat(self):
 		if(len(self.realText) > 0):
-			gameState.getGameFindClient().sendCommand("chat",self.realText)
+			self.klient.sendCommand("chat",self.realText)
+#			gameState.getGameFindClient().sendCommand("chat",self.realText)
 			self.realText = ""
 			self.text = ""
 			self.cursorPosition = 0
@@ -851,7 +852,7 @@ class chatBox(textInputElement):
 
 class sendChatButton(clickableElement):
 	def onClick(self):
-		print gameState.getGameMode().chatBox.sendChat()
+		gameState.getGameMode().chatBox.sendChat()
 
 class playerStartLocationButton(clickableElement):
 	playerStartLocationButtons = []

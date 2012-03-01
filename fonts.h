@@ -201,14 +201,13 @@ int wordCount;
 int strPosition;
 GLdouble projMatrix[16];
 int findWordWidth(int fontIndex, char* str, float rightMargin){
-  rightMargin = rightMargin-0.12;
+  //  rightMargin = rightMargin-0.12;
   glPushMatrix();
   wordCount = 0;
   strPosition = 0;
   while(str[strPosition] != 0){
     glCallList(list_base+(fontIndex*256)+(2*str[strPosition])+1);
     strPosition++;
-    wordCount++;
     glGetDoublev(GL_MODELVIEW_MATRIX,projMatrix);
     if(projMatrix[12] > rightMargin){
       glPopMatrix();
@@ -223,6 +222,7 @@ int findWordWidth(int fontIndex, char* str, float rightMargin){
 	return wordCount;
       }
     }
+    wordCount++;
   }
   glPopMatrix();
   return wordCount;
@@ -334,7 +334,7 @@ int drawText(char* str,int fontIndex,int cursorPosition,float rightMargin,GLdoub
   while(str[strPosition] != 0){
     drawChar(fontIndex, str, strPosition, cursorPosition);
     strPosition++;
-    if(str[strPosition] == 32 && str[strPosition] != 32 && str[strPosition] != 0 && checkRightMargin(fontIndex, str, strPosition+1,rightMargin)){
+    if(str[strPosition-1] == 32 && str[strPosition] != 32 && str[strPosition] != 0 && checkRightMargin(fontIndex, str, strPosition+1,rightMargin)){
       glPopMatrix();
       glTranslatef(0.0,-80.0,0.0);
       glPushMatrix();

@@ -680,9 +680,8 @@ class gameFindMode(gameMode):
 #cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])	
 		self.roomSelector = uiElements.roomSelector(-0.925,0.9,self.rooms,textSize=0.0005)
 		uiElements.createRoomButton(-0.92,-0.8,width=1.0,text="create game",textSize=0.0006)
-
 		self.chatDisplay = uiElements.chatDisplay()
-		self.chatBox = uiElements.chatBox()
+		self.chatBox = uiElements.chatBox(gameState.getGameFindClient())
 		uiElements.sendChatButton(0.62,-0.8,width=1.0,text="send",textSize=0.0006)
 		self.setFocus(self.chatBox)
 

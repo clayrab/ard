@@ -118,7 +118,6 @@ class Client:
         if(command == "login"):
             argsString = rsa.encrypt(argsString, pubKey)
         self.socket.send(command + " " + str(argsString) + "\r\n")
-        print 'sent...'
 def startClient():
     gameState.setGameFindClient(Client())
 #    clientThread = ClientThread(hostIP)
