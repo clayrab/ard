@@ -273,7 +273,6 @@ class playMode(tiledGameMode):
 		self.players = []
 		self.focusXPos = 0.0
 		self.focusYPos = 0.0
-		self.backgroundImageIndex = texIndex("UI_NEW_GAME_SCREEN")
 	def loadMap(self):
 		self.map = gameLogic.map(gameLogic.playModeNode)
 	def getFocusNextUnit(self):
@@ -500,13 +499,21 @@ class mapEditorMode(tiledGameMode):
 class testMode(tiledGameMode):
 	def __init__(self,args):
 		tiledGameMode.__init__(self)
+		self.createGameMode = True
 	def loadMap(self):
 		self.map = gameLogic.map(gameLogic.mapViewNode)
 	def changeMap(self,mapName):
 			gameState.setMapName(mapName)			
 			gameState.getGameMode().loadMap()
 	def addUIElements(self):
-		uiElements.uiElement(xPos=-1.0,yPos=1.0,width=2.0,height=texHeight('UI_MAP_EDITOR_TOP_IMAGE'),textureIndex=texIndex('UI_MAP_EDITOR_TOP'))
+		uiElements.uiElement(xPos=-1.0,yPos=1.0,width=texWidth("CREATE_GAME_BACKGROUND_TOP"),height=texHeight('CREATE_GAME_BACKGROUND_TOP'),textureIndex=texIndex('CREATE_GAME_BACKGROUND_TOP'))
+
+		uiElements.uiElement(xPos=-1.0,yPos=1.0-texHeight('CREATE_GAME_BACKGROUND_TOP')+0.0018,width=texWidth("CREATE_GAME_BACKGROUND_LEFT"),height=texHeight('CREATE_GAME_BACKGROUND_LEFT'),textureIndex=texIndex('CREATE_GAME_BACKGROUND_LEFT'))
+
+		uiElements.uiElement(xPos=1.0-texWidth("CREATE_GAME_BACKGROUND_RIGHT"),yPos=1.0-texHeight('CREATE_GAME_BACKGROUND_TOP'),width=texWidth("CREATE_GAME_BACKGROUND_RIGHT"),height=texHeight('CREATE_GAME_BACKGROUND_RIGHT'),textureIndex=texIndex('CREATE_GAME_BACKGROUND_RIGHT'))
+
+		uiElements.uiElement(xPos=-1.0,yPos=-1.0+texHeight("CREATE_GAME_BACKGROUND_BOTTOM")+0.0034,width=2.0,height=texHeight('CREATE_GAME_BACKGROUND_BOTTOM'),textureIndex=texIndex('CREATE_GAME_BACKGROUND_BOTTOM'))
+
 
 class textBasedMenuMode(gameMode):
 	def __init__(self,args):
