@@ -28,6 +28,7 @@
 #handle disconnections/reconnections gracefully
 
 #BUGS
+#sending " to chat as first character doesn't work... 
 #fix py_decrefs in fonts.h
 #scrolling map breaks after zoom out from near edge of map
 #make sure text edit boxes only allow chars and not shift/enter
@@ -41,10 +42,15 @@
 #sort room columns
 #player stats(wins,losses,rank,etc)
 #player rewards
+#auto return view: after auto-scrolling to nextunit, return view to previous spot, player can turn this on/off with a checkbox in the UI.
 
 #DESIGN OPTIONS
 #cancel movement if any enemy is seen?
 #show move speed and attack speed?
+
+#potential units:
+#eagle. gains bonus vision range.
+#giant eagle. gains bonus vision, has decent HP and attack.
 
 ############# MINIMUM VIABLE PRODUCT AT THIS POINT ##############
 
@@ -157,9 +163,17 @@ class gameMode:
 					self.elementWithFocus.onLeftClickUp()
 	def handleKeyDown(self,keycode):
 		if(keycode == "t"):
-			uiElements.smallModal("test adsfasdfa dsfadsfas dfadsf oiasdf adsop fbasdpfoia sdfa dsfoaiuadsfadsf idfu dfdi asdfas dfas dfi asdfadsbf bafb adsbfi adfs  ioadfsdfhiosadfiosadfsiadiosfufadsf ifds iuadfs adsf adfisu adfisu adfsu ")
+			gameState.setMapName("test4")
+			gameState.setGameMode(testMode)
+
+#			uiElements.smallModal("test adsfasdfa dsfadsfas dfadsf oiasdf adsop fbasdpfoia sdfa dsfoaiuadsfadsf idfu dfdi asdfas dfas dfi asdfadsbf bafb adsbfi adfs  ioadfsdfhiosadfiosadfsiadiosfufadsf ifds iuadfs adsf adfisu adfisu adfsu ")
 #			self.chatDisplay.addText("adsfiodfsaiodfsiodio dfios iodfs iodfs ioadfs ioadfs dio iodfs ioadfsio dfs sdasd asd f asfasdf df d df d f d f ad sf df  " + str(gameMode.foo))
 			print 'test'
+		if(keycode == "y"):
+			gameState.getGameMode().changeMap("Clay's Map")
+		if(keycode == "u"):
+			gameState.getGameMode().changeMap("test4")
+
 		if(self.modal == None):
 			if(hasattr(self,"keyDown")):
 				self.keyDown(keycode)
@@ -259,6 +273,7 @@ class playMode(tiledGameMode):
 		self.players = []
 		self.focusXPos = 0.0
 		self.focusYPos = 0.0
+		self.backgroundImageIndex = texIndex("UI_NEW_GAME_SCREEN")
 	def loadMap(self):
 		self.map = gameLogic.map(gameLogic.playModeNode)
 	def getFocusNextUnit(self):
@@ -410,10 +425,10 @@ class playMode(tiledGameMode):
 			gameState.setPlayerNumber(-2)
 			gameState.addPlayer(1).isOwnPlayer = True
 			gameState.addPlayer(2).isOwnPlayer = True
-		uiElements.uiElement(xPos=-1.0,yPos=1.0,width=2.0,height=texHeight('UI_MAP_EDITOR_TOP_IMAGE'),textureIndex=texIndex('UI_MAP_EDITOR_TOP'))
+#		uiElements.uiElement(xPos=-1.0,yPos=1.0,width=2.0,height=texHeight('UI_MAP_EDITOR_TOP_IMAGE'),textureIndex=texIndex('UI_MAP_EDITOR_TOP'))
 		uiElements.uiElement(xPos=-1.0,yPos=1.0-texHeight('UI_MAP_EDITOR_TOP_IMAGE'),width=texWidth('UI_MAP_EDITOR_LEFT_IMAGE'),height=texHeight('UI_MAP_EDITOR_LEFT_IMAGE'),textureIndex=texIndex('UI_MAP_EDITOR_LEFT'))
-		uiElements.uiElement(xPos=1.0-texWidth('UI_MAP_EDITOR_RIGHT_IMAGE'),yPos=1.0-texHeight('UI_MAP_EDITOR_TOP_IMAGE'),width=texWidth('UI_MAP_EDITOR_RIGHT_IMAGE'),height=texHeight('UI_MAP_EDITOR_RIGHT_IMAGE'),textureIndex=texIndex('UI_MAP_EDITOR_RIGHT'))
-		uiElements.uiElement(xPos=-1.0,yPos=-1.0+texHeight('UI_MAP_EDITOR_BOTTOM_IMAGE'),width=2.0,height=texHeight('UI_MAP_EDITOR_BOTTOM_IMAGE'),textureIndex=texIndex('UI_MAP_EDITOR_BOTTOM'))
+#		uiElements.uiElement(xPos=1.0-texWidth('UI_MAP_EDITOR_RIGHT_IMAGE'),yPos=1.0-texHeight('UI_MAP_EDITOR_TOP_IMAGE'),width=texWidth('UI_MAP_EDITOR_RIGHT_IMAGE'),height=texHeight('UI_MAP_EDITOR_RIGHT_IMAGE'),textureIndex=texIndex('UI_MAP_EDITOR_RIGHT'))
+#		uiElements.uiElement(xPos=-1.0,yPos=-1.0+texHeight('UI_MAP_EDITOR_BOTTOM_IMAGE'),width=2.0,height=texHeight('UI_MAP_EDITOR_BOTTOM_IMAGE'),textureIndex=texIndex('UI_MAP_EDITOR_BOTTOM'))
 		self.players = gameState.getPlayers()
 		self.greenWoodUIElem = uiElements.uiElement(0.80,0.93,text=str(self.players[0].greenWood),textSize=0.0005)
 		self.blueWoodUIElem = uiElements.uiElement(0.90,0.93,text=str(self.players[0].blueWood),textSize=0.0005)
@@ -430,8 +445,6 @@ class mapEditorMode(tiledGameMode):
 	def loadMap(self):
 		self.map = gameLogic.map(gameLogic.mapEditorNode)
 	def keyDown(self,keycode):
-#		if(keycode == 'r'):
-#			self.resortElems = True
 		try:
 			self.elementWithFocus.onKeyDown(keycode)
 		except:
@@ -483,6 +496,17 @@ class mapEditorMode(tiledGameMode):
 
 		uiElements.uiElement(0.8,0.925,text="asdf",textSize=0.0005)
 		uiElements.saveButton(0.9,0.925,text="save",textSize=0.0005)
+
+class testMode(tiledGameMode):
+	def __init__(self,args):
+		tiledGameMode.__init__(self)
+	def loadMap(self):
+		self.map = gameLogic.map(gameLogic.mapViewNode)
+	def changeMap(self,mapName):
+			gameState.setMapName(mapName)			
+			gameState.getGameMode().loadMap()
+	def addUIElements(self):
+		uiElements.uiElement(xPos=-1.0,yPos=1.0,width=2.0,height=texHeight('UI_MAP_EDITOR_TOP_IMAGE'),textureIndex=texIndex('UI_MAP_EDITOR_TOP'))
 
 class textBasedMenuMode(gameMode):
 	def __init__(self,args):
@@ -682,7 +706,8 @@ class gameFindMode(gameMode):
 		self.chatBox = uiElements.chatBox(0.556,-0.756,gameState.getGameFindClient())
 		uiElements.sendChatButton(0.858,-0.82)
 		self.setFocus(self.chatBox)
-
+		uiElements.uiElement(-0.930,0.9,width=texWidth("BACK_BUTTON"),height=texHeight("BACK_BUTTON"),textureIndex=texIndex("BACK_BUTTON"))
+		
 class createGameMode(gameMode):
 	def __init__(self,args):
 		gameMode.__init__(self)

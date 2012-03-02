@@ -36,10 +36,10 @@ static void printPyStackTrace(){
 #define zoomSpeed 5.0//lower is faster
 #define focusSpeed 5.0//lower is faster
 
-#define FULL_SCREEN 1
+#define FULL_SCREEN 0
 #define SCREEN_WIDTH 1280
-//#define SCREEN_HEIGHT 960
-#define SCREEN_HEIGHT 800
+#define SCREEN_HEIGHT 960
+//#define SCREEN_HEIGHT 800
 //#define SCREEN_WIDTH 1600
 //#define SCREEN_HEIGHT 1200
 //#define SCREEN_WIDTH 1920
@@ -317,6 +317,51 @@ static void printPyStackTrace(){
 #define BACK_BUTTON_HEIGHT 33
 #define BACK_BUTTON_WIDTH 85
 #define BACK_BUTTON_INDEX 62
+
+#define DA_1V1_BUTTON "assets/1v1Button.png"
+#define DA_1V1_BUTTON_HEIGHT 32
+#define DA_1V1_BUTTON_WIDTH 62
+#define DA_1V1_BUTTON_INDEX 63
+
+#define DA_2V2_BUTTON "assets/2v2Button.png"
+#define DA_2V2_BUTTON_HEIGHT 32
+#define DA_2V2_BUTTON_WIDTH 62
+#define DA_2V2_BUTTON_INDEX 64
+
+#define DA_3V3_BUTTON "assets/3v3Button.png"
+#define DA_3V3_BUTTON_HEIGHT 32
+#define DA_3V3_BUTTON_WIDTH 62
+#define DA_3V3_BUTTON_INDEX 65
+
+#define DA_4V4_BUTTON "assets/4v4Button.png"
+#define DA_4V4_BUTTON_HEIGHT 32
+#define DA_4V4_BUTTON_WIDTH 62
+#define DA_4V4_BUTTON_INDEX 66
+
+#define CREATE_GAME_BUTTON_LARGE_BUTTON "assets/createGameButtonLarge.png"
+#define CREATE_GAME_BUTTON_LARGE_BUTTON_HEIGHT 41
+#define CREATE_GAME_BUTTON_LARGE_BUTTON_WIDTH 168
+#define CREATE_GAME_BUTTON_LARGE_BUTTON_INDEX 67
+
+#define CREATE_GAME_BACKGROUND_LEFT "assets/createGameBackgroundLeft.png"
+#define CREATE_GAME_BACKGROUND_LEFT_HEIGHT 824
+#define CREATE_GAME_BACKGROUND_LEFT_WIDTH 544
+#define CREATE_GAME_BACKGROUND_LEFT_INDEX 68
+
+#define CREATE_GAME_BACKGROUND_RIGHT "assets/createGameBackgroundRight.png"
+#define CREATE_GAME_BACKGROUND_RIGHT_HEIGHT 824
+#define CREATE_GAME_BACKGROUND_RIGHT_WIDTH 65
+#define CREATE_GAME_BACKGROUND_RIGHT_INDEX 69
+
+#define CREATE_GAME_BACKGROUND_TOP "assets/createGameBackgroundTop.png"
+#define CREATE_GAME_BACKGROUND_TOP_HEIGHT 118
+#define CREATE_GAME_BACKGROUND_TOP_WIDTH 1600
+#define CREATE_GAME_BACKGROUND_TOP_INDEX 70
+
+#define CREATE_GAME_BACKGROUND_BOTTOM "assets/createGameBackgroundBottom.png"
+#define CREATE_GAME_BACKGROUND_BOTTOM_HEIGHT 258
+#define CREATE_GAME_BACKGROUND_BOTTOM_WIDTH 1600
+#define CREATE_GAME_BACKGROUND_BOTTOM_INDEX 71
 
 #define DESERT_TILE_INDEX 0
 #define GRASS_TILE_INDEX 1
@@ -1238,6 +1283,25 @@ void drawUIElement(PyObject * uiElement){
     }
   }
 }
+int backgroundIndex;
+void drawBackground(){
+  if(PyObject_HasAttrString(gameMode,"backgroundImageIndex")){
+
+    glColor3f(1.0,1.0,1.0);
+    pyObj = PyObject_GetAttrString(gameMode,"backgroundImageIndex");
+    backgroundIndex = PyLong_AsLong(pyObj);
+    glBindTexture(GL_TEXTURE_2D, texturesArray[backgroundIndex]);
+    printf("%d\n",backgroundIndex);
+    glBegin(GL_QUADS);
+    glTexCoord2f(0.0,1.0); glVertex3f(-1.0,1.0,0.0);
+    glTexCoord2f(0.0,0.0); glVertex3f(-1.0,-1.0,0.0);
+    glTexCoord2f(1.0,0.0); glVertex3f(1.0,-1.0,-2.0);
+    glTexCoord2f(1.0,1.0); glVertex3f(1.0,1.0,-2.0);
+    glEnd();
+    Py_DECREF(pyObj);
+  }
+  //  if(pyObj
+}
 float xPos;
 float yPos;
 float pointerWidth;
@@ -1380,7 +1444,16 @@ static void initGL (){
   pngLoad(&texturesArray[CHAT_DISPLAY_INDEX],CHAT_DISPLAY);
   pngLoad(&texturesArray[CREATE_GAME_BUTTON_INDEX],CREATE_GAME_BUTTON);
   pngLoad(&texturesArray[BACK_BUTTON_INDEX],BACK_BUTTON);
-
+  pngLoad(&texturesArray[DA_1V1_BUTTON_INDEX],DA_1V1_BUTTON);
+  pngLoad(&texturesArray[DA_2V2_BUTTON_INDEX],DA_2V2_BUTTON);
+  pngLoad(&texturesArray[DA_3V3_BUTTON_INDEX],DA_3V3_BUTTON);
+  pngLoad(&texturesArray[DA_4V4_BUTTON_INDEX],DA_4V4_BUTTON);
+  pngLoad(&texturesArray[CREATE_GAME_BUTTON_LARGE_BUTTON_INDEX],CREATE_GAME_BUTTON_LARGE_BUTTON);
+  pngLoad(&texturesArray[CREATE_GAME_BACKGROUND_LEFT_INDEX],CREATE_GAME_BACKGROUND_LEFT);
+  pngLoad(&texturesArray[CREATE_GAME_BACKGROUND_RIGHT_INDEX],CREATE_GAME_BACKGROUND_RIGHT);
+  pngLoad(&texturesArray[CREATE_GAME_BACKGROUND_TOP_INDEX],CREATE_GAME_BACKGROUND_TOP);
+  pngLoad(&texturesArray[CREATE_GAME_BACKGROUND_BOTTOM_INDEX],CREATE_GAME_BACKGROUND_BOTTOM);
+  
   vertexArrays[DESERT_TILE_INDEX] = *desertVertices;
   vertexArrays[GRASS_TILE_INDEX] = *grassVertices;
   vertexArrays[MOUNTAIN_TILE_INDEX] = *mountainVertices;
@@ -1589,27 +1662,117 @@ static void handleInput(){
       keyHeldTime = SDL_GetTicks();
       if(event.key.keysym.sym == SDLK_ESCAPE){
 	done = 1;
-      }else if(event.key.keysym.sym == SDLK_BACKQUOTE){
+	/*      }else if(event.key.keysym.sym == SDLK_BACKQUOTE){
 	clickScroll = 1;
 	avgDeltaTicks = 0;
-	totalDeltaTicksDataPoints = 0;
-      }else if(
-	       (event.key.keysym.sym >= 0x61 && event.key.keysym.sym <= 0x7A)//a-z
-	       || (event.key.keysym.sym >= 0x30 && event.key.keysym.sym <= 0x39)//0-9
-	       || event.key.keysym.sym == 8//backspace
-	       || event.key.keysym.sym == 127//delete
-	       || event.key.keysym.sym == 32//space
-	       || event.key.keysym.sym == 45//-
-	       || event.key.keysym.sym == 46//.
-	       || event.key.keysym.sym == 13//enter/return
-	       || event.key.keysym.sym == 303//rightshift
-	       || event.key.keysym.sym == 304//leftshift
-	       || event.key.keysym.sym == 9//tab
-	       || (event.key.keysym.sym >= 273 && event.key.keysym.sym <= 276)//arrow keys
-	       ){
+	totalDeltaTicksDataPoints = 0;*/
+      }else if(event.key.keysym.sym == SDLK_NUMLOCK
+	       || event.key.keysym.sym ==SDLK_CAPSLOCK
+	       || event.key.keysym.sym ==SDLK_SCROLLOCK
+	       || event.key.keysym.sym ==SDLK_RSHIFT
+	       || event.key.keysym.sym ==SDLK_LSHIFT
+	       || event.key.keysym.sym ==SDLK_RCTRL
+	       || event.key.keysym.sym ==SDLK_LCTRL
+	       || event.key.keysym.sym ==SDLK_RALT
+	       || event.key.keysym.sym ==SDLK_LALT
+	       || event.key.keysym.sym == SDLK_RMETA
+	       || event.key.keysym.sym == SDLK_LMETA
+	       || event.key.keysym.sym == SDLK_LSUPER
+	       || event.key.keysym.sym == SDLK_RSUPER
+	       || event.key.keysym.sym == SDLK_MODE
+	       || event.key.keysym.sym == SDLK_COMPOSE
+	       || event.key.keysym.sym == SDLK_HELP
+	       || event.key.keysym.sym == SDLK_PRINT
+	       || event.key.keysym.sym == SDLK_SYSREQ
+	       || event.key.keysym.sym == SDLK_BREAK
+	       || event.key.keysym.sym == SDLK_MENU
+	       || event.key.keysym.sym == SDLK_POWER
+	       || event.key.keysym.sym == SDLK_EURO
+	       || event.key.keysym.sym == SDLK_UNDO){
+	printf("rejected: %d\n",event.key.keysym.sym);
+      }else{
 	if((event.key.keysym.mod & KMOD_CAPS | event.key.keysym.mod & KMOD_LSHIFT | event.key.keysym.mod & KMOD_RSHIFT) && (event.key.keysym.sym > 0x60 && event.key.keysym.sym <= 0x7A)){
 	  keyArray[0] = (*SDL_GetKeyName(event.key.keysym.sym))-32;
 	  keyArray[1] = 0;
+	}else if(event.key.keysym.mod & KMOD_LSHIFT | event.key.keysym.mod & KMOD_RSHIFT){
+	  switch(event.key.keysym.sym){
+	  case SDLK_COMMA:
+	    keyArray[0] = SDLK_LESS;
+	    keyArray[1] = 0;
+	    break;
+	  case SDLK_MINUS:
+	    keyArray[0] = SDLK_UNDERSCORE;
+	    keyArray[1] = 0;
+	    break;
+	  case SDLK_SEMICOLON:
+	    keyArray[0] = SDLK_COLON;
+	    keyArray[1] = 0;
+	    break;
+	  case SDLK_EQUALS:
+	    keyArray[0] = SDLK_PLUS;
+	    keyArray[1] = 0;
+	    break;
+	  case SDLK_PERIOD:
+	    keyArray[0] = SDLK_GREATER;
+	    keyArray[1] = 0;
+	    break;
+	  case SDLK_SLASH:
+	    keyArray[0] = SDLK_QUESTION;
+	    keyArray[1] = 0;
+	    break;
+	  case SDLK_LEFTBRACKET:
+	    keyArray[0] = 123;
+	    keyArray[1] = 0;
+	    break;
+	  case SDLK_RIGHTBRACKET:
+	    keyArray[0] = 125;
+	    keyArray[1] = 0;
+	    break;
+	  case SDLK_BACKSLASH:
+	    keyArray[0] = 124;
+	    keyArray[1] = 0;
+	    break;
+	  case SDLK_0:
+	    keyArray[0] = SDLK_RIGHTPAREN;
+	    keyArray[1] = 0;
+	    break;
+	  case SDLK_1:
+	    keyArray[0] = SDLK_EXCLAIM;
+	    keyArray[1] = 0;
+	    break;
+	  case SDLK_2:
+	    keyArray[0] = SDLK_AT;
+	    keyArray[1] = 0;
+	    break;
+	  case SDLK_3:
+	    keyArray[0] = SDLK_HASH;
+	    keyArray[1] = 0;
+	    break;
+	  case SDLK_4:
+	    keyArray[0] = SDLK_DOLLAR;
+	    keyArray[1] = 0;
+	    break;
+	  case SDLK_5:
+	    keyArray[0] = 37;
+	    keyArray[1] = 0;
+	    break;
+	  case SDLK_6:
+	    keyArray[0] = SDLK_CARET;
+	    keyArray[1] = 0;
+	    break;
+	  case SDLK_7:
+	    keyArray[0] = SDLK_AMPERSAND;
+	    keyArray[1] = 0;
+	    break;
+	  case SDLK_8:
+	    keyArray[0] = SDLK_ASTERISK;
+	    keyArray[1] = 0;
+	    break;
+	  case SDLK_9:
+	    keyArray[0] = SDLK_LEFTPAREN;
+	    keyArray[1] = 0;
+	    break;
+	  }
 	}else{
 	  sprintf(keyArray,"%s",SDL_GetKeyName(event.key.keysym.sym));
 	}
@@ -1618,9 +1781,6 @@ static void handleInput(){
 	  printPyStackTrace();
 	  Py_DECREF(pyObj);
 	}
-
-      }else{
-	printf("rejected: %d\n",event.key.keysym.sym);
       }
       break;
     case SDL_KEYUP:
@@ -1669,8 +1829,10 @@ static void draw(){
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		 
   glSelectBuffer(BUFSIZE,selectBuf);//glSelectBuffer must be issued before selection mode is enabled, and it must not be issued while the rendering mode is GL_SELECT.
   glRenderMode(GL_SELECT);
-  glViewport(UI_MAP_EDITOR_LEFT_IMAGE_WIDTH*SCREEN_WIDTH/SCREEN_BASE_WIDTH,UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT*SCREEN_HEIGHT/SCREEN_BASE_HEIGHT,(SCREEN_BASE_WIDTH - UI_MAP_EDITOR_LEFT_IMAGE_WIDTH - UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH)*SCREEN_WIDTH/SCREEN_BASE_WIDTH, (SCREEN_BASE_HEIGHT - UI_MAP_EDITOR_TOP_IMAGE_HEIGHT - UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT)*SCREEN_HEIGHT/SCREEN_BASE_HEIGHT);
+  //glViewport(UI_MAP_EDITOR_LEFT_IMAGE_WIDTH*SCREEN_WIDTH/SCREEN_BASE_WIDTH,UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT*SCREEN_HEIGHT/SCREEN_BASE_HEIGHT,(SCREEN_BASE_WIDTH - UI_MAP_EDITOR_LEFT_IMAGE_WIDTH - UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH)*SCREEN_WIDTH/SCREEN_BASE_WIDTH, (SCREEN_BASE_HEIGHT - UI_MAP_EDITOR_TOP_IMAGE_HEIGHT - UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT)*SCREEN_HEIGHT/SCREEN_BASE_HEIGHT);
   //  glViewport(UI_MAP_EDITOR_LEFT_IMAGE_WIDTH,UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT,SCREEN_BASE_WIDTH - UI_MAP_EDITOR_LEFT_IMAGE_WIDTH - UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH, SCREEN_BASE_HEIGHT - UI_MAP_EDITOR_TOP_IMAGE_HEIGHT - UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT);
+  glViewport(0,0,SCREEN_WIDTH,SCREEN_HEIGHT);
+
   theCursorIndex = -1;
     
   glMatrixMode(GL_PROJECTION);
@@ -1684,7 +1846,8 @@ static void draw(){
   
   glGetIntegerv(GL_VIEWPORT,viewport);
   glFlush();
-  gluPickMatrix(mouseX,viewport[3]+UI_MAP_EDITOR_TOP_IMAGE_HEIGHT+UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT-mouseY,1,1,viewport);
+  //  gluPickMatrix(mouseX,viewport[3]+UI_MAP_EDITOR_TOP_IMAGE_HEIGHT+UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT-mouseY,1,1,viewport);
+  gluPickMatrix(mouseX,viewport[3]-mouseY,1,1,viewport);
   glFlush();
   gluPerspective(45.0f,screenRatio,minZoom,maxZoom);
   
@@ -1713,16 +1876,23 @@ static void draw(){
 
   glFlush();
     
-  glViewport(UI_MAP_EDITOR_LEFT_IMAGE_WIDTH*SCREEN_WIDTH/SCREEN_BASE_WIDTH,UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT*SCREEN_HEIGHT/SCREEN_BASE_HEIGHT,(SCREEN_BASE_WIDTH - UI_MAP_EDITOR_LEFT_IMAGE_WIDTH - UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH)*SCREEN_WIDTH/SCREEN_BASE_WIDTH, (SCREEN_BASE_HEIGHT - UI_MAP_EDITOR_TOP_IMAGE_HEIGHT - UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT)*SCREEN_HEIGHT/SCREEN_BASE_HEIGHT);
 
-  gluPerspective(45.0f,screenRatio,minZoom,maxZoom);
+  //  glMatrixMode(GL_PROJECTION);
+  //  glPushMatrix();
+  //  glLoadIdentity();
+  
+  //  glPopMatrix();
 
+  //map viewport
+  // glViewport(UI_MAP_EDITOR_LEFT_IMAGE_WIDTH*SCREEN_WIDTH/SCREEN_BASE_WIDTH,UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT*SCREEN_HEIGHT/SCREEN_BASE_HEIGHT,(SCREEN_BASE_WIDTH - UI_MAP_EDITOR_LEFT_IMAGE_WIDTH - UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH)*SCREEN_WIDTH/SCREEN_BASE_WIDTH, (SCREEN_BASE_HEIGHT - UI_MAP_EDITOR_TOP_IMAGE_HEIGHT - UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT)*SCREEN_HEIGHT/SCREEN_BASE_HEIGHT);
+  glViewport(0,0,SCREEN_WIDTH,SCREEN_HEIGHT);
+
+  //  gluPerspective(45.0f,screenRatio,minZoom,maxZoom);
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
   gluPerspective(45.0f,screenRatio,minZoom,maxZoom);
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
-
   calculateTranslation();
   glTranslatef(translateX,translateY,translateZ);
 
@@ -1730,7 +1900,6 @@ static void draw(){
 
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-  
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
   

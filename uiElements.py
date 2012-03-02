@@ -848,7 +848,6 @@ class chatBox(textInputElement):
 	def sendChat(self):
 		if(len(self.realText) > 0):
 			self.klient.sendCommand("chat",self.realText)
-#			gameState.getGameFindClient().sendCommand("chat",self.realText)
 			self.realText = ""
 			self.text = ""
 			self.cursorPosition = 0

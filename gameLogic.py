@@ -605,6 +605,10 @@ class mapEditorNode(node):
 								node.playerStartValue = 0
 					self.playerStartValue = gameState.getGameMode().selectedButton.playerNumber
 
+class mapViewNode(node):
+	def onLeftClickDown(self):
+		print 'click'
+
 class map:
 	def __init__(self,nodeType):
 		self.polarity = 0

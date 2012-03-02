@@ -122,6 +122,9 @@ void make_dlist ( FT_Face face, char charIndex, GLuint list_base, GLuint * tex_b
   // In Such A Way That The Result Will Be Properly Aligned.
   //  printf("%c %d %d %d %f %f %d\n",charIndex,charIndex,glyphHeight,glyphWidth,x,y,face->glyph->advance.x>>6);
   glBindTexture(GL_TEXTURE_2D,tex_base[charIndex]);
+  if(charIndex == 124){
+    printf("%f %f %d %d\n",x,y,glyphHeight,glyphWidth);
+  }
   glBegin(GL_QUADS);
   glTexCoord2d(0,0); glVertex2f(0,glyphHeight);
   glTexCoord2d(0,y); glVertex2f(0,0);
@@ -188,8 +191,8 @@ void drawCursor(){
   glGetFloatv(GL_CURRENT_COLOR,currentColor);
   glBindTexture(GL_TEXTURE_2D,textCursor);
   glColor4f(currentColor[0],currentColor[1],currentColor[2],currentColor[3]);
-  //glColor3f(1.0,0.0,0.0);
-  glBegin(GL_POLYGON);
+  //glBindTexture(GL_TEXTURE_2D,textures[124]);//drawing a | might be a bit more sophisticated...
+  glBegin(GL_QUADS);
   glTexCoord2f(0.0,1.0); glVertex3f(-3.0,70.0,0.001);
   glTexCoord2f(0.0,0.0); glVertex3f(-3.0,-2.0,0.001);
   glTexCoord2f(1.0,0.0); glVertex3f(8.0,-2.0,0.001);
@@ -317,7 +320,7 @@ void drawChar(int fontIndex,char* str, int strPosition,int cursorPosition){
     drawCursor();
   }
   glPushName(strPosition);
-  glGetDoublev(GL_MODELVIEW_MATRIX,projMatrix);
+  //  glGetDoublev(GL_MODELVIEW_MATRIX,projMatrix);
   glCallList(list_base+(fontIndex*256)+(2*str[strPosition]));
   glPopName();
 }
