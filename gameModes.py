@@ -29,6 +29,7 @@
 
 #BUGS
 #sending " to chat as first character doesn't work... 
+#clickscroll is shakey 
 #fix py_decrefs in fonts.h
 #scrolling map breaks after zoom out from near edge of map
 #make sure text edit boxes only allow chars and not shift/enter
@@ -39,6 +40,7 @@
 # + buttons in map edit mode are wrong
 
 #BONUS FEATURES
+#hide cursor during clickscroll. dont move it also?
 #sort room columns
 #player stats(wins,losses,rank,etc)
 #player rewards
@@ -173,17 +175,24 @@ class gameMode:
 			gameState.getGameMode().changeMap("Clay's Map")
 		if(keycode == "u"):
 			gameState.getGameMode().changeMap("test4")
-
 		if(self.modal == None):
 			if(hasattr(self,"keyDown")):
 				self.keyDown(keycode)
 			else:
-				if(hasattr(self.elementWithFocus,"onKeyDown")):
+				if(hasattr(self.mousedOverObject,"onKeyDown")):
+					self.mousedOverObject.onKeyDown(keycode)
+				elif(hasattr(self.elementWithFocus,"onKeyDown")):
 					self.elementWithFocus.onKeyDown(keycode)
 	def handleKeyUp(self,keycode):
+		if(keycode == "`"):
+			if(hasattr(self,"clickScroll")):
+				self.clickScroll = False
 		if(self.modal == None):
-			if(hasattr(self.elementWithFocus,"onKeyUp")):
-				self.elementWithFocus.onKeyUp(keycode)
+			if(hasattr(self,"keyUp")):
+				self.keyUp(keycode)
+			else:
+				if(hasattr(self.elementWithFocus,"onKeyUp")):
+					self.elementWithFocus.onKeyUp(keycode)
 	def setMouseTextPosition(self,position):
 		self.mouseTextPosition = position
 	def onQuit(self):
@@ -201,6 +210,7 @@ class gameMode:
 class tiledGameMode(gameMode):
 	def __init__(self,args=[]):
 		self.mousedOverObject = None
+		self.clickScroll = False
 		gameMode.__init__(self)
 	def handleRightClick(self,name):
 		if(self.modal == None):
@@ -209,9 +219,12 @@ class tiledGameMode(gameMode):
 				if(hasattr(self.elementsDict[name],"onRightClick")):
 					rightClickable = True
 					self.elementsDict[name].onRightClick()
-			if(not rightClickable):
-				self.selectedCityNode.selected = False
-				self.selectedCityNode = None
+			if(hasattr(self,"selectedCityNode")):
+				if(not rightClickable):
+					self.selectedCityNode.selected = False
+					self.selectedCityNode = None
+	def handleRightClickUp(self,name):
+		self.clickScroll = False
 	def handleScrollUp(self,name,deltaTicks):
 		if(self.modal == None):
 			if(name in self.elementsDict and hasattr(self.elementsDict[name],"onScrollUp")):
@@ -395,7 +408,7 @@ class playMode(tiledGameMode):
 			elif(hasattr(self.elementWithFocus,"onKeyDown")):
 				self.elementWithFocus.onKeyDown(keycode)
 
-	def handleKeyUp(self,keycode):
+	def keyUp(self,keycode):
 		if(keycode == "left shift" or keycode == "right shift"):
 			self.shiftDown = False
 		if(hasattr(self.mousedOverObject,"onKeyUp")):
@@ -507,11 +520,8 @@ class testMode(tiledGameMode):
 			gameState.getGameMode().loadMap()
 	def addUIElements(self):
 		uiElements.uiElement(xPos=-1.0,yPos=1.0,width=texWidth("CREATE_GAME_BACKGROUND_TOP"),height=texHeight('CREATE_GAME_BACKGROUND_TOP'),textureIndex=texIndex('CREATE_GAME_BACKGROUND_TOP'))
-
 		uiElements.uiElement(xPos=-1.0,yPos=1.0-texHeight('CREATE_GAME_BACKGROUND_TOP')+0.0018,width=texWidth("CREATE_GAME_BACKGROUND_LEFT"),height=texHeight('CREATE_GAME_BACKGROUND_LEFT'),textureIndex=texIndex('CREATE_GAME_BACKGROUND_LEFT'))
-
 		uiElements.uiElement(xPos=1.0-texWidth("CREATE_GAME_BACKGROUND_RIGHT"),yPos=1.0-texHeight('CREATE_GAME_BACKGROUND_TOP'),width=texWidth("CREATE_GAME_BACKGROUND_RIGHT"),height=texHeight('CREATE_GAME_BACKGROUND_RIGHT'),textureIndex=texIndex('CREATE_GAME_BACKGROUND_RIGHT'))
-
 		uiElements.uiElement(xPos=-1.0,yPos=-1.0+texHeight("CREATE_GAME_BACKGROUND_BOTTOM")+0.0034,width=2.0,height=texHeight('CREATE_GAME_BACKGROUND_BOTTOM'),textureIndex=texIndex('CREATE_GAME_BACKGROUND_BOTTOM'))
 
 

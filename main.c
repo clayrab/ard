@@ -42,6 +42,9 @@ static void printPyStackTrace(){
 #define SCREEN_HEIGHT 960
 //#define SCREEN_HEIGHT 800
 
+//#define SCREEN_WIDTH 1400
+//#define SCREEN_HEIGHT 1050
+
 //#define SCREEN_WIDTH 1600
 //#define SCREEN_HEIGHT 1200
 
@@ -622,11 +625,12 @@ GLdouble projection[16];
 GLfloat winX, winY, winZ, winZOld;
 void convertWindowCoordsToViewportCoords(int x, int y, float z, GLdouble* posX, GLdouble* posY, GLdouble* posZ){
   //strange things happen with this when zoom/maxZoom is greater than 45...
-  glGetDoublev( GL_MODELVIEW_MATRIX, modelview );
-  glGetDoublev( GL_PROJECTION_MATRIX, projection );
+  glGetDoublev(GL_MODELVIEW_MATRIX,modelview);
+  glGetDoublev(GL_PROJECTION_MATRIX,projection);
   glGetIntegerv(GL_VIEWPORT,viewport);//returns four values: the x and y window coordinates of the viewport, followed by its width and height.
   winX = (float)x;
   winY = (float)viewport[3] - (float)y;
+  //winY = 0-(float)y;
   gluUnProject( winX, winY, mapDepth, modelview, projection, viewport, posX, posY, posZ);
 }
 /**************************** /mouse hover object selection ********************************/
@@ -730,7 +734,7 @@ void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long 
   if(!isVisible){
     shading = shading - 0.5;
   }
-  if(name == selectedName){
+  if(name == selectedName && !clickScroll){
     shading = shading - 0.4;
     if(cursorIndex >= 0){
       theCursorIndex = (int)cursorIndex;
@@ -948,17 +952,16 @@ void calculateTranslation(){
   pyMapHeight = PyObject_CallMethod(theMap,"getHeight",NULL);//New reference
   mapWidth = PyLong_AsLong(pyMapWidth);
   mapHeight = PyLong_AsLong(pyMapHeight);
-  //glViewport(UI_MAP_EDITOR_LEFT_IMAGE_WIDTH*SCREEN_WIDTH/SCREEN_BASE_WIDTH,UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT*SCREEN_HEIGHT/SCREEN_BASE_HEIGHT,(SCREEN_BASE_WIDTH - UI_MAP_EDITOR_LEFT_IMAGE_WIDTH - UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH)*SCREEN_WIDTH/SCREEN_BASE_WIDTH, (SCREEN_BASE_HEIGHT - UI_MAP_EDITOR_TOP_IMAGE_HEIGHT - UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT)*SCREEN_HEIGHT/SCREEN_BASE_HEIGHT);
 
-  /*  if(PyObject_HasAttrString(gameMode,"createGameMode")){
-    convertWindowCoordsToViewportCoords(CREATE_GAME_BACKGROUND_LEFT_WIDTH*SCREEN_WIDTH/SCREEN_BASE_WIDTH,(SCREEN_BASE_HEIGHT-CREATE_GAME_BACKGROUND_TOP_HEIGHT-CREATE_GAME_BACKGROUND_BOTTOM_HEIGHT)*SCREEN_HEIGHT/SCREEN_BASE_HEIGHT,translateZ,&convertedBottomLeftX,&convertedBottomLeftY,&convertedBottomLeftZ);
-    convertWindowCoordsToViewportCoords((SCREEN_WIDTH-CREATE_GAME_BACKGROUND_RIGHT_WIDTH),0.0,translateZ,&convertedTopRightX,&convertedTopRightY,&convertedTopRightZ);
+  if(PyObject_HasAttrString(gameMode,"createGameMode")){
+    glViewport((float)CREATE_GAME_BACKGROUND_LEFT_WIDTH*(float)SCREEN_WIDTH/(float)SCREEN_BASE_WIDTH,(float)CREATE_GAME_BACKGROUND_BOTTOM_HEIGHT*(float)SCREEN_HEIGHT/(float)SCREEN_BASE_HEIGHT,(float)SCREEN_WIDTH - (((float)CREATE_GAME_BACKGROUND_LEFT_WIDTH+(float)CREATE_GAME_BACKGROUND_RIGHT_WIDTH)/(float)SCREEN_BASE_WIDTH), (float)SCREEN_HEIGHT - (((float)CREATE_GAME_BACKGROUND_TOP_HEIGHT+CREATE_GAME_BACKGROUND_BOTTOM_HEIGHT)/SCREEN_BASE_HEIGHT));
+    convertWindowCoordsToViewportCoords(CREATE_GAME_BACKGROUND_LEFT_WIDTH*SCREEN_WIDTH/SCREEN_BASE_WIDTH,SCREEN_HEIGHT-(((float)CREATE_GAME_BACKGROUND_BOTTOM_HEIGHT*(float)SCREEN_HEIGHT)/(float)SCREEN_BASE_HEIGHT),translateZ,&convertedBottomLeftX,&convertedBottomLeftY,&convertedBottomLeftZ);
+    convertWindowCoordsToViewportCoords((float)SCREEN_WIDTH-((float)CREATE_GAME_BACKGROUND_RIGHT_WIDTH*(float)SCREEN_WIDTH/(float)SCREEN_BASE_WIDTH),(float)CREATE_GAME_BACKGROUND_TOP_HEIGHT*(float)SCREEN_HEIGHT/(float)SCREEN_BASE_HEIGHT,translateZ,&convertedTopRightX,&convertedTopRightY,&convertedTopRightZ);
   }else{
-    convertWindowCoordsToViewportCoords(UI_MAP_EDITOR_LEFT_IMAGE_WIDTH*SCREEN_WIDTH/SCREEN_BASE_WIDTH,(SCREEN_BASE_HEIGHT-UI_MAP_EDITOR_TOP_IMAGE_HEIGHT-UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT)*SCREEN_HEIGHT/SCREEN_BASE_HEIGHT,translateZ,&convertedBottomLeftX,&convertedBottomLeftY,&convertedBottomLeftZ);
-    convertWindowCoordsToViewportCoords((SCREEN_WIDTH-UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH),0.0,translateZ,&convertedTopRightX,&convertedTopRightY,&convertedTopRightZ);
-    }*/
-  //  convertWindowCoordsToViewportCoords(UI_MAP_EDITOR_LEFT_IMAGE_WIDTH,SCREEN_BASE_HEIGHT-UI_MAP_EDITOR_TOP_IMAGE_HEIGHT-UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT,translateZ,&convertedBottomLeftX,&convertedBottomLeftY,&convertedBottomLeftZ);
-  //  convertWindowCoordsToViewportCoords(SCREEN_WIDTH-UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH,0.0,translateZ,&convertedTopRightX,&convertedTopRightY,&convertedTopRightZ);
+    glViewport(0.0,0.0,SCREEN_WIDTH,SCREEN_HEIGHT);
+    convertWindowCoordsToViewportCoords(0.0,SCREEN_HEIGHT,translateZ,&convertedBottomLeftX,&convertedBottomLeftY,&convertedBottomLeftZ);
+    convertWindowCoordsToViewportCoords(SCREEN_WIDTH,0.0,translateZ,&convertedTopRightX,&convertedTopRightY,&convertedTopRightZ);
+  }
   convertWindowCoordsToViewportCoords(mouseX,mouseY,translateZ,&mouseMapPosX,&mouseMapPosY,&mouseMapPosZ);
   if(theMap != NULL){
     pyTranslateZ = PyObject_GetAttrString(theMap,"translateZ");
@@ -1026,7 +1029,7 @@ void calculateTranslation(){
     }
   }
   if(translateY < convertedTopRightY - mapTopOffset){
-    translateY = convertedTopRightY-mapTopOffset;
+    translateY = convertedTopRightY - mapTopOffset;
     if(translateY > convertedBottomLeftY+2.0){
       //prevents shaking issue that occurs when the map is slightly larger than viewable area
       translateY = (convertedTopRightY-mapTopOffset+convertedBottomLeftY+2.0)/2.0;
@@ -1546,9 +1549,15 @@ static void initPython(){
 SDL_Event event;
 PyObject * pyFocusNextUnit;
 char keyArray[20];
+PyObject * pyClickScroll;
 static void handleInput(){
   deltaTicks = SDL_GetTicks()-previousTick;
   previousTick = SDL_GetTicks();
+  if(PyObject_HasAttrString(gameMode,"clickScroll")){
+      pyClickScroll = PyObject_GetAttrString(gameMode, "clickScroll");//New reference
+      clickScroll = pyClickScroll == Py_True;
+      Py_DECREF(pyClickScroll);
+  }
   if(PyObject_HasAttrString(gameMode,"getFocusNextUnit")){
     pyFocusNextUnit = PyObject_CallMethod(gameMode,"getFocusNextUnit",NULL);
     focusNextUnit = PyLong_AsLong(pyFocusNextUnit);
@@ -1624,8 +1633,8 @@ static void handleInput(){
       }
       printPyStackTrace();
       if(event.button.button == SDL_BUTTON_RIGHT){
-	clickScroll = 1;
-	//	PyObject_CallMethod(gameMode,"handleRightClick","i",selectedName);//New reference
+	//	clickScroll = 1;
+	PyObject_CallMethod(gameMode,"handleRightClick","i",selectedName);//New reference
       }
       break;
     case SDL_MOUSEBUTTONUP:
@@ -1641,13 +1650,14 @@ static void handleInput(){
 	leftButtonDown = 0;
       }
       if(event.button.button == SDL_BUTTON_RIGHT){
-	clickScroll = 0;
+	if(PyObject_HasAttrString(gameMode,"handleRightClickUp")){
+	  pyObj = PyObject_CallMethod(gameMode,"handleRightClickUp","i",selectedName);//New reference
+	  Py_DECREF(pyObj);
+	  printPyStackTrace();
+	}
       }
       break;
     case SDL_KEYDOWN:
-      keyHeld = 1;
-      repeatKey = 0;
-      keyHeldTime = SDL_GetTicks();
       if(event.key.keysym.sym == SDLK_ESCAPE){
 	done = 1;
 	/*      }else if(event.key.keysym.sym == SDLK_BACKQUOTE){
@@ -1657,8 +1667,8 @@ static void handleInput(){
       }else if(event.key.keysym.sym == SDLK_NUMLOCK
 	       || event.key.keysym.sym ==SDLK_CAPSLOCK
 	       || event.key.keysym.sym ==SDLK_SCROLLOCK
-	       || event.key.keysym.sym ==SDLK_RSHIFT
-	       || event.key.keysym.sym ==SDLK_LSHIFT
+	       //	       || event.key.keysym.sym ==SDLK_RSHIFT
+	       //	       || event.key.keysym.sym ==SDLK_LSHIFT
 	       || event.key.keysym.sym ==SDLK_RCTRL
 	       || event.key.keysym.sym ==SDLK_LCTRL
 	       || event.key.keysym.sym ==SDLK_RALT
@@ -1679,6 +1689,9 @@ static void handleInput(){
 	       || event.key.keysym.sym == SDLK_UNDO){
 	printf("rejected: %d\n",event.key.keysym.sym);
       }else{
+	keyHeld = 1;
+	repeatKey = 0;
+	keyHeldTime = SDL_GetTicks();
 	if((event.key.keysym.mod & KMOD_CAPS | event.key.keysym.mod & KMOD_LSHIFT | event.key.keysym.mod & KMOD_RSHIFT) && (event.key.keysym.sym > 0x60 && event.key.keysym.sym <= 0x7A)){
 	  keyArray[0] = (*SDL_GetKeyName(event.key.keysym.sym))-32;
 	  keyArray[1] = 0;
@@ -1774,11 +1787,12 @@ static void handleInput(){
     case SDL_KEYUP:
       keyHeld = 0;
       repeatKey = 0;
-      if(event.key.keysym.sym == SDLK_BACKQUOTE){
+      /*if(event.key.keysym.sym == SDLK_BACKQUOTE){
 	clickScroll = 0;
-      }else if(event.key.keysym.sym == 303//rightshift
-	       || event.key.keysym.sym == 304//leftshift
-	       ){
+	}else*/
+      if(event.key.keysym.sym == 303//rightshift
+	 || event.key.keysym.sym == 304//leftshift
+	 || event.key.keysym.sym == SDLK_BACKQUOTE){
 	if(PyObject_HasAttrString(gameMode,"handleKeyUp")){
 	  pyObj = PyObject_CallMethod(gameMode,"handleKeyUp","s",SDL_GetKeyName(event.key.keysym.sym));
 	  Py_DECREF(pyObj);
@@ -1812,6 +1826,8 @@ static void draw(){
     mapDepth = mapDepthTest1;
   }else if(mapDepthTest2 == mapDepthTest3){
     mapDepth = mapDepthTest2;
+  }else{
+    printf("mapdepth not found!");
   }
   glFlush();
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		 
@@ -1819,38 +1835,28 @@ static void draw(){
   glRenderMode(GL_SELECT);
 
   if(PyObject_HasAttrString(gameMode,"createGameMode")){
-    glViewport(CREATE_GAME_BACKGROUND_LEFT_WIDTH*SCREEN_WIDTH/SCREEN_BASE_WIDTH,(CREATE_GAME_BACKGROUND_BOTTOM_HEIGHT)*SCREEN_HEIGHT/SCREEN_BASE_HEIGHT,(SCREEN_BASE_WIDTH - CREATE_GAME_BACKGROUND_LEFT_WIDTH - CREATE_GAME_BACKGROUND_RIGHT_WIDTH)*SCREEN_WIDTH/SCREEN_BASE_WIDTH, (SCREEN_BASE_HEIGHT - CREATE_GAME_BACKGROUND_TOP_HEIGHT - CREATE_GAME_BACKGROUND_BOTTOM_HEIGHT)*SCREEN_HEIGHT/SCREEN_BASE_HEIGHT);
+    glViewport((float)CREATE_GAME_BACKGROUND_LEFT_WIDTH*(float)SCREEN_WIDTH/(float)SCREEN_BASE_WIDTH,(float)CREATE_GAME_BACKGROUND_BOTTOM_HEIGHT*(float)SCREEN_HEIGHT/(float)SCREEN_BASE_HEIGHT,(float)SCREEN_WIDTH - (((float)CREATE_GAME_BACKGROUND_LEFT_WIDTH+(float)CREATE_GAME_BACKGROUND_RIGHT_WIDTH)/(float)SCREEN_BASE_WIDTH), (float)SCREEN_HEIGHT - (((float)CREATE_GAME_BACKGROUND_TOP_HEIGHT+CREATE_GAME_BACKGROUND_BOTTOM_HEIGHT)/SCREEN_BASE_HEIGHT));
   }else{
     glViewport(0,0,SCREEN_WIDTH,SCREEN_HEIGHT);
   }
 
   theCursorIndex = -1;
     
-  glMatrixMode(GL_PROJECTION);
+  /*glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-  gluPerspective(45.0f,screenRatio,minZoom,maxZoom);
-  glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();
-
-  glMatrixMode(GL_PROJECTION);
-  glLoadIdentity();
-  
   glGetIntegerv(GL_VIEWPORT,viewport);
-  glFlush();
-
-  //  gluPickMatrix(mouseX,viewport[3]+UI_MAP_EDITOR_TOP_IMAGE_HEIGHT+UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT-mouseY,1,1,viewport);
-  if(PyObject_HasAttrString(gameMode,"createGameMode")){
-    //        gluPickMatrix(mouseX,viewport[3]+CREATE_GAME_BACKGROUND_TOP_HEIGHT+CREATE_GAME_BACKGROUND_BOTTOM_HEIGHT-mouseY,1,1,viewport);
-        gluPickMatrix(mouseX,viewport[3]+296-mouseY,1,1,viewport);
-	//gluPickMatrix(mouseX,viewport[3]-mouseY,1,1,viewport);
-  }else{
-    gluPickMatrix(mouseX,viewport[3]-mouseY,1,1,viewport);
-  }
-
-  glFlush();
-  gluPerspective(45.0f,screenRatio,minZoom,maxZoom);
-  
+  gluPerspective(45.0f,(float)viewport[2]/(float)viewport[3],minZoom,maxZoom);
   glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity();
+  */
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();
+  glGetIntegerv(GL_VIEWPORT,viewport);
+  //  gluPickMatrix(mouseX,viewport[3]+UI_MAP_EDITOR_TOP_IMAGE_HEIGHT+UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT-mouseY,1,1,viewport);
+  gluPickMatrix(mouseX,viewport[3]-mouseY,1,1,viewport);
+  gluPerspective(45.0f,(float)viewport[2]/(float)viewport[3],minZoom,maxZoom);
+  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity();
   glTranslatef(translateX,translateY,translateZ);
   drawBoard();
   //  glPushMatrix();
@@ -1876,22 +1882,21 @@ static void draw(){
   glFlush();
     
   //map viewport
-  // glViewport(UI_MAP_EDITOR_LEFT_IMAGE_WIDTH*SCREEN_WIDTH/SCREEN_BASE_WIDTH,UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT*SCREEN_HEIGHT/SCREEN_BASE_HEIGHT,(SCREEN_BASE_WIDTH - UI_MAP_EDITOR_LEFT_IMAGE_WIDTH - UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH)*SCREEN_WIDTH/SCREEN_BASE_WIDTH, (SCREEN_BASE_HEIGHT - UI_MAP_EDITOR_TOP_IMAGE_HEIGHT - UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT)*SCREEN_HEIGHT/SCREEN_BASE_HEIGHT);
-
   if(PyObject_HasAttrString(gameMode,"createGameMode")){
-    glViewport(CREATE_GAME_BACKGROUND_LEFT_WIDTH*SCREEN_WIDTH/SCREEN_BASE_WIDTH,(CREATE_GAME_BACKGROUND_BOTTOM_HEIGHT)*SCREEN_HEIGHT/SCREEN_BASE_HEIGHT,(SCREEN_BASE_WIDTH - CREATE_GAME_BACKGROUND_LEFT_WIDTH - CREATE_GAME_BACKGROUND_RIGHT_WIDTH)*SCREEN_WIDTH/SCREEN_BASE_WIDTH, (SCREEN_BASE_HEIGHT - CREATE_GAME_BACKGROUND_TOP_HEIGHT - CREATE_GAME_BACKGROUND_BOTTOM_HEIGHT)*SCREEN_HEIGHT/SCREEN_BASE_HEIGHT);
+    glViewport((float)CREATE_GAME_BACKGROUND_LEFT_WIDTH*(float)SCREEN_WIDTH/(float)SCREEN_BASE_WIDTH,(float)CREATE_GAME_BACKGROUND_BOTTOM_HEIGHT*(float)SCREEN_HEIGHT/(float)SCREEN_BASE_HEIGHT,(float)SCREEN_WIDTH - (((float)CREATE_GAME_BACKGROUND_LEFT_WIDTH+(float)CREATE_GAME_BACKGROUND_RIGHT_WIDTH)/(float)SCREEN_BASE_WIDTH), (float)SCREEN_HEIGHT - (((float)CREATE_GAME_BACKGROUND_TOP_HEIGHT+CREATE_GAME_BACKGROUND_BOTTOM_HEIGHT)/SCREEN_BASE_HEIGHT));
   }else{
     glViewport(0,0,SCREEN_WIDTH,SCREEN_HEIGHT);
   }
-  //  gluPerspective(45.0f,screenRatio,minZoom,maxZoom);
+
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-  gluPerspective(45.0f,screenRatio,minZoom,maxZoom);
+  glGetIntegerv(GL_VIEWPORT,viewport);
+  gluPerspective(45.0f,(float)viewport[2]/(float)viewport[3],minZoom,maxZoom);
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
+  //  gluPerspective(45.0f,screenRatio,minZoom,maxZoom);
   calculateTranslation();
   glTranslatef(translateX,translateY,translateZ);
-
   drawBoard();  
 
   glMatrixMode(GL_PROJECTION);

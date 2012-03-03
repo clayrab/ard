@@ -309,6 +309,14 @@ class node:
 		gameState.getGameMode().elementsDict[self.name] = self
 		self.neighbors = []
 		self.unit = None
+	def onKeyDown(self,keycode):
+		if(keycode == "`"):
+			gameState.getGameMode().clickScroll = True
+		if(hasattr(self,"toggleCursor")):
+			self.toggleCursor()
+	def onKeyUp(self,keycode):
+		if(keycode == "`"):
+			gameState.getGameMode().clickScroll = False		
 	def getValue(self):
 		return self.tileValue
 	def addUnit(self,unit):
@@ -323,6 +331,8 @@ class node:
 				self.city.player = self.unit.player
 		else:
 			(random.choice(self.neighbors)).addUnit(unit)
+	def onRightClick(self):
+		gameState.getGameMode().clickScroll = True
 
 class playModeNode(node):
 	isNeighbor = False
@@ -556,8 +566,6 @@ class playModeNode(node):
 #	def onMouseOut(self):
 #		if(uiElements.unitViewer.theUnitViewer.unit.node.neighbors.count(self) > 0):
 #			playModeNode.isNeighbor = False
-	def onKeyDown(self,keycode):
-		self.toggleCursor()
 	def onKeyUp(self,keycode):
 		self.toggleCursor()
 
