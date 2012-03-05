@@ -12,12 +12,14 @@
 #player count
 #room player count
 #chat
-#player count#kick player from room if it's full when they join
+#player count
+#kick player from room if it's full when they join
 #polish gameroom view
 #    show each player status (connecting, connected, ready)
 #show map info(perhaps just size, units available, and city count would be sufficient for now?)
 
 #MISSING FEATURES
+#gatherers and summoners should not be able to move once they begin gathering or summoning. summoners don't get turns, they can build at any time.
 #proper quit and options menus
 #draw roads properly
 #mountains should be impassable, hills less passable, hills give defense bonus
@@ -26,8 +28,10 @@
 #limited time to move
 #modals should be dismissed by esc, space, or enter
 #handle disconnections/reconnections gracefully
+#player stats(wins,losses,rank,etc)
 
 #BUGS
+#movepaths are not cleared properly
 #sending " to chat as first character doesn't work... 
 #clickscroll is shakey 
 #fix py_decrefs in fonts.h
@@ -39,32 +43,34 @@
 #make sure room and/or map names do not contain *
 # + buttons in map edit mode are wrong
 
-#BONUS FEATURES
-#hide cursor during clickscroll. dont move it also?
-#sort room columns
-#player stats(wins,losses,rank,etc)
-#player rewards
-#auto return view: after auto-scrolling to nextunit, return view to previous spot, player can turn this on/off with a checkbox in the UI.
-
-#DESIGN OPTIONS
-#cancel movement if any enemy is seen?
-#show move speed and attack speed?
+#DESIGN
+#cancel movement if any enemy is seen
+#show move speed and attack speed
+#icons for green and blue wood
 
 #potential units:
 #eagle. gains bonus vision range.
 #giant eagle. gains bonus vision, has decent HP and attack.
+#unit which 'becomes' a defensive structure and can't move like gatherer and summoner and auto-attacks
+#unit could also drop mines and then become normal unit(like SC vulture)
 
 ############# MINIMUM VIABLE PRODUCT AT THIS POINT ##############
 
+#BONUS FEATURES
+#sort room columns
+#player rewards
+#auto return view: after auto-scrolling to nextunit, return view to previous spot, player can turn this on/off with a checkbox in the UI.
 
 #POLISH
 #existing movePath and new movePath need to be distinguishable
-#icons for green and blue wood
 #some C optimization inside drawTile() and maybe draw()... make lists, reduce mallocs in draw loop, etc
-#make zoomspeed(in main.c) and focusspeed non-framerate dependant
 #move gameplay viewport back to entire window. make UI less intrusive, small elements at the corners, encircle map with mountains
 #right-justifiable text
 #add odd/even columns. i.e. every other column will get a new node with you hit +
+
+#MINOR BUGS
+#when you create a new map in map editor the player start location buttons are broken and cause crashes
+#make zoomspeed(in main.c) and focusspeed non-framerate dependant
 
 #OPTIONAL FEATURES
 #save and resume games
@@ -164,12 +170,7 @@ class gameMode:
 				elif(hasattr(self.elementWithFocus,"onLeftClickUp")):
 					self.elementWithFocus.onLeftClickUp()
 	def handleKeyDown(self,keycode):
-		if(keycode == "t"):
-			gameState.setMapName("test4")
-			gameState.setGameMode(testMode)
-
-#			uiElements.smallModal("test adsfasdfa dsfadsfas dfadsf oiasdf adsop fbasdpfoia sdfa dsfoaiuadsfadsf idfu dfdi asdfas dfas dfi asdfadsbf bafb adsbfi adfs  ioadfsdfhiosadfiosadfsiadiosfufadsf ifds iuadfs adsf adfisu adfisu adfsu ")
-#			self.chatDisplay.addText("adsfiodfsaiodfsiodio dfios iodfs iodfs ioadfs ioadfs dio iodfs ioadfsio dfs sdasd asd f asfasdf df d df d f d f ad sf df  " + str(gameMode.foo))
+		if(keycode == "t" and False):
 			print 'test'
 		if(keycode == "y"):
 			gameState.getGameMode().changeMap("Clay's Map")
@@ -179,7 +180,7 @@ class gameMode:
 			if(hasattr(self,"keyDown")):
 				self.keyDown(keycode)
 			else:
-				if(hasattr(self.mousedOverObject,"onKeyDown")):
+				if(hasattr(self,"mousedOverObject") and hasattr(self.mousedOverObject,"onKeyDown")):
 					self.mousedOverObject.onKeyDown(keycode)
 				elif(hasattr(self.elementWithFocus,"onKeyDown")):
 					self.elementWithFocus.onKeyDown(keycode)
@@ -485,6 +486,7 @@ class mapEditorMode(tiledGameMode):
 		uiElements.mapEditorTileSelectUIElement(-0.53,0.92,tileType=cDefines.defines['WATER_TILE_INDEX'])
 		uiElements.mapEditorTileSelectUIElement(-0.45,0.92,tileType=cDefines.defines['ROAD_TILE_INDEX'])
 		uiElements.mapEditorTileSelectUIElement(-0.37,0.92,tileType=cDefines.defines['CITY_TILE_INDEX'])
+		print "numplayers: " + str(self.map.numPlayers)
 		for col in range(0,2):
 			for row in range(0,4):
 				if((4*(col))+(row+1) <= self.map.numPlayers):
@@ -508,22 +510,6 @@ class mapEditorMode(tiledGameMode):
 
 		uiElements.uiElement(0.8,0.925,text="asdf",textSize=0.0005)
 		uiElements.saveButton(0.9,0.925,text="save",textSize=0.0005)
-
-class testMode(tiledGameMode):
-	def __init__(self,args):
-		tiledGameMode.__init__(self)
-		self.createGameMode = True
-	def loadMap(self):
-		self.map = gameLogic.map(gameLogic.mapViewNode)
-	def changeMap(self,mapName):
-			gameState.setMapName(mapName)			
-			gameState.getGameMode().loadMap()
-	def addUIElements(self):
-		uiElements.uiElement(xPos=-1.0,yPos=1.0,width=texWidth("CREATE_GAME_BACKGROUND_TOP"),height=texHeight('CREATE_GAME_BACKGROUND_TOP'),textureIndex=texIndex('CREATE_GAME_BACKGROUND_TOP'))
-		uiElements.uiElement(xPos=-1.0,yPos=1.0-texHeight('CREATE_GAME_BACKGROUND_TOP')+0.0018,width=texWidth("CREATE_GAME_BACKGROUND_LEFT"),height=texHeight('CREATE_GAME_BACKGROUND_LEFT'),textureIndex=texIndex('CREATE_GAME_BACKGROUND_LEFT'))
-		uiElements.uiElement(xPos=1.0-texWidth("CREATE_GAME_BACKGROUND_RIGHT"),yPos=1.0-texHeight('CREATE_GAME_BACKGROUND_TOP'),width=texWidth("CREATE_GAME_BACKGROUND_RIGHT"),height=texHeight('CREATE_GAME_BACKGROUND_RIGHT'),textureIndex=texIndex('CREATE_GAME_BACKGROUND_RIGHT'))
-		uiElements.uiElement(xPos=-1.0,yPos=-1.0+texHeight("CREATE_GAME_BACKGROUND_BOTTOM")+0.0034,width=2.0,height=texHeight('CREATE_GAME_BACKGROUND_BOTTOM'),textureIndex=texIndex('CREATE_GAME_BACKGROUND_BOTTOM'))
-
 
 class textBasedMenuMode(gameMode):
 	def __init__(self,args):
@@ -718,14 +704,18 @@ class gameFindMode(gameMode):
 		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=texIndex("UI_NEW_GAME_SCREEN"))
 #cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])	
 		self.roomSelector = uiElements.roomSelector(-0.930,0.82,self.rooms,textSize=0.0005)
-		uiElements.createRoomButton(-0.930,-0.82)
 		self.chatDisplay = uiElements.chatDisplay(0.556,0.82)
 		self.chatBox = uiElements.chatBox(0.556,-0.756,gameState.getGameFindClient())
 		uiElements.sendChatButton(0.858,-0.82)
 		self.setFocus(self.chatBox)
 		uiElements.uiElement(-0.930,0.9,width=texWidth("BACK_BUTTON"),height=texHeight("BACK_BUTTON"),textureIndex=texIndex("BACK_BUTTON"))
+		uiElements.da1v1Button(-0.930,-0.82)
+		uiElements.da2v2Button(-0.840,-0.82)
+		uiElements.da3v3Button(-0.750,-0.82)
+		uiElements.da4v4Button(-0.660,-0.82)
+		uiElements.createRoomButton(-0.930,-0.885)
 		
-class createGameMode(gameMode):
+class createGameModeOld(gameMode):
 	def __init__(self,args):
 		gameMode.__init__(self)
 	def addUIElements(self):
@@ -735,4 +725,23 @@ class createGameMode(gameMode):
 		self.maxPlayersField = uiElements.maxPlayersField(0.2,0.2,text="2 players")
 		uiElements.createButton(0.65,-0.8,playMode,text="create")
 
+class createGameMode(tiledGameMode):
+	def __init__(self,args):
+		tiledGameMode.__init__(self)
+		self.createGameMode = True
+		self.teamSize = 0
+	def loadMap(self):
+		self.map = gameLogic.map(gameLogic.mapViewNode)
+	def changeMap(self,mapName):
+			gameState.setMapName(mapName)			
+			gameState.getGameMode().loadMap()
+	def addUIElements(self):
+		uiElements.uiElement(xPos=-1.0,yPos=1.0,width=texWidth("CREATE_GAME_BACKGROUND_TOP"),height=texHeight('CREATE_GAME_BACKGROUND_TOP'),textureIndex=texIndex('CREATE_GAME_BACKGROUND_TOP'))
+		uiElements.uiElement(xPos=-1.0,yPos=1.0-texHeight('CREATE_GAME_BACKGROUND_TOP')+0.0018,width=texWidth("CREATE_GAME_BACKGROUND_LEFT"),height=texHeight('CREATE_GAME_BACKGROUND_LEFT'),textureIndex=texIndex('CREATE_GAME_BACKGROUND_LEFT'))
+		uiElements.uiElement(xPos=1.0-texWidth("CREATE_GAME_BACKGROUND_RIGHT"),yPos=1.0-texHeight('CREATE_GAME_BACKGROUND_TOP'),width=texWidth("CREATE_GAME_BACKGROUND_RIGHT"),height=texHeight('CREATE_GAME_BACKGROUND_RIGHT'),textureIndex=texIndex('CREATE_GAME_BACKGROUND_RIGHT'))
+		uiElements.uiElement(xPos=-1.0,yPos=-1.0+texHeight("CREATE_GAME_BACKGROUND_BOTTOM")+0.0034,width=2.0,height=texHeight('CREATE_GAME_BACKGROUND_BOTTOM'),textureIndex=texIndex('CREATE_GAME_BACKGROUND_BOTTOM'))
+		self.mapNameField = uiElements.uiElement(-1.0+texWidth("CREATE_GAME_BACKGROUND_LEFT"),0.85,text="map name",fontIndex=3,textColor="ee ed 9b")
+		uiElements.mapSelector(-0.93,1.0-texHeight("CREATE_GAME_BACKGROUND_TOP")+0.012,[],self.mapNameField)
+
 gameState.setGameMode(newGameScreenMode)
+

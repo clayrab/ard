@@ -617,6 +617,14 @@ class mapViewNode(node):
 	def onLeftClickDown(self):
 		print 'click'
 
+class mapData:
+	def __init__(self,name,mapDataString):
+		self.dataString = mapDataString
+		self.name = name
+		lineTokens = self.dataString.split("\n")
+#		print lineTokens
+		self.teamSize = lineTokens[1]
+
 class map:
 	def __init__(self,nodeType):
 		self.polarity = 0

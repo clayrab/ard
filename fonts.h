@@ -8,10 +8,11 @@
 
 #define FONT_NAME_SIZE 50
 
-char fontFiles[3][FONT_NAME_SIZE] = {
+char fontFiles[4][FONT_NAME_SIZE] = {
   "assets/fonts/Arial.ttf",
   "assets/fonts/XXII ARABIAN-ONENIGHTSTAND.ttf",
   "assets/fonts/Herculanum.ttf",
+  "assets/fonts/MinionPro-Regular.otf"
 };
 GLuint textCursor;
 
@@ -122,9 +123,6 @@ void make_dlist ( FT_Face face, char charIndex, GLuint list_base, GLuint * tex_b
   // In Such A Way That The Result Will Be Properly Aligned.
   //  printf("%c %d %d %d %f %f %d\n",charIndex,charIndex,glyphHeight,glyphWidth,x,y,face->glyph->advance.x>>6);
   glBindTexture(GL_TEXTURE_2D,tex_base[charIndex]);
-  if(charIndex == 124){
-    printf("%f %f %d %d\n",x,y,glyphHeight,glyphWidth);
-  }
   glBegin(GL_QUADS);
   glTexCoord2d(0,0); glVertex2f(0,glyphHeight);
   glTexCoord2d(0,y); glVertex2f(0,0);

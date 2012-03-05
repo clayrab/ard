@@ -7,6 +7,20 @@ import threading
 import server
 import json
 
+mapDatas = []
+mapDatas.append([])
+mapDatas.append([])
+mapDatas.append([])
+mapDatas.append([])
+print mapDatas
+dirList=os.listdir("maps")
+for fileName in dirList:
+	if((not fileName.startswith(".")) and fileName != "defaultMap" and (not fileName.endswith("~"))):
+		file = open("maps/"+fileName)
+		gameLogic.mapData(fileName,file.read())
+		print fileName
+	
+
 unitTypesList = []
 dirList=os.listdir("units")
 for fileName in dirList:

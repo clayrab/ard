@@ -831,14 +831,54 @@ class startingManaSelector(scrollableTextFieldsElement):
 #		self.unitCostField.unitType.costGreen = int(textFieldElem.text)
 		self.destroy()
 
+class gameTypeButton(clickableElement):
+	buttons = []
+	def __init__(self,xPos,yPos,textureStr,teamSize,selected):
+		if(selected):
+			color = "FF FF FF"
+		else:
+			color = "88 88 88"
+		clickableElement.__init__(self,xPos,yPos,width=texWidth(textureStr),height=texHeight(textureStr),textureIndex=texIndex(textureStr),color=color)
+		self.teamSize = teamSize
+		gameTypeButton.buttons.append(self)
+		self.selected = selected
+	def onClick(self):
+		for button in gameTypeButton.buttons:
+			button.color = "88 88 88"
+			button.selected = False
+		self.color = "FF FF FF"
+		self.selected = True
+
+class da1v1Button(gameTypeButton):
+	def __init__(self,xPos,yPos):
+		gameTypeButton.__init__(self,xPos,yPos,"DA_1V1_BUTTON",1,True)	
+
+class da2v2Button(gameTypeButton):
+	def __init__(self,xPos,yPos):
+		gameTypeButton.__init__(self,xPos,yPos,"DA_2V2_BUTTON",2,False)
+
+class da3v3Button(gameTypeButton):
+	def __init__(self,xPos,yPos):
+		gameTypeButton.__init__(self,xPos,yPos,"DA_3V3_BUTTON",3,False)
+
+class da4v4Button(gameTypeButton):
+	def __init__(self,xPos,yPos):
+		gameTypeButton.__init__(self,xPos,yPos,"DA_4V4_BUTTON",4,False)
+
 class createRoomButton(clickableElement):
 	def __init__(self,xPos,yPos):
 		clickableElement.__init__(self,xPos,yPos,width=texWidth("CREATE_GAME_BUTTON"),height=texHeight("CREATE_GAME_BUTTON"),textureIndex=texIndex("CREATE_GAME_BUTTON"))
-	def onClick(self):
+	def onClick(self):				
 		server.startServer('')
+		client.startClient('127.0.0.1')
+		gameState.setMapName("test4")
 		gameState.getGameFindClient().sendCommand("testServer",gameState.getConfig()["serverPort"])
 		gameState.setGameMode(gameModes.createGameMode)
 		smallModal("testing connection...",dismissable=False)
+		for button in gameTypeButton.buttons:
+			if(button.selected):
+				gameState.getGameMode().teamSize = button.teamSize
+				
 
 
 class chatBox(textInputElement):
@@ -875,12 +915,19 @@ class playerStartLocationButton(clickableElement):
 		playerStartLocationButton.playerStartLocationButtons.append(self)
 	def onClick(self):
 #		if(self.playerNumber <= gameState.getGameMode().map.numPlayers + 1):
+		print self.playerNumber
 		if(gameState.getGameMode().selectedButton != None):
+			print '2'
 			gameState.getGameMode().selectedButton.selected = False
+			print '3'
 			gameState.getGameMode().selectedButton.color = "FF FF FF"
+		print '4'
 		gameState.getGameMode().selectedButton = self
+		print '5'
 		self.selected = True
+		print '5'
 		self.color = "99 99 99"
+		print '5'
 
 class deleteCityButton(clickableElement):
 	def onClick(self):
@@ -972,8 +1019,8 @@ class mapPlaySelectButton(menuButton):
 		gameState.setGameMode(self.gameMode)
 
 class mapSelector(scrollableTextFieldsElement):
-	def __init__(self,xPos,yPos,textFields,mapField,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,yPositionOffset=-0.04,yOffset=-0.041,numFields=25,scrollSpeed=1):
-		scrollableTextFieldsElement.__init__(self,xPos,yPos,textFields,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,color=color,mouseOverColor=mouseOverColor)
+	def __init__(self,xPos,yPos,textFields,mapField):
+		scrollableTextFieldsElement.__init__(self,xPos,yPos,textFields,width=texWidth("MAP_SELECTOR"),height=texHeight("MAP_SELECTOR"),textureIndex=texIndex("MAP_SELECTOR"))
 		self.mapField = mapField
 	def handleClick(self,textFieldElem):
 		server.setMap(textFieldElem.text)
@@ -988,6 +1035,14 @@ class onlineMapSelector(scrollableTextFieldsElement):
 		self.mapField.text = fieldElem.text
 		self.mapField.mapName = fieldElem.text
 		self.destroy()
+
+class mapSelector(scrollableTextFieldsElement):
+	def __init__(self,xPos,yPos,textFields,mapField):
+		scrollableTextFieldsElement.__init__(self,xPos,yPos,textFields,width=texWidth("MAP_SELECTOR"),height=texHeight("MAP_SELECTOR"),textureIndex=texIndex("MAP_SELECTOR"))
+		self.mapField = mapField
+	def handleClick(self,fieldElem):
+		print fieldElem.text
+		
 
 class mapField(clickableElement):
        	def __init__(self,xPos,yPos,selector,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,textXPos=0.0,textYPos=0.0):
@@ -1116,6 +1171,7 @@ class createMapButton(clickableElement):
 				shutil.copyfile("maps/defaultMap","maps/" + mapName + ".map")
 				gameState.setMapName(mapName)
 				gameState.setGameMode(self.gameMode)
+				gameState.getGameMode().map.numPlayers = numPlayers
 				for playerNum in range(0,numPlayers+1):
 					gameState.getGameMode().map.nodes[0][playerNum-1].playerStartValue = playerNum
 
