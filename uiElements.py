@@ -875,7 +875,6 @@ class createRoomButton(clickableElement):
 		for button in gameTypeButton.buttons:
 			if(button.selected):
 				teamSize = button.teamSize
-		
 		gameState.setMapName(gameState.getMapDatas()[teamSize-1][0].name)
 		gameState.getGameFindClient().sendCommand("testServer",gameState.getConfig()["serverPort"])
 		gameState.setGameMode(gameModes.createGameMode)
