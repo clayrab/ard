@@ -70,6 +70,7 @@
 
 #MINOR BUGS
 #when you create a new map in map editor the player start location buttons are broken and cause crashes
+#clicking playerstartlocation button #1 repeatedly causes a crash
 #make zoomspeed(in main.c) and focusspeed non-framerate dependant
 
 #OPTIONAL FEATURES
@@ -77,8 +78,6 @@
 #music
 #AI
 #campaign
-
-
 #unit editor
 
 import sys

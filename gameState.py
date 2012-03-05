@@ -17,9 +17,13 @@ dirList=os.listdir("maps")
 for fileName in dirList:
 	if((not fileName.startswith(".")) and fileName != "defaultMap" and (not fileName.endswith("~"))):
 		file = open("maps/"+fileName)
-		gameLogic.mapData(fileName,file.read())
+		mapData = gameLogic.mapData(fileName,file.read())
+		mapDatas[mapData.teamSize-1].append(mapData)
+		
 		print fileName
-	
+def getMapDatas():
+	global mapDatas
+	return mapDatas
 
 unitTypesList = []
 dirList=os.listdir("units")

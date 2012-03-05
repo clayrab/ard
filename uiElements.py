@@ -871,14 +871,16 @@ class createRoomButton(clickableElement):
 	def onClick(self):				
 		server.startServer('')
 		client.startClient('127.0.0.1')
-		gameState.setMapName("test4")
+		teamSize = 0
+		for button in gameTypeButton.buttons:
+			if(button.selected):
+				teamSize = button.teamSize
+		
+		gameState.setMapName(gameState.getMapDatas()[teamSize-1][0].name)
 		gameState.getGameFindClient().sendCommand("testServer",gameState.getConfig()["serverPort"])
 		gameState.setGameMode(gameModes.createGameMode)
 		smallModal("testing connection...",dismissable=False)
-		for button in gameTypeButton.buttons:
-			if(button.selected):
-				gameState.getGameMode().teamSize = button.teamSize
-				
+		gameState.getGameMode().teamSize = teamSize				
 
 
 class chatBox(textInputElement):

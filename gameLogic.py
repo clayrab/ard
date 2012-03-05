@@ -620,10 +620,10 @@ class mapViewNode(node):
 class mapData:
 	def __init__(self,name,mapDataString):
 		self.dataString = mapDataString
-		self.name = name
+		self.name = name[:len(name)-4]
 		lineTokens = self.dataString.split("\n")
 #		print lineTokens
-		self.teamSize = lineTokens[1]
+		self.teamSize = int(lineTokens[1])/2
 
 class map:
 	def __init__(self,nodeType):
