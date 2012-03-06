@@ -728,7 +728,7 @@ class createGameMode(tiledGameMode):
 			self.mapNameField.destroy()
 		if(self.mapSelector != None):
 			self.mapSelector.destroy()
-		self.mapNameField = uiElements.uiElement(-1.0+texWidth("CREATE_GAME_BACKGROUND_LEFT"),0.85,text="map name",fontIndex=3,textColor="ee ed 9b")
+		self.mapNameField = uiElements.uiElement(-1.0+texWidth("CREATE_GAME_BACKGROUND_LEFT"),0.85,text=mapName,fontIndex=3,textColor="ee ed 9b")
 		self.mapSelector = uiElements.mapSelector(-0.93,1.0-texHeight("CREATE_GAME_BACKGROUND_TOP")+0.012,[],self.mapNameField)
 		for mapData in gameState.getMapDatas()[self.teamSize-1]:
 			gameState.getGameMode().mapSelector.textFields.append(uiElements.mapSelect(-0.93,0.0,gameState.getGameMode().mapSelector,mapData.name))
