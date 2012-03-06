@@ -141,8 +141,8 @@ class removeFirstRowButton(clickableElement):
 
 class textInputElement(uiElement):
 	elements = []
-	def __init__(self,xPos,yPos,width=texWidth('UI_TEXT_INPUT_IMAGE'),height=texHeight('UI_TEXT_INPUT_IMAGE'),text="",textSize=0.0004,textureIndex=texIndex('UI_TEXT_INPUT'),textColor='00 00 00',textXPos=0.0,textYPos=-0.05):
-		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textSize=textSize,textColor=textColor,textXPos=textXPos,textYPos=textYPos,cursorPosition=len(text))
+	def __init__(self,xPos,yPos,width=texWidth('UI_TEXT_INPUT_IMAGE'),height=texHeight('UI_TEXT_INPUT_IMAGE'),text="",textureIndex=texIndex('UI_TEXT_INPUT'),textColor='DD DD DD',textSize=0.0006,textXPos=0.010,textYPos=-0.045,fontIndex=0):
+		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textSize=textSize,textColor=textColor,textXPos=textXPos,textYPos=textYPos,cursorPosition=len(text),fontIndex=fontIndex)
 		textInputElement.elements.append(self)
 		self.realText = text
 		self.leftmostCharPosition = 0
@@ -871,7 +871,7 @@ class createRoomButton(clickableElement):
 		clickableElement.__init__(self,xPos,yPos,width=texWidth("CREATE_GAME_BUTTON"),height=texHeight("CREATE_GAME_BUTTON"),textureIndex=texIndex("CREATE_GAME_BUTTON"))
 	def onClick(self):				
 		server.startServer('')
-		client.startClient('127.0.0.1')
+#		client.startClient('127.0.0.1')
 		teamSize = 0
 		for button in gameTypeButton.buttons:
 			if(button.selected):
@@ -886,7 +886,7 @@ class createRoomButton(clickableElement):
 
 class chatBox(textInputElement):
 	def __init__(self,xPos,yPos,klient):
-		textInputElement.__init__(self,xPos,yPos,text="",textSize=0.0005,textureIndex=texIndex("CHAT_BOX"),width=texWidth("CHAT_BOX"),textColor="FF FF FF",textXPos=0.02,textYPos=-0.035)
+		textInputElement.__init__(self,xPos,yPos,text="",textSize=0.0005,textureIndex=texIndex("CHAT_BOX"),width=texWidth("CHAT_BOX"),textColor="FF FF FF",textXPos=0.02,textYPos=-0.045)
 		self.klient = klient
 	def sendChat(self):
 		if(len(self.realText) > 0):
@@ -1018,6 +1018,10 @@ class mapSelector(scrollableTextFieldsElement):
 	def __init__(self,xPos,yPos,textFields,mapField):
 		scrollableTextFieldsElement.__init__(self,xPos,yPos,textFields,width=texWidth("MAP_SELECTOR"),height=texHeight("MAP_SELECTOR"),textureIndex=texIndex("MAP_SELECTOR"),numFields=38,lineHeight=0.036,xPositionOffset=0.02,yPositionOffset=0.05)
 		self.mapField = mapField
+#	def handleClick(self,textFieldElem):
+#		server.setMap(textFieldElem.text)
+#		self.mapField.text = textFieldElem.text
+#		self.destroy()
 
 class mapSelect(scrollingTextElement):
 	def __init__(self,xPos,yPos,scrollableElement,text):
@@ -1095,8 +1099,8 @@ class startButton(menuButton):
 class loginInputElement(textInputElement):
 	usernameElem = None
 	passwordElem = None
-	def __init__(self,xPos,yPos,text,textXPos,textYPos):
-		textInputElement.__init__(self,xPos,yPos,text=text,textSize=0.0006,textXPos=textXPos,textYPos=textYPos)
+	def __init__(self,xPos,yPos,text):
+		textInputElement.__init__(self,xPos,yPos,text=text)
 	def onKeyDown(self,keycode):
 		if(keycode == "return"):
 			
@@ -1116,11 +1120,11 @@ class loginInputElement(textInputElement):
 
 class loginUserName(loginInputElement):
 	def __init__(self,xPos,yPos,text="clayrab"):
-		loginInputElement.__init__(self,xPos,yPos,text=text,textXPos=0.005,textYPos=-0.04)
+		loginInputElement.__init__(self,xPos,yPos,text=text)
 		loginInputElement.usernameElem = self
 class loginPassword(loginInputElement):
 	def __init__(self,xPos,yPos,text="maskmask"):
-		loginInputElement.__init__(self,xPos,yPos,text=text,textXPos=0.005,textYPos=-0.04)
+		loginInputElement.__init__(self,xPos,yPos,text=text)
 		loginInputElement.passwordElem = self
 
 class modalButton(clickableElement):

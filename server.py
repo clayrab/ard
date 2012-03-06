@@ -15,31 +15,38 @@ class NetworkPlayer:
         self.playerNumber = NetworkPlayer.nextPlayerNumber
         NetworkPlayer.nextPlayerNumber = NetworkPlayer.nextPlayerNumber + 1
     def dispatchCommand(self,command):
-        self.requestHandler.wfile.write(command + "|")
+        try:
+            self.requestHandler.wfile.write(command + "|")
+        except:
+            return
             
 class RequestHandler(SocketServer.StreamRequestHandler):
     def handle(self):
         while 1:
-            data = self.request.recv(1024)
-            if not data:
+            try:
+                data = self.request.recv(1024)
+                if not data:
+                    break
+                else:
+                    for player in gameState.getNetworkPlayers():
+                        player.dispatchCommand(data)
+            except:
                 break
-            else:
-                for player in gameState.getNetworkPlayers():
-                    player.dispatchCommand(data)
     def setup(self):
         with server.acceptingConnectionsLock:
             if(server.acceptingConnections):
+                print 'setup new player: ' + str(self.client_address)
                 SocketServer.StreamRequestHandler.setup(self)
                 self.player = gameState.addNetworkPlayer(self)
                 self.player.dispatchCommand("setPlayerNumber -1 " + str(self.player.playerNumber))
                 if(gameState.getMapName() != None):
                     self.player.dispatchCommand("setMap -1 " + gameState.getMapName())
-                seed = time.time() * 256
-                for player in gameState.getNetworkPlayers():
-                    player.dispatchCommand("seedRNG -1 " + str(seed))
-                    self.player.dispatchCommand("addPlayer -1 " + str(player.playerNumber))
-                    if(player.playerNumber != self.player.playerNumber):
-                        player.dispatchCommand("addPlayer -1 " + str(self.player.playerNumber))
+#                seed = time.time() * 256
+#                for player in gameState.getNetworkPlayers():
+#                    player.dispatchCommand("seedRNG -1 " + str(seed))
+#                    self.player.dispatchCommand("addPlayer -1 " + str(player.playerNumber))
+#                    if(player.playerNumber != self.player.playerNumber):
+#                        player.dispatchCommand("addPlayer -1 " + str(self.player.playerNumber))
                 print str(self.client_address) + " connected."
             else:
             #TODO: send command to client indicating game has started or host is no longer accepting connections...

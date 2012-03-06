@@ -116,8 +116,8 @@ static void printPyStackTrace(){
 #define UI_SCROLL_PAD_INDEX 12
 
 #define UI_TEXT_INPUT_IMAGE "assets/textInput.png"
-#define UI_TEXT_INPUT_IMAGE_HEIGHT 30
-#define UI_TEXT_INPUT_IMAGE_WIDTH 300
+#define UI_TEXT_INPUT_IMAGE_HEIGHT 41
+#define UI_TEXT_INPUT_IMAGE_WIDTH 304
 #define UI_TEXT_INPUT_INDEX 13
 
 #define MEEPLE_IMAGE "assets/meeple.png"
@@ -634,8 +634,8 @@ void convertWindowCoordsToViewportCoords(int x, int y, float z, GLdouble* posX, 
   glGetDoublev(GL_PROJECTION_MATRIX,projection);
   glGetIntegerv(GL_VIEWPORT,viewport);//returns four values: the x and y window coordinates of the viewport, followed by its width and height.
   winX = (float)x;
-  winY = (float)viewport[3] - (float)y;
-  //winY = 0-(float)y;
+  winY = SCREEN_HEIGHT - (float)y;
+  //winY = 0.0-(float)y;
   gluUnProject( winX, winY, mapDepth, modelview, projection, viewport, posX, posY, posZ);
 }
 /**************************** /mouse hover object selection ********************************/
@@ -957,11 +957,11 @@ void calculateTranslation(){
   pyMapHeight = PyObject_CallMethod(theMap,"getHeight",NULL);//New reference
   mapWidth = PyLong_AsLong(pyMapWidth);
   mapHeight = PyLong_AsLong(pyMapHeight);
-
+  //for some reason, mousemappos needs to be found before setting the viewport...?
+  //  glViewport(0,0,SCREEN_WIDTH,SCREEN_HEIGHT);
   if(PyObject_HasAttrString(gameMode,"createGameMode")){
-    
-    glViewport((float)CREATE_GAME_BACKGROUND_LEFT_WIDTH*(float)SCREEN_WIDTH/(float)SCREEN_BASE_WIDTH,(float)CREATE_GAME_BACKGROUND_BOTTOM_HEIGHT*(float)SCREEN_HEIGHT/(float)SCREEN_BASE_HEIGHT,(float)SCREEN_WIDTH - (((float)CREATE_GAME_BACKGROUND_LEFT_WIDTH+(float)CREATE_GAME_BACKGROUND_RIGHT_WIDTH)/(float)SCREEN_BASE_WIDTH), (float)SCREEN_HEIGHT - (((float)CREATE_GAME_BACKGROUND_TOP_HEIGHT+(float)CREATE_GAME_BACKGROUND_BOTTOM_HEIGHT)/(float)SCREEN_BASE_HEIGHT));
-    convertWindowCoordsToViewportCoords(CREATE_GAME_BACKGROUND_LEFT_WIDTH*SCREEN_WIDTH/SCREEN_BASE_WIDTH,SCREEN_HEIGHT-(((float)CREATE_GAME_BACKGROUND_BOTTOM_HEIGHT*(float)SCREEN_HEIGHT)/(float)SCREEN_BASE_HEIGHT),translateZ,&convertedBottomLeftX,&convertedBottomLeftY,&convertedBottomLeftZ);
+    glViewport((float)CREATE_GAME_BACKGROUND_LEFT_WIDTH*(float)SCREEN_WIDTH/(float)SCREEN_BASE_WIDTH,(float)CREATE_GAME_BACKGROUND_BOTTOM_HEIGHT*(float)SCREEN_HEIGHT/(float)SCREEN_BASE_HEIGHT,(float)SCREEN_WIDTH - (((float)CREATE_GAME_BACKGROUND_LEFT_WIDTH+(float)CREATE_GAME_BACKGROUND_RIGHT_WIDTH)*(float)SCREEN_WIDTH/(float)SCREEN_BASE_WIDTH), (float)SCREEN_HEIGHT - (((float)CREATE_GAME_BACKGROUND_TOP_HEIGHT+(float)CREATE_GAME_BACKGROUND_BOTTOM_HEIGHT)*(float)SCREEN_HEIGHT/(float)SCREEN_BASE_HEIGHT));
+    convertWindowCoordsToViewportCoords((float)CREATE_GAME_BACKGROUND_LEFT_WIDTH*(float)SCREEN_WIDTH/(float)SCREEN_BASE_WIDTH,SCREEN_HEIGHT-(((float)CREATE_GAME_BACKGROUND_BOTTOM_HEIGHT*(float)SCREEN_HEIGHT)/(float)SCREEN_BASE_HEIGHT),translateZ,&convertedBottomLeftX,&convertedBottomLeftY,&convertedBottomLeftZ);
     convertWindowCoordsToViewportCoords((float)SCREEN_WIDTH-((float)CREATE_GAME_BACKGROUND_RIGHT_WIDTH*(float)SCREEN_WIDTH/(float)SCREEN_BASE_WIDTH),(float)CREATE_GAME_BACKGROUND_TOP_HEIGHT*(float)SCREEN_HEIGHT/(float)SCREEN_BASE_HEIGHT,translateZ,&convertedTopRightX,&convertedTopRightY,&convertedTopRightZ);
   }else{
     glViewport(0,0,SCREEN_WIDTH,SCREEN_HEIGHT);
@@ -975,14 +975,14 @@ void calculateTranslation(){
   }
   mapRightOffset = translateTilesXToPositionX(mapWidth+1,0);
   mapTopOffset = translateTilesYToPositionY(mapHeight);
-
   //printf("screen topright %f,%f\n",convertedTopRightX,convertedTopRightY);
   //printf("screen bottomleft %f,%f\n",convertedBottomLeftX,convertedBottomLeftY);
-  //printf("translate %f,%f\n",translateX,translateY);
+  //printf("translate %f,%f,%f\n",translateX,translateY,translateZ);
+  //printf("offsets: %f %f\n",mapRightOffset,mapTopOffset);
   //printf("%f\n",translateTilesYToPositionY(mapHeight));//setting translateY to this number will focus on it
   //printf("mouse %d:%f\t%d:%f\n",mouseX,mouseMapPosX,mouseY,mouseMapPosY);
   
-  if(clickScroll > 0 && !isFocusing){
+   if(clickScroll > 0 && !isFocusing){
     translateX = translateX + mouseMapPosX - mouseMapPosXPrevious;
     translateY = translateY + mouseMapPosY - mouseMapPosYPrevious;
   }else{
@@ -1020,6 +1020,7 @@ void calculateTranslation(){
     translateZ = translateZPrev + ((translateZ - translateZPrev)/zoomSpeed);
     translateZPrev = translateZ;
   }
+
   //The following code will adjust translateX/Y so that no off-map area is shown
   if(translateX - mapRightOffset < convertedTopRightX){
     translateX = convertedTopRightX + mapRightOffset;
@@ -1368,7 +1369,7 @@ static void initGL (){
 
   //glClearColor(1.0, 1.0, 1.0, 1.0); //sets screen clear color
   //glClearColor(123.0/255.0,126.0/255.0,125.0/255.0,1.0);//grey that matches the UI...
-  glEnable(GL_SCISSOR_TEST);
+  //  glEnable(GL_SCISSOR_TEST);
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_TEXTURE_2D);
   glEnable(GL_BLEND);
@@ -1842,27 +1843,20 @@ static void draw(){
   glSelectBuffer(BUFSIZE,selectBuf);//glSelectBuffer must be issued before selection mode is enabled, and it must not be issued while the rendering mode is GL_SELECT.
   glRenderMode(GL_SELECT);
 
+  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity();
   if(PyObject_HasAttrString(gameMode,"createGameMode")){
-    glViewport((float)CREATE_GAME_BACKGROUND_LEFT_WIDTH*(float)SCREEN_WIDTH/(float)SCREEN_BASE_WIDTH,(float)CREATE_GAME_BACKGROUND_BOTTOM_HEIGHT*(float)SCREEN_HEIGHT/(float)SCREEN_BASE_HEIGHT,(float)SCREEN_WIDTH - (((float)CREATE_GAME_BACKGROUND_LEFT_WIDTH+(float)CREATE_GAME_BACKGROUND_RIGHT_WIDTH)/(float)SCREEN_BASE_WIDTH), (float)SCREEN_HEIGHT - (((float)CREATE_GAME_BACKGROUND_TOP_HEIGHT+CREATE_GAME_BACKGROUND_BOTTOM_HEIGHT)/SCREEN_BASE_HEIGHT));
-    glViewport(538.0*(float)SCREEN_WIDTH/(float)SCREEN_BASE_WIDTH,231.0*(float)SCREEN_HEIGHT/(float)SCREEN_BASE_HEIGHT,991.0*(float)SCREEN_WIDTH/(float)SCREEN_BASE_WIDTH, 824.0*(float)SCREEN_HEIGHT/(float)SCREEN_BASE_HEIGHT);
-    //    glViewport(0,0,SCREEN_WIDTH,SCREEN_HEIGHT);
+    glViewport((float)CREATE_GAME_BACKGROUND_LEFT_WIDTH*(float)SCREEN_WIDTH/(float)SCREEN_BASE_WIDTH,(float)CREATE_GAME_BACKGROUND_BOTTOM_HEIGHT*(float)SCREEN_HEIGHT/(float)SCREEN_BASE_HEIGHT,(float)SCREEN_WIDTH - (((float)CREATE_GAME_BACKGROUND_LEFT_WIDTH+(float)CREATE_GAME_BACKGROUND_RIGHT_WIDTH)*(float)SCREEN_WIDTH/(float)SCREEN_BASE_WIDTH), (float)SCREEN_HEIGHT - (((float)CREATE_GAME_BACKGROUND_TOP_HEIGHT+(float)CREATE_GAME_BACKGROUND_BOTTOM_HEIGHT)*(float)SCREEN_HEIGHT/(float)SCREEN_BASE_HEIGHT));
+    //glViewport((float)CREATE_GAME_BACKGROUND_LEFT_WIDTH*(float)SCREEN_WIDTH/(float)SCREEN_BASE_WIDTH,(float)CREATE_GAME_BACKGROUND_BOTTOM_HEIGHT*(float)SCREEN_HEIGHT/(float)SCREEN_BASE_HEIGHT,(float)SCREEN_WIDTH - (((float)CREATE_GAME_BACKGROUND_LEFT_WIDTH+(float)CREATE_GAME_BACKGROUND_RIGHT_WIDTH)/(float)SCREEN_BASE_WIDTH), (float)SCREEN_HEIGHT - (((float)CREATE_GAME_BACKGROUND_TOP_HEIGHT+CREATE_GAME_BACKGROUND_BOTTOM_HEIGHT)/SCREEN_BASE_HEIGHT));
   }else{
     glViewport(0,0,SCREEN_WIDTH,SCREEN_HEIGHT);
   }
 
   theCursorIndex = -1;
-    
-  /*glMatrixMode(GL_PROJECTION);
-  glLoadIdentity();
-  glGetIntegerv(GL_VIEWPORT,viewport);
-  gluPerspective(45.0f,(float)viewport[2]/(float)viewport[3],minZoom,maxZoom);
-  glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();
-  */
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
   glGetIntegerv(GL_VIEWPORT,viewport);
-  gluPickMatrix(mouseX,viewport[3]-mouseY,1,1,viewport);
+  gluPickMatrix(mouseX,SCREEN_HEIGHT-mouseY,1,1,viewport);
   gluPerspective(45.0f,(float)viewport[2]/(float)viewport[3],minZoom,maxZoom);
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
@@ -1875,7 +1869,7 @@ static void draw(){
   glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
   glGetIntegerv(GL_VIEWPORT,viewport);
   glFlush();
-  gluPickMatrix(mouseX,viewport[3]-mouseY,1,1,viewport);
+  gluPickMatrix(mouseX,SCREEN_HEIGHT-mouseY,1,1,viewport);
   glFlush();
   
   glMatrixMode(GL_MODELVIEW);
@@ -1892,12 +1886,8 @@ static void draw(){
   gluPerspective(45.0f,(float)viewport[2]/(float)viewport[3],minZoom,maxZoom);
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
-  
-  calculateTranslation();
 
-  //  glDepthFunc(GL_ALWAYS);
-  //  gluPerspective(45.0f,screenRatio,minZoom,maxZoom);
-  //  glDepthFunc(GL_LEQUAL);
+  calculateTranslation();
   glTranslatef(translateX,translateY,translateZ);
   drawBoard();  
 

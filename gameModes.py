@@ -9,12 +9,10 @@
 #how to host instructions page
 
 #server:
-#player count
-#room player count
-#chat
+#join game screen
+#create lan game screen
 #player count
 #kick player from room if it's full when they join
-#polish gameroom view
 #    show each player status (connecting, connected, ready)
 #show map info(perhaps just size, units available, and city count would be sufficient for now?)
 
@@ -32,11 +30,10 @@
 #player stats(wins,losses,rank,etc)
 
 #BUGS
+#replace open() on map files with mapdatas data
 #movepaths are not cleared properly
 #sending " to chat as first character doesn't work... 
-#clickscroll is shakey 
 #fix py_decrefs in fonts.h
-#scrolling map breaks after zoom out from near edge of map
 #make sure text edit boxes only allow chars and not shift/enter
 #check new/edited city names for duplicates
 #uiElements startingManaSelector needs to be removed
@@ -61,6 +58,7 @@
 #sort room columns
 #player rewards
 #auto return view: after auto-scrolling to nextunit, return view to previous spot, player can turn this on/off with a checkbox in the UI.
+#anti-alias text
 
 #POLISH
 #existing movePath and new movePath need to be distinguishable
@@ -704,7 +702,7 @@ class gameFindMode(gameMode):
 #cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])	
 		self.roomSelector = uiElements.roomSelector(-0.930,0.82,self.rooms,textSize=0.0005)
 		self.chatDisplay = uiElements.chatDisplay(0.556,0.82)
-		self.chatBox = uiElements.chatBox(0.556,-0.756,gameState.getGameFindClient())
+		self.chatBox = uiElements.chatBox(0.556,-0.738,gameState.getGameFindClient())
 		uiElements.sendChatButton(0.858,-0.82)
 		self.setFocus(self.chatBox)
 		uiElements.uiElement(-0.930,0.9,width=texWidth("BACK_BUTTON"),height=texHeight("BACK_BUTTON"),textureIndex=texIndex("BACK_BUTTON"))
@@ -720,15 +718,12 @@ class createGameMode(tiledGameMode):
 		self.createGameMode = True
 		self.teamSize = 0
 		self.mapSelector = None
-		self.mapNameField = None
 	def setMap(self,mapName):
 		gameState.setMapName(mapName)
 		self.map = gameLogic.map(gameLogic.mapViewNode,-60.0)
-		if(self.mapNameField != None):
-			self.mapNameField.destroy()
 		if(self.mapSelector != None):
 			self.mapSelector.destroy()
-		self.mapNameField = uiElements.uiElement(-1.0+texWidth("CREATE_GAME_BACKGROUND_LEFT"),0.85,text=mapName,fontIndex=3,textColor="ee ed 9b")
+		self.mapNameField.text = mapName
 		self.mapSelector = uiElements.mapSelector(-0.93,1.0-texHeight("CREATE_GAME_BACKGROUND_TOP")+0.012,[],self.mapNameField)
 		for mapData in gameState.getMapDatas()[self.teamSize-1]:
 			gameState.getGameMode().mapSelector.textFields.append(uiElements.mapSelect(-0.93,0.0,gameState.getGameMode().mapSelector,mapData.name))
@@ -738,7 +733,8 @@ class createGameMode(tiledGameMode):
 		uiElements.uiElement(xPos=-1.0,yPos=1.0-texHeight('CREATE_GAME_BACKGROUND_TOP')+0.0018,width=texWidth("CREATE_GAME_BACKGROUND_LEFT"),height=texHeight('CREATE_GAME_BACKGROUND_LEFT'),textureIndex=texIndex('CREATE_GAME_BACKGROUND_LEFT'))
 		uiElements.uiElement(xPos=1.0-texWidth("CREATE_GAME_BACKGROUND_RIGHT"),yPos=1.0-texHeight('CREATE_GAME_BACKGROUND_TOP'),width=texWidth("CREATE_GAME_BACKGROUND_RIGHT"),height=texHeight('CREATE_GAME_BACKGROUND_RIGHT'),textureIndex=texIndex('CREATE_GAME_BACKGROUND_RIGHT'))
 		uiElements.uiElement(xPos=-1.0,yPos=-1.0+texHeight("CREATE_GAME_BACKGROUND_BOTTOM")+0.0034,width=2.0,height=texHeight('CREATE_GAME_BACKGROUND_BOTTOM'),textureIndex=texIndex('CREATE_GAME_BACKGROUND_BOTTOM'))
-
-
+		self.mapNameField = uiElements.uiElement(-1.0+texWidth("CREATE_GAME_BACKGROUND_LEFT"),0.85,fontIndex=3,textColor="ee ed 9b")
+		self.roomNameField = uiElements.textInputElement(0.7,-0.8)
+		
 gameState.setGameMode(newGameScreenMode)
 
