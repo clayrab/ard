@@ -19,6 +19,7 @@
 #show map info(perhaps just size, units available, and city count would be sufficient for now?)
 
 #MISSING FEATURES
+#testing connection timeout
 #gatherers and summoners should not be able to move once they begin gathering or summoning. summoners don't get turns, they can build at any time.
 #proper quit and options menus
 #draw roads properly
@@ -485,7 +486,6 @@ class mapEditorMode(tiledGameMode):
 		uiElements.mapEditorTileSelectUIElement(-0.53,0.92,tileType=cDefines.defines['WATER_TILE_INDEX'])
 		uiElements.mapEditorTileSelectUIElement(-0.45,0.92,tileType=cDefines.defines['ROAD_TILE_INDEX'])
 		uiElements.mapEditorTileSelectUIElement(-0.37,0.92,tileType=cDefines.defines['CITY_TILE_INDEX'])
-		print "numplayers: " + str(self.map.numPlayers)
 		for col in range(0,2):
 			for row in range(0,4):
 				if((4*(col))+(row+1) <= self.map.numPlayers):
@@ -714,33 +714,31 @@ class gameFindMode(gameMode):
 		uiElements.da4v4Button(-0.660,-0.82)
 		uiElements.createRoomButton(-0.930,-0.885)
 		
-class createGameModeOld(gameMode):
-	def __init__(self,args):
-		gameMode.__init__(self)
-	def addUIElements(self):
-		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])	
-		self.titleField = uiElements.roomTitleInputElement(-0.5,0.4,textSize=0.0006,text="clayrab's game",textYPos=-0.036,textXPos=0.005)
-		self.mapField = uiElements.mapField(-0.5,0.2,uiElements.onlineMapSelector,text="choose map")
-		self.maxPlayersField = uiElements.maxPlayersField(0.2,0.2,text="2 players")
-		uiElements.createButton(0.65,-0.8,playMode,text="create")
-
 class createGameMode(tiledGameMode):
 	def __init__(self,args):
 		tiledGameMode.__init__(self)
 		self.createGameMode = True
 		self.teamSize = 0
-	def loadMap(self):
-		self.map = gameLogic.map(gameLogic.mapViewNode)
-	def changeMap(self,mapName):
-			gameState.setMapName(mapName)			
-			gameState.getGameMode().loadMap()
+		self.mapSelector = None
+		self.mapNameField = None
+	def setMap(self,mapName):
+		gameState.setMapName(mapName)
+		self.map = gameLogic.map(gameLogic.mapViewNode,-60.0)
+		if(self.mapNameField != None):
+			self.mapNameField.destroy()
+		if(self.mapSelector != None):
+			self.mapSelector.destroy()
+		self.mapNameField = uiElements.uiElement(-1.0+texWidth("CREATE_GAME_BACKGROUND_LEFT"),0.85,text="map name",fontIndex=3,textColor="ee ed 9b")
+		self.mapSelector = uiElements.mapSelector(-0.93,1.0-texHeight("CREATE_GAME_BACKGROUND_TOP")+0.012,[],self.mapNameField)
+		for mapData in gameState.getMapDatas()[self.teamSize-1]:
+			gameState.getGameMode().mapSelector.textFields.append(uiElements.mapSelect(-0.93,0.0,gameState.getGameMode().mapSelector,mapData.name))
+		gameState.getGameMode().mapSelector.redraw()
 	def addUIElements(self):
 		uiElements.uiElement(xPos=-1.0,yPos=1.0,width=texWidth("CREATE_GAME_BACKGROUND_TOP"),height=texHeight('CREATE_GAME_BACKGROUND_TOP'),textureIndex=texIndex('CREATE_GAME_BACKGROUND_TOP'))
 		uiElements.uiElement(xPos=-1.0,yPos=1.0-texHeight('CREATE_GAME_BACKGROUND_TOP')+0.0018,width=texWidth("CREATE_GAME_BACKGROUND_LEFT"),height=texHeight('CREATE_GAME_BACKGROUND_LEFT'),textureIndex=texIndex('CREATE_GAME_BACKGROUND_LEFT'))
 		uiElements.uiElement(xPos=1.0-texWidth("CREATE_GAME_BACKGROUND_RIGHT"),yPos=1.0-texHeight('CREATE_GAME_BACKGROUND_TOP'),width=texWidth("CREATE_GAME_BACKGROUND_RIGHT"),height=texHeight('CREATE_GAME_BACKGROUND_RIGHT'),textureIndex=texIndex('CREATE_GAME_BACKGROUND_RIGHT'))
 		uiElements.uiElement(xPos=-1.0,yPos=-1.0+texHeight("CREATE_GAME_BACKGROUND_BOTTOM")+0.0034,width=2.0,height=texHeight('CREATE_GAME_BACKGROUND_BOTTOM'),textureIndex=texIndex('CREATE_GAME_BACKGROUND_BOTTOM'))
-		self.mapNameField = uiElements.uiElement(-1.0+texWidth("CREATE_GAME_BACKGROUND_LEFT"),0.85,text="map name",fontIndex=3,textColor="ee ed 9b")
-		uiElements.mapSelector(-0.93,1.0-texHeight("CREATE_GAME_BACKGROUND_TOP")+0.012,[],self.mapNameField)
+
 
 gameState.setGameMode(newGameScreenMode)
 

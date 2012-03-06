@@ -614,8 +614,8 @@ class mapEditorNode(node):
 					self.playerStartValue = gameState.getGameMode().selectedButton.playerNumber
 
 class mapViewNode(node):
-	def onLeftClickDown(self):
-		print 'click'
+	def foo(self):
+		print 'foo'
 
 class mapData:
 	def __init__(self,name,mapDataString):
@@ -626,10 +626,10 @@ class mapData:
 		self.teamSize = int(lineTokens[1])/2
 
 class map:
-	def __init__(self,nodeType):
+	def __init__(self,nodeType,translateZ=0.0-cDefines.defines['initZoom']):
 		self.polarity = 0
 		self.nodeType = nodeType
-		self.translateZ = 0.0-cDefines.defines['initZoom']
+		self.translateZ = translateZ
 		self.load()
 	def getWidth(self):
 		return len(self.nodes[0])
@@ -647,9 +647,7 @@ class map:
 				self.polarity = int(line)
 #				self.numPlayers = 2
 			elif(count == 1):
-				print "map: " + str(self)
 				self.numPlayers = int(line)
-				print self.numPlayers
 			else:
 				yPos = yPos + 1
 				xPos = -1
@@ -729,9 +727,6 @@ class map:
 			line = "#"
 			for node in row:
 				xPos = xPos + 1
-				print node.tileValue + (128*node.roadValue)
-				print node.tileValue
-				print node.roadValue
 				line = line + chr(node.tileValue + (128*node.roadValue))#DON'T GO PAST 256, THIS NEEDS TO FIT INTO ONE BYTE
 				if(node.city != None):
 					unitTypes = ""

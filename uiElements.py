@@ -673,11 +673,11 @@ class scrollableRoomElement(scrollableElement):
 		self.names.append(uiElement(xPos+1.36,yPos,text=str(playerCount) + "/" + str(maxPlayerCount),textSize=textSize).name)
 
 class scrollableTextFieldsElement(uiElement):
-	def __init__(self,xPos,yPos,textFields,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,xPositionOffset=0.0,yPositionOffset=-0.04,yOffset=-0.041,numFields=25,scrollSpeed=1):
+	def __init__(self,xPos,yPos,textFields,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,xPositionOffset=0.0,yPositionOffset=0.04,lineHeight=0.041,numFields=25,scrollSpeed=1):
 		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,color=color,mouseOverColor=mouseOverColor)
 		self.xPositionOffset = xPositionOffset
 		self.yPositionOffset = yPositionOffset
-		self.yOffset = yOffset
+		self.lineHeight = lineHeight
 		self.numFields = numFields
 		self.scrollSpeed = scrollSpeed
 		self.scrollPosition = 0
@@ -691,6 +691,7 @@ class scrollableTextFieldsElement(uiElement):
 			if(hasattr(field,"onClick")):
 				textFieldElem = field
 				textFieldElem.scrollableElement = self
+				textFieldElem.xPosition = self.xPosition+self.xPositionOffset
 			else:
 				text = ""
 				if(hasattr(field,"name")):
@@ -711,13 +712,13 @@ class scrollableTextFieldsElement(uiElement):
 			self.scrollPadElem.setScrollPosition(self.scrollPosition)
 	def hideAndShowTextFields(self):
 		count = 0
-		yPosOffset = self.yPositionOffset
+		yPosOffset = 0-self.yPositionOffset
 		for textFieldElement in self.textFieldElements:
 			count = count + 1
 			textFieldElement.setYPosition(self.yPosition+yPosOffset)
 			if(count < self.numFields + self.scrollPosition and count > self.scrollPosition):
 				textFieldElement.hidden = False
-				yPosOffset = yPosOffset + self.yOffset
+				yPosOffset = yPosOffset - self.lineHeight
 			else:
 				textFieldElement.hidden = True
 	def onScrollUp(self):
@@ -772,7 +773,7 @@ class chatDisplay(scrollableTextFieldsElement):
 
 class roomSelector(scrollableTextFieldsElement):
 	def __init__(self,xPos,yPos,rooms,width=0.0,height=0.0,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None):
-		scrollableTextFieldsElement.__init__(self,xPos,yPos,[],width=texWidth("ROOMS_DISPLAY"),height=texHeight("ROOMS_DISPLAY"),textureIndex=texIndex("ROOMS_DISPLAY"),text=text,textColor=textColor,textSize=textSize,color=color,mouseOverColor=mouseOverColor,xPositionOffset=0.01,yPositionOffset=-0.06,yOffset=-0.041)
+		scrollableTextFieldsElement.__init__(self,xPos,yPos,[],width=texWidth("ROOMS_DISPLAY"),height=texHeight("ROOMS_DISPLAY"),textureIndex=texIndex("ROOMS_DISPLAY"),text=text,textColor=textColor,textSize=textSize,color=color,mouseOverColor=mouseOverColor,xPositionOffset=0.01,yPositionOffset=0.06,lineHeight=0.041)
 		self.rooms = rooms
 		for room in rooms:
 			self.textFields.append(scrollableRoomElement(self.xPosition+self.xPositionOffset,0.0,room[0],"mapname",0,8))
@@ -803,7 +804,7 @@ class unitTypeSelector(scrollableTextFieldsElement):
 		self.destroy()
 
 class cityCostSelector(scrollableTextFieldsElement):
-	def __init__(self,xPos,yPos,textFields,cityCostField,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,yPositionOffset=-0.04,yOffset=-0.041,numFields=25,scrollSpeed=1):
+	def __init__(self,xPos,yPos,textFields,cityCostField,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,yPositionOffset=0.04,lineHeight=0.041,numFields=25,scrollSpeed=1):
 		scrollableTextFieldsElement.__init__(self,xPos,yPos,textFields,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,color=color,mouseOverColor=mouseOverColor)
 		self.cityCostField = cityCostField
 	def handleClick(self,textFieldElem):
@@ -812,7 +813,7 @@ class cityCostSelector(scrollableTextFieldsElement):
 		self.destroy()
 
 class unitCostSelector(scrollableTextFieldsElement):
-	def __init__(self,xPos,yPos,textFields,unitCostField,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,yPositionOffset=-0.04,yOffset=-0.041,numFields=25,scrollSpeed=1):
+	def __init__(self,xPos,yPos,textFields,unitCostField,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,yPositionOffset=0.04,lineHeight=0.041,numFields=25,scrollSpeed=1):
 		text="DELETEME"
 		scrollableTextFieldsElement.__init__(self,xPos,yPos,textFields,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,color=color,mouseOverColor=mouseOverColor)
 		self.unitCostField = unitCostField
@@ -822,7 +823,7 @@ class unitCostSelector(scrollableTextFieldsElement):
 		self.destroy()
 
 class startingManaSelector(scrollableTextFieldsElement):
-	def __init__(self,xPos,yPos,textFields,startingManaField,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,yPositionOffset=-0.04,yOffset=-0.041,numFields=25,scrollSpeed=1):
+	def __init__(self,xPos,yPos,textFields,startingManaField,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,yPositionOffset=0.04,lineHeight=0.041,numFields=25,scrollSpeed=1):
 		scrollableTextFieldsElement.__init__(self,xPos,yPos,textFields,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,color=color,mouseOverColor=mouseOverColor)
 	 	self.startingManaField = startingManaField
 	def handleClick(self,textFieldElem):
@@ -875,11 +876,12 @@ class createRoomButton(clickableElement):
 		for button in gameTypeButton.buttons:
 			if(button.selected):
 				teamSize = button.teamSize
-		gameState.setMapName(gameState.getMapDatas()[teamSize-1][0].name)
 		gameState.getGameFindClient().sendCommand("testServer",gameState.getConfig()["serverPort"])
 		gameState.setGameMode(gameModes.createGameMode)
 		smallModal("testing connection...",dismissable=False)
-		gameState.getGameMode().teamSize = teamSize				
+		gameState.getGameMode().teamSize = teamSize
+		gameState.getGameMode().setMap(gameState.getMapDatas()[teamSize-1][0].name)
+
 
 
 class chatBox(textInputElement):
@@ -916,19 +918,12 @@ class playerStartLocationButton(clickableElement):
 		playerStartLocationButton.playerStartLocationButtons.append(self)
 	def onClick(self):
 #		if(self.playerNumber <= gameState.getGameMode().map.numPlayers + 1):
-		print self.playerNumber
 		if(gameState.getGameMode().selectedButton != None):
-			print '2'
 			gameState.getGameMode().selectedButton.selected = False
-			print '3'
 			gameState.getGameMode().selectedButton.color = "FF FF FF"
-		print '4'
 		gameState.getGameMode().selectedButton = self
-		print '5'
 		self.selected = True
-		print '5'
 		self.color = "99 99 99"
-		print '5'
 
 class deleteCityButton(clickableElement):
 	def onClick(self):
@@ -1021,15 +1016,17 @@ class mapPlaySelectButton(menuButton):
 
 class mapSelector(scrollableTextFieldsElement):
 	def __init__(self,xPos,yPos,textFields,mapField):
-		scrollableTextFieldsElement.__init__(self,xPos,yPos,textFields,width=texWidth("MAP_SELECTOR"),height=texHeight("MAP_SELECTOR"),textureIndex=texIndex("MAP_SELECTOR"))
+		scrollableTextFieldsElement.__init__(self,xPos,yPos,textFields,width=texWidth("MAP_SELECTOR"),height=texHeight("MAP_SELECTOR"),textureIndex=texIndex("MAP_SELECTOR"),numFields=38,lineHeight=0.036,xPositionOffset=0.02,yPositionOffset=0.05)
 		self.mapField = mapField
-	def handleClick(self,textFieldElem):
-		server.setMap(textFieldElem.text)
-		self.mapField.text = textFieldElem.text
-		self.destroy()
+
+class mapSelect(scrollingTextElement):
+	def __init__(self,xPos,yPos,scrollableElement,text):
+		scrollingTextElement.__init__(self,xPos,yPos,scrollableElement,text=text,textSize=0.0005,width=texWidth("MAP_SELECTOR"))
+	def onClick(self):
+		gameState.getGameMode().setMap(self.text)
 
 class onlineMapSelector(scrollableTextFieldsElement):
-	def __init__(self,xPos,yPos,textFields,mapField,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,yPositionOffset=-0.04,yOffset=-0.041,numFields=25,scrollSpeed=1):
+	def __init__(self,xPos,yPos,textFields,mapField,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,yPositionOffset=0.04,lineHeight=0.041,numFields=25,scrollSpeed=1):
 		scrollableTextFieldsElement.__init__(self,xPos,yPos,textFields,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,color=color,mouseOverColor=mouseOverColor)
 		self.mapField = mapField
 	def handleClick(self,fieldElem):
@@ -1037,12 +1034,12 @@ class onlineMapSelector(scrollableTextFieldsElement):
 		self.mapField.mapName = fieldElem.text
 		self.destroy()
 
-class mapSelector(scrollableTextFieldsElement):
-	def __init__(self,xPos,yPos,textFields,mapField):
-		scrollableTextFieldsElement.__init__(self,xPos,yPos,textFields,width=texWidth("MAP_SELECTOR"),height=texHeight("MAP_SELECTOR"),textureIndex=texIndex("MAP_SELECTOR"))
-		self.mapField = mapField
-	def handleClick(self,fieldElem):
-		print fieldElem.text
+#class mapSelector(scrollableTextFieldsElement):
+#	def __init__(self,xPos,yPos,textFields,mapField):
+#		scrollableTextFieldsElement.__init__(self,xPos,yPos,textFields,width=texWidth("MAP_SELECTOR"),height=texHeight("MAP_SELECTOR"),textureIndex=texIndex("MAP_SELECTOR"))
+#		self.mapField = mapField
+#	def handleClick(self,fieldElem):
+#		print fieldElem.text
 		
 
 class mapField(clickableElement):
