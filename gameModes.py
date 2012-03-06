@@ -725,6 +725,8 @@ class createGameMode(tiledGameMode):
 		if(self.mapSelector != None):
 			self.mapSelector.destroy()
 		self.mapNameField.text = mapName
+		self.roomNameField.setText(gameState.getUserName() + "' " + str(self.teamSize) + "v" + str(self.teamSize) + "(" + mapName + ")")
+		
 		self.mapSelector = uiElements.mapSelector(-0.93,1.0-texHeight("CREATE_GAME_BACKGROUND_TOP")+0.012,[],self.mapNameField)
 		for mapData in gameState.getMapDatas()[self.teamSize-1]:
 			gameState.getGameMode().mapSelector.textFields.append(uiElements.mapSelect(-0.93,0.0,gameState.getGameMode().mapSelector,mapData.name))
@@ -733,12 +735,9 @@ class createGameMode(tiledGameMode):
 		self.focusYPos = int(len(self.map.nodes)/2)
 		self.focusNextUnit = 1
 	def addUIElements(self):
-#		uiElements.uiElement(xPos=-1.0,yPos=1.0,width=texWidth("CREATE_GAME_BACKGROUND_TOP"),height=texHeight('CREATE_GAME_BACKGROUND_TOP'),textureIndex=texIndex('CREATE_GAME_BACKGROUND_TOP'))
-#		uiElements.uiElement(xPos=-1.0,yPos=1.0-texHeight('CREATE_GAME_BACKGROUND_TOP')+0.0018,width=texWidth("CREATE_GAME_BACKGROUND_LEFT"),height=texHeight('CREATE_GAME_BACKGROUND_LEFT'),textureIndex=texIndex('CREATE_GAME_BACKGROUND_LEFT'))
-#		uiElements.uiElement(xPos=1.0-texWidth("CREATE_GAME_BACKGROUND_RIGHT"),yPos=1.0-texHeight('CREATE_GAME_BACKGROUND_TOP'),width=texWidth("CREATE_GAME_BACKGROUND_RIGHT"),height=texHeight('CREATE_GAME_BACKGROUND_RIGHT'),textureIndex=texIndex('CREATE_GAME_BACKGROUND_RIGHT'))
-#		uiElements.uiElement(xPos=-1.0,yPos=-1.0+texHeight("CREATE_GAME_BACKGROUND_BOTTOM")+0.0034,width=2.0,height=texHeight('CREATE_GAME_BACKGROUND_BOTTOM'),textureIndex=texIndex('CREATE_GAME_BACKGROUND_BOTTOM'))
 		self.mapNameField = uiElements.uiElement(-1.0+texWidth("CREATE_GAME_BACKGROUND_LEFT"),0.85,fontIndex=3,textColor="ee ed 9b")
-		self.roomNameField = uiElements.textInputElement(0.7,-0.8)
+		self.roomNameField = uiElements.textInputElement(0.31,-0.616)
+		uiElements.createGameButton(0.717,-0.616)
 		
 gameState.setGameMode(newGameScreenMode)
 

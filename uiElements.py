@@ -150,6 +150,11 @@ class textInputElement(uiElement):
 		self.recalculateText = 0
 	def __del__(self):
 		textInputElement.elements.remove(self)
+	def setText(self,txt):
+		self.realText = txt
+		self.leftmostCharPosition = 0
+		self.cursorPosition = 0
+		self.recalculateText = 1
 	def textOkay(self):
 		self.recalculateText = 0
 		self.text = self.realText
@@ -882,8 +887,6 @@ class createRoomButton(clickableElement):
 		gameState.getGameMode().teamSize = teamSize
 		gameState.getGameMode().setMap(gameState.getMapDatas()[teamSize-1][0].name)
 
-
-
 class chatBox(textInputElement):
 	def __init__(self,xPos,yPos,klient):
 		textInputElement.__init__(self,xPos,yPos,text="",textSize=0.0005,textureIndex=texIndex("CHAT_BOX"),width=texWidth("CHAT_BOX"),textColor="FF FF FF",textXPos=0.02,textYPos=-0.045)
@@ -1068,12 +1071,12 @@ class maxPlayersField(clickableElement):
 	def onClick(self):
 		maxPlayersSelector(self.xPosition,self.yPosition-0.06,["1","2","4","8"],textSize=0.0006)
 
-class createButton(menuButton):
-	def onClick(self):
-		if(gameState.getGameMode().mapField.mapName != None):
-			gameState.getGameFindClient().sendCommand("createGameRoom",gameState.getGameMode().titleField.text + "|" + gameState.getGameMode().maxPlayersField.text.split(" ")[0] + "|" + gameState.getGameMode().mapField.mapName)
-		else:
-			smallModal("Choose a map!")
+#class createButton(menuButton):
+#	def onClick(self):
+#		if(gameState.getGameMode().mapField.mapName != None):
+#			gameState.getGameFindClient().sendCommand("createGameRoom",gameState.getGameMode().titleField.text + "|" + gameState.getGameMode().maxPlayersField.text.split(" ")[0] + "|" + gameState.getGameMode().mapField.mapName)
+#		else:
+#			smallModal("Choose a map!")
 
 class roomTitleInputElement(textInputElement):
 	def onKeyDown(self,keycode):
@@ -1198,3 +1201,13 @@ class newMapPlayerCountInputElement(textInputElement):
 		else:
 			if(keycode == "0" or keycode == "1" or keycode == "2" or keycode == "3" or keycode == "4" or keycode == "5" or keycode == "6" or keycode == "7" or keycode == "8" or keycode == "9" or keycode == "backspace"):
 				textInputElement.onKeyDown(self,keycode)
+
+#class roomNameInputElement(textInputElement):
+#	def __init__(self,xPos,yPos):
+#		textInputElement.__init__(self,xPos,yPos)
+
+class createGameButton(clickableElement):
+	def __init__(self,xPos,yPos):
+		clickableElement.__init__(self,xPos,yPos,textureIndex=texIndex("CREATE_GAME_BUTTON_LARGE"),width=texWidth("CREATE_GAME_BUTTON_LARGE"),height=texHeight("CREATE_GAME_BUTTON_LARGE"))
+	def onClick(self):
+		gameState.getGameFindClient().sendCommand("createGameRoom",gameState.getGameMode().roomNameField.realText + "|" + str(2*gameState.getGameMode().teamSize) + "|" + gameState.getGameMode().mapNameField.text)
