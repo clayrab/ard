@@ -150,3 +150,8 @@ def getNetworkPlayers():
 	with networkPlayersLock:
 		playersCopy = copy.copy(theNetworkPlayers)
 	return playersCopy
+
+def resetNetworkPlayers():
+	with networkPlayersLock:
+		theNetworkPlayers = []
+		server.NetworkPlayer.nextPlayerNumber = 1

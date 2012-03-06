@@ -41,18 +41,18 @@ class RequestHandler(SocketServer.StreamRequestHandler):
                 self.player.dispatchCommand("setPlayerNumber -1 " + str(self.player.playerNumber))
                 if(gameState.getMapName() != None):
                     self.player.dispatchCommand("setMap -1 " + gameState.getMapName())
-#                seed = time.time() * 256
-#                for player in gameState.getNetworkPlayers():
-#                    player.dispatchCommand("seedRNG -1 " + str(seed))
-#                    self.player.dispatchCommand("addPlayer -1 " + str(player.playerNumber))
-#                    if(player.playerNumber != self.player.playerNumber):
-#                        player.dispatchCommand("addPlayer -1 " + str(self.player.playerNumber))
+                seed = time.time() * 256
+                for player in gameState.getNetworkPlayers():
+                    player.dispatchCommand("seedRNG -1 " + str(seed))
+                    self.player.dispatchCommand("addPlayer -1 " + str(player.playerNumber))
+                    if(player.playerNumber != self.player.playerNumber):
+                        player.dispatchCommand("addPlayer -1 " + str(self.player.playerNumber))
                 print str(self.client_address) + " connected."
             else:
             #TODO: send command to client indicating game has started or host is no longer accepting connections...
                 print 'host is not accepting connections'
     def finish(self):
-        SocketServer.StreamRequestHandler.finish(self)
+#        SocketServer.StreamRequestHandler.finish(self)
         gameState.removeNetworkPlayer(self.player)
         print str(self.client_address) + " disconnected."
 

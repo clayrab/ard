@@ -211,6 +211,20 @@ class tiledGameMode(gameMode):
 		self.mousedOverObject = None
 		self.clickScroll = False
 		gameMode.__init__(self)
+		self.focusNextUnit = 0
+		self.focusNextUnitTemp = 0
+	def getFocusNextUnit(self):
+		return self.focusNextUnit
+#		self.focusNextUnitTemp = self.focusNextUnit
+#		self.focusNextUnit = 0
+#		return self.focusNextUnitTemp
+	def onDoneFocusing(self):
+		self.focusNextUnit = 0
+		if(hasattr(self,"nextUnit") and len(self.nextUnit.movePath) > 0 and gameState.getPlayers()[gameState.getGameMode().nextUnit.player-1].isOwnPlayer):
+			self.nextUnit.move()
+		elif(hasattr(gameState.getGameMode().mousedOverObject,"toggleCursor")):
+			gameState.getGameMode().mousedOverObject.toggleCursor()
+			
 	def handleRightClick(self,name):
 		if(self.modal == None):
 			rightClickable = False
@@ -274,8 +288,6 @@ class playMode(tiledGameMode):
 		self.units = []
 		self.elementalEffects = []
 		self.nextUnit = None
-		self.focusNextUnit = 0
-		self.focusNextUnitTemp = 0
 		self.selectedNode = None
 		tiledGameMode.__init__(self)
 		self.shiftDown = False
@@ -287,11 +299,6 @@ class playMode(tiledGameMode):
 		self.focusYPos = 0.0
 	def loadMap(self):
 		self.map = gameLogic.map(gameLogic.playModeNode)
-	def getFocusNextUnit(self):
-		return self.focusNextUnit
-#		self.focusNextUnitTemp = self.focusNextUnit
-#		self.focusNextUnit = 0
-#		return self.focusNextUnitTemp
 	def unitComparater(self,unit):
 		if (unit.waiting or (unit.attackPoints > 0.0)):
 			return 1000.0
@@ -369,13 +376,6 @@ class playMode(tiledGameMode):
 		self.focusNextUnit = 1
 		if(hasattr(gameState.getGameMode().mousedOverObject,"toggleCursor")):
 			gameState.getGameMode().mousedOverObject.toggleCursor()
-	def onDoneFocusing(self):
-		self.focusNextUnit = 0
-		if(len(self.nextUnit.movePath) > 0 and gameState.getPlayers()[gameState.getGameMode().nextUnit.player-1].isOwnPlayer):
-			self.nextUnit.move()
-		elif(hasattr(gameState.getGameMode().mousedOverObject,"toggleCursor")):
-			gameState.getGameMode().mousedOverObject.toggleCursor()
-			
 	def loadSummoners(self):
 		rowCount = 0
 		columnCount = 0
@@ -718,6 +718,7 @@ class createGameMode(tiledGameMode):
 		self.createGameMode = True
 		self.teamSize = 0
 		self.mapSelector = None
+		self.backgroundImageIndex = texIndex("CREATE_GAME_BACKGROUND")
 	def setMap(self,mapName):
 		gameState.setMapName(mapName)
 		self.map = gameLogic.map(gameLogic.mapViewNode,-60.0)
@@ -728,11 +729,14 @@ class createGameMode(tiledGameMode):
 		for mapData in gameState.getMapDatas()[self.teamSize-1]:
 			gameState.getGameMode().mapSelector.textFields.append(uiElements.mapSelect(-0.93,0.0,gameState.getGameMode().mapSelector,mapData.name))
 		gameState.getGameMode().mapSelector.redraw()
+		self.focusXPos = int(len(self.map.nodes[0])/2)
+		self.focusYPos = int(len(self.map.nodes)/2)
+		self.focusNextUnit = 1
 	def addUIElements(self):
-		uiElements.uiElement(xPos=-1.0,yPos=1.0,width=texWidth("CREATE_GAME_BACKGROUND_TOP"),height=texHeight('CREATE_GAME_BACKGROUND_TOP'),textureIndex=texIndex('CREATE_GAME_BACKGROUND_TOP'))
-		uiElements.uiElement(xPos=-1.0,yPos=1.0-texHeight('CREATE_GAME_BACKGROUND_TOP')+0.0018,width=texWidth("CREATE_GAME_BACKGROUND_LEFT"),height=texHeight('CREATE_GAME_BACKGROUND_LEFT'),textureIndex=texIndex('CREATE_GAME_BACKGROUND_LEFT'))
-		uiElements.uiElement(xPos=1.0-texWidth("CREATE_GAME_BACKGROUND_RIGHT"),yPos=1.0-texHeight('CREATE_GAME_BACKGROUND_TOP'),width=texWidth("CREATE_GAME_BACKGROUND_RIGHT"),height=texHeight('CREATE_GAME_BACKGROUND_RIGHT'),textureIndex=texIndex('CREATE_GAME_BACKGROUND_RIGHT'))
-		uiElements.uiElement(xPos=-1.0,yPos=-1.0+texHeight("CREATE_GAME_BACKGROUND_BOTTOM")+0.0034,width=2.0,height=texHeight('CREATE_GAME_BACKGROUND_BOTTOM'),textureIndex=texIndex('CREATE_GAME_BACKGROUND_BOTTOM'))
+#		uiElements.uiElement(xPos=-1.0,yPos=1.0,width=texWidth("CREATE_GAME_BACKGROUND_TOP"),height=texHeight('CREATE_GAME_BACKGROUND_TOP'),textureIndex=texIndex('CREATE_GAME_BACKGROUND_TOP'))
+#		uiElements.uiElement(xPos=-1.0,yPos=1.0-texHeight('CREATE_GAME_BACKGROUND_TOP')+0.0018,width=texWidth("CREATE_GAME_BACKGROUND_LEFT"),height=texHeight('CREATE_GAME_BACKGROUND_LEFT'),textureIndex=texIndex('CREATE_GAME_BACKGROUND_LEFT'))
+#		uiElements.uiElement(xPos=1.0-texWidth("CREATE_GAME_BACKGROUND_RIGHT"),yPos=1.0-texHeight('CREATE_GAME_BACKGROUND_TOP'),width=texWidth("CREATE_GAME_BACKGROUND_RIGHT"),height=texHeight('CREATE_GAME_BACKGROUND_RIGHT'),textureIndex=texIndex('CREATE_GAME_BACKGROUND_RIGHT'))
+#		uiElements.uiElement(xPos=-1.0,yPos=-1.0+texHeight("CREATE_GAME_BACKGROUND_BOTTOM")+0.0034,width=2.0,height=texHeight('CREATE_GAME_BACKGROUND_BOTTOM'),textureIndex=texIndex('CREATE_GAME_BACKGROUND_BOTTOM'))
 		self.mapNameField = uiElements.uiElement(-1.0+texWidth("CREATE_GAME_BACKGROUND_LEFT"),0.85,fontIndex=3,textColor="ee ed 9b")
 		self.roomNameField = uiElements.textInputElement(0.7,-0.8)
 		

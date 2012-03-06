@@ -74,6 +74,7 @@ class Commands:
         uiElements.smallModal(args)
     @staticmethod    
     def testConnectSuccess(args):
+        gameState.resetNetworkPlayers()
         gameState.getGameMode().modal.destroy()
     @staticmethod    
     def testConnectFail(args):

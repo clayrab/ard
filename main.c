@@ -369,10 +369,15 @@ static void printPyStackTrace(){
 #define CREATE_GAME_BACKGROUND_BOTTOM_WIDTH 1600
 #define CREATE_GAME_BACKGROUND_BOTTOM_INDEX 71
 
+#define CREATE_GAME_BACKGROUND "assets/createGameBackground.png"
+#define CREATE_GAME_BACKGROUND_HEIGHT 1200
+#define CREATE_GAME_BACKGROUND_WIDTH 1600
+#define CREATE_GAME_BACKGROUND_INDEX 72
+
 #define MAP_SELECTOR "assets/mapSelector.png"
 #define MAP_SELECTOR_HEIGHT 837
 #define MAP_SELECTOR_WIDTH 454
-#define MAP_SELECTOR_INDEX 72
+#define MAP_SELECTOR_INDEX 73
 
 #define DESERT_TILE_INDEX 0
 #define GRASS_TILE_INDEX 1
@@ -946,7 +951,13 @@ void drawTiles(){
   Py_DECREF(pyPolarity);
 }
 
-
+void doViewport(){
+  if(PyObject_HasAttrString(gameMode,"createGameMode")){
+    glViewport(544.0*SCREEN_WIDTH/SCREEN_BASE_WIDTH,258.0*SCREEN_HEIGHT/SCREEN_BASE_HEIGHT,991.5*SCREEN_WIDTH/SCREEN_BASE_WIDTH,824.0*SCREEN_HEIGHT/SCREEN_BASE_HEIGHT);
+  }else{
+    glViewport(0,0,SCREEN_WIDTH,SCREEN_HEIGHT);
+  }
+}
 PyObject * pyTranslateZ;
 float mapRightOffset;
 float mapTopOffset;
@@ -957,18 +968,18 @@ void calculateTranslation(){
   pyMapHeight = PyObject_CallMethod(theMap,"getHeight",NULL);//New reference
   mapWidth = PyLong_AsLong(pyMapWidth);
   mapHeight = PyLong_AsLong(pyMapHeight);
-  //for some reason, mousemappos needs to be found before setting the viewport...?
-  //  glViewport(0,0,SCREEN_WIDTH,SCREEN_HEIGHT);
   if(PyObject_HasAttrString(gameMode,"createGameMode")){
-    glViewport((float)CREATE_GAME_BACKGROUND_LEFT_WIDTH*(float)SCREEN_WIDTH/(float)SCREEN_BASE_WIDTH,(float)CREATE_GAME_BACKGROUND_BOTTOM_HEIGHT*(float)SCREEN_HEIGHT/(float)SCREEN_BASE_HEIGHT,(float)SCREEN_WIDTH - (((float)CREATE_GAME_BACKGROUND_LEFT_WIDTH+(float)CREATE_GAME_BACKGROUND_RIGHT_WIDTH)*(float)SCREEN_WIDTH/(float)SCREEN_BASE_WIDTH), (float)SCREEN_HEIGHT - (((float)CREATE_GAME_BACKGROUND_TOP_HEIGHT+(float)CREATE_GAME_BACKGROUND_BOTTOM_HEIGHT)*(float)SCREEN_HEIGHT/(float)SCREEN_BASE_HEIGHT));
+    //TODO HARD CODE THESE NUMBERS SINCE THE TEXTURES ARE NO LONGER USED
+    //convertWindowCoordsToViewportCoords(544.0*SCREEN_WIDTH/SCREEN_BASE_WIDTH,258.0*SCREEN_HEIGHT/SCREEN_BASE_HEIGHT,translateZ,&convertedBottomLeftX,&convertedBottomLeftY,&convertedBottomLeftZ);    
     convertWindowCoordsToViewportCoords((float)CREATE_GAME_BACKGROUND_LEFT_WIDTH*(float)SCREEN_WIDTH/(float)SCREEN_BASE_WIDTH,SCREEN_HEIGHT-(((float)CREATE_GAME_BACKGROUND_BOTTOM_HEIGHT*(float)SCREEN_HEIGHT)/(float)SCREEN_BASE_HEIGHT),translateZ,&convertedBottomLeftX,&convertedBottomLeftY,&convertedBottomLeftZ);
     convertWindowCoordsToViewportCoords((float)SCREEN_WIDTH-((float)CREATE_GAME_BACKGROUND_RIGHT_WIDTH*(float)SCREEN_WIDTH/(float)SCREEN_BASE_WIDTH),(float)CREATE_GAME_BACKGROUND_TOP_HEIGHT*(float)SCREEN_HEIGHT/(float)SCREEN_BASE_HEIGHT,translateZ,&convertedTopRightX,&convertedTopRightY,&convertedTopRightZ);
   }else{
-    glViewport(0,0,SCREEN_WIDTH,SCREEN_HEIGHT);
     convertWindowCoordsToViewportCoords(UI_MAP_EDITOR_LEFT_IMAGE_WIDTH,SCREEN_HEIGHT,translateZ,&convertedBottomLeftX,&convertedBottomLeftY,&convertedBottomLeftZ);
     convertWindowCoordsToViewportCoords(SCREEN_WIDTH,0.0,translateZ,&convertedTopRightX,&convertedTopRightY,&convertedTopRightZ);
   }
+
   convertWindowCoordsToViewportCoords(mouseX,mouseY,translateZ,&mouseMapPosX,&mouseMapPosY,&mouseMapPosZ);
+
   if(theMap != NULL){
     pyTranslateZ = PyObject_GetAttrString(theMap,"translateZ");
     translateZ = PyFloat_AsDouble(pyTranslateZ);
@@ -1016,11 +1027,6 @@ void calculateTranslation(){
     translateX = translateX-((translateX+focusXPos)/focusSpeed);
     translateY = translateY-((translateY+focusYPos)/focusSpeed);
   }
-  if(abs(100.0*(translateZ - translateZPrev)) > 0){
-    translateZ = translateZPrev + ((translateZ - translateZPrev)/zoomSpeed);
-    translateZPrev = translateZ;
-  }
-
   //The following code will adjust translateX/Y so that no off-map area is shown
   if(translateX - mapRightOffset < convertedTopRightX){
     translateX = convertedTopRightX + mapRightOffset;
@@ -1048,6 +1054,23 @@ void calculateTranslation(){
       translateY = (convertedTopRightY-mapTopOffset+convertedBottomLeftY+2.0)/2.0;
     }
   }
+  if(translateX - mapRightOffset < convertedTopRightX
+     && translateX - (2.0*SIN60) > convertedBottomLeftX
+     && translateY < convertedTopRightY - mapTopOffset
+     && translateY > convertedBottomLeftY+2.0
+     && translateZ < translateZPrev){
+    translateZ = translateZPrev;
+    pyObj = PyObject_CallMethod(theMap,"setTranslateZ","f",translateZ);//New reference
+    Py_DECREF(pyObj);
+
+  }else{
+  //    translateZ = translateZPrev;
+  if(abs(100.0*(translateZ - translateZPrev)) > 0){
+    translateZ = translateZPrev + ((translateZ - translateZPrev)/zoomSpeed);
+    translateZPrev = translateZ;
+  }
+  }
+
   //glTranslatef(translateX,translateY,mouseMapPosZ);
   if(theMap != Py_None && theMap != NULL){
     Py_DECREF(pyMapWidth);
@@ -1375,7 +1398,8 @@ static void initGL (){
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);     
   //  glClear(GL_COLOR_BUFFER_BIT);
-  glDepthFunc(GL_LEQUAL);
+  glDepthFunc(GL_ALWAYS);    
+    //  glDepthFunc(GL_LEQUAL);
   screenRatio = (GLfloat)SCREEN_WIDTH/(GLfloat)SCREEN_HEIGHT;
 
   //  char file[100] = TILES_IMAGE;
@@ -1452,6 +1476,7 @@ static void initGL (){
   pngLoad(&texturesArray[CREATE_GAME_BACKGROUND_RIGHT_INDEX],CREATE_GAME_BACKGROUND_RIGHT);
   pngLoad(&texturesArray[CREATE_GAME_BACKGROUND_TOP_INDEX],CREATE_GAME_BACKGROUND_TOP);
   pngLoad(&texturesArray[CREATE_GAME_BACKGROUND_BOTTOM_INDEX],CREATE_GAME_BACKGROUND_BOTTOM);
+  pngLoad(&texturesArray[CREATE_GAME_BACKGROUND_INDEX],CREATE_GAME_BACKGROUND);
   pngLoad(&texturesArray[MAP_SELECTOR_INDEX],MAP_SELECTOR);
 
   vertexArrays[DESERT_TILE_INDEX] = *desertVertices;
@@ -1816,6 +1841,29 @@ static void handleInput(){
     }
   }
 }
+PyObject * pyBackgroundImageIndex;
+int backgroundImageIndex;
+void drawBackground(){
+  if(PyObject_HasAttrString(gameMode,"backgroundImageIndex")){
+    pyBackgroundImageIndex = PyObject_GetAttrString(gameMode, "backgroundImageIndex");//New reference
+    backgroundImageIndex = PyLong_AsLong(pyBackgroundImageIndex);
+    
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    glBindTexture(GL_TEXTURE_2D, texturesArray[backgroundImageIndex]);
+    //    glDepthFunc(GL_ALWAYS);    
+    glBegin(GL_QUADS);
+    glTexCoord2f(0.0,0.0); glVertex3f(-1.0,-1.0,0.01);
+    glTexCoord2f(1.0,0.0); glVertex3f(1.0,-1.0,0.01);
+    glTexCoord2f(1.0,1.0); glVertex3f(1.0,1.0,0.01);
+    glTexCoord2f(0.0,1.0); glVertex3f(-1.0,1.0,0.01);
+    glEnd();
+    Py_DECREF(pyBackgroundImageIndex);
+  //  glDepthFunc(GL_LEQUAL);
+  }
+}
 GLint viewport[4];
 GLint hitsCnt;
 static void draw(){
@@ -1846,8 +1894,8 @@ static void draw(){
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
   if(PyObject_HasAttrString(gameMode,"createGameMode")){
-    glViewport((float)CREATE_GAME_BACKGROUND_LEFT_WIDTH*(float)SCREEN_WIDTH/(float)SCREEN_BASE_WIDTH,(float)CREATE_GAME_BACKGROUND_BOTTOM_HEIGHT*(float)SCREEN_HEIGHT/(float)SCREEN_BASE_HEIGHT,(float)SCREEN_WIDTH - (((float)CREATE_GAME_BACKGROUND_LEFT_WIDTH+(float)CREATE_GAME_BACKGROUND_RIGHT_WIDTH)*(float)SCREEN_WIDTH/(float)SCREEN_BASE_WIDTH), (float)SCREEN_HEIGHT - (((float)CREATE_GAME_BACKGROUND_TOP_HEIGHT+(float)CREATE_GAME_BACKGROUND_BOTTOM_HEIGHT)*(float)SCREEN_HEIGHT/(float)SCREEN_BASE_HEIGHT));
-    //glViewport((float)CREATE_GAME_BACKGROUND_LEFT_WIDTH*(float)SCREEN_WIDTH/(float)SCREEN_BASE_WIDTH,(float)CREATE_GAME_BACKGROUND_BOTTOM_HEIGHT*(float)SCREEN_HEIGHT/(float)SCREEN_BASE_HEIGHT,(float)SCREEN_WIDTH - (((float)CREATE_GAME_BACKGROUND_LEFT_WIDTH+(float)CREATE_GAME_BACKGROUND_RIGHT_WIDTH)/(float)SCREEN_BASE_WIDTH), (float)SCREEN_HEIGHT - (((float)CREATE_GAME_BACKGROUND_TOP_HEIGHT+CREATE_GAME_BACKGROUND_BOTTOM_HEIGHT)/SCREEN_BASE_HEIGHT));
+    //    glViewport((float)CREATE_GAME_BACKGROUND_LEFT_WIDTH*(float)SCREEN_WIDTH/(float)SCREEN_BASE_WIDTH,(float)CREATE_GAME_BACKGROUND_BOTTOM_HEIGHT*(float)SCREEN_HEIGHT/(float)SCREEN_BASE_HEIGHT,(float)SCREEN_WIDTH - (((float)CREATE_GAME_BACKGROUND_LEFT_WIDTH+(float)CREATE_GAME_BACKGROUND_RIGHT_WIDTH)*(float)SCREEN_WIDTH/(float)SCREEN_BASE_WIDTH), (float)SCREEN_HEIGHT - (((float)CREATE_GAME_BACKGROUND_TOP_HEIGHT+(float)CREATE_GAME_BACKGROUND_BOTTOM_HEIGHT)*(float)SCREEN_HEIGHT/(float)SCREEN_BASE_HEIGHT));
+    glViewport(544.0*SCREEN_WIDTH/SCREEN_BASE_WIDTH,258.0*SCREEN_HEIGHT/SCREEN_BASE_HEIGHT,SCREEN_WIDTH-(610.0*SCREEN_WIDTH/SCREEN_BASE_WIDTH),SCREEN_HEIGHT-(376.0*SCREEN_HEIGHT/SCREEN_BASE_HEIGHT));
   }else{
     glViewport(0,0,SCREEN_WIDTH,SCREEN_HEIGHT);
   }
@@ -1880,6 +1928,7 @@ static void draw(){
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		
 
+  drawBackground();
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
   glGetIntegerv(GL_VIEWPORT,viewport);
@@ -1887,9 +1936,24 @@ static void draw(){
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
 
-  calculateTranslation();
+
+  
+  doViewport();
+  //    glViewport(544.0*SCREEN_WIDTH/SCREEN_BASE_WIDTH,258.0*SCREEN_HEIGHT/SCREEN_BASE_HEIGHT,991.5*SCREEN_WIDTH/SCREEN_BASE_WIDTH,824.0*SCREEN_HEIGHT/SCREEN_BASE_HEIGHT);
+
+  //    glBindTexture(GL_TEXTURE_2D, texturesArray[0]);
+    glColor3f(0.0,0.0,0.0);
+    glBegin(GL_QUADS);
+    glTexCoord2f(0.0,0.0); glVertex3f(-1.0,-1.0,-1.01);
+    glTexCoord2f(1.0,0.0); glVertex3f(1.0,-1.0,-1.01);
+    glTexCoord2f(1.0,1.0); glVertex3f(1.0,1.0,-1.01);
+    glTexCoord2f(0.0,1.0); glVertex3f(-1.0,1.0,-1.01);
+    glEnd();
+calculateTranslation();
+
+  
   glTranslatef(translateX,translateY,translateZ);
-  drawBoard();  
+  drawBoard();
 
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();

@@ -631,6 +631,8 @@ class map:
 		self.nodeType = nodeType
 		self.translateZ = translateZ
 		self.load()
+	def setTranslateZ(self,transZ):
+		self.translateZ = transZ
 	def getWidth(self):
 		return len(self.nodes[0])
 	def getHeight(self):
