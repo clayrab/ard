@@ -14,7 +14,7 @@
 #player count
 #kick player from room if it's full when they join
 #    show each player status (connecting, connected, ready)
-#show map info(perhaps just size, units available, and city count would be sufficient for now?)
+#need to show city info and start positions when previewing maps
 
 #MISSING FEATURES
 #testing connection timeout
