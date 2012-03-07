@@ -614,8 +614,9 @@ class mapEditorNode(node):
 					self.playerStartValue = gameState.getGameMode().selectedButton.playerNumber
 
 class mapViewNode(node):
-	def foo(self):
-		print 'foo'
+	def onClick(self):
+		print 'click'
+		print self.city
 
 class mapData:
 	def __init__(self,name,mapDataString):
