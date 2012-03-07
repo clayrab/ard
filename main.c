@@ -1891,67 +1891,48 @@ static void draw(){
   glSelectBuffer(BUFSIZE,selectBuf);//glSelectBuffer must be issued before selection mode is enabled, and it must not be issued while the rendering mode is GL_SELECT.
   glRenderMode(GL_SELECT);
 
-  glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();
-  if(PyObject_HasAttrString(gameMode,"createGameMode")){
-    //    glViewport((float)CREATE_GAME_BACKGROUND_LEFT_WIDTH*(float)SCREEN_WIDTH/(float)SCREEN_BASE_WIDTH,(float)CREATE_GAME_BACKGROUND_BOTTOM_HEIGHT*(float)SCREEN_HEIGHT/(float)SCREEN_BASE_HEIGHT,(float)SCREEN_WIDTH - (((float)CREATE_GAME_BACKGROUND_LEFT_WIDTH+(float)CREATE_GAME_BACKGROUND_RIGHT_WIDTH)*(float)SCREEN_WIDTH/(float)SCREEN_BASE_WIDTH), (float)SCREEN_HEIGHT - (((float)CREATE_GAME_BACKGROUND_TOP_HEIGHT+(float)CREATE_GAME_BACKGROUND_BOTTOM_HEIGHT)*(float)SCREEN_HEIGHT/(float)SCREEN_BASE_HEIGHT));
-    glViewport(544.0*SCREEN_WIDTH/SCREEN_BASE_WIDTH,258.0*SCREEN_HEIGHT/SCREEN_BASE_HEIGHT,SCREEN_WIDTH-(610.0*SCREEN_WIDTH/SCREEN_BASE_WIDTH),SCREEN_HEIGHT-(376.0*SCREEN_HEIGHT/SCREEN_BASE_HEIGHT));
-  }else{
-    glViewport(0,0,SCREEN_WIDTH,SCREEN_HEIGHT);
-  }
-
+  doViewport();
   theCursorIndex = -1;
+  glGetIntegerv(GL_VIEWPORT,viewport);
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-  glGetIntegerv(GL_VIEWPORT,viewport);
   gluPickMatrix(mouseX,SCREEN_HEIGHT-mouseY,1,1,viewport);
   gluPerspective(45.0f,(float)viewport[2]/(float)viewport[3],minZoom,maxZoom);
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
   glTranslatef(translateX,translateY,translateZ);
   drawBoard();
-  //  glPushMatrix();
 
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
   glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
   glGetIntegerv(GL_VIEWPORT,viewport);
-  glFlush();
   gluPickMatrix(mouseX,SCREEN_HEIGHT-mouseY,1,1,viewport);
-  glFlush();
-  
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
   drawUI();
+
   hitsCnt = glRenderMode(GL_RENDER);
   processTheHits(hitsCnt,selectBuf);
-
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		
 
   drawBackground();
+
+  doViewport();
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
   glGetIntegerv(GL_VIEWPORT,viewport);
   gluPerspective(45.0f,(float)viewport[2]/(float)viewport[3],minZoom,maxZoom);
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
-
-
-  
-  doViewport();
-  //    glViewport(544.0*SCREEN_WIDTH/SCREEN_BASE_WIDTH,258.0*SCREEN_HEIGHT/SCREEN_BASE_HEIGHT,991.5*SCREEN_WIDTH/SCREEN_BASE_WIDTH,824.0*SCREEN_HEIGHT/SCREEN_BASE_HEIGHT);
-
-  //    glBindTexture(GL_TEXTURE_2D, texturesArray[0]);
-    glColor3f(0.0,0.0,0.0);
-    glBegin(GL_QUADS);
-    glTexCoord2f(0.0,0.0); glVertex3f(-1.0,-1.0,-1.01);
-    glTexCoord2f(1.0,0.0); glVertex3f(1.0,-1.0,-1.01);
-    glTexCoord2f(1.0,1.0); glVertex3f(1.0,1.0,-1.01);
-    glTexCoord2f(0.0,1.0); glVertex3f(-1.0,1.0,-1.01);
-    glEnd();
-calculateTranslation();
-
-  
+  glColor3f(0.0,0.0,0.0);
+  glBegin(GL_QUADS);
+  glTexCoord2f(0.0,0.0); glVertex3f(-1.0,-1.0,-1.01);
+  glTexCoord2f(1.0,0.0); glVertex3f(1.0,-1.0,-1.01);
+  glTexCoord2f(1.0,1.0); glVertex3f(1.0,1.0,-1.01);
+  glTexCoord2f(0.0,1.0); glVertex3f(-1.0,1.0,-1.01);
+  glEnd();
+  calculateTranslation();
   glTranslatef(translateX,translateY,translateZ);
   drawBoard();
 
@@ -1959,9 +1940,7 @@ calculateTranslation();
   glLoadIdentity();
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
-  
   glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-
   drawUI();
 
   glFlush();

@@ -1,7 +1,7 @@
-#ALL GRAPHICS SHOULD BE CREATED BASED ON 1600x1200 RESOLUTION WHICH WILL BE RENDERED DOWN TO 1280x960 FOR NOW
 #icons for each unit
 
 #webpage
+#google analytics
 #SSL
 #registration
 #distribution
@@ -737,7 +737,8 @@ class createGameMode(tiledGameMode):
 	def addUIElements(self):
 		self.mapNameField = uiElements.uiElement(-1.0+texWidth("CREATE_GAME_BACKGROUND_LEFT"),0.85,fontIndex=3,textColor="ee ed 9b")
 		self.roomNameField = uiElements.textInputElement(0.31,-0.616)
-		uiElements.createGameButton(0.717,-0.616)
-		
+		uiElements.createGameButton(0.717,-0.616)		
+		uiElements.uiElement(-0.930,0.9,width=texWidth("BACK_BUTTON"),height=texHeight("BACK_BUTTON"),textureIndex=texIndex("BACK_BUTTON"))
+
 gameState.setGameMode(newGameScreenMode)
 
