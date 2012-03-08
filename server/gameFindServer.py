@@ -52,14 +52,18 @@ class Connection(basic.LineReceiver):
         for subscriber in room.subscribers:
             subscriber.subscribe(room.parent.name)
             subscriber.sendCommand("showMessage","The game you are in no longer exists")
+        for subscriber in room.parent.subscribers:
+            subscriber.sendCommand("removeRoom",room.name)
         del rooms[room.name]
-        #TODO: dispatch message to subscribers and subscribe them to parent
     #BEGIN COMMANDS
-    def subscribe(self,args):
-        roomName = args
+    def subscribe(self,roomName):
+#        roomName = args
         response = ""
         if(self.currentRoom != None):
-            rooms[self.currentRoom.name].subscribers.remove(self) 
+            rooms[self.currentRoom.name].subscribers.remove(self)
+        if(self.ownedRoom != None and self.ownedRoom.name != roomName):
+            self.destroyRoom(self.ownedRoom)
+            self.ownedRoom = None
         self.currentRoom = rooms[roomName]
         if(rooms[roomName].mapName != None):
             for subscriber in self.currentRoom.subscribers:
@@ -74,28 +78,31 @@ class Connection(basic.LineReceiver):
             for room in rooms[roomName].childRooms:
                 response = response + "|" + room.name + "-" + str(len(room.subscribers))
             self.sendCommand("showRoom",roomName + response)
+    def chat(self, args):
+        for subscriber in self.currentRoom.subscribers:
+            subscriber.sendCommand("showChat",args)
     def testServer(self,args):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.settimeout(5)
         try:
             sock.connect((self.transport.getPeer().host,int(args)))
             self.sendCommand("testConnectSuccess","")
-            print 'success'
+#            sock.shutdown()
+            sock.close()
         except:
             self.subscribe("lobby")
             self.sendCommand("testConnectFail","")
-            print 'socket connect failed'
     def createGameRoom(self,args):
         tokens = args.split("|")
+        if tokens[0] in rooms:
+            self.sendCommand("showMessage","This game name is already taken.")
+            return
         if(self.ownedRoom != None):
             self.destroyRoom(self.ownedRoom)
         self.ownedRoom = Room(tokens[0],self.currentRoom,tokens[2],tokens[1],self.transport.getPeer().host + ":" + str(self.transport.getPeer().port))
         self.subscribe(self.ownedRoom.name)
-#        self.sendCommand("showGameRoom",roomName + response)
         for subscriber in self.ownedRoom.parent.subscribers:
             subscriber.sendCommand("addRoom",self.ownedRoom.name + "-" + str(len(self.ownedRoom.subscribers)))
-            print subscriber
-            #send new room notification to each subscriber here
     def login(self,args):
 #        strArgs = " ".join(args)
 #        strArgs = str(rsaKey.decrypt(args))
@@ -116,7 +123,8 @@ class Connection(basic.LineReceiver):
             print "TODO: Send failed login message to client!"
     #END COMMANDS
     def doCommand(self,commandName,arguments=None):
-        if(self.loggedIn or commandName == "login"):
+#        if((self.loggedIn or commandName == "login") and commandName != "seedRNG" and commandName != "setPlayerNumber" and commandName != "setMap"):#when testing the host, these commands will come back
+        if((self.loggedIn or commandName == "login")):
             commandFunc = getattr(self,commandName)
             if(commandFunc != None):
                 commandFunc(arguments)
