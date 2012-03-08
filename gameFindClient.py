@@ -24,6 +24,8 @@ class Commands:
         tokens = args.split("*",3)
         gameState.setMapName(tokens[1])
         gameState.setGameMode(gameModes.joinGameMode,tokens)
+        print tokens[2]
+#        client.startClient(tokens[2])
     @staticmethod
     def addPlayer(args):	    
         gameState.getGameMode().addPlayer(args)

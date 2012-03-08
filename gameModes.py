@@ -19,6 +19,7 @@
 
 #MISSING FEATURES
 #***** out login password
+#map name clickable to view map
 #submit login button
 #testing connection timeout
 #gatherers and summoners should not be able to move once they begin gathering or summoning. summoners don't get turns, they can build at any time.
@@ -652,7 +653,7 @@ class hostLANGameScreenMode(gameMode):
 			height = height - 0.1
 	def addUIElements(self):
 		server.startServer('')
-		client.startClient('127.0.0.1')
+#		client.startClient('127.0.0.1')
 		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])	
 		uiElements.uiElement(-0.15,0.9,text="lan game")
 		uiElements.uiElement(-0.85,0.8,text="players")
@@ -702,12 +703,17 @@ class joinGameMode(tiledGameMode):
 		print args
 		self.roomName = args[0]
 		self.mapName = args[1]
-		self.hostStr = args[2]
+		hostTokens = args[2].split(":")
+		self.hostIP = hostTokens[0]
+		self.hostPort = int(hostTokens[1])
+		
 		self.teamSize = int(args[3])
 		self.joinGameMode = True
 		self.backgroundImageIndex = texIndex("JOIN_GAME_BACKGROUND")
 		self.selectedNode = None
 		self.playerElements = []
+		if(gameState.getClient() == None):
+			client.startClient(self.hostIP,self.hostPort)
 	def addPlayer(self,playerName):
 		for elem in self.playerElements:
 			if(elem.text == "empty"):
@@ -731,9 +737,6 @@ class joinGameMode(tiledGameMode):
 					previousElem.mouseOverColor = "ff ff ff"
 			if(elem.text == playerName):
 				previousElem = elem
-						      
-				
-			print playerName
 	def loadMap(self):
 		self.map = gameLogic.map(gameLogic.mapViewNode,-60.0)
 		self.focusXPos = int(len(self.map.nodes[0])/2)

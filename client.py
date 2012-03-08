@@ -275,8 +275,8 @@ class Client:
                 doCommand(command)
         self.socket.send(command + " " + str(gameState.getPlayerNumber()) + " " + argsString + "|")
 
-def startClient(hostIP):
-    gameState.setClient(Client(hostIP))
+def startClient(hostIP,hostPort=-1):
+    gameState.setClient(Client(hostIP,hostPort))
 #    clientThread = ClientThread(hostIP)
 #    clientThread.daemon = True
 #    clientThread.start()

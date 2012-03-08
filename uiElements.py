@@ -790,7 +790,6 @@ class roomSelector(scrollableTextFieldsElement):
 		scrollableTextFieldsElement.__init__(self,xPos,yPos,[],width=texWidth("ROOMS_DISPLAY"),height=texHeight("ROOMS_DISPLAY"),textureIndex=texIndex("ROOMS_DISPLAY"),text=text,textColor=textColor,textSize=textSize,color=color,mouseOverColor=mouseOverColor,xPositionOffset=0.01,yPositionOffset=0.06,lineHeight=0.041)
 		self.rooms = rooms
 		for room in rooms:
-			print room
 			self.textFields.append(scrollableRoomElement(self.xPosition+self.xPositionOffset,0.0,room[0],room[1],room[2],2*int(room[3])))
 		self.redraw()
 	def handleClick(self,textFieldElem):
