@@ -312,7 +312,7 @@ class node:
 	def onKeyDown(self,keycode):
 		if(keycode == "`"):
 			gameState.getGameMode().clickScroll = True
-		if(hasattr(self,"toggleCursor")):
+ 		if(hasattr(self,"toggleCursor")):
 			self.toggleCursor()
 	def onKeyUp(self,keycode):
 		if(keycode == "`"):
@@ -392,7 +392,7 @@ class playModeNode(node):
 				uiElements.unitViewer.theUnitViewer.unit.move()
 			else:
 				uiElements.unitViewer.theUnitViewer.unit.movePath = uiElements.unitViewer.theUnitViewer.unit.node.movePath
-				gameState.getClient().sendCommand("stopWaiting",str(uiElements.actionViewer.theActionViewer.node.xPos) + " " + str(uiElements.actionViewer.theActionViewer.node.yPos))
+				gameState.getClient().sendCommand("stopWaiting",str(uiElements.actionViewer.theViewer.node.xPos) + " " + str(uiElements.actionViewer.theViewer.node.yPos))
 
 				uiElements.unitViewer.theUnitViewer.reset()
 			for node in uiElements.unitViewer.theUnitViewer.unit.movePath:
@@ -614,7 +614,9 @@ class mapEditorNode(node):
 					self.playerStartValue = gameState.getGameMode().selectedButton.playerNumber
 
 class mapViewNode(node):
+#	def __init__(self)
 	def onClick(self):
+		selectNode(self,uiElements.cityViewer)
 		print 'click'
 		print self.city
 
@@ -754,7 +756,7 @@ class map:
 	def setNumPlayers(self,numPlayers):
 		self.numPlayers = numPlayers
 
-def selectNode(node):
+def selectNode(node,actionViewer=uiElements.actionViewer):
 	if(gameState.getGameMode().selectedNode != None):
 		gameState.getGameMode().selectedNode.selected = False
 		if(gameState.getGameMode().selectedNode.unit != None and len(gameState.getGameMode().selectedNode.unit.movePath) > 0):
@@ -762,12 +764,12 @@ def selectNode(node):
 				pathNode.onMovePath = False
 	gameState.getGameMode().selectedNode = node
 	node.selected = True
-	uiElements.actionViewer.destroy()
+	actionViewer.destroy()
 	uiElements.unitViewer.destroy()
 	uiElements.unitTypeResearchViewer.destroy()
 	uiElements.unitTypeBuildViewer.destroy()
 	if(node.city != None):
-		uiElements.actionViewer.theActionViewer = uiElements.actionViewer(node)
+		actionViewer.theViewer = actionViewer(node)
 	if(node.unit != None and node.visible):
 		uiElements.unitViewer.theUnitViewer = uiElements.unitViewer(node.unit)
 	if(node.unit != None and len(node.unit.movePath) > 0):

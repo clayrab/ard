@@ -379,6 +379,31 @@ static void printPyStackTrace(){
 #define MAP_SELECTOR_WIDTH 454
 #define MAP_SELECTOR_INDEX 73
 
+#define JOIN_GAME_BACKGROUND "assets/joinRoomBackground.png"
+#define JOIN_GAME_BACKGROUND_HEIGHT 1200
+#define JOIN_GAME_BACKGROUND_WIDTH 1600
+#define JOIN_GAME_BACKGROUND_INDEX 74
+
+#define JOIN_GAME_CHAT "assets/joinRoomChat.png"
+#define JOIN_GAME_CHAT_HEIGHT 540
+#define JOIN_GAME_CHAT_WIDTH 454
+#define JOIN_GAME_CHAT_INDEX 75
+
+#define JOIN_GAME_CHAT_BOX "assets/joinRoomChatBox.png"
+#define JOIN_GAME_CHAT_BOX_HEIGHT 41
+#define JOIN_GAME_CHAT_BOX_WIDTH 454
+#define JOIN_GAME_CHAT_BOX_INDEX 76
+
+#define JOIN_GAME_PLAYERS "assets/joinRoomPlayers.png"
+#define JOIN_GAME_PLAYERS_HEIGHT 177
+#define JOIN_GAME_PLAYERS_WIDTH 454
+#define JOIN_GAME_PLAYERS_INDEX 77
+
+#define START_BUTTON "assets/startButton.png"
+#define START_BUTTON_HEIGHT 40
+#define START_BUTTON_WIDTH 97
+#define START_BUTTON_INDEX 78
+
 #define DESERT_TILE_INDEX 0
 #define GRASS_TILE_INDEX 1
 #define MOUNTAIN_TILE_INDEX 2
@@ -952,7 +977,9 @@ void drawTiles(){
 }
 
 void doViewport(){
-  if(PyObject_HasAttrString(gameMode,"createGameMode")){
+  if(PyObject_HasAttrString(gameMode,"joinGameMode")){
+    glViewport(60.0*SCREEN_WIDTH/SCREEN_BASE_WIDTH,258.0*SCREEN_HEIGHT/SCREEN_BASE_HEIGHT,991.5*SCREEN_WIDTH/SCREEN_BASE_WIDTH,824.0*SCREEN_HEIGHT/SCREEN_BASE_HEIGHT);
+  }else if(PyObject_HasAttrString(gameMode,"createGameMode")){
     glViewport(544.0*SCREEN_WIDTH/SCREEN_BASE_WIDTH,258.0*SCREEN_HEIGHT/SCREEN_BASE_HEIGHT,991.5*SCREEN_WIDTH/SCREEN_BASE_WIDTH,824.0*SCREEN_HEIGHT/SCREEN_BASE_HEIGHT);
   }else{
     glViewport(0,0,SCREEN_WIDTH,SCREEN_HEIGHT);
@@ -968,11 +995,12 @@ void calculateTranslation(){
   pyMapHeight = PyObject_CallMethod(theMap,"getHeight",NULL);//New reference
   mapWidth = PyLong_AsLong(pyMapWidth);
   mapHeight = PyLong_AsLong(pyMapHeight);
-  if(PyObject_HasAttrString(gameMode,"createGameMode")){
-    //TODO HARD CODE THESE NUMBERS SINCE THE TEXTURES ARE NO LONGER USED
-    //convertWindowCoordsToViewportCoords(544.0*SCREEN_WIDTH/SCREEN_BASE_WIDTH,258.0*SCREEN_HEIGHT/SCREEN_BASE_HEIGHT,translateZ,&convertedBottomLeftX,&convertedBottomLeftY,&convertedBottomLeftZ);    
-    convertWindowCoordsToViewportCoords((float)CREATE_GAME_BACKGROUND_LEFT_WIDTH*(float)SCREEN_WIDTH/(float)SCREEN_BASE_WIDTH,SCREEN_HEIGHT-(((float)CREATE_GAME_BACKGROUND_BOTTOM_HEIGHT*(float)SCREEN_HEIGHT)/(float)SCREEN_BASE_HEIGHT),translateZ,&convertedBottomLeftX,&convertedBottomLeftY,&convertedBottomLeftZ);
-    convertWindowCoordsToViewportCoords((float)SCREEN_WIDTH-((float)CREATE_GAME_BACKGROUND_RIGHT_WIDTH*(float)SCREEN_WIDTH/(float)SCREEN_BASE_WIDTH),(float)CREATE_GAME_BACKGROUND_TOP_HEIGHT*(float)SCREEN_HEIGHT/(float)SCREEN_BASE_HEIGHT,translateZ,&convertedTopRightX,&convertedTopRightY,&convertedTopRightZ);
+  if(PyObject_HasAttrString(gameMode,"joinGameMode")){
+    convertWindowCoordsToViewportCoords(60.0*SCREEN_WIDTH/SCREEN_BASE_WIDTH,SCREEN_HEIGHT-(258.0*SCREEN_HEIGHT/SCREEN_BASE_HEIGHT),translateZ,&convertedBottomLeftX,&convertedBottomLeftY,&convertedBottomLeftZ);
+    convertWindowCoordsToViewportCoords(1051.5*SCREEN_WIDTH/SCREEN_BASE_WIDTH,SCREEN_HEIGHT-(1082.0*SCREEN_HEIGHT/SCREEN_BASE_HEIGHT),translateZ,&convertedTopRightX,&convertedTopRightY,&convertedTopRightZ);
+  }else if(PyObject_HasAttrString(gameMode,"createGameMode")){
+    convertWindowCoordsToViewportCoords(544.0*SCREEN_WIDTH/SCREEN_BASE_WIDTH,SCREEN_HEIGHT-(258.0*SCREEN_HEIGHT/SCREEN_BASE_HEIGHT),translateZ,&convertedBottomLeftX,&convertedBottomLeftY,&convertedBottomLeftZ);
+    convertWindowCoordsToViewportCoords(1535.5*SCREEN_WIDTH/SCREEN_BASE_WIDTH,SCREEN_HEIGHT-(1082.0*SCREEN_HEIGHT/SCREEN_BASE_HEIGHT),translateZ,&convertedTopRightX,&convertedTopRightY,&convertedTopRightZ);
   }else{
     convertWindowCoordsToViewportCoords(UI_MAP_EDITOR_LEFT_IMAGE_WIDTH,SCREEN_HEIGHT,translateZ,&convertedBottomLeftX,&convertedBottomLeftY,&convertedBottomLeftZ);
     convertWindowCoordsToViewportCoords(SCREEN_WIDTH,0.0,translateZ,&convertedTopRightX,&convertedTopRightY,&convertedTopRightZ);
@@ -1478,6 +1506,11 @@ static void initGL (){
   pngLoad(&texturesArray[CREATE_GAME_BACKGROUND_BOTTOM_INDEX],CREATE_GAME_BACKGROUND_BOTTOM);
   pngLoad(&texturesArray[CREATE_GAME_BACKGROUND_INDEX],CREATE_GAME_BACKGROUND);
   pngLoad(&texturesArray[MAP_SELECTOR_INDEX],MAP_SELECTOR);
+  pngLoad(&texturesArray[JOIN_GAME_BACKGROUND_INDEX],JOIN_GAME_BACKGROUND);
+  pngLoad(&texturesArray[JOIN_GAME_CHAT_INDEX],JOIN_GAME_CHAT);
+  pngLoad(&texturesArray[JOIN_GAME_CHAT_BOX_INDEX],JOIN_GAME_CHAT_BOX);
+  pngLoad(&texturesArray[JOIN_GAME_PLAYERS_INDEX],JOIN_GAME_PLAYERS);
+  pngLoad(&texturesArray[START_BUTTON_INDEX],START_BUTTON);
 
   vertexArrays[DESERT_TILE_INDEX] = *desertVertices;
   vertexArrays[GRASS_TILE_INDEX] = *grassVertices;
@@ -1876,9 +1909,10 @@ static void draw(){
   glClearDepth(1.0);
   //this needs to be done before glClear...
   //when the mouse is under the pixel this breaks, so we test three points and find any two that match
-  glReadPixels( 6*SCREEN_WIDTH/16, SCREEN_HEIGHT/2, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &mapDepthTest1 );
+  glReadPixels( 7*SCREEN_WIDTH/16, SCREEN_HEIGHT/2, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &mapDepthTest1 );
   glReadPixels( 8*SCREEN_WIDTH/16, SCREEN_HEIGHT/2, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &mapDepthTest2 );
-  glReadPixels( 10*SCREEN_WIDTH/16, SCREEN_HEIGHT/2, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &mapDepthTest3 );
+  glReadPixels( 9*SCREEN_WIDTH/16, SCREEN_HEIGHT/2, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &mapDepthTest3 );
+  //  printf("%f %f %f\n",mapDepthTest1,mapDepthTest2,mapDepthTest3);
   if(mapDepthTest1 == mapDepthTest2 || mapDepthTest1 == mapDepthTest3){
     mapDepth = mapDepthTest1;
   }else if(mapDepthTest2 == mapDepthTest3){

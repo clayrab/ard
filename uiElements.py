@@ -248,8 +248,8 @@ class hostIPInputElement(textInputElement):
 
 class startGatheringButton(clickableElement):
 	def onClick(self):
-		gameState.getClient().sendCommand("gatherTo",str(actionViewer.theActionViewer.node.xPos) + " " + str(actionViewer.theActionViewer.node.yPos) + " " + str(actionViewer.theActionViewer.node.xPos) + " " + str(actionViewer.theActionViewer.node.yPos))
-		gameState.getClient().sendCommand("wait",str(actionViewer.theActionViewer.node.xPos) + " " + str(actionViewer.theActionViewer.node.yPos))
+		gameState.getClient().sendCommand("gatherTo",str(actionViewer.theViewer.node.xPos) + " " + str(actionViewer.theViewer.node.yPos) + " " + str(actionViewer.theViewer.node.xPos) + " " + str(actionViewer.theViewer.node.yPos))
+		gameState.getClient().sendCommand("wait",str(actionViewer.theViewer.node.xPos) + " " + str(actionViewer.theViewer.node.yPos))
 		gameState.getClient().sendCommand("chooseNextUnit")
 		if(unitViewer.theUnitViewer != None):
 			unitViewer.theUnitViewer.reset()
@@ -259,21 +259,21 @@ class startSummoningButton(clickableElement):
 		clickableElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],color=color,mouseOverColor=mouseOverColor,textXPos=textXPos,textYPos=textYPos)
 		self.unitType = unitType
 	def onClick(self):
-		gameState.getClient().sendCommand("startSummoning",str(actionViewer.theActionViewer.node.xPos) + " " + str(actionViewer.theActionViewer.node.yPos) + " " + self.unitType.name)
-		if(actionViewer.theActionViewer.node.unit == gameState.getGameMode().nextUnit):
+		gameState.getClient().sendCommand("startSummoning",str(actionViewer.theViewer.node.xPos) + " " + str(actionViewer.theViewer.node.yPos) + " " + self.unitType.name)
+		if(actionViewer.theViewer.node.unit == gameState.getGameMode().nextUnit):
 			gameState.getClient().sendCommand("chooseNextUnit")
 
 class cancelUnitButton(clickableElement):
 	def onClick(self):
-		gameState.getClient().sendCommand("cancelSummoning",str(actionViewer.theActionViewer.node.xPos) + " " + str(actionViewer.theActionViewer.node.yPos))
+		gameState.getClient().sendCommand("cancelSummoning",str(actionViewer.theViewer.node.xPos) + " " + str(actionViewer.theViewer.node.yPos))
 		
 class startResearchButton(clickableElement):
        	def __init__(self,xPos,yPos,unitType,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,textXPos=0.0,textYPos=0.0):
 		clickableElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],color=color,mouseOverColor=mouseOverColor,textXPos=textXPos,textYPos=textYPos)
 		self.unitType = unitType
 	def onClick(self):
-		gameState.getClient().sendCommand("startResearch",str(actionViewer.theActionViewer.node.xPos) + " " + str(actionViewer.theActionViewer.node.yPos) + " " + self.unitType.name)
-		if(gameState.getGameMode().nextUnit == actionViewer.theActionViewer.node.unit):
+		gameState.getClient().sendCommand("startResearch",str(actionViewer.theViewer.node.xPos) + " " + str(actionViewer.theViewer.node.yPos) + " " + self.unitType.name)
+		if(gameState.getGameMode().nextUnit == actionViewer.theViewer.node.unit):
 			gameState.getClient().sendCommand("chooseNextUnit")
 
 class viewResearchButton(clickableElement):
@@ -294,12 +294,12 @@ class viewUnitTypeButton(clickableElement):
 
 class stopWaitingButton(clickableElement):
 	def onClick(self):
-		gameState.getClient().sendCommand("stopWaiting",str(actionViewer.theActionViewer.node.xPos) + " " + str(actionViewer.theActionViewer.node.yPos))
+		gameState.getClient().sendCommand("stopWaiting",str(actionViewer.theViewer.node.xPos) + " " + str(actionViewer.theViewer.node.yPos))
 		
 class waitButton(clickableElement):
 	def onClick(self):
-		gameState.getClient().sendCommand("wait",str(actionViewer.theActionViewer.node.xPos) + " " + str(actionViewer.theActionViewer.node.yPos))
-		if(gameState.getGameMode().nextUnit == actionViewer.theActionViewer.node.unit):
+		gameState.getClient().sendCommand("wait",str(actionViewer.theViewer.node.xPos) + " " + str(actionViewer.theViewer.node.yPos))
+		if(gameState.getGameMode().nextUnit == actionViewer.theViewer.node.unit):
 			gameState.getClient().sendCommand("chooseNextUnit")
 
 class cancelMovementButton(clickableElement):
@@ -316,8 +316,17 @@ class skipButton(clickableElement):
 #,str(gameState.getGameMode().nextUnit.node.xPos) + " " + str(gameState.getGameMode().nextUnit.node.yPos))
 		gameState.getClient().sendCommand("chooseNextUnit")
 
+class cityViewer(uiElement):
+	theViewer = None
+	def __init__(self,node):
+		print self
+	@staticmethod
+	def destroy():
+		print 'destroy'
+	
+
 class actionViewer(uiElement):
-	theActionViewer = None
+	theViewer = None
 	def __init__(self,node,xPos=0.0,yPos=0.0,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None):
 		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],color=color,mouseOverColor=mouseOverColor)
 		self.node = node
@@ -372,9 +381,9 @@ class actionViewer(uiElement):
 			
 	@staticmethod
 	def destroy():
-		if(actionViewer.theActionViewer != None):
-			actionViewer.theActionViewer._destroy()
-			actionViewer.theActionViewer = None
+		if(actionViewer.theViewer != None):
+			actionViewer.theViewer._destroy()
+			actionViewer.theViewer = None
 	def _destroy(self):
 		del gameState.getGameMode().elementsDict[self.name]
 		for name in self.names:
@@ -383,7 +392,7 @@ class actionViewer(uiElement):
 		gameState.getGameMode().resortElems = True
 	def reset(self):
 		self._destroy()
-		actionViewer.theActionViewer = actionViewer(self.node)
+		actionViewer.theViewer = actionViewer(self.node)
 
 class unitViewer(uiElement):
 	theUnitViewer = None
@@ -471,7 +480,7 @@ class unitTypeResearchViewer(uiElement):
 			self.names.append(uiElement(-0.75,0.20,text="[x]",textSize=0.0005).name)
 		else:
 			self.names.append(uiElement(-0.75,0.20,text="[ ]",textSize=0.0005).name)
-		if(actionViewer.theActionViewer.node.unit != None and actionViewer.theActionViewer.node.unit.unitType.name == "summoner"):
+		if(actionViewer.theViewer.node.unit != None and actionViewer.theViewer.node.unit.unitType.name == "summoner"):
 
 			self.names.append(startResearchButton(-0.96,0.00,self.unitType,text="start research",textSize=0.0005).name)
 
@@ -511,7 +520,7 @@ class unitTypeBuildViewer(uiElement):
 			self.names.append(uiElement(-0.75,0.20,text="[x]",textSize=0.0005).name)
 		else:
 			self.names.append(uiElement(-0.75,0.20,text="[ ]",textSize=0.0005).name)
-		if(actionViewer.theActionViewer.node.unit != None and actionViewer.theActionViewer.node.unit.unitType.name == "summoner"):
+		if(actionViewer.theViewer.node.unit != None and actionViewer.theViewer.node.unit.unitType.name == "summoner"):
 			self.names.append(startSummoningButton(-0.96,0.00,self.unitType,text="summon",textSize=0.0005).name)
 
 	@staticmethod
@@ -752,8 +761,8 @@ class scrollableTextFieldsElement(uiElement):
 
 class chatDisplay(scrollableTextFieldsElement):
 	#The goal here is to hold lines of text that are too long in textQueue and run them thru a function in fonts.h which will tell us how many words will constitute one line. This way we can add the text as a textFieldElement in order to reuse all the scrollableTextFields code.
-	def __init__(self,xPos,yPos):
-		scrollableTextFieldsElement.__init__(self,xPos,yPos,[],textSize=0.0005,textureIndex=texIndex("CHAT_DISPLAY"),width=texWidth("CHAT_DISPLAY"),height=texHeight("CHAT_DISPLAY"),numFields=40)
+	def __init__(self,xPos,yPos,textureName="CHAT_DISPLAY"):
+		scrollableTextFieldsElement.__init__(self,xPos,yPos,[],textSize=0.0005,textureIndex=texIndex(textureName),width=texWidth(textureName),height=texHeight(textureName),numFields=40)
 		self.textQueue = Queue()
 		self.linesQueue = Queue()
 		self.currentText = ""
@@ -876,7 +885,7 @@ class createRoomButton(clickableElement):
 		clickableElement.__init__(self,xPos,yPos,width=texWidth("CREATE_GAME_BUTTON"),height=texHeight("CREATE_GAME_BUTTON"),textureIndex=texIndex("CREATE_GAME_BUTTON"))
 	def onClick(self):				
 		server.startServer('')
-#		client.startClient('127.0.0.1')
+		client.startClient('127.0.0.1')
 		teamSize = 0
 		for button in gameTypeButton.buttons:
 			if(button.selected):
@@ -888,12 +897,12 @@ class createRoomButton(clickableElement):
 		gameState.getGameMode().setMap(gameState.getMapDatas()[teamSize-1][0].name)
 
 class chatBox(textInputElement):
-	def __init__(self,xPos,yPos,klient):
-		textInputElement.__init__(self,xPos,yPos,text="",textSize=0.0005,textureIndex=texIndex("CHAT_BOX"),width=texWidth("CHAT_BOX"),textColor="FF FF FF",textXPos=0.02,textYPos=-0.045)
+	def __init__(self,xPos,yPos,klient,textureName="CHAT_BOX"):
+		textInputElement.__init__(self,xPos,yPos,text="",textSize=0.0005,textureIndex=texIndex(textureName),width=texWidth(textureName),textColor="FF FF FF",textXPos=0.02,textYPos=-0.045)
 		self.klient = klient
 	def sendChat(self):
 		if(len(self.realText) > 0):
-			self.klient.sendCommand("chat",self.realText)
+			self.klient.sendCommand("chat",gameState.getUserName()+": "+self.realText)
 			self.realText = ""
 			self.text = ""
 			self.cursorPosition = 0
@@ -1106,8 +1115,8 @@ class loginInputElement(textInputElement):
 		textInputElement.__init__(self,xPos,yPos,text=text)
 	def onKeyDown(self,keycode):
 		if(keycode == "return"):
-			
 			gameState.getGameFindClient().sendCommand("login",loginInputElement.usernameElem.text + " " + loginInputElement.passwordElem.text)
+			gameState.setUserName(loginInputElement.usernameElem.text)
 		elif(keycode == "tab"):
 			for index,elem in enumerate(textInputElement.elements):
 				if(elem.focused):
@@ -1210,4 +1219,11 @@ class createGameButton(clickableElement):
 	def __init__(self,xPos,yPos):
 		clickableElement.__init__(self,xPos,yPos,textureIndex=texIndex("CREATE_GAME_BUTTON_LARGE"),width=texWidth("CREATE_GAME_BUTTON_LARGE"),height=texHeight("CREATE_GAME_BUTTON_LARGE"))
 	def onClick(self):
+		print 'creategameroom'
 		gameState.getGameFindClient().sendCommand("createGameRoom",gameState.getGameMode().roomNameField.realText + "|" + str(2*gameState.getGameMode().teamSize) + "|" + gameState.getGameMode().mapNameField.text)
+
+class backButton(clickableElement):
+	def __init__(self,xPos,yPos):
+		clickableElement.__init__(self,xPos,yPos,textureIndex=texIndex("BACK_BUTTON"),width=texWidth("BACK_BUTTON"),height=texHeight("BACK_BUTTON"))
+	def onClick(self):
+		gameState.getGameFindClient().sendCommand("subscribe","lobby")

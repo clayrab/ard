@@ -101,8 +101,8 @@ class Commands:
             node.unit.waiting = True
             gameState.getGameMode().players[node.unit.player-1].greenWood = gameState.getGameMode().players[node.unit.player-1].greenWood - unitType.costGreen
             gameState.getGameMode().players[node.unit.player-1].blueWood = gameState.getGameMode().players[node.unit.player-1].blueWood - unitType.costBlue
-            if(uiElements.actionViewer.theActionViewer.node == node):
-                uiElements.actionViewer.theActionViewer.reset()
+            if(uiElements.actionViewer.theViewer.node == node):
+                uiElements.actionViewer.theViewer.reset()
                 uiElements.unitTypeBuildViewer.destroy()
     @staticmethod
     def startSummoningUndo(args):
@@ -130,8 +130,8 @@ class Commands:
         elif(node.city.unitBeingBuilt != None):
             node.city.cancelledUnits.append(node.city.unitBeingBuilt)
             node.city.unitBeingBuilt = None
-        if(uiElements.actionViewer.theActionViewer.node == node):
-            uiElements.actionViewer.theActionViewer.reset()
+        if(uiElements.actionViewer.theViewer.node == node):
+            uiElements.actionViewer.theViewer.reset()
     @staticmethod
     def cancelSummoningUndo(args):
         tokens = args.split(" ")
@@ -179,8 +179,8 @@ class Commands:
         node.unit.waiting = False
         if(uiElements.unitViewer.theUnitViewer != None and uiElements.unitViewer.theUnitViewer.unit == node.unit):
             uiElements.unitViewer.reset()
-        if(uiElements.actionViewer.theActionViewer.node == node):
-            uiElements.actionViewer.theActionViewer.reset()
+        if(uiElements.actionViewer.theViewer.node == node):
+            uiElements.actionViewer.theViewer.reset()
     @staticmethod
     def stopWaitingUndo(args):
         tokens = args.split(" ")
@@ -206,6 +206,11 @@ class Commands:
         tokens = args.split(" ")
         node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
         node.unit.waiting = True
+    @staticmethod
+    def chat(args):
+        if(hasattr(gameState.getGameMode(),"chatDisplay")):
+            gameState.getGameMode().chatDisplay.addText(args)
+
 
 def doCommand(commandName,args=None):
 #    print commandName + " " + str(args)

@@ -168,7 +168,9 @@ class gameMode:
 				elif(hasattr(self.elementWithFocus,"onLeftClickUp")):
 					self.elementWithFocus.onLeftClickUp()
 	def handleKeyDown(self,keycode):
-		if(keycode == "t" and False):
+		if(keycode == "t"):
+			gameState.setMapName("foo")
+			gameState.setGameMode(joinGameMode)
 			print 'test'
 		if(keycode == "y"):
 			gameState.getGameMode().changeMap("Clay's Map")
@@ -455,6 +457,9 @@ class mapEditorMode(tiledGameMode):
 		tiledGameMode.__init__(self)
 	def loadMap(self):
 		self.map = gameLogic.map(gameLogic.mapEditorNode)
+		self.focusXPos = int(len(self.map.nodes[0])/2)
+		self.focusYPos = int(len(self.map.nodes)/2)
+		self.focusNextUnit = 1
 	def keyDown(self,keycode):
 		try:
 			self.elementWithFocus.onKeyDown(keycode)
@@ -651,7 +656,7 @@ class hostLANGameScreenMode(gameMode):
 		uiElements.mapField(-0.85,-0.1,uiElements.mapSelector,text="choose map")
 		uiElements.startButton(0.65,-0.8,playMode,text="start")
 
-class gameRoomMode(gameMode):
+class gameRoomModeOLD(gameMode):
 	def __init__(self,args):
 		gameMode.__init__(self)
 		self.playerElementNames = []
@@ -705,13 +710,55 @@ class gameFindMode(gameMode):
 		self.chatBox = uiElements.chatBox(0.556,-0.738,gameState.getGameFindClient())
 		uiElements.sendChatButton(0.858,-0.82)
 		self.setFocus(self.chatBox)
-		uiElements.uiElement(-0.930,0.9,width=texWidth("BACK_BUTTON"),height=texHeight("BACK_BUTTON"),textureIndex=texIndex("BACK_BUTTON"))
+#		uiElements.uiElement(-0.930,0.9,width=texWidth("BACK_BUTTON"),height=texHeight("BACK_BUTTON"),textureIndex=texIndex("BACK_BUTTON"))
 		uiElements.da1v1Button(-0.930,-0.82)
 		uiElements.da2v2Button(-0.840,-0.82)
 		uiElements.da3v3Button(-0.750,-0.82)
 		uiElements.da4v4Button(-0.660,-0.82)
 		uiElements.createRoomButton(-0.930,-0.885)
 		
+class joinGameMode(tiledGameMode):
+	def __init__(self,args):
+		tiledGameMode.__init__(self)
+		self.joinGameMode = True
+		self.createGameMode = True
+		self.backgroundImageIndex = texIndex("JOIN_GAME_BACKGROUND")
+		self.selectedNode = None
+		self.playerElementNames = []
+		self.playerNames = []
+#	def setRoomName(self,roomName):
+#		print roomName
+	def removePlayerElements(self):
+		for name in self.playerElementNames:
+			del gameState.getGameMode().elementsDict[name]
+		self.playerElementNames = []
+		gameState.getGameMode().resortElems = True
+	def redrawPlayers(self):
+		self.removePlayerElements()
+		height = 0.55
+		for playerName in self.playerNames:
+			self.playerElementNames.append(uiElements.uiElement(-0.85,height,text=playerName).name)
+			height = height - 0.1
+	def loadMap(self):
+		self.map = gameLogic.map(gameLogic.mapViewNode,-60.0)
+		self.focusXPos = int(len(self.map.nodes[0])/2)
+		self.focusYPos = int(len(self.map.nodes)/2)
+		self.focusNextUnit = 1
+	def addUIElements(self):
+		uiElements.uiElement(0.0,0.9,text=gameState.getMapName())
+		uiElements.backButton(-0.930,0.9)
+#		uiElements.uiElement(,width=texWidth("BACK_BUTTON"),height=texHeight("BACK_BUTTON"),textureIndex=texIndex("BACK_BUTTON"))
+		uiElements.uiElement(0.35,0.813,width=texWidth("JOIN_GAME_PLAYERS"),height=texHeight("JOIN_GAME_PLAYERS"),textureIndex=texIndex("JOIN_GAME_PLAYERS"))
+		uiElements.uiElement(0.795,0.504,width=texWidth("START_BUTTON"),height=texHeight("START_BUTTON"),textureIndex=texIndex("START_BUTTON"))
+		
+		self.chatDisplay = uiElements.chatDisplay(0.35,0.4,textureName="JOIN_GAME_CHAT")
+#		uiElements.uiElement(0.35,0.4,width=texWidth("JOIN_GAME_CHAT"),height=texHeight("JOIN_GAME_CHAT"),textureIndex=texIndex("JOIN_GAME_CHAT"))
+		
+		self.chatBox = uiElements.chatBox(0.35,-0.514,gameState.getClient(),textureName="JOIN_GAME_CHAT_BOX")
+#		uiElements.uiElement(0.35,-0.514,width=texWidth("JOIN_GAME_CHAT_BOX"),height=texHeight("JOIN_GAME_CHAT_BOX"),textureIndex=texIndex("JOIN_GAME_CHAT_BOX"))
+		uiElements.sendChatButton(0.842,-0.595)
+
+
 class createGameMode(tiledGameMode):
 	def __init__(self,args):
 		tiledGameMode.__init__(self)
@@ -719,15 +766,15 @@ class createGameMode(tiledGameMode):
 		self.teamSize = 0
 		self.mapSelector = None
 		self.backgroundImageIndex = texIndex("CREATE_GAME_BACKGROUND")
+		self.selectedNode = None
 	def setMap(self,mapName):
 		gameState.setMapName(mapName)
 		self.map = gameLogic.map(gameLogic.mapViewNode,-60.0)
 		if(self.mapSelector != None):
 			self.mapSelector.destroy()
 		self.mapNameField.text = mapName
-		self.roomNameField.setText(gameState.getUserName() + "' " + str(self.teamSize) + "v" + str(self.teamSize) + "(" + mapName + ")")
-		
-		self.mapSelector = uiElements.mapSelector(-0.93,1.0-texHeight("CREATE_GAME_BACKGROUND_TOP")+0.012,[],self.mapNameField)
+		self.roomNameField.setText(gameState.getUserName() + "'s " + str(self.teamSize) + "v" + str(self.teamSize) + "(" + mapName + ")")
+		self.mapSelector = uiElements.mapSelector(-0.93,0.813,[],self.mapNameField)
 		for mapData in gameState.getMapDatas()[self.teamSize-1]:
 			gameState.getGameMode().mapSelector.textFields.append(uiElements.mapSelect(-0.93,0.0,gameState.getGameMode().mapSelector,mapData.name))
 		gameState.getGameMode().mapSelector.redraw()
@@ -738,7 +785,8 @@ class createGameMode(tiledGameMode):
 		self.mapNameField = uiElements.uiElement(-1.0+texWidth("CREATE_GAME_BACKGROUND_LEFT"),0.85,fontIndex=3,textColor="ee ed 9b")
 		self.roomNameField = uiElements.textInputElement(0.31,-0.616)
 		uiElements.createGameButton(0.717,-0.616)		
-		uiElements.uiElement(-0.930,0.9,width=texWidth("BACK_BUTTON"),height=texHeight("BACK_BUTTON"),textureIndex=texIndex("BACK_BUTTON"))
-
+		uiElements.backButton(-0.930,0.9)
+#		uiElements.uiElement(-0.930,0.9,width=texWidth("BACK_BUTTON"),height=texHeight("BACK_BUTTON"),textureIndex=texIndex("BACK_BUTTON"))
 gameState.setGameMode(newGameScreenMode)
+
 

@@ -21,19 +21,16 @@ SINGLE_PLAYER = -2
 class Commands:
     @staticmethod
     def showGameRoom(args):	    
-        print 'show game room'
-        print args
-        gameState.setGameMode(gameModes.gameRoomMode)
         tokens = args.split("*",3)
-        uiElements.uiElement(-0.85,0.8,text=tokens[0])#game name
-        uiElements.uiElement(0.05,0.8,text=tokens[1])#map name
-#        playerNames = tokens[3].split("*")
-#        for playerName in playerNames:
-#            gameState.getGameMode().playerNames.append(playerName)
-#        gameState.getGameMode().drawPlayers()
+        gameState.setMapName(tokens[1])
+        gameState.setGameMode(gameModes.joinGameMode)
+#        gameState.getGameMode().setRoomName(tokens[0])
+                         
+#        uiElements.uiElement(-0.85,0.8,text=tokens[0])#game name
+#        uiElements.uiElement(0.05,0.8,text=tokens[1])#map name
     @staticmethod
     def startGameRoom(args):	    
-        gameState.setGameMode(gameModes.gameRoomMode) 
+        gameState.setGameMode(gameModes.joinGameMode) 
     @staticmethod
     def addPlayer(args):	    
         print args
@@ -65,10 +62,7 @@ class Commands:
         gameState.getGameMode().roomSelector.addRoom(args)
     @staticmethod
     def removeRoom(args):
-        print 'removeRoom'
-    @staticmethod
-    def removeCurrentRoom(args):
-        print 'removeCurrentRoom'
+        gameState.getGameMode().roomSelector.removeRoom(args)        
     @staticmethod    
     def showMessage(args):
         uiElements.smallModal(args)
