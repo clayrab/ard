@@ -23,24 +23,17 @@ class Commands:
     def showGameRoom(args):	    
         tokens = args.split("*",3)
         gameState.setMapName(tokens[1])
-        gameState.setGameMode(gameModes.joinGameMode)
-#        gameState.getGameMode().setRoomName(tokens[0])
-                         
-#        uiElements.uiElement(-0.85,0.8,text=tokens[0])#game name
-#        uiElements.uiElement(0.05,0.8,text=tokens[1])#map name
-    @staticmethod
-    def startGameRoom(args):	    
-        gameState.setGameMode(gameModes.joinGameMode) 
+        gameState.setGameMode(gameModes.joinGameMode,tokens)
     @staticmethod
     def addPlayer(args):	    
-        print args
-        gameState.getGameMode().playerNames.append(args)
-        gameState.getGameMode().redrawPlayers()
+        gameState.getGameMode().addPlayer(args)
+    @staticmethod
+    def removePlayer(args):	    
+        gameState.getGameMode().removePlayer(args)
     @staticmethod
     def showRoom(args):
         tokens = args.split("|",1)
         gameState.setGameMode(gameModes.gameFindMode,tokens)
-#        gameState.getGameMode().roomSelector.drawRooms(tokens[1])
     @staticmethod
     def seedRNG(seed):
         random.seed(seed)

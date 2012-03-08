@@ -15,8 +15,11 @@
 #kick player from room if it's full when they join
 #    show each player status (connecting, connected, ready)
 #need to show city info and start positions when previewing maps
+#*,|, and - cannot be allowed in roomnames
 
 #MISSING FEATURES
+#***** out login password
+#submit login button
 #testing connection timeout
 #gatherers and summoners should not be able to move once they begin gathering or summoning. summoners don't get turns, they can build at any time.
 #proper quit and options menus
@@ -656,30 +659,6 @@ class hostLANGameScreenMode(gameMode):
 		uiElements.mapField(-0.85,-0.1,uiElements.mapSelector,text="choose map")
 		uiElements.startButton(0.65,-0.8,playMode,text="start")
 
-class gameRoomModeOLD(gameMode):
-	def __init__(self,args):
-		gameMode.__init__(self)
-		self.playerElementNames = []
-		self.playerNames = []
-	def removePlayerElements(self):
-		for name in self.playerElementNames:
-			del gameState.getGameMode().elementsDict[name]
-		self.playerElementNames = []
-		gameState.getGameMode().resortElems = True
-#	def redrawPlayers(self):
-#		self.removePlayerElements()
-#		self.drawPlayers()
-	def redrawPlayers(self):
-		self.removePlayerElements()
-		height = 0.55
-		for playerName in self.playerNames:
-			self.playerElementNames.append(uiElements.uiElement(-0.85,height,text=playerName).name)
-			height = height - 0.1
-	def addUIElements(self):
-		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])	
-		uiElements.uiElement(-0.85,0.65,text="players")
-		uiElements.startButton(0.65,-0.8,playMode,text="start")
-
 class loginMode(gameMode):
 	def __init__(self,args):
 		gameMode.__init__(self)
@@ -720,25 +699,41 @@ class gameFindMode(gameMode):
 class joinGameMode(tiledGameMode):
 	def __init__(self,args):
 		tiledGameMode.__init__(self)
+		print args
+		self.roomName = args[0]
+		self.mapName = args[1]
+		self.hostStr = args[2]
+		self.teamSize = int(args[3])
 		self.joinGameMode = True
-		self.createGameMode = True
 		self.backgroundImageIndex = texIndex("JOIN_GAME_BACKGROUND")
 		self.selectedNode = None
-		self.playerElementNames = []
-		self.playerNames = []
-#	def setRoomName(self,roomName):
-#		print roomName
-	def removePlayerElements(self):
-		for name in self.playerElementNames:
-			del gameState.getGameMode().elementsDict[name]
-		self.playerElementNames = []
-		gameState.getGameMode().resortElems = True
-	def redrawPlayers(self):
-		self.removePlayerElements()
-		height = 0.55
-		for playerName in self.playerNames:
-			self.playerElementNames.append(uiElements.uiElement(-0.85,height,text=playerName).name)
-			height = height - 0.1
+		self.playerElements = []
+	def addPlayer(self,playerName):
+		for elem in self.playerElements:
+			if(elem.text == "empty"):
+				elem.text = playerName
+				elem.textColor = "FF FF FF"
+				elem.mouseOverColor = "FF FF FF"
+				break
+	def removePlayer(self,playerName):
+		previousElem = None
+		self.playerElements[len(self.playerElements)-1].text = "empty"
+		self.playerElements[len(self.playerElements)-1].textColor = "55 55 55"
+		self.playerElements[len(self.playerElements)-1].mouseOverColor = "55 55 55"
+		for elem in self.playerElements[:len(self.playerElements)-1]:
+			if(previousElem != None):
+				previousElem.text = elem.text
+				if(elem.text == "empty"):
+					previousElem.textColor = "55 55 55"
+					previousElem.mouseOverColor = "55 55 55"
+				else:
+					previousElem.textColor = "ff ff ff"
+					previousElem.mouseOverColor = "ff ff ff"
+			if(elem.text == playerName):
+				previousElem = elem
+						      
+				
+			print playerName
 	def loadMap(self):
 		self.map = gameLogic.map(gameLogic.mapViewNode,-60.0)
 		self.focusXPos = int(len(self.map.nodes[0])/2)
@@ -747,17 +742,14 @@ class joinGameMode(tiledGameMode):
 	def addUIElements(self):
 		uiElements.uiElement(0.0,0.9,text=gameState.getMapName())
 		uiElements.backButton(-0.930,0.9)
-#		uiElements.uiElement(,width=texWidth("BACK_BUTTON"),height=texHeight("BACK_BUTTON"),textureIndex=texIndex("BACK_BUTTON"))
 		uiElements.uiElement(0.35,0.813,width=texWidth("JOIN_GAME_PLAYERS"),height=texHeight("JOIN_GAME_PLAYERS"),textureIndex=texIndex("JOIN_GAME_PLAYERS"))
+		
 		uiElements.uiElement(0.795,0.504,width=texWidth("START_BUTTON"),height=texHeight("START_BUTTON"),textureIndex=texIndex("START_BUTTON"))
-		
 		self.chatDisplay = uiElements.chatDisplay(0.35,0.4,textureName="JOIN_GAME_CHAT")
-#		uiElements.uiElement(0.35,0.4,width=texWidth("JOIN_GAME_CHAT"),height=texHeight("JOIN_GAME_CHAT"),textureIndex=texIndex("JOIN_GAME_CHAT"))
-		
 		self.chatBox = uiElements.chatBox(0.35,-0.514,gameState.getClient(),textureName="JOIN_GAME_CHAT_BOX")
-#		uiElements.uiElement(0.35,-0.514,width=texWidth("JOIN_GAME_CHAT_BOX"),height=texHeight("JOIN_GAME_CHAT_BOX"),textureIndex=texIndex("JOIN_GAME_CHAT_BOX"))
 		uiElements.sendChatButton(0.842,-0.595)
-
+		for i in range(0,2*self.teamSize):
+			self.playerElements.append(uiElements.uiElement(0.36,0.775-(0.033*i),text="empty",textSize=0.0005,textColor="55 55 55",mouseOverColor="55 55 55"))
 
 class createGameMode(tiledGameMode):
 	def __init__(self,args):
