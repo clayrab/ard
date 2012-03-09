@@ -404,6 +404,11 @@ static void printPyStackTrace(){
 #define START_BUTTON_WIDTH 97
 #define START_BUTTON_INDEX 78
 
+#define LOGIN_BUTTON "assets/loginButton.png"
+#define LOGIN_BUTTON_HEIGHT 40
+#define LOGIN_BUTTON_WIDTH 303
+#define LOGIN_BUTTON_INDEX 79
+
 #define DESERT_TILE_INDEX 0
 #define GRASS_TILE_INDEX 1
 #define MOUNTAIN_TILE_INDEX 2
@@ -1511,6 +1516,7 @@ static void initGL (){
   pngLoad(&texturesArray[JOIN_GAME_CHAT_BOX_INDEX],JOIN_GAME_CHAT_BOX);
   pngLoad(&texturesArray[JOIN_GAME_PLAYERS_INDEX],JOIN_GAME_PLAYERS);
   pngLoad(&texturesArray[START_BUTTON_INDEX],START_BUTTON);
+  pngLoad(&texturesArray[LOGIN_BUTTON_INDEX],LOGIN_BUTTON);
 
   vertexArrays[DESERT_TILE_INDEX] = *desertVertices;
   vertexArrays[GRASS_TILE_INDEX] = *grassVertices;

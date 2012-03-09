@@ -1,7 +1,6 @@
 #icons for each unit
 
 #webpage
-#google analytics
 #SSL
 #registration
 #distribution
@@ -9,16 +8,14 @@
 #how to host instructions page
 
 #server:
-#join game screen
-#create lan game screen
-#player count
-#kick player from room if it's full when they join
 #    show each player status (connecting, connected, ready)
 #need to show city info and start positions when previewing maps
 #*,|, and - cannot be allowed in roomnames
 
 #MISSING FEATURES
-#***** out login password
+#game ui redesign
+#create lan game screen
+#join lan game screen
 #map name clickable to view map
 #submit login button
 #testing connection timeout
@@ -32,6 +29,7 @@
 #modals should be dismissed by esc, space, or enter
 #handle disconnections/reconnections gracefully
 #player stats(wins,losses,rank,etc)
+#number keys auto-focus cities
 
 #BUGS
 #replace open() on map files with mapdatas data
@@ -652,7 +650,7 @@ class hostLANGameScreenMode(gameMode):
 				self.playerElementNames.append(uiElements.uiElement(-0.85,height,text="player " + str(player.playerNumber)).name)
 			height = height - 0.1
 	def addUIElements(self):
-		server.startServer('')
+#		server.startServer('')
 #		client.startClient('127.0.0.1')
 		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])	
 		uiElements.uiElement(-0.15,0.9,text="lan game")
@@ -666,8 +664,9 @@ class loginMode(gameMode):
 		gameFindClient.startClient()
 	def addUIElements(self):
 		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])	
-		self.setFocus(uiElements.loginUserName(-0.12,0.0))
+		self.setFocus(uiElements.loginUserName(-0.12,0.02))
 		uiElements.loginPassword(-0.12,-0.06)
+		uiElements.loginButton(-0.12,-0.14)
 
 class gameFindMode(gameMode):
 	def __init__(self,args):
@@ -681,6 +680,11 @@ class gameFindMode(gameMode):
 	def setMapName(self,mapName):
 		self.mapName = mapName
 		uiElements.uiElement(-0.15,0.9,text=mapName)
+	def roomCountUpdate(self,roomName,subscriberCount,teamSize):
+		for elem in self.roomSelector.textFields:
+			if(elem.roomNameElem.text == roomName):
+				elem.roomCountElem.text = subscriberCount + "/" + str(2*int(teamSize))
+				break
 	def addUIElements(self):
 #		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=texIndex("GAME_FIND_BACKGROUND"))
 		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=texIndex("UI_NEW_GAME_SCREEN"))
@@ -690,7 +694,6 @@ class gameFindMode(gameMode):
 		self.chatBox = uiElements.chatBox(0.556,-0.738,gameState.getGameFindClient())
 		uiElements.sendChatButton(0.858,-0.82)
 		self.setFocus(self.chatBox)
-#		uiElements.uiElement(-0.930,0.9,width=texWidth("BACK_BUTTON"),height=texHeight("BACK_BUTTON"),textureIndex=texIndex("BACK_BUTTON"))
 		uiElements.da1v1Button(-0.930,-0.82)
 		uiElements.da2v2Button(-0.840,-0.82)
 		uiElements.da3v3Button(-0.750,-0.82)
@@ -700,14 +703,11 @@ class gameFindMode(gameMode):
 class joinGameMode(tiledGameMode):
 	def __init__(self,args):
 		tiledGameMode.__init__(self)
-		print args
 		self.roomName = args[0]
 		self.mapName = args[1]
-		hostTokens = args[2].split(":")
-		self.hostIP = hostTokens[0]
-		self.hostPort = int(hostTokens[1])
-		
-		self.teamSize = int(args[3])
+		self.hostIP = args[2]
+		self.hostPort = int(args[3])
+		self.teamSize = int(args[4])
 		self.joinGameMode = True
 		self.backgroundImageIndex = texIndex("JOIN_GAME_BACKGROUND")
 		self.selectedNode = None
@@ -746,8 +746,7 @@ class joinGameMode(tiledGameMode):
 		uiElements.uiElement(0.0,0.9,text=gameState.getMapName())
 		uiElements.backButton(-0.930,0.9)
 		uiElements.uiElement(0.35,0.813,width=texWidth("JOIN_GAME_PLAYERS"),height=texHeight("JOIN_GAME_PLAYERS"),textureIndex=texIndex("JOIN_GAME_PLAYERS"))
-		
-		uiElements.uiElement(0.795,0.504,width=texWidth("START_BUTTON"),height=texHeight("START_BUTTON"),textureIndex=texIndex("START_BUTTON"))
+		uiElements.startGameButton(0.795,0.504)
 		self.chatDisplay = uiElements.chatDisplay(0.35,0.4,textureName="JOIN_GAME_CHAT")
 		self.chatBox = uiElements.chatBox(0.35,-0.514,gameState.getClient(),textureName="JOIN_GAME_CHAT_BOX")
 		uiElements.sendChatButton(0.842,-0.595)

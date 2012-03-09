@@ -141,13 +141,16 @@ class removeFirstRowButton(clickableElement):
 
 class textInputElement(uiElement):
 	elements = []
-	def __init__(self,xPos,yPos,width=texWidth('UI_TEXT_INPUT_IMAGE'),height=texHeight('UI_TEXT_INPUT_IMAGE'),text="",textureIndex=texIndex('UI_TEXT_INPUT'),textColor='DD DD DD',textSize=0.0006,textXPos=0.010,textYPos=-0.045,fontIndex=0):
+	def __init__(self,xPos,yPos,isPassword=False,width=texWidth('UI_TEXT_INPUT_IMAGE'),height=texHeight('UI_TEXT_INPUT_IMAGE'),text="",textureIndex=texIndex('UI_TEXT_INPUT'),textColor='DD DD DD',textSize=0.0006,textXPos=0.010,textYPos=-0.045,fontIndex=0):
 		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textSize=textSize,textColor=textColor,textXPos=textXPos,textYPos=textYPos,cursorPosition=len(text),fontIndex=fontIndex)
 		textInputElement.elements.append(self)
+		if(isPassword):
+			self.text = "*"*len(text)
 		self.realText = text
 		self.leftmostCharPosition = 0
 		self.rightmostCharPosition = 0
 		self.recalculateText = 0
+		self.isPassword = isPassword
 	def __del__(self):
 		textInputElement.elements.remove(self)
 	def setText(self,txt):
@@ -157,7 +160,10 @@ class textInputElement(uiElement):
 		self.recalculateText = 1
 	def textOkay(self):
 		self.recalculateText = 0
-		self.text = self.realText
+		if(self.isPassword):
+			self.text = "*"*len(self.realText)
+		else:
+			self.text = self.realText
 		self.cursorPosition = self.cursorPosition + self.leftmostCharPosition
 		self.leftmostCharPosition = 0
 		self.rightmostCharPosition = len(self.realText)
@@ -169,7 +175,10 @@ class textInputElement(uiElement):
 		self.rightmostCharPosition = rightmostCharPosition
 		if(self.leftmostCharPosition < 0):
 			self.leftmostCharPosition = 0
-		self.text = self.realText[leftmostCharPosition:rightmostCharPosition]
+		if(self.isPassword):
+			self.text = "*"*(rightmostCharPosition-leftmostCharPosition)
+		else:
+			self.text = self.realText[leftmostCharPosition:rightmostCharPosition]
 		if(self.cursorPosition > len(self.text)):
 			self.cursorPosition = len(self.text)
 	def onKeyDown(self,keycode):
@@ -682,9 +691,12 @@ class scrollableRoomElement(scrollableElement):
 	def __init__(self,xPos,yPos,roomName,mapName,playerCount,maxPlayerCount,text="",textSize=0.0005):
 		scrollableElement.__init__(self,xPos,yPos,text="",textSize=textSize)
 		self.names = []
-		self.names.append(scrollableRoomNameElement(xPos+0.008,yPos,text=roomName,textSize=textSize).name)
-		self.names.append(scrollableMapNameElement(xPos+0.9,yPos,text=mapName,textSize=textSize).name)
-		self.names.append(uiElement(xPos+1.36,yPos,text=str(playerCount) + "/" + str(maxPlayerCount),textSize=textSize).name)
+		self.roomNameElem = scrollableRoomNameElement(xPos+0.008,yPos,text=roomName,textSize=textSize)
+		self.names.append(self.roomNameElem.name)
+		self.mapNameElem = scrollableMapNameElement(xPos+0.9,yPos,text=mapName,textSize=textSize)
+		self.names.append(self.mapNameElem.name)
+		self.roomCountElem = uiElement(xPos+1.36,yPos,text=str(playerCount) + "/" + str(maxPlayerCount),textSize=textSize)
+		self.names.append(self.roomCountElem.name)
 
 class scrollableTextFieldsElement(uiElement):
 	def __init__(self,xPos,yPos,textFields,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,xPositionOffset=0.0,yPositionOffset=0.04,lineHeight=0.041,numFields=25,scrollSpeed=1):
@@ -792,8 +804,6 @@ class roomSelector(scrollableTextFieldsElement):
 		for room in rooms:
 			self.textFields.append(scrollableRoomElement(self.xPosition+self.xPositionOffset,0.0,room[0],room[1],room[2],2*int(room[3])))
 		self.redraw()
-	def handleClick(self,textFieldElem):
-		print textFieldElem
 	def addRoom(self,roomStr):
 		roomTokens = roomStr.split("-")
 		self.rooms.append(tuple(roomTokens))
@@ -1111,12 +1121,15 @@ class startButton(menuButton):
 class loginInputElement(textInputElement):
 	usernameElem = None
 	passwordElem = None
-	def __init__(self,xPos,yPos,text):
-		textInputElement.__init__(self,xPos,yPos,text=text)
+	def __init__(self,xPos,yPos,text,isPassword=False):
+		textInputElement.__init__(self,xPos,yPos,text=text,isPassword=isPassword)
+	@staticmethod
+	def doLogin():
+		gameState.getGameFindClient().sendCommand("login",loginInputElement.usernameElem.realText + " " + loginInputElement.passwordElem.realText)
+		gameState.setUserName(loginInputElement.usernameElem.realText)
 	def onKeyDown(self,keycode):
 		if(keycode == "return"):
-			gameState.getGameFindClient().sendCommand("login",loginInputElement.usernameElem.text + " " + loginInputElement.passwordElem.text)
-			gameState.setUserName(loginInputElement.usernameElem.text)
+			loginInputElement.doLogin()
 		elif(keycode == "tab"):
 			for index,elem in enumerate(textInputElement.elements):
 				if(elem.focused):
@@ -1134,11 +1147,18 @@ class loginUserName(loginInputElement):
 	def __init__(self,xPos,yPos,text="clayrab"):
 		loginInputElement.__init__(self,xPos,yPos,text=text)
 		loginInputElement.usernameElem = self
+
 class loginPassword(loginInputElement):
 	def __init__(self,xPos,yPos,text="maskmask"):
-		loginInputElement.__init__(self,xPos,yPos,text=text)
+		loginInputElement.__init__(self,xPos,yPos,text=text,isPassword=True)
 		loginInputElement.passwordElem = self
 
+class loginButton(clickableElement):
+	def __init__(self,xPos,yPos):
+		clickableElement.__init__(self,xPos,yPos,textureIndex=texIndex("LOGIN_BUTTON"),height=texHeight("LOGIN_BUTTON"),width=texWidth("LOGIN_BUTTON"))
+	def onClick(self):
+		loginInputElement.doLogin()
+		
 class modalButton(clickableElement):
 	def __init__(self,modal,yPos=-0.05,text="ok",textureIndex=cDefines.defines["OK_BUTTON_INDEX"]):
 		self.modal = modal
@@ -1227,3 +1247,10 @@ class backButton(clickableElement):
 		clickableElement.__init__(self,xPos,yPos,textureIndex=texIndex("BACK_BUTTON"),width=texWidth("BACK_BUTTON"),height=texHeight("BACK_BUTTON"))
 	def onClick(self):
 		gameState.getGameFindClient().sendCommand("subscribe","lobby")
+
+class startGameButton(clickableElement):
+	def __init__(self,xPos,yPos):
+		clickableElement.__init__(self,xPos,yPos,textureIndex=texIndex("START_BUTTON"),width=texWidth("START_BUTTON"),height=texHeight("START_BUTTON"))
+	def onClick(self):
+		for player in gameState.getNetworkPlayers():
+			player.dispatchCommand("startGame -1")

@@ -21,7 +21,7 @@ SINGLE_PLAYER = -2
 class Commands:
     @staticmethod
     def showGameRoom(args):	    
-        tokens = args.split("*",3)
+        tokens = args.split("*")
         gameState.setMapName(tokens[1])
         gameState.setGameMode(gameModes.joinGameMode,tokens)
         print tokens[2]
@@ -31,7 +31,13 @@ class Commands:
         gameState.getGameMode().addPlayer(args)
     @staticmethod
     def removePlayer(args):	    
-        gameState.getGameMode().removePlayer(args)
+        if(hasattr(gameState.getGameMode(),"removePlayer")):
+            gameState.getGameMode().removePlayer(args)
+    @staticmethod
+    def roomCount(args):
+        tokens = args.split("*")
+        if(hasattr(gameState.getGameMode(),"roomCountUpdate")):
+               gameState.getGameMode().roomCountUpdate(tokens[0],tokens[1],tokens[2])
     @staticmethod
     def showRoom(args):
         tokens = args.split("|",1)
