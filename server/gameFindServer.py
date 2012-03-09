@@ -14,13 +14,15 @@ privKey = rsa.PrivateKey(7294827300696961467825209649910612955544688273739654133
 
 rooms = {}
 users = {}
+#self.ownedRoom = Room(tokens[0],self.currentRoom,tokens[2],tokens[1],self.transport.getPeer().host + ":" + str(self.transport.getPeer().port))
 class Room:
-    def __init__(self,name,parent,mapName=None,maxPlayers=None,hostAddress=None):
+    def __init__(self,name,parent,mapName=None,teamSize=None,hostIP=None,hostPort=None):
         self.name = name
         self.parent = parent
         self.mapName = mapName
-        self.maxPlayers = maxPlayers
-        self.hostAddress = hostAddress
+        self.teamSize = teamSize
+        self.hostIP = hostIP
+        self.hostPort = hostPort
         self.childRooms = []
         self.subscribers = []
         rooms[name] = self
@@ -57,26 +59,37 @@ class Connection(basic.LineReceiver):
         del rooms[room.name]
     #BEGIN COMMANDS
     def subscribe(self,roomName):
-#        roomName = args
-        response = ""
+        if(not roomName in rooms):
+            self.sendCommand("showMessage","This room no longer exists.")
+            return
+        daRoom = rooms[roomName]
+        if((daRoom.teamSize != None) and (len(daRoom.subscribers) >= (2*int(daRoom.teamSize)))):
+            self.sendCommand("showMessage","This room is full.")
+            return            
         if(self.currentRoom != None):
             rooms[self.currentRoom.name].subscribers.remove(self)
+            for subscriber in rooms[self.currentRoom.name].subscribers:
+                subscriber.sendCommand("removePlayer",self.userName)
         if(self.ownedRoom != None and self.ownedRoom.name != roomName):
             self.destroyRoom(self.ownedRoom)
             self.ownedRoom = None
-        self.currentRoom = rooms[roomName]
-        if(rooms[roomName].mapName != None):
+        self.currentRoom = daRoom
+        if(daRoom.mapName != None):
             for subscriber in self.currentRoom.subscribers:
                 subscriber.sendCommand("addPlayer",self.userName)
-        rooms[roomName].subscribers.append(self)
-        if(rooms[roomName].mapName != None):
-            response = response + "*" + rooms[roomName].mapName + "*" + rooms[roomName].hostAddress
-            self.sendCommand("showGameRoom",roomName + response)
+        daRoom.subscribers.append(self)
+        if(daRoom.parent != None):
+            for subscriber in daRoom.parent.subscribers:
+                subscriber.sendCommand("roomCount",roomName + "*" + str(len(daRoom.subscribers)) + "*" + str(daRoom.teamSize))
+        if(daRoom.mapName != None):
+            response = roomName + "*" + daRoom.mapName + "*" + daRoom.hostIP + "*" + daRoom.hostPort + "*" + daRoom.teamSize
+            self.sendCommand("showGameRoom",response)
             for subscriber in self.currentRoom.subscribers:
                 self.sendCommand("addPlayer",subscriber.userName)
         else:
-            for room in rooms[roomName].childRooms:
-                response = response + "|" + room.name + "-" + str(len(room.subscribers))
+            response = ""
+            for room in daRoom.childRooms:
+                response = response + "|" + room.name + "-" + room.mapName + "-" + str(len(room.subscribers)) + "-" + str(room.teamSize)
             self.sendCommand("showRoom",roomName + response)
     def chat(self, args):
         for subscriber in self.currentRoom.subscribers:
@@ -89,6 +102,7 @@ class Connection(basic.LineReceiver):
             self.sendCommand("testConnectSuccess","")
 #            sock.shutdown()
             sock.close()
+            self.hostPort = args
         except:
             self.subscribe("lobby")
             self.sendCommand("testConnectFail","")
@@ -99,14 +113,13 @@ class Connection(basic.LineReceiver):
             return
         if(self.ownedRoom != None):
             self.destroyRoom(self.ownedRoom)
-        self.ownedRoom = Room(tokens[0],self.currentRoom,tokens[2],tokens[1],self.transport.getPeer().host + ":" + str(self.transport.getPeer().port))
+        self.ownedRoom = Room(tokens[0],self.currentRoom,tokens[2],tokens[1],self.transport.getPeer().host,self.hostPort)
         self.subscribe(self.ownedRoom.name)
         for subscriber in self.ownedRoom.parent.subscribers:
             subscriber.sendCommand("addRoom",self.ownedRoom.name + "-" + str(len(self.ownedRoom.subscribers)))
     def login(self,args):
 #        strArgs = " ".join(args)
 #        strArgs = str(rsaKey.decrypt(args))
-        print users
         strArgs = rsa.decrypt(args, privKey)
         tokens = strArgs.split(" ",1)
         hashFunc = hashlib.sha256()
@@ -144,9 +157,9 @@ factory = protocol.ServerFactory()
 factory.protocol = Connection
 factory.clients = []
 lobby = Room("lobby",None)
-Room("1v1",lobby)
-Room("2v2",lobby)
-Room("3v3",lobby)
+#Room("1v1",lobby)
+#Room("2v2",lobby)
+#Room("3v3",lobby)
 
 application = service.Application("gameFindServer")
 internet.TCPServer(2222, factory).setServiceParent(application)
