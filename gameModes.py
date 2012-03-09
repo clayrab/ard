@@ -8,7 +8,6 @@
 #how to host instructions page
 
 #server:
-#    show each player status (connecting, connected, ready)
 #need to show city info and start positions when previewing maps
 #*,|, and - cannot be allowed in roomnames
 
@@ -712,8 +711,11 @@ class joinGameMode(tiledGameMode):
 		self.backgroundImageIndex = texIndex("JOIN_GAME_BACKGROUND")
 		self.selectedNode = None
 		self.playerElements = []
-		if(gameState.getClient() == None):
+		if(gameState.getClient() == None):#host connects to itself early at 127.0.0.1
 			client.startClient(self.hostIP,self.hostPort)
+			self.isHost = False
+		else:
+			self.isHost = True
 	def addPlayer(self,playerName):
 		for elem in self.playerElements:
 			if(elem.text == "empty"):
@@ -746,7 +748,8 @@ class joinGameMode(tiledGameMode):
 		uiElements.uiElement(0.0,0.9,text=gameState.getMapName())
 		uiElements.backButton(-0.930,0.9)
 		uiElements.uiElement(0.35,0.813,width=texWidth("JOIN_GAME_PLAYERS"),height=texHeight("JOIN_GAME_PLAYERS"),textureIndex=texIndex("JOIN_GAME_PLAYERS"))
-		uiElements.startGameButton(0.795,0.504)
+		if(self.isHost):
+			uiElements.startGameButton(0.795,0.504)
 		self.chatDisplay = uiElements.chatDisplay(0.35,0.4,textureName="JOIN_GAME_CHAT")
 		self.chatBox = uiElements.chatBox(0.35,-0.514,gameState.getClient(),textureName="JOIN_GAME_CHAT_BOX")
 		uiElements.sendChatButton(0.842,-0.595)
