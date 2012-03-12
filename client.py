@@ -105,7 +105,7 @@ class Commands:
             node.unit.waiting = True
             gameState.getGameMode().players[node.unit.player-1].greenWood = gameState.getGameMode().players[node.unit.player-1].greenWood - unitType.costGreen
             gameState.getGameMode().players[node.unit.player-1].blueWood = gameState.getGameMode().players[node.unit.player-1].blueWood - unitType.costBlue
-            if(uiElements.actionViewer.theViewer.node == node):
+            if(uiElements.actionViewer.theViewer != None and uiElements.actionViewer.theViewer.node == node):
                 uiElements.actionViewer.theViewer.reset()
                 uiElements.unitTypeBuildViewer.destroy()
     @staticmethod

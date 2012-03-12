@@ -11,7 +11,6 @@
 #record wins/losses
 #report game state(to look for cheaters/bugs)
 
-
 #MISSING FEATURES
 #send chat button should refocus chat box
 #game ui redesign
@@ -101,7 +100,6 @@ from textureFunctions import texWidth, texHeight, texIndex
 
 print random.__file__
 
-
 sys.setrecursionlimit(100000)
 #need this to allow deep recursion for AStar
 #defaults to 1000... may cause crash on systems where 1000000 is too large...
@@ -169,9 +167,13 @@ class gameMode:
 					self.elementWithFocus.onLeftClickUp()
 	def handleKeyDown(self,keycode):
 		if(keycode == "t"):
+			print gameState.getGameMode().nextUnit.unitType.name
+			print gameState.getGameMode().nextUnit.node.xPos
+			print gameState.getGameMode().nextUnit.node.yPos
 #			gameState.setMapName("foo")
 #			gameState.setGameMode(joinGameMode)
-			print 'test'
+#			print 'test'
+			
 		if(keycode == "y"):
 			gameState.getGameMode().changeMap("Clay's Map")
 		if(keycode == "u"):
