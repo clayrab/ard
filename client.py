@@ -15,17 +15,21 @@ class Commands:
     @staticmethod
     def setMap(mapName):
         gameState.setMapName(mapName)
+        if(hasattr(gameState.getGameMode(),"setMap")):
+            gameState.getGameMode().setMap(mapName)
     @staticmethod
     def setPlayerNumber(playerNumber):
         if(gameState.getPlayerNumber() != SINGLE_PLAYER):
             gameState.setPlayerNumber(int(playerNumber))
+        if(gameState.getUserName() == None):
+            gameState.setUserName("Player " + playerNumber)
     @staticmethod
     def addPlayer(playerNumber):
         player = gameState.addPlayer(int(playerNumber))
         if(gameState.getPlayerNumber() == player.playerNumber or gameState.getPlayerNumber() == SINGLE_PLAYER):
             player.isOwnPlayer = True
-        if(hasattr(gameState.getGameMode(),"redrawPlayers")):
-               gameState.getGameMode().redrawPlayers()
+        if(hasattr(gameState.getGameMode(),"addPlayer")):
+            gameState.getGameMode().addPlayer(player.userName)
     @staticmethod
     def startGame():
         gameState.setGameMode(gameModes.playMode)
@@ -238,7 +242,6 @@ class Client:
 #        for command in self.delayedCommands:
 #             self.socket.send(command)
 #        self.delayedCommands = []
-#    def connect(self,ip,port):
     def checkSocket(self):
         try:
             receivedData = self.socket.recv(1024)

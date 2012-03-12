@@ -52,7 +52,7 @@ def getConfig():
 
 
 
-userName = "clayrab"
+userName = None
 def getUserName():
 	global userName
 	return userName

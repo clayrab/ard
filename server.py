@@ -48,7 +48,7 @@ class RequestHandler(SocketServer.StreamRequestHandler):
                     self.player.dispatchCommand("addPlayer -1 " + str(player.playerNumber))
                     if(player.playerNumber != self.player.playerNumber):
                         player.dispatchCommand("addPlayer -1 " + str(self.player.playerNumber))
-                print str(self.client_address) + " connected."
+                print str(self.client_address) + " setup done."
             else:
             #TODO: send command to client indicating game has started or host is no longer accepting connections...
                 print 'host is not accepting connections'
@@ -84,11 +84,13 @@ def shutdownServer():
     global server
     if(server != None):
         server.shutdown()
-def startServer(serverIP):
+def startServer(serverIP,port=0):
     with serverLock:
         global server
         if(server == None):
-            server = Server((serverIP,int(gameState.getConfig()["serverPort"])))
+            if(port == 0):
+                port = int(gameState.getConfig()["serverPort"])
+            server = Server((serverIP,port))
             server.socket.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,0)
             serverThread = threading.Thread(target=server.serve_forever)
             serverThread.daemon = True

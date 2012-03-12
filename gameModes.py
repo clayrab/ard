@@ -1,5 +1,3 @@
-#icons for each unit
-
 #webpage
 #SSL
 #registration
@@ -10,13 +8,14 @@
 #server:
 #need to show city info and start positions when previewing maps
 #*,|, and - cannot be allowed in roomnames
+#record wins/losses
+#report game state(to look for cheaters/bugs)
+
 
 #MISSING FEATURES
+#send chat button should refocus chat box
 #game ui redesign
-#create lan game screen
-#join lan game screen
 #map name clickable to view map
-#submit login button
 #testing connection timeout
 #gatherers and summoners should not be able to move once they begin gathering or summoning. summoners don't get turns, they can build at any time.
 #proper quit and options menus
@@ -27,10 +26,10 @@
 #limited time to move
 #modals should be dismissed by esc, space, or enter
 #handle disconnections/reconnections gracefully
-#player stats(wins,losses,rank,etc)
 #number keys auto-focus cities
 
 #BUGS
+#chat area element counts need fixing
 #replace open() on map files with mapdatas data
 #movepaths are not cleared properly
 #sending " to chat as first character doesn't work... 
@@ -47,13 +46,13 @@
 #show move speed and attack speed
 #icons for green and blue wood
 
+############# MINIMUM VIABLE PRODUCT AT THIS POINT ##############
+
 #potential units:
 #eagle. gains bonus vision range.
 #giant eagle. gains bonus vision, has decent HP and attack.
 #unit which 'becomes' a defensive structure and can't move like gatherer and summoner and auto-attacks
 #unit could also drop mines and then become normal unit(like SC vulture)
-
-############# MINIMUM VIABLE PRODUCT AT THIS POINT ##############
 
 #BONUS FEATURES
 #sort room columns
@@ -170,8 +169,8 @@ class gameMode:
 					self.elementWithFocus.onLeftClickUp()
 	def handleKeyDown(self,keycode):
 		if(keycode == "t"):
-			gameState.setMapName("foo")
-			gameState.setGameMode(joinGameMode)
+#			gameState.setMapName("foo")
+#			gameState.setGameMode(joinGameMode)
 			print 'test'
 		if(keycode == "y"):
 			gameState.getGameMode().changeMap("Clay's Map")
@@ -546,16 +545,11 @@ class newGameScreenMode(textBasedMenuMode):
 	def addUIElements(self):
 		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])
 		uiElements.menuButton(-0.18,-0.4,quickPlayMapSelectMode,text="Quick Play")
-		uiElements.menuButton(-0.29,-0.52,multiplayerGameScreenMode,text="Play LAN Game")
-		uiElements.menuButton(-0.19,-0.64,loginMode,text="Play Online")
-		uiElements.menuButton(-0.19,-0.76,mapEditorSelectMode,text="Map Editor")
+		uiElements.menuButton(-0.28,-0.52,joinLANGameScreenMode,text="Join LAN Game")
+		uiElements.menuButton(-0.30,-0.64,hostGameMode,text="Host LAN Game")
+		uiElements.menuButton(-0.19,-0.76,loginMode,text="Play Online")
+		uiElements.menuButton(-0.19,-0.88,mapEditorSelectMode,text="Map Editor")
 
-class multiplayerGameScreenMode(textBasedMenuMode):
-	def addUIElements(self):
-		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])
-		uiElements.menuButton(-0.15,0.2,hostLANGameScreenMode,text="host lan game")
-		uiElements.menuButton(-0.15,0.1,joinLANGameScreenMode,text="join lan game")
-		uiElements.menuButton(-0.15,0.0,comingSoonMode,text="online")
 
 class comingSoonMode(textBasedMenuMode):
 	def addUIElements(self):
@@ -603,7 +597,7 @@ class joinLANGameScreenMode(gameMode):
 	def addUIElements(self):
 		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])
 		uiElements.uiElement(-0.15,0.2,text="Host IP Address")
-		self.setFocus(uiElements.hostIPInputElement(-0.15,0.15,joiningLANGameScreenMode,width=(2.0*cDefines.defines['UI_TEXT_INPUT_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_TEXT_INPUT_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),textSize=0.0005,textColor='00 00 00',textureIndex=cDefines.defines['UI_TEXT_INPUT_INDEX'],textYPos=-0.035,textXPos=0.01))
+		self.setFocus(uiElements.hostIPInputElement(-0.15,0.15))
 
 class joiningLANGameScreenMode(gameMode):
 	def __init__(self,args):
@@ -739,13 +733,16 @@ class joinGameMode(tiledGameMode):
 					previousElem.mouseOverColor = "ff ff ff"
 			if(elem.text == playerName):
 				previousElem = elem
-	def loadMap(self):
+	def setMap(self,mapName):
+		gameState.setMapName(mapName)
 		self.map = gameLogic.map(gameLogic.mapViewNode,-60.0)
+		self.mapNameElem.text = mapName
 		self.focusXPos = int(len(self.map.nodes[0])/2)
 		self.focusYPos = int(len(self.map.nodes)/2)
 		self.focusNextUnit = 1
 	def addUIElements(self):
-		uiElements.uiElement(0.0,0.9,text=gameState.getMapName())
+#		uiElements.uiElement(0.0,0.9,text=gameState.getMapName())
+		self.mapNameElem = uiElements.uiElement(0.0,0.9,text="")
 		uiElements.backButton(-0.930,0.9)
 		uiElements.uiElement(0.35,0.813,width=texWidth("JOIN_GAME_PLAYERS"),height=texHeight("JOIN_GAME_PLAYERS"),textureIndex=texIndex("JOIN_GAME_PLAYERS"))
 		if(self.isHost):
@@ -755,12 +752,20 @@ class joinGameMode(tiledGameMode):
 		uiElements.sendChatButton(0.842,-0.595)
 		for i in range(0,2*self.teamSize):
 			self.playerElements.append(uiElements.uiElement(0.36,0.775-(0.033*i),text="empty",textSize=0.0005,textColor="55 55 55",mouseOverColor="55 55 55"))
+		print 'addui'
+class joinLANGameMode(joinGameMode):
+	def __init__(self,args):
+		if(len(args) == 0):
+			joinGameMode.__init__(self,["LAN game","map name","127.0.0.1","6666","1"])
+		else:
+			joinGameMode.__init__(self,["LAN game","map name",args[0],"6666","1"])
 
+	
 class createGameMode(tiledGameMode):
 	def __init__(self,args):
 		tiledGameMode.__init__(self)
 		self.createGameMode = True
-		self.teamSize = 0
+		self.teamSize = 1
 		self.mapSelector = None
 		self.backgroundImageIndex = texIndex("CREATE_GAME_BACKGROUND")
 		self.selectedNode = None
@@ -770,7 +775,8 @@ class createGameMode(tiledGameMode):
 		if(self.mapSelector != None):
 			self.mapSelector.destroy()
 		self.mapNameField.text = mapName
-		self.roomNameField.setText(gameState.getUserName() + "'s " + str(self.teamSize) + "v" + str(self.teamSize) + "(" + mapName + ")")
+		if(hasattr(self,"roomNameField")):
+			self.roomNameField.setText(gameState.getUserName() + "'s " + str(self.teamSize) + "v" + str(self.teamSize) + "(" + mapName + ")")
 		self.mapSelector = uiElements.mapSelector(-0.93,0.813,[],self.mapNameField)
 		for mapData in gameState.getMapDatas()[self.teamSize-1]:
 			gameState.getGameMode().mapSelector.textFields.append(uiElements.mapSelect(-0.93,0.0,gameState.getGameMode().mapSelector,mapData.name))
@@ -783,7 +789,19 @@ class createGameMode(tiledGameMode):
 		self.roomNameField = uiElements.textInputElement(0.31,-0.616)
 		uiElements.createGameButton(0.717,-0.616)		
 		uiElements.backButton(-0.930,0.9)
-#		uiElements.uiElement(-0.930,0.9,width=texWidth("BACK_BUTTON"),height=texHeight("BACK_BUTTON"),textureIndex=texIndex("BACK_BUTTON"))
+
+class hostGameMode(createGameMode):
+	def __init__(self,args):
+		createGameMode.__init__(self,args)
+		self.hostGameMode = True
+	def addUIElements(self):
+		self.mapNameField = uiElements.uiElement(-1.0+texWidth("CREATE_GAME_BACKGROUND_LEFT"),0.85,fontIndex=3,textColor="ee ed 9b")
+		uiElements.backButtun(-0.930,0.9,newGameScreenMode)
+		uiElements.createGameButtun(0.717,-0.616)		
+		uiElements.da1v1Button(-0.710,0.9,offColor="AA AA AA")
+		uiElements.da2v2Button(-0.620,0.9,offColor="AA AA AA")
+		uiElements.da3v3Button(-0.530,0.9,offColor="AA AA AA")
+		uiElements.da4v4Button(-0.440,0.9,offColor="AA AA AA")
+		gameState.getGameMode().setMap(gameState.getMapDatas()[0][0].name)
+
 gameState.setGameMode(newGameScreenMode)
-
-

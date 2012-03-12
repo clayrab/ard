@@ -243,17 +243,23 @@ class cityNameInputElement(textInputElement):
 
 
 class hostIPInputElement(textInputElement):
-	def __init__(self,xPos,yPos,gameMode,width=0.0,height=0.0,text="127.0.0.1",textSize=0.001,textureIndex=-1,textColor='FF FF FF',textXPos=0.0,textYPos=0.0):
-		textInputElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textSize=textSize,textColor=textColor,textXPos=textXPos,textYPos=textYPos)
-		self.gameMode = gameMode
+	def __init__(self,xPos,yPos):
+		textInputElement.__init__(self,xPos,yPos,width=texWidth("UI_TEXT_INPUT_IMAGE"),height=texHeight("UI_TEXT_INPUT_IMAGE"),textureIndex=texIndex("UI_TEXT_INPUT"),text="127.0.0.1")
+#		self.gameMode = gameMode
 	def onKeyDown(self,keycode):
 		if(keycode == "return"):
 			if(len(self.text) > 0):
-				gameState.setGameMode(self.gameMode)
+				gameState.setGameMode(gameModes.joinLANGameMode,[self.text])
 				gameState.setHostIP(self.text)
-				client.startClient(self.text)
+		elif(keycode == "." or keycode == "backspace"):
+			textInputElement.onKeyDown(self,str(keycode))
 		else:
-			textInputElement.onKeyDown(self,keycode)
+			try:
+				keycode = int(keycode)
+				textInputElement.onKeyDown(self,str(keycode))
+			except:
+				return
+			
 
 class startGatheringButton(clickableElement):
 	def onClick(self):
@@ -664,8 +670,8 @@ class scrollPadElement(uiElement):
 #		self.yPosition = (self.totalScrollableHeight*scrollPos/(1+self.numScrollableElements))+self.topOffset-self.scrollableElement.yPosition
 
 class scrollableElement(uiElement):
-	def onClick(self):
-		self.scrollableElement.handleClick(self)	
+#	def onClick(self):
+#		self.scrollableElement.handleClick(self)	
 	def setYPosition(self,yPos):
 		if(hasattr(self,"names")):
 			for name in self.names:
@@ -858,37 +864,42 @@ class startingManaSelector(scrollableTextFieldsElement):
 
 class gameTypeButton(clickableElement):
 	buttons = []
-	def __init__(self,xPos,yPos,textureStr,teamSize,selected):
+	def __init__(self,xPos,yPos,textureStr,teamSize,selected,offColor="88 88 88"):
+		self.offColor = offColor
+		self.onColor = "FF FF FF"
 		if(selected):
-			color = "FF FF FF"
+			color = self.onColor
 		else:
-			color = "88 88 88"
+			color = self.offColor
 		clickableElement.__init__(self,xPos,yPos,width=texWidth(textureStr),height=texHeight(textureStr),textureIndex=texIndex(textureStr),color=color)
 		self.teamSize = teamSize
 		gameTypeButton.buttons.append(self)
 		self.selected = selected
 	def onClick(self):
 		for button in gameTypeButton.buttons:
-			button.color = "88 88 88"
+			button.color = self.offColor
 			button.selected = False
-		self.color = "FF FF FF"
+		self.color = self.onColor
 		self.selected = True
+		if(hasattr(gameState.getGameMode(),"hostGameMode")):
+			gameState.getGameMode().teamSize = self.teamSize
+			gameState.getGameMode().setMap(gameState.getMapDatas()[self.teamSize-1][0].name)
 
 class da1v1Button(gameTypeButton):
-	def __init__(self,xPos,yPos):
-		gameTypeButton.__init__(self,xPos,yPos,"DA_1V1_BUTTON",1,True)	
+	def __init__(self,xPos,yPos,offColor="88 88 88"):
+		gameTypeButton.__init__(self,xPos,yPos,"DA_1V1_BUTTON",1,True,offColor=offColor)
 
 class da2v2Button(gameTypeButton):
-	def __init__(self,xPos,yPos):
-		gameTypeButton.__init__(self,xPos,yPos,"DA_2V2_BUTTON",2,False)
+	def __init__(self,xPos,yPos,offColor="88 88 88"):
+		gameTypeButton.__init__(self,xPos,yPos,"DA_2V2_BUTTON",2,False,offColor=offColor)
 
 class da3v3Button(gameTypeButton):
-	def __init__(self,xPos,yPos):
-		gameTypeButton.__init__(self,xPos,yPos,"DA_3V3_BUTTON",3,False)
+	def __init__(self,xPos,yPos,offColor="88 88 88"):
+		gameTypeButton.__init__(self,xPos,yPos,"DA_3V3_BUTTON",3,False,offColor=offColor)
 
 class da4v4Button(gameTypeButton):
-	def __init__(self,xPos,yPos):
-		gameTypeButton.__init__(self,xPos,yPos,"DA_4V4_BUTTON",4,False)
+	def __init__(self,xPos,yPos,offColor="88 88 88"):
+		gameTypeButton.__init__(self,xPos,yPos,"DA_4V4_BUTTON",4,False,offColor=offColor)
 
 class createRoomButton(clickableElement):
 	def __init__(self,xPos,yPos):
@@ -1239,14 +1250,29 @@ class createGameButton(clickableElement):
 	def __init__(self,xPos,yPos):
 		clickableElement.__init__(self,xPos,yPos,textureIndex=texIndex("CREATE_GAME_BUTTON_LARGE"),width=texWidth("CREATE_GAME_BUTTON_LARGE"),height=texHeight("CREATE_GAME_BUTTON_LARGE"))
 	def onClick(self):
-		print 'creategameroom'
 		gameState.getGameFindClient().sendCommand("createGameRoom",gameState.getGameMode().roomNameField.realText + "|" + str(gameState.getGameMode().teamSize) + "|" + gameState.getGameMode().mapNameField.text)
+
+class createGameButtun(clickableElement):
+	def __init__(self,xPos,yPos):
+		clickableElement.__init__(self,xPos,yPos,textureIndex=texIndex("CREATE_GAME_BUTTON_LARGE"),width=texWidth("CREATE_GAME_BUTTON_LARGE"),height=texHeight("CREATE_GAME_BUTTON_LARGE"))
+	def onClick(self):
+		server.startServer('',6666)
+		client.startClient('127.0.0.1',6666)
+		gameState.setGameMode(gameModes.joinLANGameMode)
+		gameState.getGameMode().setMap(gameState.getMapName())
 
 class backButton(clickableElement):
 	def __init__(self,xPos,yPos):
 		clickableElement.__init__(self,xPos,yPos,textureIndex=texIndex("BACK_BUTTON"),width=texWidth("BACK_BUTTON"),height=texHeight("BACK_BUTTON"))
 	def onClick(self):
 		gameState.getGameFindClient().sendCommand("subscribe","lobby")
+
+class backButtun(clickableElement):
+	def __init__(self,xPos,yPos,gameMode):
+		clickableElement.__init__(self,xPos,yPos,textureIndex=texIndex("BACK_BUTTON"),width=texWidth("BACK_BUTTON"),height=texHeight("BACK_BUTTON"))
+		self.gameMode = gameMode
+	def onClick(self):
+		gameState.setGameMode(self.gameMode)
 
 class startGameButton(clickableElement):
 	def __init__(self,xPos,yPos):

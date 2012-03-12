@@ -35,7 +35,10 @@ cityNames = ["Eshnunna","Tutub","Der","Sippar","Sippar-Amnanum","Kutha","Jemde N
 
 
 class Player:
-	def __init__(self,playerNumber):
+	def __init__(self,playerNumber,userName=None):
+		if(userName == None):
+			userName = "Player " + str(playerNumber)
+		self.userName = userName
 		self.playerNumber = playerNumber
 		self.isOwnPlayer = False
 		self.greenWood = STARTING_GREEN_WOOD

@@ -22,10 +22,9 @@ class Commands:
     @staticmethod
     def showGameRoom(args):	    
         tokens = args.split("*")
-        gameState.setMapName(tokens[1])
+#        gameState.setMapName(tokens[1])
         gameState.setGameMode(gameModes.joinGameMode,tokens)
-        print tokens[2]
-#        client.startClient(tokens[2])
+        gameState.getGameMode().setMap(tokens[1])
     @staticmethod
     def addPlayer(args):	    
         gameState.getGameMode().addPlayer(args)
