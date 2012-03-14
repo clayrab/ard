@@ -444,6 +444,26 @@ static void printPyStackTrace(){
 #define MOVE_BUTTON_WIDTH 58
 #define MOVE_BUTTON_INDEX 86
 
+#define GREY_PEDESTAL "assets/greyPedestal.png"
+#define GREY_PEDESTAL_HEIGHT 54
+#define GREY_PEDESTAL_WIDTH 54
+#define GREY_PEDESTAL_INDEX 87
+
+#define CANCEL_MOVEMENT_BUTTON "assets/cancelMovementButton.png"
+#define CANCEL_MOVEMENT_BUTTON_HEIGHT 27
+#define CANCEL_MOVEMENT_BUTTON_WIDTH 147
+#define CANCEL_MOVEMENT_BUTTON_INDEX 88
+
+#define SKIP_BUTTON "assets/skipButton.png"
+#define SKIP_BUTTON_HEIGHT 27
+#define SKIP_BUTTON_WIDTH 58
+#define SKIP_BUTTON_INDEX 89
+
+#define START_GATHERING_BUTTON "assets/startGatheringButton.png"
+#define START_GATHERING_BUTTON_HEIGHT 26
+#define START_GATHERING_BUTTON_WIDTH 128
+#define START_GATHERING_BUTTON_INDEX 90
+
 #define DESERT_TILE_INDEX 0
 #define GRASS_TILE_INDEX 1
 #define MOUNTAIN_TILE_INDEX 2
@@ -1559,6 +1579,10 @@ static void initGL (){
   pngLoad(&texturesArray[UI_UNIT_BACKGROUND_INDEX],UI_UNIT_BACKGROUND);
   pngLoad(&texturesArray[START_SUMMONING_BUTTON_INDEX],START_SUMMONING_BUTTON);
   pngLoad(&texturesArray[MOVE_BUTTON_INDEX],MOVE_BUTTON);
+  pngLoad(&texturesArray[GREY_PEDESTAL_INDEX],GREY_PEDESTAL);
+  pngLoad(&texturesArray[CANCEL_MOVEMENT_BUTTON_INDEX],CANCEL_MOVEMENT_BUTTON);
+  pngLoad(&texturesArray[SKIP_BUTTON_INDEX],SKIP_BUTTON);
+  pngLoad(&texturesArray[START_GATHERING_BUTTON_INDEX],START_GATHERING_BUTTON);
   
   vertexArrays[DESERT_TILE_INDEX] = *desertVertices;
   vertexArrays[GRASS_TILE_INDEX] = *grassVertices;

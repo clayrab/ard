@@ -330,13 +330,19 @@ class skipButton(clickableElement):
 		gameState.getClient().sendCommand("skip")
 #,str(gameState.getGameMode().nextUnit.node.xPos) + " " + str(gameState.getGameMode().nextUnit.node.yPos))
 		gameState.getClient().sendCommand("chooseNextUnit")
-
 	
 class cityViewerButton(clickableElement):
 	def onClick(self):
+		node = viewer.theViewer.node
+		viewer.theViewer.destroy()
+		viewer.theViewer = cityViewer(node)
 		print 'click'
+
 class unitViewerButton(clickableElement):
 	def onClick(self):
+		node = viewer.theViewer.node
+		viewer.theViewer.destroy()
+		viewer.theViewer = uniitViewer(node)
 		print 'click'
 
 class viewer(uiElement):
@@ -367,11 +373,48 @@ class viewer(uiElement):
 
 class cityViewer(viewer):
 	def __init__(self,node):
-		viewer.__init__(self,0.1,0.1,node,width=texWidth("UI_CITY_BACKGROUND_INDEX"),height=texHeight("UI_CITY_BACKGROUND_INDEX"),textureIndex=texIndex("UI_CITY_BACKGROUND_INDEX"))
+		viewer.__init__(self,0.5,0.97,node,width=texWidth("UI_CITY_BACKGROUND"),height=texHeight("UI_CITY_BACKGROUND"),textureIndex=texIndex("UI_CITY_BACKGROUND"))
 
 class uniitViewer(viewer):
 	def __init__(self,node):
-		viewer.__init__(self,0.5,0.95,node,width=texWidth("UI_UNIT_BACKGROUND"),height=texHeight("UI_UNIT_BACKGROUND"),textureIndex=texIndex("UI_UNIT_BACKGROUND"))
+		viewer.__init__(self,0.5,0.97,node,width=texWidth("UI_UNIT_BACKGROUND"),height=texHeight("UI_UNIT_BACKGROUND"),textureIndex=texIndex("UI_UNIT_BACKGROUND"))
+
+		self.names.append(uiElement(self.xPosition+0.022,self.yPosition-0.100,textureIndex=texIndex("GREY_PEDESTAL"),width=2.0*texWidth("GREY_PEDESTAL"),height=2.0*texHeight("GREY_PEDESTAL")).name)
+		self.names.append(uiElement(self.xPosition+0.022+24.0/cDefines.defines["SCREEN_WIDTH"],self.yPosition-0.100-24.0/cDefines.defines["SCREEN_HEIGHT"],textureIndex=self.node.unit.unitType.textureIndex,height=130.0/cDefines.defines["SCREEN_HEIGHT"],width=130.0/cDefines.defines["SCREEN_WIDTH"]).name)
+		self.names.append(uiElement(self.xPosition+0.022,self.yPosition-0.32,text=self.node.unit.unitType.name,textSize=0.00055,textColor="ee ed 9b").name)
+		self.names.append(uiElement(self.xPosition+0.022,self.yPosition-0.36,text="lvl " + str(self.node.unit.level),textSize=0.00055,textColor="ee ed 9b").name)
+		self.names.append(uiElement(self.xPosition+0.180,self.yPosition-0.125,text="health",textSize=0.0005,textColor="ee ed 9b").name)
+		self.names.append(uiElement(self.xPosition+0.180,self.yPosition-0.130,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE'),textureIndex=texIndex('UNIT_BUILD_BAR')).name)
+		self.names.append(uiElement(self.xPosition+0.180,self.yPosition-0.130,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE')*(float(self.node.unit.health)/self.node.unit.getMaxHealth()),textureIndex=texIndex('UNIT_BUILD_BAR'),color="FF 00 00").name)
+
+		self.names.append(uiElement(self.xPosition+0.180,self.yPosition-0.185,text="move initiative",textSize=0.0005,textColor="ee ed 9b").name)
+		self.names.append(uiElement(self.xPosition+0.180,self.yPosition-0.190,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE'),textureIndex=texIndex('UNIT_BUILD_BAR')).name)
+		self.names.append(uiElement(self.xPosition+0.180,self.yPosition-0.190,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE')*(float(self.node.unit.health)/self.node.unit.getMaxHealth()),textureIndex=texIndex('UNIT_BUILD_BAR'),color="FF 00 00").name)
+
+		self.names.append(uiElement(self.xPosition+0.180,self.yPosition-0.245,text="atk initiative",textSize=0.0005,textColor="ee ed 9b").name)
+		self.names.append(uiElement(self.xPosition+0.180,self.yPosition-0.250,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE'),textureIndex=texIndex('UNIT_BUILD_BAR')).name)
+		self.names.append(uiElement(self.xPosition+0.180,self.yPosition-0.250,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE')*(float(self.node.unit.health)/self.node.unit.getMaxHealth()),textureIndex=texIndex('UNIT_BUILD_BAR'),color="FF 00 00").name)
+
+		height = self.yPosition-0.450
+
+		self.names.append(uiElement(self.xPosition+0.022,height,height=texHeight('START_SUMMONING_BUTTON'),width=texWidth('START_SUMMONING_BUTTON'),textureIndex=texIndex('START_SUMMONING_BUTTON')).name)
+		height = height - 0.055
+
+		self.names.append(uiElement(self.xPosition+0.022,height,height=texHeight('MOVE_BUTTON'),width=texWidth('MOVE_BUTTON'),textureIndex=texIndex('MOVE_BUTTON')).name)
+		height = height - 0.055
+
+#		if(len(self.unit.movePath) > 0):
+		self.names.append(uiElement(self.xPosition+0.022,height,height=texHeight('CANCEL_MOVEMENT_BUTTON'),width=texWidth('CANCEL_MOVEMENT_BUTTON'),textureIndex=texIndex('CANCEL_MOVEMENT_BUTTON')).name)
+		height = height - 0.055
+
+#		if(self.unit == gameState.getGameMode().nextUnit and (gameState.getPlayerNumber() == self.unit.player or gameState.getPlayerNumber() == -2)):
+		self.names.append(uiElement(self.xPosition+0.022,height,height=texHeight('SKIP_BUTTON'),width=texWidth('SKIP_BUTTON'),textureIndex=texIndex('SKIP_BUTTON')).name)
+		height = height - 0.055
+
+#		if(self.unit.unitType.name == "gatherer" and self.node.whateveradhahdfahsdfdhasf):
+#self.unit.node.tileValue == cDefines.defines['FOREST_TILE_INDEX'] or self.unit.node.tileValue == cDefines.defines['BLUE_FOREST_TILE_INDEX']
+		self.names.append(uiElement(self.xPosition+0.022,height,height=texHeight('START_GATHERING_BUTTON'),width=texWidth('START_GATHERING_BUTTON'),textureIndex=texIndex('START_GATHERING_BUTTON')).name)
+		height = height - 0.055
 
 class unitTypeViewer(viewer):
 	def __init__(self,unitType):

@@ -773,11 +773,11 @@ def selectNode(node,actionViewer=uiElements.actionViewer):
 
 #	uiElements.viewer.theViewer
 	uiElements.viewer.destroy()
-	if(node.unit.unitType.name == "summoner" and node.unit.isMeditating):
-		print "summoner"
-	else:
-		uiElements.viewer.theViewer = uiElements.uniitViewer(node)
-		print 'elese'
+	if(node.unit != None):
+		if(node.unit.unitType.name == "summoner" and node.unit.isMeditating):
+			print "summoner"
+		else:
+			uiElements.viewer.theViewer = uiElements.uniitViewer(node)
 
 	actionViewer.destroy()
 	uiElements.unitViewer.destroy()
