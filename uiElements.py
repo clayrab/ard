@@ -396,12 +396,9 @@ class uniitViewer(viewer):
 		self.names.append(uiElement(self.xPosition+0.180,self.yPosition-0.250,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE')*(float(self.node.unit.health)/self.node.unit.getMaxHealth()),textureIndex=texIndex('UNIT_BUILD_BAR'),color="FF 00 00").name)
 
 		height = self.yPosition-0.450
-
-		self.names.append(uiElement(self.xPosition+0.022,height,height=texHeight('START_SUMMONING_BUTTON'),width=texWidth('START_SUMMONING_BUTTON'),textureIndex=texIndex('START_SUMMONING_BUTTON')).name)
-		height = height - 0.055
-
-		self.names.append(uiElement(self.xPosition+0.022,height,height=texHeight('MOVE_BUTTON'),width=texWidth('MOVE_BUTTON'),textureIndex=texIndex('MOVE_BUTTON')).name)
-		height = height - 0.055
+		if(self.node.city != None and self.node.unit.unitType.name == "summoner" and not self.node.unit.isMeditating):
+			self.names.append(uiElement(self.xPosition+0.022,height,height=texHeight('START_SUMMONING_BUTTON'),width=texWidth('START_SUMMONING_BUTTON'),textureIndex=texIndex('START_SUMMONING_BUTTON')).name)
+			height = height - 0.055
 
 #		if(len(self.unit.movePath) > 0):
 		self.names.append(uiElement(self.xPosition+0.022,height,height=texHeight('CANCEL_MOVEMENT_BUTTON'),width=texWidth('CANCEL_MOVEMENT_BUTTON'),textureIndex=texIndex('CANCEL_MOVEMENT_BUTTON')).name)
