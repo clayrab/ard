@@ -6,15 +6,14 @@
 #how to host instructions page
 
 #server:
-#need to show city info and start positions when previewing maps
 #*,|, and - cannot be allowed in roomnames
 #record wins/losses
 #report game state(to look for cheaters/bugs)
 
 #MISSING FEATURES
-#send chat button should refocus chat box
 #game ui redesign
 #map name clickable to view map
+#need to show city info and start positions when previewing maps
 #testing connection timeout
 #gatherers and summoners should not be able to move once they begin gathering or summoning. summoners don't get turns, they can build at any time.
 #proper quit and options menus
@@ -26,6 +25,9 @@
 #modals should be dismissed by esc, space, or enter
 #handle disconnections/reconnections gracefully
 #number keys auto-focus cities
+#animated attacks
+#send chat button should refocus chat box
+#quickplay map selection only supports 10ish maps
 
 #BUGS
 #chat area element counts need fixing
@@ -755,6 +757,7 @@ class joinGameMode(tiledGameMode):
 		for i in range(0,2*self.teamSize):
 			self.playerElements.append(uiElements.uiElement(0.36,0.775-(0.033*i),text="empty",textSize=0.0005,textColor="55 55 55",mouseOverColor="55 55 55"))
 		print 'addui'
+
 class joinLANGameMode(joinGameMode):
 	def __init__(self,args):
 		if(len(args) == 0):

@@ -331,14 +331,53 @@ class skipButton(clickableElement):
 #,str(gameState.getGameMode().nextUnit.node.xPos) + " " + str(gameState.getGameMode().nextUnit.node.yPos))
 		gameState.getClient().sendCommand("chooseNextUnit")
 
-class cityViewer(uiElement):
+	
+class cityViewerButton(clickableElement):
+	def onClick(self):
+		print 'click'
+class unitViewerButton(clickableElement):
+	def onClick(self):
+		print 'click'
+
+class viewer(uiElement):
 	theViewer = None
-	def __init__(self,node):
-		print self
+	def __init__(self,xPos,yPos,node,width,height,textureIndex):
+		uiElement.__init__(self,xPos,yPos,width,height,textureIndex)
+		self.node = node
+		self.names = []
+		self.names.append(unitViewerButton(xPos+0.09,yPos-0.046,text="unit",textSize=0.00055,textColor="ee ed 9b",width=1.0,height=1.0).name)
+		if(node.city != None):
+			self.names.append(cityViewerButton(xPos+0.31,yPos-0.046,text="city",textSize=0.00055,textColor="ee ed 9b",width=1.0,height=1.0).name)
+		else:
+			self.names.append(uiElement(xPos+0.31,yPos-0.046,text="city",textSize=0.00055,textColor="cc cc cc",width=1.0,height=1.0).name)
 	@staticmethod
 	def destroy():
-		print 'destroy'
-	
+		if(viewer.theViewer != None):
+			viewer.theViewer._destroy()
+			viewer.theViewer = None
+	def _destroy(self):
+		del gameState.getGameMode().elementsDict[self.name]
+		for name in self.names:
+			del gameState.getGameMode().elementsDict[name]
+		self.names = []
+		gameState.getGameMode().resortElems = True
+	def reset(self):
+		self._destroy()
+		actionViewer.theViewer = actionViewer(self.node)
+
+class cityViewer(viewer):
+	def __init__(self,node):
+		viewer.__init__(self,0.1,0.1,node,width=texWidth("UI_CITY_BACKGROUND_INDEX"),height=texHeight("UI_CITY_BACKGROUND_INDEX"),textureIndex=texIndex("UI_CITY_BACKGROUND_INDEX"))
+
+class uniitViewer(viewer):
+	def __init__(self,node):
+		viewer.__init__(self,0.5,0.95,node,width=texWidth("UI_UNIT_BACKGROUND"),height=texHeight("UI_UNIT_BACKGROUND"),textureIndex=texIndex("UI_UNIT_BACKGROUND"))
+
+class unitTypeViewer(viewer):
+	def __init__(self,unitType):
+		viewer.__init__(self,0.5,0.1,width=texWidth("UI_UNIT_BACKGROUND"),height=texHeight("UI_UNIT_BACKGROUND"),textureIndex=texIndex("UI_UNIT_BACKGROUND"))
+		self.unitType = unitType
+		self.names = []
 
 class actionViewer(uiElement):
 	theViewer = None

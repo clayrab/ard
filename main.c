@@ -409,6 +409,41 @@ static void printPyStackTrace(){
 #define LOGIN_BUTTON_WIDTH 303
 #define LOGIN_BUTTON_INDEX 79
 
+#define SCROLL_BAR "assets/scrollBar.png"
+#define SCROLL_BAR_HEIGHT 160
+#define SCROLL_BAR_WIDTH 10
+#define SCROLL_BAR_INDEX 80
+
+#define UNIT_UI_BACK "assets/unitUIBack.png"
+#define UNIT_UI_BACK_HEIGHT 79
+#define UNIT_UI_BACK_WIDTH 311
+#define UNIT_UI_BACK_INDEX 81
+
+#define BUILD_BUTTON "assets/buildButton.png"
+#define BUILD_BUTTON_HEIGHT 27
+#define BUILD_BUTTON_WIDTH 58
+#define BUILD_BUTTON_INDEX 82
+
+#define UI_CITY_BACKGROUND "assets/UICityBackground.png"
+#define UI_CITY_BACKGROUND_HEIGHT 1150
+#define UI_CITY_BACKGROUND_WIDTH 358
+#define UI_CITY_BACKGROUND_INDEX 83
+
+#define UI_UNIT_BACKGROUND "assets/UIUnitBackground.png"
+#define UI_UNIT_BACKGROUND_HEIGHT 1150
+#define UI_UNIT_BACKGROUND_WIDTH 358
+#define UI_UNIT_BACKGROUND_INDEX 84
+
+#define START_SUMMONING_BUTTON "assets/startSummoningButton.png"
+#define START_SUMMONING_BUTTON_HEIGHT 27
+#define START_SUMMONING_BUTTON_WIDTH 147
+#define START_SUMMONING_BUTTON_INDEX 85
+
+#define MOVE_BUTTON "assets/moveButton.png"
+#define MOVE_BUTTON_HEIGHT 27
+#define MOVE_BUTTON_WIDTH 58
+#define MOVE_BUTTON_INDEX 86
+
 #define DESERT_TILE_INDEX 0
 #define GRASS_TILE_INDEX 1
 #define MOUNTAIN_TILE_INDEX 2
@@ -1517,7 +1552,14 @@ static void initGL (){
   pngLoad(&texturesArray[JOIN_GAME_PLAYERS_INDEX],JOIN_GAME_PLAYERS);
   pngLoad(&texturesArray[START_BUTTON_INDEX],START_BUTTON);
   pngLoad(&texturesArray[LOGIN_BUTTON_INDEX],LOGIN_BUTTON);
-
+  pngLoad(&texturesArray[SCROLL_BAR_INDEX],SCROLL_BAR);
+  pngLoad(&texturesArray[UNIT_UI_BACK_INDEX],UNIT_UI_BACK);
+  pngLoad(&texturesArray[BUILD_BUTTON_INDEX],BUILD_BUTTON);
+  pngLoad(&texturesArray[UI_CITY_BACKGROUND_INDEX],UI_CITY_BACKGROUND);
+  pngLoad(&texturesArray[UI_UNIT_BACKGROUND_INDEX],UI_UNIT_BACKGROUND);
+  pngLoad(&texturesArray[START_SUMMONING_BUTTON_INDEX],START_SUMMONING_BUTTON);
+  pngLoad(&texturesArray[MOVE_BUTTON_INDEX],MOVE_BUTTON);
+  
   vertexArrays[DESERT_TILE_INDEX] = *desertVertices;
   vertexArrays[GRASS_TILE_INDEX] = *grassVertices;
   vertexArrays[MOUNTAIN_TILE_INDEX] = *mountainVertices;

@@ -150,6 +150,7 @@ class unit:
 		self.health = float(self.unitType.health*self.level)
 		self.originCity = node.city
 		self.gatheringNode = None
+		self.isMeditating = False
 	def getMaxHealth(self):
 		return self.unitType.health*self.level
 	def getAttackPower(self):
@@ -619,7 +620,7 @@ class mapEditorNode(node):
 class mapViewNode(node):
 #	def __init__(self)
 	def onClick(self):
-		selectNode(self,uiElements.cityViewer)
+#		selectNode(self,uiElements.cityViewer)
 		print 'click'
 		print self.city
 
@@ -759,6 +760,7 @@ class map:
 	def setNumPlayers(self,numPlayers):
 		self.numPlayers = numPlayers
 
+
 def selectNode(node,actionViewer=uiElements.actionViewer):
 	if(gameState.getGameMode().selectedNode != None):
 		gameState.getGameMode().selectedNode.selected = False
@@ -767,6 +769,16 @@ def selectNode(node,actionViewer=uiElements.actionViewer):
 				pathNode.onMovePath = False
 	gameState.getGameMode().selectedNode = node
 	node.selected = True
+
+
+#	uiElements.viewer.theViewer
+	uiElements.viewer.destroy()
+	if(node.unit.unitType.name == "summoner" and node.unit.isMeditating):
+		print "summoner"
+	else:
+		uiElements.viewer.theViewer = uiElements.uniitViewer(node)
+		print 'elese'
+
 	actionViewer.destroy()
 	uiElements.unitViewer.destroy()
 	uiElements.unitTypeResearchViewer.destroy()
@@ -781,5 +793,3 @@ def selectNode(node,actionViewer=uiElements.actionViewer):
 	if(hasattr(gameState.getGameMode().mousedOverObject,"toggleCursor")):
 		   gameState.getGameMode().mousedOverObject.toggleCursor()
 #	node.toggleCursor()
-
-

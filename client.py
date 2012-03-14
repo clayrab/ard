@@ -63,7 +63,6 @@ class Commands:
         tokens = args.split(" ")
         node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
         node.unit.gatheringNode = node
-
     @staticmethod
     def skip():
        	gameState.getGameMode().nextUnit.skip()
