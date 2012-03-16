@@ -55,6 +55,7 @@ class uiElement:
 			self.color = "FF FF FF"
 		if(self.textColor == None):
 			self.textColor = "FF FF FF"
+		self.names = []
 		gameState.getGameMode().elementsDict[self.name] = self
 		gameState.getGameMode().resortElems = True
 	def onScrollDown(self):
@@ -68,7 +69,6 @@ class uiElement:
 			self.names = []
 		del gameState.getGameMode().elementsDict[self.name]
 		gameState.getGameMode().resortElems = True
-				
 
 class clickableElement(uiElement):
 	def __init__(self,xPos,yPos,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,textXPos=0.0,textYPos=0.0,fontIndex=0):
@@ -269,13 +269,13 @@ class startGatheringButton(clickableElement):
 		if(unitViewer.theUnitViewer != None):
 			unitViewer.theUnitViewer.reset()
 
-class startSummoningButton(clickableElement):
+class startSummoningButtonOld(clickableElement):
        	def __init__(self,xPos,yPos,unitType,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,textXPos=0.0,textYPos=0.0):
 		clickableElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],color=color,mouseOverColor=mouseOverColor,textXPos=textXPos,textYPos=textYPos)
 		self.unitType = unitType
 	def onClick(self):
 		gameState.getClient().sendCommand("startSummoning",str(actionViewer.theViewer.node.xPos) + " " + str(actionViewer.theViewer.node.yPos) + " " + self.unitType.name)
-		if(actionViewer.theViewer.node.unit == gameState.getGameMode().nextUnit):
+		if(gameState.getGameMode().selectedNode.unit == gameState.getGameMode().nextUnit):
 			gameState.getClient().sendCommand("chooseNextUnit")
 
 class cancelUnitButton(clickableElement):
@@ -323,7 +323,7 @@ class cancelMovementButton(clickableElement):
 			pathNode.onMovePath = False
 		unitViewer.theUnitViewer.unit.movePath = []
 
-class skipButton(clickableElement):
+class skipButtonOld(clickableElement):
        	def __init__(self,xPos,yPos,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,textXPos=0.0,textYPos=0.0):
 		clickableElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],color=color,mouseOverColor=mouseOverColor,textXPos=textXPos,textYPos=textYPos)
 	def onClick(self):
@@ -336,44 +336,62 @@ class cityViewerButton(clickableElement):
 		node = viewer.theViewer.node
 		viewer.theViewer.destroy()
 		viewer.theViewer = cityViewer(node)
-		print 'click'
 
 class unitViewerButton(clickableElement):
 	def onClick(self):
 		node = viewer.theViewer.node
 		viewer.theViewer.destroy()
 		viewer.theViewer = uniitViewer(node)
-		print 'click'
 
+class skipButton(clickableElement):
+	def __init__(self,xPos,yPos):
+		clickableElement.__init__(self,xPos,yPos,height=texHeight('SKIP_BUTTON'),width=texWidth('SKIP_BUTTON'),textureIndex=texIndex('SKIP_BUTTON'))
+	def onClick(self):
+		gameState.getClient().sendCommand("skip")
+#,str(gameState.getGameMode().nextUnit.node.xPos) + " " + str(gameState.getGameMode().nextUnit.node.yPos))
+		gameState.getClient().sendCommand("chooseNextUnit")
+
+
+class startSummoningButton(clickableElement):
+	def __init__(self,xPos,yPos):
+		clickableElement.__init__(self,xPos,yPos,height=texHeight('START_SUMMONING_BUTTON'),width=texWidth('START_SUMMONING_BUTTON'),textureIndex=texIndex('START_SUMMONING_BUTTON'))
+	def onClick(self):
+		viewer.destroy()
+		gameState.getClient().sendCommand("startMeditating",str(actionViewer.theViewer.node.xPos) + " " + str(actionViewer.theViewer.node.yPos))
+		if(gameState.getGameMode().selectedNode.unit == gameState.getGameMode().nextUnit):
+			gameState.getClient().sendCommand("chooseNextUnit")
+		
 class viewer(uiElement):
 	theViewer = None
 	def __init__(self,xPos,yPos,node,width,height,textureIndex):
 		uiElement.__init__(self,xPos,yPos,width,height,textureIndex)
 		self.node = node
 		self.names = []
-		self.names.append(unitViewerButton(xPos+0.09,yPos-0.046,text="unit",textSize=0.00055,textColor="ee ed 9b",width=1.0,height=1.0).name)
+		if(node.unit != None):
+			self.names.append(unitViewerButton(xPos+0.09,yPos-0.046,text="unit",textSize=0.00055,textColor="ee ed 9b",width=1.0,height=1.0).name)
+		else:
+			self.names.append(uiElement(xPos+0.09,yPos-0.046,text="unit",textSize=0.00055,textColor="cc cc cc",width=1.0,height=1.0).name)
+			
 		if(node.city != None):
 			self.names.append(cityViewerButton(xPos+0.31,yPos-0.046,text="city",textSize=0.00055,textColor="ee ed 9b",width=1.0,height=1.0).name)
 		else:
 			self.names.append(uiElement(xPos+0.31,yPos-0.046,text="city",textSize=0.00055,textColor="cc cc cc",width=1.0,height=1.0).name)
-	@staticmethod
-	def destroy():
-		if(viewer.theViewer != None):
-			viewer.theViewer._destroy()
-			viewer.theViewer = None
-	def _destroy(self):
-		del gameState.getGameMode().elementsDict[self.name]
-		for name in self.names:
-			del gameState.getGameMode().elementsDict[name]
-		self.names = []
-		gameState.getGameMode().resortElems = True
-	def reset(self):
-		self._destroy()
-		actionViewer.theViewer = actionViewer(self.node)
-
-class cityViewer(viewer):
-	def __init__(self,node):
-		viewer.__init__(self,0.5,0.97,node,width=texWidth("UI_CITY_BACKGROUND"),height=texHeight("UI_CITY_BACKGROUND"),textureIndex=texIndex("UI_CITY_BACKGROUND"))
+#	@staticmethod
+	def destroy(self):
+		viewer.theViewer = None
+		uiElement.destroy(self)
+#		if(viewer.theViewer != None):
+#			viewer.theViewer._destroy()
+#			viewer.theViewer = None
+#	def _destroy(self):
+#		del gameState.getGameMode().elementsDict[self.name]
+#		for name in self.names:
+#			del gameState.getGameMode().elementsDict[name]
+#		self.names = []
+#		gameState.getGameMode().resortElems = True
+#	def reset(self):
+#		self._destroy()
+#		actionViewer.theViewer = actionViewer(self.node)
 
 class uniitViewer(viewer):
 	def __init__(self,node):
@@ -381,8 +399,7 @@ class uniitViewer(viewer):
 
 		self.names.append(uiElement(self.xPosition+0.022,self.yPosition-0.100,textureIndex=texIndex("GREY_PEDESTAL"),width=2.0*texWidth("GREY_PEDESTAL"),height=2.0*texHeight("GREY_PEDESTAL")).name)
 		self.names.append(uiElement(self.xPosition+0.022+24.0/cDefines.defines["SCREEN_WIDTH"],self.yPosition-0.100-24.0/cDefines.defines["SCREEN_HEIGHT"],textureIndex=self.node.unit.unitType.textureIndex,height=130.0/cDefines.defines["SCREEN_HEIGHT"],width=130.0/cDefines.defines["SCREEN_WIDTH"]).name)
-		self.names.append(uiElement(self.xPosition+0.022,self.yPosition-0.32,text=self.node.unit.unitType.name,textSize=0.00055,textColor="ee ed 9b").name)
-		self.names.append(uiElement(self.xPosition+0.022,self.yPosition-0.36,text="lvl " + str(self.node.unit.level),textSize=0.00055,textColor="ee ed 9b").name)
+
 		self.names.append(uiElement(self.xPosition+0.180,self.yPosition-0.125,text="health",textSize=0.0005,textColor="ee ed 9b").name)
 		self.names.append(uiElement(self.xPosition+0.180,self.yPosition-0.130,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE'),textureIndex=texIndex('UNIT_BUILD_BAR')).name)
 		self.names.append(uiElement(self.xPosition+0.180,self.yPosition-0.130,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE')*(float(self.node.unit.health)/self.node.unit.getMaxHealth()),textureIndex=texIndex('UNIT_BUILD_BAR'),color="FF 00 00").name)
@@ -395,39 +412,63 @@ class uniitViewer(viewer):
 		self.names.append(uiElement(self.xPosition+0.180,self.yPosition-0.250,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE'),textureIndex=texIndex('UNIT_BUILD_BAR')).name)
 		self.names.append(uiElement(self.xPosition+0.180,self.yPosition-0.250,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE')*(float(self.node.unit.health)/self.node.unit.getMaxHealth()),textureIndex=texIndex('UNIT_BUILD_BAR'),color="FF 00 00").name)
 
+
+		self.names.append(uiElement(self.xPosition+0.022,self.yPosition-0.32,text=self.node.unit.unitType.name,textSize=0.00055,textColor="ee ed 9b").name)
+		self.names.append(uiElement(self.xPosition+0.022,self.yPosition-0.36,text="lvl " + str(self.node.unit.level),textSize=0.00055,textColor="ee ed 9b").name)
+
 		height = self.yPosition-0.450
 		if(self.node.city != None and self.node.unit.unitType.name == "summoner" and not self.node.unit.isMeditating):
-			self.names.append(uiElement(self.xPosition+0.022,height,height=texHeight('START_SUMMONING_BUTTON'),width=texWidth('START_SUMMONING_BUTTON'),textureIndex=texIndex('START_SUMMONING_BUTTON')).name)
+			self.names.append(startSummoningButton(self.xPosition+0.022,height).name)
 			height = height - 0.055
 
-#		if(len(self.unit.movePath) > 0):
-		self.names.append(uiElement(self.xPosition+0.022,height,height=texHeight('CANCEL_MOVEMENT_BUTTON'),width=texWidth('CANCEL_MOVEMENT_BUTTON'),textureIndex=texIndex('CANCEL_MOVEMENT_BUTTON')).name)
-		height = height - 0.055
+		if(len(self.node.unit.movePath) > 0):
+			self.names.append(uiElement(self.xPosition+0.022,height,height=texHeight('CANCEL_MOVEMENT_BUTTON'),width=texWidth('CANCEL_MOVEMENT_BUTTON'),textureIndex=texIndex('CANCEL_MOVEMENT_BUTTON')).name)
+			height = height - 0.055
 
-#		if(self.unit == gameState.getGameMode().nextUnit and (gameState.getPlayerNumber() == self.unit.player or gameState.getPlayerNumber() == -2)):
-		self.names.append(uiElement(self.xPosition+0.022,height,height=texHeight('SKIP_BUTTON'),width=texWidth('SKIP_BUTTON'),textureIndex=texIndex('SKIP_BUTTON')).name)
-		height = height - 0.055
+		if(self.node.unit == gameState.getGameMode().nextUnit and (gameState.getPlayerNumber() == self.node.unit.player or gameState.getPlayerNumber() == -2)):
+			self.names.append(skipButton(self.xPosition+0.022,height).name)
+			height = height - 0.055
 
-#		if(self.unit.unitType.name == "gatherer" and self.node.whateveradhahdfahsdfdhasf):
-#self.unit.node.tileValue == cDefines.defines['FOREST_TILE_INDEX'] or self.unit.node.tileValue == cDefines.defines['BLUE_FOREST_TILE_INDEX']
-		self.names.append(uiElement(self.xPosition+0.022,height,height=texHeight('START_GATHERING_BUTTON'),width=texWidth('START_GATHERING_BUTTON'),textureIndex=texIndex('START_GATHERING_BUTTON')).name)
-		height = height - 0.055
+		if(self.node.unit == gameState.getGameMode().nextUnit and self.node.unit.unitType.name == "gatherer" and (self.node.tileValue == cDefines.defines['FOREST_TILE_INDEX'] or self.unit.node.tileValue == cDefines.defines['BLUE_FOREST_TILE_INDEX'])):
+			self.names.append(uiElement(self.xPosition+0.022,height,height=texHeight('START_GATHERING_BUTTON'),width=texWidth('START_GATHERING_BUTTON'),textureIndex=texIndex('START_GATHERING_BUTTON')).name)
+			height = height - 0.055
+		
 
-class unitTypeViewer(viewer):
-	def __init__(self,unitType):
-		viewer.__init__(self,0.5,0.1,width=texWidth("UI_UNIT_BACKGROUND"),height=texHeight("UI_UNIT_BACKGROUND"),textureIndex=texIndex("UI_UNIT_BACKGROUND"))
-		self.unitType = unitType
-		self.names = []
+class cityViewer(viewer):
+	def __init__(self,node):
+		viewer.__init__(self,0.5,0.97,node,width=texWidth("UI_CITY_BACKGROUND"),height=texHeight("UI_CITY_BACKGROUND"),textureIndex=texIndex("UI_CITY_BACKGROUND"))
+		self.names.append(uiElement(self.xPosition+0.022,self.yPosition-0.10,text=self.node.city.name,textSize=0.0007).name)
+		if(self.node.city.researching):
+			self.names.append(uiElement(self.xPosition+0.02,-0.19,text="researching",textSize=0.0005).name)
+#			self.names.append(uiElement(-0.964,-0.23,text=self.node.city.researchUnitType.name,textSize=0.0005).name)
+#			self.names.append(uiElement(-0.964,-0.25,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE'),textureIndex=texIndex('UNIT_BUILD_BAR')).name)
+#			self.names.append(uiElement(-0.964,-0.25,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE')*(float(self.node.city.researchProgress[self.node.city.researchUnitType][1])/gameLogic.researchBuildTime),textureIndex=texIndex('UNIT_BUILD_BAR'),color="FF 00 00").name)
+			
+#		height = self.yPosition - 0.25
+		buildableUnitTypes = []
+		for unitType in self.node.city.researchProgress:
+			if(self.node.city.researchProgress[unitType][0] > 0):
+				buildableUnitTypes.append(unitType)
+				buildableUnitTypes.append(unitType)
+				buildableUnitTypes.append(unitType)
+		self.names.append(cityUnitDisplay(self.xPosition+0.02,self.yPosition-0.205,buildableUnitTypes,buildUnitElem).name)
 
-class actionViewer(uiElement):
-	theViewer = None
-	def __init__(self,node,xPos=0.0,yPos=0.0,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None):
-		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],color=color,mouseOverColor=mouseOverColor)
-		self.node = node
-		self.names = []
-		self.names.append(uiElement(-0.978,-0.085,textureIndex=texIndex('CITY_VIEWER_BOX'),width=texWidth('CITY_VIEWER_BOX'),height=texHeight('CITY_VIEWER_BOX'),textSize=0.0007).name)
-		if(self.node.city != None):
-			self.names.append(uiElement(-0.964,-0.13,text=self.node.city.name,textSize=0.0007).name)
+		
+
+#				self.names.append(viewUnitTypeButton(self.xPosition+0.02,height,unitType,text=unitType.name + " lvl " + str(self.node.city.researchProgress[unitType][0]),textSize=0.0005).name)
+#		self.names.append(scrollableTextFieldsElement(0.0,0.0,buildableUnitElems).name)
+#				height = height - 0.12
+
+
+#					self.names.append(uiElement(-0.93,height-0.04,text=str(unitType.costGreen*self.node.city.researchProgress[unitType][0]),textSize=0.0005).name)
+#					self.names.append(uiElement(-0.83,height-0.04,text=str(unitType.costBlue*self.node.city.researchProgress[unitType][0]),textSize=0.0005).name)
+#					self.names.append(uiElement(-0.73,height-0.04,text=str(unitType.buildTime),textSize=0.0005).name)
+#					if(self.node.unit != None and self.node.unit.unitType.name == "summoner" and self.node.unit.player == gameState.getGameMode().getPlayerNumber() and gameState.getGameMode().players[gameState.getGameMode().getPlayerNumber()-1].greenWood >= unitType.costGreen and gameState.getGameMode().players[gameState.getGameMode().getPlayerNumber()-1].blueWood >= unitType.costBlue):
+#						self.names.append(startSummoningButton(-0.68,height+0.028,unitType,textureIndex=texIndex("ADD_BUTTON_SMALL"),width=texWidth("ADD_BUTTON_SMALL"),height=texHeight("ADD_BUTTON_SMALL")).name)
+#					height = height - 0.08
+
+
+"""		
 			if(self.node.city.researching):
 				self.names.append(uiElement(-0.964,-0.19,text="researching",textSize=0.0005).name)
 				self.names.append(uiElement(-0.964,-0.23,text=self.node.city.researchUnitType.name,textSize=0.0005).name)
@@ -472,6 +513,67 @@ class actionViewer(uiElement):
 						if(self.node.unit != None and self.node.unit.unitType.name == "summoner" and self.node.unit.player == gameState.getGameMode().getPlayerNumber() and gameState.getGameMode().players[gameState.getGameMode().getPlayerNumber()-1].greenWood >= unitType.costGreen and gameState.getGameMode().players[gameState.getGameMode().getPlayerNumber()-1].blueWood >= unitType.costBlue):
 							self.names.append(startSummoningButton(-0.68,height+0.028,unitType,textureIndex=texIndex("ADD_BUTTON_SMALL"),width=texWidth("ADD_BUTTON_SMALL"),height=texHeight("ADD_BUTTON_SMALL")).name)
 						height = height - 0.08
+"""
+
+class unitTypeViewer(viewer):
+	def __init__(self,unitType):
+		viewer.__init__(self,0.5,0.1,width=texWidth("UI_UNIT_BACKGROUND"),height=texHeight("UI_UNIT_BACKGROUND"),textureIndex=texIndex("UI_UNIT_BACKGROUND"))
+		self.unitType = unitType
+		self.names = []
+
+class actionViewer(uiElement):
+	theViewer = None
+	def __init__(self,node,xPos=0.0,yPos=0.0,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None):
+		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],color=color,mouseOverColor=mouseOverColor)
+		self.node = node
+		self.names = []
+		self.names.append(uiElement(-0.978,-0.085,textureIndex=texIndex('CITY_VIEWER_BOX'),width=texWidth('CITY_VIEWER_BOX'),height=texHeight('CITY_VIEWER_BOX'),textSize=0.0007).name)
+		if(self.node.city != None):
+			self.names.append(uiElement(-0.964,-0.13,text=self.node.city.name,textSize=0.0007).name)
+			if(self.node.city.researching):
+				self.names.append(uiElement(-0.964,-0.19,text="researching",textSize=0.0005).name)
+				self.names.append(uiElement(-0.964,-0.23,text=self.node.city.researchUnitType.name,textSize=0.0005).name)
+				self.names.append(uiElement(-0.964,-0.25,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE'),textureIndex=texIndex('UNIT_BUILD_BAR')).name)
+				self.names.append(uiElement(-0.964,-0.25,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE')*(float(self.node.city.researchProgress[self.node.city.researchUnitType][1])/self.node.city.researchUnitType.researchTime),textureIndex=texIndex('UNIT_BUILD_BAR'),color="FF 00 00").name)
+				#			if(self.node.city.researchLevel > 0):
+#				self.names.append(uiElement(-0.964,-0.32,text="level "+str(self.node.city.researchLevel) + " complete",textSize=0.0005).name)
+			else:
+				if(self.node.city.unitBeingBuilt != None):
+					height = -0.55
+					self.names.append(uiElement(-0.972,height,text=self.node.city.unitBeingBuilt.unitType.name,textSize=0.0005).name)
+					self.names.append(uiElement(-0.972,height-0.02,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE'),textureIndex=texIndex('UNIT_BUILD_BAR')).name)
+					self.names.append(uiElement(-0.972,height-0.02,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE')*(self.node.city.unitBeingBuilt.unitType.buildTime-self.node.city.unitBeingBuilt.buildPoints)/self.node.city.unitBeingBuilt.unitType.buildTime,textureIndex=texIndex('UNIT_BUILD_BAR'),color="FF 00 00").name)
+					height = height - 0.06
+					for unit in self.node.city.unitBuildQueue:
+						height = height - 0.04
+						self.names.append(uiElement(-0.972,height,text=str(unit.unitType.name),textSize=0.0005).name)
+					height = height - 0.04
+					if(len(node.city.unitBuildQueue) > 0):
+						self.names.append(cancelUnitButton(-0.972,height,text="cancel " + self.node.city.unitBuildQueue[-1].unitType.name,textSize=0.0005).name)
+				else:
+					height = -0.55					
+					self.names.append(uiElement(-0.9,-0.51,text="research",textSize=0.0007).name)
+					for unitType in self.node.city.unitTypes:
+						if(unitType.name != "summoner" and unitType.name != "gatherer"): 
+							if(self.node.unit != None and self.node.unit.unitType.name == "summoner" and self.node.unit.player == gameState.getGameMode().getPlayerNumber() and gameState.getGameMode().players[gameState.getGameMode().getPlayerNumber()-1].greenWood >= unitType.researchCostGreen and gameState.getGameMode().players[gameState.getGameMode().getPlayerNumber()-1].blueWood >= unitType.researchCostBlue):
+								self.names.append(startResearchButton(-0.68,height+0.025,unitType,textureIndex=texIndex("ADD_BUTTON_SMALL"),width=texWidth("ADD_BUTTON_SMALL"),height=texHeight("ADD_BUTTON_SMALL")).name)
+							self.names.append(viewResearchButton(-0.965,height,unitType,self.node,text=unitType.name + " lvl " + str(self.node.city.researchProgress[unitType][0]+1),textSize=0.0005).name)
+							self.names.append(uiElement(-0.93,height-0.04,text=str(unitType.researchCostGreen),textSize=0.0005).name)
+							self.names.append(uiElement(-0.83,height-0.04,text=str(unitType.researchCostBlue),textSize=0.0005).name)
+							self.names.append(uiElement(-0.73,height-0.04,text=str(unitType.researchTime),textSize=0.0005).name)
+							height = height - 0.08
+				self.names.append(uiElement(-0.9,-0.19,text="summon",textSize=0.0007).name)
+				height = -0.23
+				for unitType in self.node.city.researchProgress:
+					if(self.node.city.researchProgress[unitType][0] > 0):
+						
+						self.names.append(viewUnitTypeButton(-0.965,height,unitType,text=unitType.name + " lvl " + str(self.node.city.researchProgress[unitType][0]),textSize=0.0005).name)
+						self.names.append(uiElement(-0.93,height-0.04,text=str(unitType.costGreen*self.node.city.researchProgress[unitType][0]),textSize=0.0005).name)
+						self.names.append(uiElement(-0.83,height-0.04,text=str(unitType.costBlue*self.node.city.researchProgress[unitType][0]),textSize=0.0005).name)
+						self.names.append(uiElement(-0.73,height-0.04,text=str(unitType.buildTime),textSize=0.0005).name)
+						if(self.node.unit != None and self.node.unit.unitType.name == "summoner" and self.node.unit.player == gameState.getGameMode().getPlayerNumber() and gameState.getGameMode().players[gameState.getGameMode().getPlayerNumber()-1].greenWood >= unitType.costGreen and gameState.getGameMode().players[gameState.getGameMode().getPlayerNumber()-1].blueWood >= unitType.costBlue):
+							self.names.append(startSummoningButtonOld(-0.68,height+0.028,unitType,textureIndex=texIndex("ADD_BUTTON_SMALL"),width=texWidth("ADD_BUTTON_SMALL"),height=texHeight("ADD_BUTTON_SMALL")).name)
+						height = height - 0.08
 			
 	@staticmethod
 	def destroy():
@@ -505,7 +607,7 @@ class unitViewer(uiElement):
 			self.names.append(cancelMovementButton(-0.964,height,text="cancel move",textSize=0.0005).name)
 			height = height + 0.04
 		elif(self.unit == gameState.getGameMode().nextUnit and (gameState.getPlayerNumber() == self.unit.player or gameState.getPlayerNumber() == -2)):
-			self.names.append(skipButton(-0.964,height,text="skip",textSize=0.0005).name)
+			self.names.append(skipButtonOld(-0.964,height,text="skip",textSize=0.0005).name)
 			height = height + 0.04
 
 		if(self.unit.unitType.name == "gatherer"):
@@ -757,6 +859,13 @@ class scrollableElement(uiElement):
 				gameState.getGameMode().elementsDict[name].yPosition = yPos
 		self.yPosition = yPos
 
+class buildUnitElem(scrollableElement):
+	def __init__(self,xPos,yPos,unitType):
+		scrollableElement.__init__(self,xPos,yPos)
+		self.unitType = unitType
+		self.names.append(uiElement(self.xPosition,self.yPosition,textureIndex=texIndex("UNIT_UI_BACK"),height=texHeight("UNIT_UI_BACK"),width=texWidth("UNIT_UI_BACK")).name)
+		self.names.append(uiElement(self.xPosition+0.022+24.0/cDefines.defines["SCREEN_WIDTH"],self.yPosition-0.100-24.0/cDefines.defines["SCREEN_HEIGHT"],textureIndex=self.unitType.textureIndex,height=130.0/cDefines.defines["SCREEN_HEIGHT"],width=130.0/cDefines.defines["SCREEN_WIDTH"]).name)
+
 class scrollingTextElement(scrollableElement):
 	def __init__(self,xPos,yPos,scrollableElement,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None):
 		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,color=color,mouseOverColor=mouseOverColor,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'])
@@ -784,7 +893,7 @@ class scrollableRoomElement(scrollableElement):
 		self.names.append(self.roomCountElem.name)
 
 class scrollableTextFieldsElement(uiElement):
-	def __init__(self,xPos,yPos,textFields,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,xPositionOffset=0.0,yPositionOffset=0.04,lineHeight=0.041,numFields=25,scrollSpeed=1):
+	def __init__(self,xPos,yPos,textFields,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,xPositionOffset=0.0,yPositionOffset=0.04,lineHeight=0.041,numFields=25,scrollSpeed=1,scrollPadTex="UI_SCROLL_PAD"):
 		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,color=color,mouseOverColor=mouseOverColor)
 		self.xPositionOffset = xPositionOffset
 		self.yPositionOffset = yPositionOffset
@@ -793,16 +902,18 @@ class scrollableTextFieldsElement(uiElement):
 		self.scrollSpeed = scrollSpeed
 		self.scrollPosition = 0
 		self.textFields = textFields
+		self.scrollPadTex = scrollPadTex
 		self.names = []
 		self.redraw()
 	def redraw(self):
 		self.reset()
 		for field in self.textFields:
 			textFieldElem = None
-			if(hasattr(field,"onClick")):
+			if(hasattr(field,"xPosition")):
 				textFieldElem = field
 				textFieldElem.scrollableElement = self
 				textFieldElem.xPosition = self.xPosition+self.xPositionOffset
+				gameState.getGameMode().elementsDict[textFieldElem.name] = textFieldElem
 			else:
 				text = ""
 				if(hasattr(field,"name")):
@@ -818,7 +929,7 @@ class scrollableTextFieldsElement(uiElement):
 		if(len(self.textFields) < self.numFields):
 			self.scrollPadElem = None
 		else:
-			self.scrollPadElem = scrollPadElement(self.xPosition + self.width - (2.0*cDefines.defines['UI_SCROLL_PAD_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),self.yPosition,scrollableElement=self,width=(2.0*cDefines.defines['UI_SCROLL_PAD_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_SCROLL_PAD_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),textureIndex=cDefines.defines['UI_SCROLL_PAD_INDEX'],hidden=True)
+			self.scrollPadElem = scrollPadElement(self.xPosition + self.width - texWidth(self.scrollPadTex),self.yPosition,scrollableElement=self,width=texWidth(self.scrollPadTex),height=texHeight(self.scrollPadTex),textureIndex=texIndex(self.scrollPadTex),hidden=True)
 			self.names.append(self.scrollPadElem.name)
 			self.scrollPadElem.setScrollPosition(self.scrollPosition)
 	def hideAndShowTextFields(self):
@@ -848,13 +959,23 @@ class scrollableTextFieldsElement(uiElement):
 			self.scrollPadElem.setScrollPosition(self.scrollPosition)
 	def reset(self):
 		for name in self.names:
-			if(hasattr(gameState.getGameMode().elementsDict[name],"destroy")):
-				gameState.getGameMode().elementsDict[name].destroy()
+			#gameState.getGameMode().elementsDict[name].destroy()
 			#it appears this line is no longer needed because uiElement.destroy dels the elem from elementsDict
-			#del gameState.getGameMode().elementsDict[name]
+			del gameState.getGameMode().elementsDict[name]
 		self.names = []
 #		self.textFields = []
 		self.textFieldElements = []
+
+class cityUnitDisplay(scrollableTextFieldsElement):
+	def __init__(self,xPos,yPos,unitTypes,unitElemClass):
+		scrollableTextFieldsElement.__init__(self,xPos,yPos,[],width=0.42,height=0.5,xPositionOffset=0.0,yPositionOffset=0.0,lineHeight=0.125,numFields=4)
+		self.unitTypes = unitTypes
+		for unitType in self.unitTypes:
+			elem = unitElemClass(self.xPosition+self.xPositionOffset,0.0,unitType)
+			self.textFields.append(elem)
+			self.names.append(elem.name)
+		self.redraw()
+#		self.reset()
 
 class chatDisplay(scrollableTextFieldsElement):
 	#The goal here is to hold lines of text that are too long in textQueue and run them thru a function in fonts.h which will tell us how many words will constitute one line. This way we can add the text as a textFieldElement in order to reuse all the scrollableTextFields code.
@@ -864,6 +985,9 @@ class chatDisplay(scrollableTextFieldsElement):
 		self.linesQueue = Queue()
 		self.currentText = ""
 	def addLine(self,wordLength):
+		print 'addline ' + str(wordLength)
+		if(wordLength == 0):
+			wordLength = 1
 		if(self.currentText != "" and wordLength > 0):
 			wordTokens = self.currentText.split(" ",wordLength)
 			if(len(wordTokens) > wordLength):

@@ -53,6 +53,8 @@ static void printPyStackTrace(){
 #define SCREEN_BASE_WIDTH 1600
 #define SCREEN_BASE_HEIGHT 1200
 
+#define AUTO_CHOOSE_NEXT_DELAY 5000
+
 #define TILES_IMAGE "assets/tiles2.png"
 #define UI_IMAGE "assets/UI.png"
 #define TILE_SELECT_BOX_IMAGE "assets/tileSelect.png"
@@ -110,9 +112,9 @@ static void printPyStackTrace(){
 #define UI_SCROLLABLE_IMAGE_WIDTH 210
 #define UI_SCROLLABLE_INDEX 11
 
-#define UI_SCROLL_PAD_IMAGE "assets/scrollPad.png"
-#define UI_SCROLL_PAD_IMAGE_HEIGHT 16
-#define UI_SCROLL_PAD_IMAGE_WIDTH 16
+#define UI_SCROLL_PAD "assets/scrollPad.png"
+#define UI_SCROLL_PAD_HEIGHT 16
+#define UI_SCROLL_PAD_WIDTH 16
 #define UI_SCROLL_PAD_INDEX 12
 
 #define UI_TEXT_INPUT_IMAGE "assets/textInput.png"
@@ -415,7 +417,7 @@ static void printPyStackTrace(){
 #define SCROLL_BAR_INDEX 80
 
 #define UNIT_UI_BACK "assets/unitUIBack.png"
-#define UNIT_UI_BACK_HEIGHT 79
+#define UNIT_UI_BACK_HEIGHT 70
 #define UNIT_UI_BACK_WIDTH 311
 #define UNIT_UI_BACK_INDEX 81
 
@@ -508,7 +510,6 @@ int totalDeltaTicksDataPoints = 0;
 int keyHeld;
 int repeatKey;
 Uint32 keyHeldTime;
-
 
 GLfloat mapDepth,mapDepthTest1,mapDepthTest2,mapDepthTest3;
 float translateX = 0.0;
@@ -1000,7 +1001,8 @@ void drawTiles(){
       playerNumber = PyLong_AsLong(pyPlayerNumber);
       unitPlayer = PyLong_AsLong(pyUnitPlayer);
       if(unit != Py_None && unit == nextUnit && (playerNumber == unitPlayer || playerNumber == -2)){
-	  isNextUnit = 1;
+      	  isNextUnit = 1;
+	  //TODO: THESE DECREFS ARE IN THE WORNG PLACE
 	  Py_DECREF(unit);
 	  Py_DECREF(pyUnitPlayer);
       }
@@ -1021,7 +1023,7 @@ void drawTiles(){
       }
       Py_DECREF(node);
       if(nextUnit != NULL){
-	Py_DECREF(nextUnit);
+      	Py_DECREF(nextUnit);
       }
       Py_DECREF(pyPlayerNumber);
       drawTile(colNumber,rowNumber,longName,longValue,longRoadValue,cityName,isSelected,isOnMovePath,isVisible,playerStartValue,cursorIndex);
@@ -1105,6 +1107,7 @@ void calculateTranslation(){
       considerDoneFocusing = 0;
       if(PyObject_HasAttrString(gameMode,"onDoneFocusing")){
 	pyObj = PyObject_CallMethod(gameMode,"onDoneFocusing",NULL);//New reference
+	printPyStackTrace();
 	Py_DECREF(pyObj);
       }
     }else if(abs(50.0*(translateXPrev - translateX)) == 0 && abs(50.0*(translateYPrev - translateY)) == 0){//this indicates the auto-scrolling code is not allowing us to move any more
@@ -1504,7 +1507,7 @@ static void initGL (){
   pngLoad(&texturesArray[CURSOR_MOVE_INDEX],CURSOR_MOVE_IMAGE);
   pngLoad(&texturesArray[PLAYER_START_BUTTON_INDEX],PLAYER_START_BUTTON_IMAGE);
   pngLoad(&texturesArray[UI_SCROLLABLE_INDEX],UI_SCROLLABLE_IMAGE);
-  pngLoad(&texturesArray[UI_SCROLL_PAD_INDEX],UI_SCROLL_PAD_IMAGE);
+  pngLoad(&texturesArray[UI_SCROLL_PAD_INDEX],UI_SCROLL_PAD);
   pngLoad(&texturesArray[UI_TEXT_INPUT_INDEX],UI_TEXT_INPUT_IMAGE);
   pngLoad(&texturesArray[MEEPLE_INDEX],MEEPLE_IMAGE);
   pngLoad(&texturesArray[HEALTH_BAR_INDEX],HEALTH_BAR_IMAGE);
@@ -1783,16 +1786,16 @@ static void handleInput(){
       if(event.button.button == SDL_BUTTON_LEFT){
 	if(PyObject_HasAttrString(gameMode,"handleLeftClickUp")){
 	  pyObj = PyObject_CallMethod(gameMode,"handleLeftClickUp","i",selectedName);//New reference
-	  Py_DECREF(pyObj);
 	  printPyStackTrace();
+	  Py_DECREF(pyObj);
 	}
 	leftButtonDown = 0;
       }
       if(event.button.button == SDL_BUTTON_RIGHT){
 	if(PyObject_HasAttrString(gameMode,"handleRightClickUp")){
 	  pyObj = PyObject_CallMethod(gameMode,"handleRightClickUp","i",selectedName);//New reference
-	  Py_DECREF(pyObj);
 	  printPyStackTrace();
+	  Py_DECREF(pyObj);
 	}
       }
       break;
@@ -1971,13 +1974,32 @@ void drawBackground(){
 }
 GLint viewport[4];
 GLint hitsCnt;
+PyObject * pyChooseNextDelayed;
+int chooseNextDelayed;
+Uint32 chooseNextTimeStart;
 static void draw(){
-
+		
+  if(PyObject_HasAttrString(gameMode,"chooseNextDelayed")){
+    pyChooseNextDelayed = PyObject_CallMethod(gameMode,"getChooseNextDelayed",NULL);//New reference
+    printPyStackTrace();
+    Py_DECREF(pyChooseNextDelayed);
+    if(pyChooseNextDelayed == Py_True){
+      chooseNextTimeStart = SDL_GetTicks();
+      chooseNextDelayed = 1;
+    }
+  }
+  if(chooseNextDelayed && ((SDL_GetTicks() - chooseNextTimeStart) > AUTO_CHOOSE_NEXT_DELAY)){
+    chooseNextDelayed = 0;
+    pyObj = PyObject_CallMethod(gameMode,"sendChooseNextUnit",NULL);//New reference
+    printPyStackTrace();
+    Py_DECREF(pyObj);
+  }
   if(PyObject_HasAttrString(gameMode,"onDraw")){
     pyObj = PyObject_CallMethod(gameMode,"onDraw",NULL);//New reference
     printPyStackTrace();
     Py_DECREF(pyObj);
   }
+
   glClearDepth(1.0);
   //this needs to be done before glClear...
   //when the mouse is under the pixel this breaks, so we test three points and find any two that match

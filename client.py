@@ -67,10 +67,10 @@ class Commands:
     def skip():
        	gameState.getGameMode().nextUnit.skip()
     @staticmethod
-    def skipUndo(args):
+    def skipUndo():
         tokens = args.split(" ")
     @staticmethod
-    def skipRedo(args):
+    def skipRedo():
         tokens = args.split(" ")
     @staticmethod
     def attackTo(args):
@@ -95,13 +95,28 @@ class Commands:
     def healToRedo(args):
         tokens = args.split(" ")
     @staticmethod
+    def startMeditating(args):
+        tokens = args.split(" ")
+        node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
+        node.unit.isMeditating = True
+    @staticmethod
+    def startMeditatingUndo(args):
+        tokens = args.split(" ")
+        node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
+        node.unit.isMeditating = False
+    @staticmethod
+    def startMeditatingRedo(args):
+        tokens = args.split(" ")
+        node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
+        node.unit.isMeditating = True
+    @staticmethod
     def startSummoning(args):
         tokens = args.split(" ")
         node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
         unitType = gameState.theUnitTypes[tokens[2]]
         if(node.unit != None and node.unit.unitType.name == "summoner"):#don't trust the other client...
             node.city.queueUnit(gameLogic.unit(unitType,node.city.player,node.xPos,node.yPos,node))
-            node.unit.waiting = True
+#            node.unit.waiting = True
             gameState.getGameMode().players[node.unit.player-1].greenWood = gameState.getGameMode().players[node.unit.player-1].greenWood - unitType.costGreen
             gameState.getGameMode().players[node.unit.player-1].blueWood = gameState.getGameMode().players[node.unit.player-1].blueWood - unitType.costBlue
             if(uiElements.actionViewer.theViewer != None and uiElements.actionViewer.theViewer.node == node):
@@ -156,11 +171,12 @@ class Commands:
         tokens = args.split(" ")
         node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
         unitType = gameState.theUnitTypes[tokens[2]]
-        node.city.researching = True
-	node.city.researchUnitType = unitType
-        gameState.getGameMode().players[node.unit.player-1].greenWood = gameState.getGameMode().players[node.unit.player-1].greenWood - unitType.researchCostGreen
-        gameState.getGameMode().players[node.unit.player-1].blueWood = gameState.getGameMode().players[node.unit.player-1].blueWood - unitType.researchCostBlue
-	node.unit.waiting = True
+#        node.city.researching = True
+        if(node.unit != None and node.unit.unitType.name == "summoner"):#don't trust the other client...
+            node.city.queueResearch(unitType)
+#            node.city.researchUnitType = unitType
+            gameState.getGameMode().players[node.unit.player-1].greenWood = gameState.getGameMode().players[node.unit.player-1].greenWood - unitType.researchCostGreen
+            gameState.getGameMode().players[node.unit.player-1].blueWood = gameState.getGameMode().players[node.unit.player-1].blueWood - unitType.researchCostBlue
     @staticmethod
     def startResearchUndo(args):
         tokens = args.split(" ")

@@ -11,6 +11,8 @@
 #report game state(to look for cheaters/bugs)
 
 #MISSING FEATURES
+#'waiting for opponents' message when it is not player's turn
+#modal for win/lose
 #game ui redesign
 #map name clickable to view map
 #need to show city info and start positions when previewing maps
@@ -226,7 +228,7 @@ class tiledGameMode(gameMode):
 #		return self.focusNextUnitTemp
 	def onDoneFocusing(self):
 		self.focusNextUnit = 0
-		if(hasattr(self,"nextUnit") and len(self.nextUnit.movePath) > 0 and gameState.getPlayers()[gameState.getGameMode().nextUnit.player-1].isOwnPlayer):
+		if(hasattr(self,"nextUnit") and self.nextUnit != None and len(self.nextUnit.movePath) > 0 and gameState.getPlayers()[gameState.getGameMode().nextUnit.player-1].isOwnPlayer):
 			self.nextUnit.move()
 		elif(hasattr(gameState.getGameMode().mousedOverObject,"toggleCursor")):
 			gameState.getGameMode().mousedOverObject.toggleCursor()
@@ -303,10 +305,20 @@ class playMode(tiledGameMode):
 		self.players = []
 		self.focusXPos = 0.0
 		self.focusYPos = 0.0
+		self.chooseNextDelayed = False
+	def getChooseNextDelayed(self):
+		if(self.chooseNextDelayed):
+			retVal = self.chooseNextDelayed
+			self.chooseNextDelayed = False
+			return retVal
+		else:
+			return False
+	def sendChooseNextUnit(self):
+		gameState.getClient().sendCommand("chooseNextUnit")
 	def loadMap(self):
 		self.map = gameLogic.map(gameLogic.playModeNode)
 	def unitComparater(self,unit):
-		if (unit.waiting or (unit.attackPoints > 0.0)):
+		if (unit.waiting or unit.isMeditating or (unit.attackPoints > 0.0)):
 			return 1000.0
 		else:
 			return unit.movementPoints
@@ -328,16 +340,17 @@ class playMode(tiledGameMode):
 			print 'Winner: ' + winner.playerNumber
 			return
 		if(len(self.units) <= 1):
-			   print 'DANGER, ONLY ONE UNIT ON THE BOARD, THE GAME SHOULD HAVE ENDED, THIS WILL CAUSE AN INFINITE LOOP'
+			   print 'ERROR: ONLY ONE UNIT ON THE BOARD, THE GAME SHOULD HAVE ENDED, THIS WILL CAUSE AN INFINITE LOOP'
 			   return
 		self.orderUnits()
-		while(self.units[0].movementPoints > 0.0 or self.units[0].attackPoints > 0.0 or self.units[0].waiting):
+		while(self.units[0].movementPoints > 0.0 or self.units[0].attackPoints > 0.0):
+# or self.units[0].waiting or self.units[0].isMeditating):
 			self.orderUnits()
 			for elementalEffect in self.elementalEffects:
 				elementalEffect.movePoints = elementalEffect.movePoints - elementalEffect.speed
 #				print fire
 			for unit in self.units:
-				if(unit.unitType.name == "gatherer" and unit.gatheringNode == unit.node):
+				if(unit.unitType.name == "gatherer" and unit.isMeditating and (unit.node.tileValue == cDefines.defines['FOREST_TILE_INDEX'] or unit.node.tileValue == cDefines.defines['BLUE_FOREST_TILE_INDEX'])):
 					if(unit.node.tileValue == cDefines.defines['FOREST_TILE_INDEX']):
 						self.players[unit.player-1].greenWood = self.players[unit.player-1].greenWood + gameLogic.RESOURCE_COLLECTION_RATE
 					elif(unit.node.tileValue == cDefines.defines['BLUE_FOREST_TILE_INDEX']):
@@ -356,7 +369,7 @@ class playMode(tiledGameMode):
 					else:
 						unit.movementPoints = unit.movementPoints - ((float(unit.getMovementSpeed())+float(unit.node.roadValue))/cDefines.defines['GRASS_MOVE_COST'])
 					if(unit.movementPoints < 0.0):
-						unit.movementPoints = 0.0#for waiting units
+						unit.movementPoints = 0.0#for waiting/meditating units
 			for row in self.map.nodes:
 				for node in row:
 					if(node.city != None):
@@ -370,18 +383,30 @@ class playMode(tiledGameMode):
 					elementalEffect.move()
 					elementalEffectsMoving = True
 		eligibleUnits = []
-		eligibleUnits.append(self.units[0])
-		for unit in self.units[1:]:
-			if((unit.movementPoints == eligibleUnits[0].movementPoints) and (not unit.waiting) and (unit.attackPoints <= 0.0)):
-				eligibleUnits.append(unit)
-		self.nextUnit = random.choice(eligibleUnits)
-		if(self.nextUnit.player == self.getPlayerNumber()):
-			gameLogic.selectNode(self.nextUnit.node)
-			self.focusXPos = self.nextUnit.node.xPos
-			self.focusYPos = self.nextUnit.node.yPos
-		self.focusNextUnit = 1
-		if(hasattr(gameState.getGameMode().mousedOverObject,"toggleCursor")):
-			gameState.getGameMode().mousedOverObject.toggleCursor()
+#		eligibleUnits.append(self.units[0])
+		for unit in self.units:
+			if(len(eligibleUnits) > 0):
+				if((unit.movementPoints == eligibleUnits[0].movementPoints) and (not unit.waiting) and (not unit.isMeditating) and (unit.attackPoints <= 0.0)):
+					eligibleUnits.append(unit)
+			else:
+				if(unit.movementPoints <= 0.0 and unit.attackPoints <= 0.0 and not unit.waiting and not unit.isMeditating):
+					eligibleUnits.append(unit)
+
+		if(len(eligibleUnits) == 0):#all units are waiting/meditating!!!
+			for unit in self.units:#add movementpoints to each unit
+				unit.skip()
+			if(gameState.getPlayerNumber() <= 1):
+				self.chooseNextDelayed = True
+			self.nextUnit = None
+		else:
+			self.nextUnit = random.choice(eligibleUnits)
+			if(self.nextUnit.player == self.getPlayerNumber()):
+				gameLogic.selectNode(self.nextUnit.node)
+				self.focusXPos = self.nextUnit.node.xPos
+				self.focusYPos = self.nextUnit.node.yPos
+			self.focusNextUnit = 1
+			if(hasattr(gameState.getGameMode().mousedOverObject,"toggleCursor")):
+				gameState.getGameMode().mousedOverObject.toggleCursor()
 	def loadSummoners(self):
 		rowCount = 0
 		columnCount = 0
@@ -397,16 +422,17 @@ class playMode(tiledGameMode):
 #					node.addUnit(gameLogic.unit(gameState.theUnitTypes["gatherer"],node.playerStartValue,rowCount,columnCount,node,1))
 #					node.addUnit(gameLogic.unit(gameState.theUnitTypes["swordsman"],node.playerStartValue,rowCount,columnCount,node,1))
 #					node.addUnit(gameLogic.unit(gameState.theUnitTypes["wolf"],node.playerStartValue,rowCount,columnCount,node,1))
-					node.addUnit(gameLogic.unit(gameState.theUnitTypes["blue mage"],node.playerStartValue,rowCount,columnCount,node,1))
+#					node.addUnit(gameLogic.unit(gameState.theUnitTypes["blue mage"],node.playerStartValue,rowCount,columnCount,node,1))
 #					node.addFire(gameLogic.fire(node))
-					node.addIce(gameLogic.ice(node))
+#					node.addIce(gameLogic.ice(node))
 	
 	def keyDown(self,keycode):
 		if(keycode == "left shift" or keycode == "right shift"):
 			self.shiftDown = True
 		if(keycode == "space"):
-			gameLogic.selectNode(self.nextUnit.node)
-			self.focusNextUnit = 1
+			if(self.nextUnit != None):
+				gameLogic.selectNode(self.nextUnit.node)
+				self.focusNextUnit = 1
 		else:
 			if(hasattr(self.mousedOverObject,"onKeyDown")):
 				self.mousedOverObject.onKeyDown(keycode)
@@ -424,7 +450,10 @@ class playMode(tiledGameMode):
 #			if(self.selectedNode != None and self.selectedNode.unit != None):
 #				number = self.selectedNode.unit.player
 #			else:
-			number = self.nextUnit.player
+			if(self.nextUnit != None):
+				number = self.nextUnit.player
+			else:
+				number = 1
 		return number
 	def onDraw(self):
 		self.greenWoodUIElem.text = str(int(math.floor(self.players[self.getPlayerNumber()-1].greenWood)))

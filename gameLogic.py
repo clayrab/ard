@@ -241,7 +241,7 @@ class unit:
 					neighb.fire = None
 		self.attackPoints = self.attackPoints + INITIATIVE_ACTION_DEPLETION
 	def skip(self):
-		self.attackPoints = self.attackPoints + INITIATIVE_ACTION_DEPLETION
+		self.movementPoints = self.movementPoints + INITIATIVE_ACTION_DEPLETION
 			
 class city:
 	def __init__(self,name,node,unitTypes=None,costOfOwnership=10):
@@ -265,23 +265,34 @@ class city:
 		self.cancelledUnits = []
 		self.unitBuildQueue = []
 		self.player = 0
+	def queueResearch(self,unitType):
+		self.unitBuildQueue.append(unitType)
+		if(self.unitBeingBuilt == None and not self.researching):
+			self.buildNextFromQueue()			
 	def queueUnit(self,unit):
 		self.unitBuildQueue.append(unit)
-		if(self.unitBeingBuilt == None):
-			self.buildNextUnit()
+		if(self.unitBeingBuilt == None and not self.researching):
+			self.buildNextFromQueue()
 	def unqueueUnit(self):
 		if(len(self.unitBuildQueue) > 0):
 			self.unitBuildQueue = self.unitBuildQueue[:-1:]
 		else:
 			self.unitBeingBuilt = None
-	def buildNextUnit(self):
-		if(len(self.unitBuildQueue) > 0):
-			self.unitBeingBuilt = self.unitBuildQueue[0]
-			self.unitBuildQueue = self.unitBuildQueue[1:]
-		else:
-			self.node.unit.waiting = False#wake up summoner
+	def buildNextFromQueue(self):
+		nextThing = self.unitBuildQueue[0]
+		self.unitBuildQueue = self.unitBuildQueue[1:]
+		if(hasattr(nextThing,"unitType")):#unit
+			self.unitBeingBuilt = nextThing
+		else:#unitType/research
+			self.researching = True
+			self.researchUnitType = nextThing
+#		if(len(self.unitBuildQueue) > 0):
+#			self.unitBeingBuilt = self.unitBuildQueue[0]
+#			self.unitBuildQueue = self.unitBuildQueue[1:]
+#		else:
+#			self.node.unit.waiting = False#wake up summoner
 	def incrementBuildProgress(self):
-		if(self.node.unit != None and self.node.unit.unitType.name == "summoner"):
+		if(self.node.unit != None and self.node.unit.unitType.name == "summoner" and self.node.unit.isMeditating):
 			if(self.researching):
 				if(self.researchUnitType != None):
 					self.researchProgress[self.researchUnitType][1] = self.researchProgress[self.researchUnitType][1] + 1
@@ -296,7 +307,7 @@ class city:
 					if(self.unitBeingBuilt.buildPoints <= 0.0):
 						self.node.addUnit(self.unitBeingBuilt)
 						self.unitBeingBuilt = None
-						self.buildNextUnit()
+						self.buildNextFromQueue()
 
 class node:
 	def __init__(self,xPos,yPos,tileValue=cDefines.defines['GRASS_TILE_INDEX'],roadValue=0,city=None,playerStartValue=0):
@@ -414,7 +425,7 @@ class playModeNode(node):
 			self.cursorIndex = cDefines.defines['CURSOR_POINTER_INDEX']
 			playModeNode.mode = MODES.SELECT_MODE
 			return;
-		if(uiElements.unitViewer.theUnitViewer != None and gameState.getGameMode().getPlayerNumber() == gameState.getGameMode().nextUnit.player):
+		if(gameState.getGameMode().nextUnit != None and uiElements.unitViewer.theUnitViewer != None and gameState.getGameMode().getPlayerNumber() == gameState.getGameMode().nextUnit.player):
 			if((gameState.getGameMode().nextUnit == uiElements.unitViewer.theUnitViewer.unit) and self.fire != None and gameState.getGameMode().nextUnit.unitType.name == "blue mage"):
 				self.cursorIndex = cDefines.defines['CURSOR_ATTACK_INDEX']
 				playModeNode.mode = MODES.ATTACK_MODE				
@@ -772,13 +783,12 @@ def selectNode(node,actionViewer=uiElements.actionViewer):
 
 
 #	uiElements.viewer.theViewer
-	uiElements.viewer.destroy()
-	if(node.unit != None):
-		if(node.unit.unitType.name == "summoner" and node.unit.isMeditating):
-			print "summoner"
-		else:
-			uiElements.viewer.theViewer = uiElements.uniitViewer(node)
-
+	if(uiElements.viewer.theViewer != None):
+		uiElements.viewer.theViewer.destroy()
+	if((node.unit == None and node.city !=None) or (node.unit != None and node.unit.unitType.name == "summoner" and node.unit.isMeditating)):
+		uiElements.viewer.theViewer = uiElements.cityViewer(node)
+	elif(node.unit != None):
+		uiElements.viewer.theViewer = uiElements.uniitViewer(node)
 	actionViewer.destroy()
 	uiElements.unitViewer.destroy()
 	uiElements.unitTypeResearchViewer.destroy()
