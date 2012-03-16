@@ -11,13 +11,13 @@
 #report game state(to look for cheaters/bugs)
 
 #MISSING FEATURES
-#'waiting for opponents' message when it is not player's turn
-#modal for win/lose
 #game ui redesign
+#gatherers and summoners should not be able to move once they begin gathering or summoning. summoners don't get turns, they can build at any time.
 #map name clickable to view map
 #need to show city info and start positions when previewing maps
 #testing connection timeout
-#gatherers and summoners should not be able to move once they begin gathering or summoning. summoners don't get turns, they can build at any time.
+#'waiting for opponents' message when it is not player's turn
+#modal for win/lose
 #proper quit and options menus
 #draw roads properly
 #mountains should be impassable, hills less passable, hills give defense bonus
