@@ -422,8 +422,8 @@ static void printPyStackTrace(){
 #define UNIT_UI_BACK_INDEX 81
 
 #define BUILD_BUTTON "assets/buildButton.png"
-#define BUILD_BUTTON_HEIGHT 27
-#define BUILD_BUTTON_WIDTH 58
+#define BUILD_BUTTON_HEIGHT 20
+#define BUILD_BUTTON_WIDTH 68
 #define BUILD_BUTTON_INDEX 82
 
 #define UI_CITY_BACKGROUND "assets/UICityBackground.png"
@@ -465,6 +465,41 @@ static void printPyStackTrace(){
 #define START_GATHERING_BUTTON_HEIGHT 26
 #define START_GATHERING_BUTTON_WIDTH 128
 #define START_GATHERING_BUTTON_INDEX 90
+
+#define BUILD_BORDER "assets/buildBorder.png"
+#define BUILD_BORDER_HEIGHT 328
+#define BUILD_BORDER_WIDTH 342
+#define BUILD_BORDER_INDEX 91
+
+#define GREEN_WOOD_ICON "assets/greenWoodIcon.png"
+#define GREEN_WOOD_ICON_HEIGHT 16
+#define GREEN_WOOD_ICON_WIDTH 16
+#define GREEN_WOOD_ICON_INDEX 92
+
+#define BLUE_WOOD_ICON "assets/blueWoodIcon.png"
+#define BLUE_WOOD_ICON_HEIGHT 16
+#define BLUE_WOOD_ICON_WIDTH 16
+#define BLUE_WOOD_ICON_INDEX 93
+
+#define TIME_ICON "assets/timeIcon.png"
+#define TIME_ICON_HEIGHT 16
+#define TIME_ICON_WIDTH 16
+#define TIME_ICON_INDEX 94
+
+#define RESEARCH_BUTTON "assets/researchButton.png"
+#define RESEARCH_BUTTON_HEIGHT 20
+#define RESEARCH_BUTTON_WIDTH 68
+#define RESEARCH_BUTTON_INDEX 95
+
+#define RESEARCH_BORDER "assets/researchBorder.png"
+#define RESEARCH_BORDER_HEIGHT 328
+#define RESEARCH_BORDER_WIDTH 342
+#define RESEARCH_BORDER_INDEX 96
+
+#define QUEUE_BORDER "assets/queueBorder.png"
+#define QUEUE_BORDER_HEIGHT 328
+#define QUEUE_BORDER_WIDTH 342
+#define QUEUE_BORDER_INDEX 97
 
 #define DESERT_TILE_INDEX 0
 #define GRASS_TILE_INDEX 1
@@ -1397,6 +1432,7 @@ void drawUIElement(PyObject * uiElement){
 	  glLoadIdentity();
 	  glTranslatef(xPosition+textXPosition,yPosition+textYPosition,0.0);
 	  glScalef(textSize,textSize,0.0);
+	  //glTranslatef(0.0,0.0,-10.0);
 	  glPushName(name);
 	  if(isFocused){
 	    drawText(text,fontIndex,cursorPosition,xPosition+width,NULL);
@@ -1483,17 +1519,13 @@ static void initGL (){
 
   //glClearColor(1.0, 1.0, 1.0, 1.0); //sets screen clear color
   //glClearColor(123.0/255.0,126.0/255.0,125.0/255.0,1.0);//grey that matches the UI...
-  //  glEnable(GL_SCISSOR_TEST);
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_TEXTURE_2D);
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);     
-  //  glClear(GL_COLOR_BUFFER_BIT);
   glDepthFunc(GL_ALWAYS);    
     //  glDepthFunc(GL_LEQUAL);
   screenRatio = (GLfloat)SCREEN_WIDTH/(GLfloat)SCREEN_HEIGHT;
-
-  //  char file[100] = TILES_IMAGE;
 
   pngLoad(&tilesTexture, TILES_IMAGE);	/******************** /image init ***********************/
   pngLoad(&texturesArray[TILE_SELECT_BOX_INDEX],TILE_SELECT_BOX_IMAGE);
@@ -1586,6 +1618,13 @@ static void initGL (){
   pngLoad(&texturesArray[CANCEL_MOVEMENT_BUTTON_INDEX],CANCEL_MOVEMENT_BUTTON);
   pngLoad(&texturesArray[SKIP_BUTTON_INDEX],SKIP_BUTTON);
   pngLoad(&texturesArray[START_GATHERING_BUTTON_INDEX],START_GATHERING_BUTTON);
+  pngLoad(&texturesArray[BUILD_BORDER_INDEX],BUILD_BORDER);
+  pngLoad(&texturesArray[GREEN_WOOD_ICON_INDEX],GREEN_WOOD_ICON);
+  pngLoad(&texturesArray[BLUE_WOOD_ICON_INDEX],BLUE_WOOD_ICON);
+  pngLoad(&texturesArray[TIME_ICON_INDEX],TIME_ICON);
+  pngLoad(&texturesArray[RESEARCH_BUTTON_INDEX],RESEARCH_BUTTON);
+  pngLoad(&texturesArray[RESEARCH_BORDER_INDEX],RESEARCH_BORDER);
+  pngLoad(&texturesArray[QUEUE_BORDER_INDEX],QUEUE_BORDER);
   
   vertexArrays[DESERT_TILE_INDEX] = *desertVertices;
   vertexArrays[GRASS_TILE_INDEX] = *grassVertices;

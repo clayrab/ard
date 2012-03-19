@@ -12,7 +12,8 @@ char fontFiles[4][FONT_NAME_SIZE] = {
   "assets/fonts/Arial.ttf",
   "assets/fonts/XXII ARABIAN-ONENIGHTSTAND.ttf",
   "assets/fonts/Herculanum.ttf",
-  "assets/fonts/MinionPro-Regular.otf"
+  "assets/fonts/MinionPro-Regular.otf",
+  //"assets/fonts/Courier New Bold.ttf",
 };
 GLuint textCursor;
 
@@ -83,9 +84,6 @@ void make_dlist ( FT_Face face, char charIndex, GLuint list_base, GLuint * tex_b
     }
   }
   glBindTexture(GL_TEXTURE_2D, tex_base[charIndex]);
-  glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, dataWidth, dataHeight, 0, GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE, expanded_data);
   glNewList(list_base+(2*charIndex),GL_COMPILE);
   glPushMatrix();
   // We Need To Account For The Fact That Many Of
@@ -123,6 +121,9 @@ void make_dlist ( FT_Face face, char charIndex, GLuint list_base, GLuint * tex_b
   // In Such A Way That The Result Will Be Properly Aligned.
   //  printf("%c %d %d %d %f %f %d\n",charIndex,charIndex,glyphHeight,glyphWidth,x,y,face->glyph->advance.x>>6);
   glBindTexture(GL_TEXTURE_2D,tex_base[charIndex]);
+  glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, dataWidth, dataHeight, 0, GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE, expanded_data);
   glBegin(GL_QUADS);
   glTexCoord2d(0,0); glVertex2f(0,glyphHeight);
   glTexCoord2d(0,y); glVertex2f(0,0);
@@ -170,7 +171,7 @@ static void initFonts(){
       printf("FT_New_Face error");
       exit(1);
     }
-    if(FT_Set_Char_Size(face, 16*64, 0, 300, 0)){
+    if(FT_Set_Char_Size(face, 16*64, 16*64, 300, 300)){
       printf("FT_Set_Char_Size error");
       exit(1);
     }

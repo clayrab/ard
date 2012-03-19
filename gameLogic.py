@@ -151,6 +151,8 @@ class unit:
 		self.originCity = node.city
 		self.gatheringNode = None
 		self.isMeditating = False
+	def isOwnUnit(self):
+		return (gameState.getPlayerNumber() == self.player or gameState.getPlayerNumber() == -2)
 	def getMaxHealth(self):
 		return self.unitType.health*self.level
 	def getAttackPower(self):
@@ -269,6 +271,12 @@ class city:
 		self.unitBuildQueue.append(unitType)
 		if(self.unitBeingBuilt == None and not self.researching):
 			self.buildNextFromQueue()			
+	def unqueueResearch(self):
+		if(len(self.unitBuildQueue) > 0):
+			self.unitBuildQueue = self.unitBuildQueue[:-1:]
+		else:
+			node.city.researching = False
+			node.city.researchUnitType = None
 	def queueUnit(self,unit):
 		self.unitBuildQueue.append(unit)
 		if(self.unitBeingBuilt == None and not self.researching):
@@ -780,23 +788,12 @@ def selectNode(node,actionViewer=uiElements.actionViewer):
 				pathNode.onMovePath = False
 	gameState.getGameMode().selectedNode = node
 	node.selected = True
-
-
-#	uiElements.viewer.theViewer
 	if(uiElements.viewer.theViewer != None):
 		uiElements.viewer.theViewer.destroy()
 	if((node.unit == None and node.city !=None) or (node.unit != None and node.unit.unitType.name == "summoner" and node.unit.isMeditating)):
 		uiElements.viewer.theViewer = uiElements.cityViewer(node)
 	elif(node.unit != None):
 		uiElements.viewer.theViewer = uiElements.uniitViewer(node)
-	actionViewer.destroy()
-	uiElements.unitViewer.destroy()
-	uiElements.unitTypeResearchViewer.destroy()
-	uiElements.unitTypeBuildViewer.destroy()
-	if(node.city != None):
-		actionViewer.theViewer = actionViewer(node)
-	if(node.unit != None and node.visible):
-		uiElements.unitViewer.theUnitViewer = uiElements.unitViewer(node.unit)
 	if(node.unit != None and len(node.unit.movePath) > 0):
 		for pathNode in node.unit.movePath:
 			pathNode.onMovePath = True
