@@ -47,31 +47,33 @@ class Commands:
     @staticmethod
     def moveToRedo(args):
         tokens = args.split(" ")
-    @staticmethod
-    def gatherTo(args):
-        tokens = args.split(" ")
-        unitNode = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
-        node = gameState.getGameMode().map.nodes[int(tokens[3])][int(tokens[2])]
-        unitNode.unit.gatheringNode = node
-    @staticmethod
-    def gatherToUndo(args):
-        tokens = args.split(" ")
-        node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
-        node.unit.gatheringNode = None
-    @staticmethod
-    def gatherToRedo(args):
-        tokens = args.split(" ")
-        node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
-        node.unit.gatheringNode = node
+#    @staticmethod
+#    def gatherTo(args):
+#        tokens = args.split(" ")
+#        unitNode = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
+#        node = gameState.getGameMode().map.nodes[int(tokens[3])][int(tokens[2])]
+#        unitNode.unit.gatheringNode = node
+#    @staticmethod
+#    def gatherToUndo(args):
+#        tokens = args.split(" ")
+#        node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
+#        node.unit.gatheringNode = None
+#    @staticmethod
+#    def gatherToRedo(args):
+#        tokens = args.split(" ")
+#        node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
+#        node.unit.gatheringNode = node
     @staticmethod
     def skip():
        	gameState.getGameMode().nextUnit.skip()
     @staticmethod
     def skipUndo():
-        tokens = args.split(" ")
+        pass
+#        tokens = args.split(" ")
     @staticmethod
     def skipRedo():
-        tokens = args.split(" ")
+        pass
+#        tokens = args.split(" ")
     @staticmethod
     def attackTo(args):
         tokens = args.split(" ")
@@ -102,7 +104,10 @@ class Commands:
         if(node == gameState.getGameMode().selectedNode and node.unit.isOwnUnit()):
             if(uiElements.viewer.theViewer != None):
                 uiElements.viewer.theViewer.destroy()
-            uiElements.viewer.theViewer = uiElements.cityViewer(node)
+            if(gameState.getGameMode().selectedNode.city != None):
+                uiElements.viewer.theViewer = uiElements.cityViewer(node)
+            else:
+                uiElements.viewer.theViewer = uiElements.uniitViewer(node)
     @staticmethod
     def startMeditatingUndo(args):
         tokens = args.split(" ")
@@ -140,35 +145,32 @@ class Commands:
         if(node.unit != None and node.unit.unitType.name == "summoner"):
             node.city.queueUnit(gameLogic.unit(unitType,node.city.player,node.xPos,node.yPos,node))
     @staticmethod
-    def cancelSummoning(args):
+    def cancelQueuedThing(args):
         tokens = args.split(" ")
         node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
-        gameState.getGameMode().players[node.unit.player-1].greenWood = gameState.getGameMode().players[node.unit.player-1].greenWood + node.city.unitBuildQueue[-1].unitType.costGreen
-        gameState.getGameMode().players[node.unit.player-1].blueWood = gameState.getGameMode().players[node.unit.player-1].blueWood + node.city.unitBuildQueue[-1].unitType.costBlue
-
         if(len(node.city.unitBuildQueue) > 0):
-            node.city.cancelledUnits.append(node.city.unitBuildQueue.pop())
-        elif(node.city.unitBeingBuilt != None):
-            node.city.cancelledUnits.append(node.city.unitBeingBuilt)
-            node.city.unitBeingBuilt = None
-        if(uiElements.actionViewer.theViewer.node == node):
-            uiElements.actionViewer.theViewer.reset()
+            lastQueuedThing = node.city.unitBuildQueue.pop()
+            node.city.cancelledUnits.append(lastQueuedThing)
+            if(hasattr(lastQueuedThing,"unitType")):#unit
+                gameState.getGameMode().players[node.unit.player-1].greenWood = gameState.getGameMode().players[node.unit.player-1].greenWood + lastQueuedThing.unitType.costGreen
+                gameState.getGameMode().players[node.unit.player-1].blueWood = gameState.getGameMode().players[node.unit.player-1].blueWood + lastQueuedThing.unitType.costBlue
+            else:#unittype
+                gameState.getGameMode().players[node.unit.player-1].greenWood = gameState.getGameMode().players[node.unit.player-1].greenWood + lastQueuedThing.researchCostGreen
+                gameState.getGameMode().players[node.unit.player-1].blueWood = gameState.getGameMode().players[node.unit.player-1].blueWood + lastQueuedThing.researchCostBlue
+        if(gameState.getGameMode().selectedNode == node and hasattr(uiElements.viewer.theViewer,"isCityViewer")):
+            uiElements.viewer.theViewer.destroy()
+            uiElements.viewer.theViewer = uiElements.cityViewer(node)
     @staticmethod
-    def cancelSummoningUndo(args):
+    def cancelQueuedThingUndo(args):
         tokens = args.split(" ")
         node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
-        if(node.city.unitBeingBuilt == None):
-            node.city.unitBeingBuilt = node.city.cancelledUnits.pop()
-        else:
-            node.city.unitBuildQueue.append(node.city.cancelledUnits.pop())
+        node.city.unitBuildQueue.append(node.city.cancelledUnits.pop())
     @staticmethod
-    def cancelSummoningRedo(args):
+    def cancelQueuedThingRedo(args):
         tokens = args.split(" ")
         node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
         if(len(node.city.unitBuildQueue) > 0):
             node.city.unitBuildQueue.pop()
-        elif(node.city.unitBeingBuilt != None):
-            node.city.unitBeingBuilt = None
     @staticmethod
     def startResearch(args):
         tokens = args.split(" ")
@@ -192,40 +194,41 @@ class Commands:
         node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
         unitType = gameState.theUnitTypes[tokens[2]]
         node.city.queueResearch(unitType)
-    @staticmethod
-    def stopWaiting(args):
-        tokens = args.split(" ")
-        node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
-        node.unit.waiting = False
-        if(uiElements.unitViewer.theUnitViewer != None and uiElements.unitViewer.theUnitViewer.unit == node.unit):
-            uiElements.unitViewer.reset()
-        if(uiElements.actionViewer.theViewer.node == node):
-            uiElements.actionViewer.theViewer.reset()
-    @staticmethod
-    def stopWaitingUndo(args):
-        tokens = args.split(" ")
-        node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
-        node.unit.waiting = True
-    @staticmethod
-    def stopWaitingRedo(args):
-        tokens = args.split(" ")
-        node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
-        node.unit.waiting = False
-    @staticmethod
-    def wait(args):
-        tokens = args.split(" ")
-        node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
-        node.unit.waiting = True
-    @staticmethod
-    def waitUndo(args):
-        tokens = args.split(" ")
-        node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
-        node.unit.waiting = False
-    @staticmethod
-    def waitRedo(args):
-        tokens = args.split(" ")
-        node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
-        node.unit.waiting = True
+#    @staticmethod
+#    def stopWaiting(args):
+#        tokens = args.split(" ")
+#        node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
+#        node.unit.waiting = False
+
+#        if(uiElements.unitViewer.theUnitViewer != None and uiElements.unitViewer.theUnitViewer.unit == node.unit):
+#            uiElements.unitViewer.reset()
+#        if(uiElements.actionViewer.theViewer.node == node):
+#            uiElements.actionViewer.theViewer.reset()
+#    @staticmethod
+#    def stopWaitingUndo(args):
+ #       tokens = args.split(" ")
+#        node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
+#        node.unit.waiting = True
+#    @staticmethod
+#    def stopWaitingRedo(args):
+#        tokens = args.split(" ")
+#        node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
+#        node.unit.waiting = False
+#    @staticmethod
+#    def wait(args):
+#        tokens = args.split(" ")
+#        node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
+#        node.unit.waiting = True
+#    @staticmethod
+#    def waitUndo(args):
+#        tokens = args.split(" ")
+#        node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
+#        node.unit.waiting = False
+#    @staticmethod
+#    def waitRedo(args):
+#        tokens = args.split(" ")
+#        node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
+#        node.unit.waiting = True
     @staticmethod
     def chat(args):
         if(hasattr(gameState.getGameMode(),"chatDisplay")):

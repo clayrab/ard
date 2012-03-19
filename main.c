@@ -501,6 +501,22 @@ static void printPyStackTrace(){
 #define QUEUE_BORDER_WIDTH 342
 #define QUEUE_BORDER_INDEX 97
 
+#define CANCEL_BUTTON "assets/cancelButton.png"
+#define CANCEL_BUTTON_HEIGHT 20
+#define CANCEL_BUTTON_WIDTH 68
+#define CANCEL_BUTTON_INDEX 98
+
+#define UI_UNITTYPE_BACKGROUND "assets/uiUnitTypeBackground.png"
+#define UI_UNITTYPE_BACKGROUND_HEIGHT 1084
+#define UI_UNITTYPE_BACKGROUND_WIDTH 358
+#define UI_UNITTYPE_BACKGROUND_INDEX 99
+
+#define UI_CITYVIEW_BACKGROUND "assets/uiCityViewBackground.png"
+#define UI_CITYVIEW_BACKGROUND_HEIGHT 810
+#define UI_CITYVIEW_BACKGROUND_WIDTH 358
+#define UI_CITYVIEW_BACKGROUND_INDEX 99
+
+
 #define DESERT_TILE_INDEX 0
 #define GRASS_TILE_INDEX 1
 #define MOUNTAIN_TILE_INDEX 2
@@ -1355,11 +1371,11 @@ void drawUIElement(PyObject * uiElement){
     if(previousMousedoverName != selectedName){
       if(PyObject_HasAttrString(gameMode,"handleMouseOver")){
 	pyObj = PyObject_CallMethod(gameMode,"handleMouseOver","(ii)",selectedName,leftButtonDown);//New reference
+	printPyStackTrace();
 	Py_DECREF(pyObj);
       }
       previousMousedoverName = selectedName;
     }
-    printPyStackTrace();
     if(!hidden){
       if(PyObject_HasAttrString(uiElement,"tileType")){//gameModeTileSelectButton
 	drawTileSelect(xPosition,yPosition,name,PyLong_AsLong(PyObject_GetAttrString(uiElement,"tileType")),PyLong_AsLong(PyObject_GetAttrString(uiElement,"selected")));
@@ -1625,6 +1641,9 @@ static void initGL (){
   pngLoad(&texturesArray[RESEARCH_BUTTON_INDEX],RESEARCH_BUTTON);
   pngLoad(&texturesArray[RESEARCH_BORDER_INDEX],RESEARCH_BORDER);
   pngLoad(&texturesArray[QUEUE_BORDER_INDEX],QUEUE_BORDER);
+  pngLoad(&texturesArray[CANCEL_BUTTON_INDEX],CANCEL_BUTTON);
+  pngLoad(&texturesArray[UI_UNITTYPE_BACKGROUND_INDEX],UI_UNITTYPE_BACKGROUND);
+  pngLoad(&texturesArray[UI_CITYVIEW_BACKGROUND_INDEX],UI_CITYVIEW_BACKGROUND);
   
   vertexArrays[DESERT_TILE_INDEX] = *desertVertices;
   vertexArrays[GRASS_TILE_INDEX] = *grassVertices;

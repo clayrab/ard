@@ -11,19 +11,18 @@
 #report game state(to look for cheaters/bugs)
 
 #MISSING FEATURES
-#game ui redesign
+#'waiting for opponents' message when it is not player's turn
+#limited time to move
+#researchProgress per player
 #map name clickable to view map
 #need to show city info and start positions when previewing maps
 #testing connection timeout
-#gatherers and summoners should not be able to move once they begin gathering or summoning. summoners don't get turns, they can build at any time.
-#'waiting for opponents' message when it is not player's turn
 #modal for win/lose
 #proper quit and options menus
 #draw roads properly
 #mountains should be impassable, hills less passable, hills give defense bonus
 #sound effects
 #mouseover effects
-#limited time to move
 #modals should be dismissed by esc, space, or enter
 #handle disconnections/reconnections gracefully
 #number keys auto-focus cities
@@ -38,8 +37,6 @@
 #fix py_decrefs in fonts.h
 #make sure text edit boxes only allow chars and not shift/enter
 #check new/edited city names for duplicates
-#uiElements startingManaSelector needs to be removed
-#map editor: nodes created after the ui render the ui unclickable since clicks go 'thru' to the new nodes
 #make sure room and/or map names do not contain *
 # + buttons in map edit mode are wrong
 
@@ -69,10 +66,11 @@
 #right-justifiable text
 #add odd/even columns. i.e. every other column will get a new node with you hit +
 
-#MINOR BUGS
+#BUGS
 #when you create a new map in map editor the player start location buttons are broken and cause crashes
 #clicking playerstartlocation button #1 repeatedly causes a crash
 #make zoomspeed(in main.c) and focusspeed non-framerate dependant
+#map editor: nodes created after the ui render the ui unclickable since clicks go 'thru' to the new nodes
 
 #OPTIONAL FEATURES
 #save and resume games
@@ -393,6 +391,7 @@ class playMode(tiledGameMode):
 
 		if(len(eligibleUnits) == 0):#all units are waiting/meditating!!!
 			for unit in self.units:#add movementpoints to each unit
+				#unit.movementPoints = unit.movementPoints + (gameLogic.INITIATIVE_ACTION_DEPLETION/5.0)
 				unit.skip()
 			if(gameState.getPlayerNumber() <= 1):
 				self.chooseNextDelayed = True
@@ -406,6 +405,13 @@ class playMode(tiledGameMode):
 			self.focusNextUnit = 1
 			if(hasattr(gameState.getGameMode().mousedOverObject,"toggleCursor")):
 				gameState.getGameMode().mousedOverObject.toggleCursor()
+		if(gameState.getGameMode().selectedNode != None and uiElements.viewer.theViewer != None):
+			if(hasattr(uiElements.viewer.theViewer,"isCityViewer")):
+				uiElements.viewer.theViewer.destroy()
+				uiElements.viewer.theViewer = uiElements.cityViewer(gameState.getGameMode().selectedNode)
+			else:
+				uiElements.viewer.theViewer.destroy()
+				uiElements.viewer.theViewer = uiElements.uniitViewer(gameState.getGameMode().selectedNode)
 	def loadSummoners(self):
 		rowCount = 0
 		columnCount = 0

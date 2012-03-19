@@ -149,7 +149,7 @@ class unit:
 			self.level = node.city.researchProgress[self.unitType][0]
 		self.health = float(self.unitType.health*self.level)
 		self.originCity = node.city
-		self.gatheringNode = None
+#		self.gatheringNode = None
 		self.isMeditating = False
 	def isOwnUnit(self):
 		return (gameState.getPlayerNumber() == self.player or gameState.getPlayerNumber() == -2)
@@ -180,7 +180,7 @@ class unit:
 			gameState.getClient().sendCommand("chooseNextUnit")
 	def moveTo(self,node):
 		self.waiting = False
-		self.gatheringNode = None
+#		self.gatheringNode = None
 		node.onMovePath = False
 		for neighb in self.node.getNeighbors(5):
 			neighb.stopViewing(self)
@@ -201,8 +201,8 @@ class unit:
 					if(neighbor.unit != None and neighbor.unit.player != self.player):
 						self.movePath = []
 						#break
-			if(node.unit.gatheringNode == node):
-				self.waiting = True
+#			if(node.unit.gatheringNode == node):
+#				self.waiting = True
 			self.movementPoints = self.movementPoints + INITIATIVE_ACTION_DEPLETION
 	def heal(self,node):
 		gameState.getClient().sendCommand("healTo",str(node.xPos) + " " + str(node.yPos))
@@ -275,8 +275,8 @@ class city:
 		if(len(self.unitBuildQueue) > 0):
 			self.unitBuildQueue = self.unitBuildQueue[:-1:]
 		else:
-			node.city.researching = False
-			node.city.researchUnitType = None
+			self.researching = False
+			self.researchUnitType = None
 	def queueUnit(self,unit):
 		self.unitBuildQueue.append(unit)
 		if(self.unitBeingBuilt == None and not self.researching):
@@ -287,13 +287,17 @@ class city:
 		else:
 			self.unitBeingBuilt = None
 	def buildNextFromQueue(self):
-		nextThing = self.unitBuildQueue[0]
-		self.unitBuildQueue = self.unitBuildQueue[1:]
-		if(hasattr(nextThing,"unitType")):#unit
-			self.unitBeingBuilt = nextThing
-		else:#unitType/research
-			self.researching = True
-			self.researchUnitType = nextThing
+#		self.unitBeingBuilt = None
+#		self.researching = False
+#		self.researchUnitType = None
+		if(len(self.unitBuildQueue) > 0):
+			nextThing = self.unitBuildQueue[0]
+			self.unitBuildQueue = self.unitBuildQueue[1:]
+			if(hasattr(nextThing,"unitType")):#unit
+				self.unitBeingBuilt = nextThing
+			else:#unitType/research
+				self.researching = True
+				self.researchUnitType = nextThing
 #		if(len(self.unitBuildQueue) > 0):
 #			self.unitBeingBuilt = self.unitBuildQueue[0]
 #			self.unitBuildQueue = self.unitBuildQueue[1:]
@@ -410,62 +414,63 @@ class playModeNode(node):
 		elif(playModeNode.mode == MODES.HEAL_MODE):
 			gameState.getGameMode().nextUnit.heal(self)
 		elif(playModeNode.mode == MODES.MOVE_MODE):
-			if(uiElements.unitViewer.theUnitViewer.unit == gameState.getGameMode().nextUnit):
-				uiElements.unitViewer.theUnitViewer.unit.movePath = uiElements.unitViewer.theUnitViewer.unit.node.movePath
-				uiElements.unitViewer.theUnitViewer.unit.move()
+			if(gameState.getGameMode().selectedNode.unit == gameState.getGameMode().nextUnit):
+				gameState.getGameMode().selectedNode.unit.movePath = gameState.getGameMode().selectedNode.unit.node.movePath
+				gameState.getGameMode().selectedNode.unit.move()
 			else:
-				uiElements.unitViewer.theUnitViewer.unit.movePath = uiElements.unitViewer.theUnitViewer.unit.node.movePath
-				gameState.getClient().sendCommand("stopWaiting",str(uiElements.actionViewer.theViewer.node.xPos) + " " + str(uiElements.actionViewer.theViewer.node.yPos))
+				gameState.getGameMode().selectedNode.unit.movePath = gameState.getGameMode().selectedNode.unit.node.movePath
+#				gameState.getClient().sendCommand("stopWaiting",str(gameState.getGameMode().selectedNode.xPos) + " " + str(gameState.getGameMode().selectedNode.yPos))
 
-				uiElements.unitViewer.theUnitViewer.reset()
-			for node in uiElements.unitViewer.theUnitViewer.unit.movePath:
-				node.onMovePath = True
+#				uiElements.unitViewer.theUnitViewer.reset()
+			if(gameState.getGameMode().selectedNode != None and gameState.getGameMode().selectedNode.unit != None):
+				for node in gameState.getGameMode().selectedNode.unit.movePath:
+					node.onMovePath = True
 		else:
 			selectNode(self)
 	def toggleCursor(self):
 		for node in playModeNode.movePath:
 			node.onMovePath = False
 		playModeNode.movePath = []
-		if(uiElements.unitViewer.theUnitViewer != None):
-			for node in uiElements.unitViewer.theUnitViewer.unit.movePath:
+		if(gameState.getGameMode().selectedNode != None and gameState.getGameMode().selectedNode.unit != None):
+			for node in gameState.getGameMode().selectedNode.unit.movePath:
 				node.onMovePath = True
 		if(gameState.getGameMode().focusNextUnit == 1):
 			self.cursorIndex = cDefines.defines['CURSOR_POINTER_INDEX']
 			playModeNode.mode = MODES.SELECT_MODE
 			return;
-		if(gameState.getGameMode().nextUnit != None and uiElements.unitViewer.theUnitViewer != None and gameState.getGameMode().getPlayerNumber() == gameState.getGameMode().nextUnit.player):
-			if((gameState.getGameMode().nextUnit == uiElements.unitViewer.theUnitViewer.unit) and self.fire != None and gameState.getGameMode().nextUnit.unitType.name == "blue mage"):
+		if(gameState.getGameMode().nextUnit != None and gameState.getGameMode().selectedNode != None and gameState.getGameMode().selectedNode.unit != None and gameState.getGameMode().nextUnit.isOwnUnit()):
+			if((gameState.getGameMode().nextUnit == gameState.getGameMode().selectedNode.unit) and self.fire != None and gameState.getGameMode().nextUnit.unitType.name == "blue mage"):
 				self.cursorIndex = cDefines.defines['CURSOR_ATTACK_INDEX']
 				playModeNode.mode = MODES.ATTACK_MODE				
-			elif((gameState.getGameMode().nextUnit == uiElements.unitViewer.theUnitViewer.unit) and (self.unit != None and self.unit.player != uiElements.unitViewer.theUnitViewer.unit.player) and self.findDistance(uiElements.unitViewer.theUnitViewer.unit.node) <= uiElements.unitViewer.theUnitViewer.unit.unitType.range):
+			elif((gameState.getGameMode().nextUnit == gameState.getGameMode().selectedNode.unit) and (self.unit != None and self.unit.player != gameState.getGameMode().selectedNode.unit.player) and self.findDistance(gameState.getGameMode().selectedNode.unit.node) <= gameState.getGameMode().selectedNode.unit.unitType.range):
 				self.cursorIndex = cDefines.defines['CURSOR_ATTACK_INDEX']
 				playModeNode.mode = MODES.ATTACK_MODE
-			elif((gameState.getGameMode().nextUnit == uiElements.unitViewer.theUnitViewer.unit) and (self.unit != None and self.unit.player == uiElements.unitViewer.theUnitViewer.unit.player) and self.findDistance(uiElements.unitViewer.theUnitViewer.unit.node) <= uiElements.unitViewer.theUnitViewer.unit.unitType.range and uiElements.unitViewer.theUnitViewer.unit.unitType.name == "white mage"):
+			elif((gameState.getGameMode().nextUnit == gameState.getGameMode().selectedNode.unit) and (self.unit != None and self.unit.player == gameState.getGameMode().selectedNode.unit.player) and self.findDistance(gameState.getGameMode().selectedNode.unit.node) <= gameState.getGameMode().selectedNode.unit.unitType.range and gameState.getGameMode().selectedNode.unit.unitType.name == "white mage"):
 				self.cursorIndex = cDefines.defines['CURSOR_HEAL_INDEX']
 				playModeNode.mode = MODES.HEAL_MODE
-#			elif(uiElements.unitViewer.theUnitViewer.unit.unitType.name == "gatherer" and (not gameState.getGameMode().shiftDown) and (self.tileValue == cDefines.defines['FOREST_TILE_INDEX'] or self.tileValue == cDefines.defines['BLUE_FOREST_TILE_INDEX']) and self.unit != uiElements.unitViewer.theUnitViewer.unit):
+#			elif(gameState.getGameMode().selectedNode.unit.unitType.name == "gatherer" and (not gameState.getGameMode().shiftDown) and (self.tileValue == cDefines.defines['FOREST_TILE_INDEX'] or self.tileValue == cDefines.defines['BLUE_FOREST_TILE_INDEX']) and self.unit != gameState.getGameMode().selectedNode.unit):
 #				self.cursorIndex = cDefines.defines['CURSOR_GATHER_INDEX']
 #				playModeNode.mode = MODES.GATHER_MODE
 #				self.aStarSearch()
-			elif((uiElements.unitViewer.theUnitViewer.unit.node == self) or (playModeNode.isNeighbor and gameState.getGameMode().shiftDown) or ((not playModeNode.isNeighbor) and (not gameState.getGameMode().shiftDown)) or (self.unit != None) or (gameState.getGameMode().selectedNode == None) or (gameState.getGameMode().selectedNode != None and gameState.getGameMode().selectedNode.unit == None)):
+			elif((gameState.getGameMode().selectedNode.unit.node == self) or (playModeNode.isNeighbor and gameState.getGameMode().shiftDown) or ((not playModeNode.isNeighbor) and (not gameState.getGameMode().shiftDown)) or (self.unit != None) or (gameState.getGameMode().selectedNode == None) or (gameState.getGameMode().selectedNode != None and gameState.getGameMode().selectedNode.unit == None)):
 				self.cursorIndex = cDefines.defines['CURSOR_POINTER_INDEX']
 				playModeNode.mode = MODES.SELECT_MODE
 			else:
-				for node in uiElements.unitViewer.theUnitViewer.unit.movePath:
+				for node in gameState.getGameMode().selectedNode.unit.movePath:
 					node.onMovePath = False
 				self.cursorIndex = cDefines.defines['CURSOR_MOVE_INDEX']
 				playModeNode.mode = MODES.MOVE_MODE
 				self.aStarSearch()
 		else:
-			if(uiElements.unitViewer.theUnitViewer != None and gameState.getGameMode().shiftDown and uiElements.unitViewer.theUnitViewer != None and uiElements.unitViewer.theUnitViewer.unit != None):
-				for node in uiElements.unitViewer.theUnitViewer.unit.movePath:
+			if(gameState.getGameMode().selectedNode != None and gameState.getGameMode().shiftDown and gameState.getGameMode().selectedNode.unit != None):
+				for node in gameState.getGameMode().selectedNode.unit.movePath:
 					node.onMovePath = False
 				self.cursorIndex = cDefines.defines['CURSOR_MOVE_INDEX']
 				playModeNode.mode = MODES.MOVE_MODE
 				self.aStarSearch()
 			else:
 				self.cursorIndex = -1
-				playModeNode.mode = MODES.SELECT_MODE			
+				playModeNode.mode = MODES.SELECT_MODE
 	def getNeighbors(self,distance):
 		neighbs = []
 		for xDelta in range(0-distance,distance):
@@ -477,9 +482,9 @@ class playModeNode(node):
 		return neighbs
 	def aStarSearch(self):
 		#start at end point so we can just track back and insert into an array in order
-		self.findAStarHeuristicCost(uiElements.unitViewer.theUnitViewer.unit.node)
+		self.findAStarHeuristicCost(gameState.getGameMode().selectedNode.unit.node)
 		playModeNode.openNodes.append(self)
-		playModeNode.aStarSearchRecurse(uiElements.unitViewer.theUnitViewer.unit.node)
+		playModeNode.aStarSearchRecurse(gameState.getGameMode().selectedNode.unit.node)
 	def findAStarHeuristicCost(self,target):
 		#current 'heuristic' is just the distance assuming everything is grass
 		#I might want to change this to assume that everything is mountain... or somewhere in between... gotta think about it.
@@ -580,14 +585,14 @@ class playModeNode(node):
 		count = count + 1
 		playModeNode.aStarSearchRecurse(target,count)
 	def onMouseOver(self):
-		if(uiElements.unitViewer.theUnitViewer != None):
-			if(uiElements.unitViewer.theUnitViewer.unit.node.neighbors.count(self) > 0):
+		if(gameState.getGameMode().selectedNode != None and gameState.getGameMode().selectedNode.unit != None):
+			if(gameState.getGameMode().selectedNode.unit.node.neighbors.count(self) > 0):
 				playModeNode.isNeighbor = True
 			else:
 				playModeNode.isNeighbor = False
 			self.toggleCursor()
 #	def onMouseOut(self):
-#		if(uiElements.unitViewer.theUnitViewer.unit.node.neighbors.count(self) > 0):
+#		if(gameState.getGameMode().selectedNode.unit.node.neighbors.count(self) > 0):
 #			playModeNode.isNeighbor = False
 	def onKeyUp(self,keycode):
 		self.toggleCursor()
@@ -639,9 +644,7 @@ class mapEditorNode(node):
 class mapViewNode(node):
 #	def __init__(self)
 	def onClick(self):
-#		selectNode(self,uiElements.cityViewer)
-		print 'click'
-		print self.city
+		selectNode(self,uiElements.cityViewerNoPlay)			
 
 class mapData:
 	def __init__(self,name,mapDataString):
@@ -779,8 +782,7 @@ class map:
 	def setNumPlayers(self,numPlayers):
 		self.numPlayers = numPlayers
 
-
-def selectNode(node,actionViewer=uiElements.actionViewer):
+def selectNode(node,theCityViewer = uiElements.cityViewer):
 	if(gameState.getGameMode().selectedNode != None):
 		gameState.getGameMode().selectedNode.selected = False
 		if(gameState.getGameMode().selectedNode.unit != None and len(gameState.getGameMode().selectedNode.unit.movePath) > 0):
@@ -790,13 +792,16 @@ def selectNode(node,actionViewer=uiElements.actionViewer):
 	node.selected = True
 	if(uiElements.viewer.theViewer != None):
 		uiElements.viewer.theViewer.destroy()
+	if(uiElements.unitTypeViewer.theViewer != None):
+		uiElements.unitTypeViewer.theViewer.destroy()
 	if((node.unit == None and node.city !=None) or (node.unit != None and node.unit.unitType.name == "summoner" and node.unit.isMeditating)):
-		uiElements.viewer.theViewer = uiElements.cityViewer(node)
+		uiElements.viewer.theViewer = theCityViewer(node)
 	elif(node.unit != None):
 		uiElements.viewer.theViewer = uiElements.uniitViewer(node)
 	if(node.unit != None and len(node.unit.movePath) > 0):
 		for pathNode in node.unit.movePath:
 			pathNode.onMovePath = True
 	if(hasattr(gameState.getGameMode().mousedOverObject,"toggleCursor")):
-		   gameState.getGameMode().mousedOverObject.toggleCursor()
+		gameState.getGameMode().mousedOverObject.toggleCursor()
 #	node.toggleCursor()
+
