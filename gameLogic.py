@@ -151,6 +151,7 @@ class unit:
 		self.originCity = node.city
 #		self.gatheringNode = None
 		self.isMeditating = False
+		self.recentDamage = {}
 	def isOwnUnit(self):
 		return (gameState.getPlayerNumber() == self.player or gameState.getPlayerNumber() == -2)
 	def getMaxHealth(self):
@@ -223,6 +224,8 @@ class unit:
 			if(self.node.tileValue == cDefines.defines['MOUNTAIN_TILE_INDEX']):
 				multiplier = multiplier + MOUNTAIN_ATTACK_BONUS_MULTIPLIER
 			damage = ((self.getAttackPower()-node.unit.getArmor())*multiplier)
+			node.unit.recentDamage[gameState.getGameMode().ticks] = str(int(damage))
+			print node.unit.recentDamage
 			if(damage < 1):
 				damage = 1
 			node.unit.health = node.unit.health - damage
@@ -442,7 +445,7 @@ class playModeNode(node):
 			if((gameState.getGameMode().nextUnit == gameState.getGameMode().selectedNode.unit) and self.fire != None and gameState.getGameMode().nextUnit.unitType.name == "blue mage"):
 				self.cursorIndex = cDefines.defines['CURSOR_ATTACK_INDEX']
 				playModeNode.mode = MODES.ATTACK_MODE				
-			elif((gameState.getGameMode().nextUnit == gameState.getGameMode().selectedNode.unit) and (self.unit != None and self.unit.player != gameState.getGameMode().selectedNode.unit.player) and self.findDistance(gameState.getGameMode().selectedNode.unit.node) <= gameState.getGameMode().selectedNode.unit.unitType.range):
+			elif((gameState.getGameMode().nextUnit == gameState.getGameMode().selectedNode.unit) and (self.unit != None and self.unit.player != gameState.getGameMode().selectedNode.unit.player) and self.findDistance(gameState.getGameMode().selectedNode.unit.node) >= gameState.getGameMode().selectedNode.unit.unitType.range):
 				self.cursorIndex = cDefines.defines['CURSOR_ATTACK_INDEX']
 				playModeNode.mode = MODES.ATTACK_MODE
 			elif((gameState.getGameMode().nextUnit == gameState.getGameMode().selectedNode.unit) and (self.unit != None and self.unit.player == gameState.getGameMode().selectedNode.unit.player) and self.findDistance(gameState.getGameMode().selectedNode.unit.node) <= gameState.getGameMode().selectedNode.unit.unitType.range and gameState.getGameMode().selectedNode.unit.unitType.name == "white mage"):

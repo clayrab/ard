@@ -516,6 +516,10 @@ static void printPyStackTrace(){
 #define UI_CITYVIEW_BACKGROUND_WIDTH 358
 #define UI_CITYVIEW_BACKGROUND_INDEX 99
 
+#define SLASH_ANIMATION "assets/slashAnim.png"
+#define SLASH_ANIMATION_HEIGHT 1040
+#define SLASH_ANIMATION_WIDTH 80
+#define SLASH_ANIMATION_INDEX 100
 
 #define DESERT_TILE_INDEX 0
 #define GRASS_TILE_INDEX 1
@@ -553,7 +557,7 @@ int leftButtonDown = 0;
 int done = 0;    
 int moveUp = 0;
 int moveRight = 0;
-int previousTick = 0;
+int currentTick = 0;
 int deltaTicks = 0;
 int avgDeltaTicks = 0;
 int totalDeltaTicksDataPoints = 0;
@@ -583,6 +587,12 @@ PyObject * pyName;
 PyObject * pyHealth;
 PyObject * pyMaxHealth;
 PyObject * pyPlayerNumber;
+PyObject * pyRecentDamage;
+PyObject * pyRecentDamageIter;
+PyObject * pyDamageTime;
+int damageTime;
+PyObject * pyDamage;
+char * damageStr;
 char * unitName;
 long playerNumber;
 long unitTextureIndex;
@@ -833,13 +843,11 @@ void drawUnit(){
       playerNumber = PyLong_AsLong(pyPlayerNumber);
       unitTextureIndex = PyLong_AsLong(pyUnitTextureIndex);
       healthBarLength = 1.5*PyFloat_AsDouble(pyHealth)/PyFloat_AsDouble(pyMaxHealth);
-
+      pyRecentDamage = PyObject_GetAttrString(pyUnit,"recentDamage");
+      pyRecentDamageIter = PyObject_GetIter(pyRecentDamage);
       glColor3f(1.0,1.0,1.0);
       if(isNextUnit == 1 && !isFocusing){
 	glBindTexture(GL_TEXTURE_2D, texturesArray[SELECTION_BOX_INDEX]);
-	//      }else if(isNextUnit == 1){
-	//focusXPos = xPosition;
-	//focusYPos = yPosition;
       }else{
 	glBindTexture(GL_TEXTURE_2D, texturesArray[UNIT_CIRCLE_RED_INDEX+playerNumber-1]);
       }
@@ -849,17 +857,36 @@ void drawUnit(){
       glBindTexture(GL_TEXTURE_2D, texturesArray[HEALTH_BAR_INDEX]);
       glCallList(healthBarList);
 
-      glColor3f(255.0, 0.0, 0.0);
+      glColor3f(1.0, 0.0, 0.0);
       glBegin(GL_QUADS);
       glTexCoord2f(0.0,0.0);
-      glVertex3f(-.75, 1.05, 0.001);
+      glVertex3f(-.75, 1.05, -0.001);
       glTexCoord2f(1.0,0.0);
-      glVertex3f(-.75+healthBarLength, 1.05, 0.001);
+      glVertex3f(-.75+healthBarLength, 1.05, -0.001);
       glTexCoord2f(1.0,1.0);
-      glVertex3f(-.75+healthBarLength, 0.85, 0.001);
+      glVertex3f(-.75+healthBarLength, 0.85, -0.001);
       glTexCoord2f(0.0,1.0);
-      glVertex3f(-.75, 0.85, 0.001);
+      glVertex3f(-.75, 0.85, -0.001);
       glEnd();
+
+      while (pyDamageTime = PyIter_Next(pyRecentDamageIter)) {
+	damageTime = PyLong_AsLong(pyDamageTime);
+	if(currentTick-damageTime<5000){
+	  glPushMatrix();
+	  pyDamage = PyObject_GetItem(pyRecentDamage,pyDamageTime);
+	  damageStr = PyString_AsString(pyDamage);
+	  int c = 0;
+	  while(damageStr[c] != 0){
+	    glTranslatef(-0.18,0.0,0.0);
+	    c++;
+	  }
+	  glColor4f(1.0, 0.0, 0.0, (5000.0-(currentTick-damageTime))/1000);
+	  glTranslatef(0.0,((currentTick-damageTime)*0.0002)-0.7,-0.0001);
+	  glScalef(0.01,0.01,0.0);
+	  drawText(damageStr,0,-1,-9999.9,NULL);
+	  glPopMatrix();
+	}
+      }
 
       Py_DECREF(pyUnitType);
       Py_DECREF(pyUnitTextureIndex);
@@ -867,7 +894,6 @@ void drawUnit(){
       Py_DECREF(pyHealth);
       Py_DECREF(pyMaxHealth);
       Py_DECREF(pyPlayerNumber);
-
 }
 double xPosition;
 double yPosition;
@@ -917,15 +943,14 @@ void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long 
   if(pyUnit != NULL && pyUnit != Py_None && isVisible){
     drawUnit();
   }
-  if(pyFire != NULL && pyFire != Py_None && isVisible){
-    drawFire();
-  }
-  
   if(cityName[0]!=0){
     glColor3f(1.0f, 1.0f, 1.0f);
     glBindTexture(GL_TEXTURE_2D, texturesArray[CITY_INDEX]);
     glCallList(unitList);
   }
+  if(pyFire != NULL && pyFire != Py_None && isVisible){
+    drawFire();
+  }  
   if(isOnMovePath){
     glBindTexture(GL_TEXTURE_2D, texturesArray[WALK_ICON_INDEX]);
     glColor3f(1.0f, 0.0f, 0.0f);
@@ -1053,7 +1078,6 @@ void drawTiles(){
       unitPlayer = PyLong_AsLong(pyUnitPlayer);
       if(unit != Py_None && unit == nextUnit && (playerNumber == unitPlayer || playerNumber == -2)){
       	  isNextUnit = 1;
-	  //TODO: THESE DECREFS ARE IN THE WORNG PLACE
 	  Py_DECREF(unit);
 	  Py_DECREF(pyUnitPlayer);
       }
@@ -1223,7 +1247,7 @@ void calculateTranslation(){
 drawBoard(){
   if(theMap != Py_None && theMap != NULL){
     drawTiles();
-    drawTilesText();
+    //    drawTilesText();
   }
 }
 
@@ -1282,6 +1306,8 @@ PyObject * pyTextXPosition;
 PyObject * pyTextYPosition;
 PyObject * pyCursorPosition;
 PyObject * pyFontIndex;
+PyObject * pyFrameLength;
+PyObject * pyFrameCount;
 PyObject * pyIsFocused;
 //double xPosition;
 //double yPosition;
@@ -1306,6 +1332,8 @@ double textXPosition;
 double textYPosition;
 double cursorPosition;
 double fontIndex;
+int frameLength;
+int frameCount;
 int isFocused;
 
 void drawUIElement(PyObject * uiElement){
@@ -1328,6 +1356,8 @@ void drawUIElement(PyObject * uiElement){
     pyTextYPosition = PyObject_GetAttrString(uiElement,"textYPos");
     pyCursorPosition = PyObject_GetAttrString(uiElement,"cursorPosition");
     pyFontIndex = PyObject_GetAttrString(uiElement,"fontIndex");
+    pyFrameLength = PyObject_GetAttrString(uiElement,"frameLength");
+    pyFrameCount = PyObject_GetAttrString(uiElement,"frameCount");
     pyIsFocused = PyObject_GetAttrString(uiElement,"focused");
 
     xPosition = PyFloat_AsDouble(pyXPosition);
@@ -1347,6 +1377,8 @@ void drawUIElement(PyObject * uiElement){
     textYPosition = PyFloat_AsDouble(pyTextYPosition);
     cursorPosition = PyFloat_AsDouble(pyCursorPosition);
     fontIndex = PyFloat_AsDouble(pyFontIndex);
+    frameLength = PyLong_AsLong(pyFrameLength);
+    frameCount = PyLong_AsLong(pyFrameCount);
     isFocused = pyIsFocused==Py_True;
      
     Py_DECREF(pyXPosition);
@@ -1366,6 +1398,8 @@ void drawUIElement(PyObject * uiElement){
     Py_DECREF(pyTextYPosition);
     Py_DECREF(pyCursorPosition);
     Py_DECREF(pyFontIndex);
+    Py_DECREF(pyFrameLength);
+    Py_DECREF(pyFrameCount);
     Py_DECREF(pyIsFocused);
 
     if(previousMousedoverName != selectedName){
@@ -1388,11 +1422,19 @@ void drawUIElement(PyObject * uiElement){
 	  //	glColor3f(red1.0f, 1.0f, 1.0f);
 	  glColor3f(*red/255.0, *green/255.0, *blue/255.0);
 	  glPushName(name);
-	  glBegin(GL_QUADS);	
-	  glTexCoord2f(0.0,1.0); glVertex3f(xPosition,yPosition,0.0);
-	  glTexCoord2f(1.0,1.0); glVertex3f(xPosition+width,yPosition,0.0);
-	  glTexCoord2f(1.0,0.0); glVertex3f(xPosition+width,yPosition-height,0.0);
-	  glTexCoord2f(0.0,0.0); glVertex3f(xPosition,yPosition-height,0.0);
+	  glBegin(GL_QUADS);
+	  if(frameCount > 1){
+	    float frameNumber = frameCount-1-(currentTick/frameLength)%frameCount;
+	    glTexCoord2f(0.0,(frameNumber/frameCount)+1.0/frameCount); glVertex3f(xPosition,yPosition,0.0);
+	    glTexCoord2f(1.0,(frameNumber/frameCount)+1.0/frameCount); glVertex3f(xPosition+width,yPosition,0.0);
+	    glTexCoord2f(1.0,(frameNumber/frameCount)); glVertex3f(xPosition+width,yPosition-height,0.0);
+	    glTexCoord2f(0.0,(frameNumber/frameCount)); glVertex3f(xPosition,yPosition-height,0.0);
+	  }else{
+	    glTexCoord2f(0.0,1.0); glVertex3f(xPosition,yPosition,0.0);
+	    glTexCoord2f(1.0,1.0); glVertex3f(xPosition+width,yPosition,0.0);
+	    glTexCoord2f(1.0,0.0); glVertex3f(xPosition+width,yPosition-height,0.0);
+	    glTexCoord2f(0.0,0.0); glVertex3f(xPosition,yPosition-height,0.0);
+	  }
 	  glEnd();
 	  glPopName();
 	  glPopMatrix();
@@ -1531,16 +1573,18 @@ static void initGL (){
   glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);//default values anyway, so not needed but w/e
   glInitNames(); //init names stack	
   glClearColor(0.0, 0.0, 0.0, 0.0); //sets screen clear color
-  glClearDepth(0.0);
 
   //glClearColor(1.0, 1.0, 1.0, 1.0); //sets screen clear color
   //glClearColor(123.0/255.0,126.0/255.0,125.0/255.0,1.0);//grey that matches the UI...
+  glClearDepth(0.0);
+  glAlphaFunc(GL_GREATER,0.5);//clear area around the fonts will not write to the z-buffer
+  glEnable(GL_ALPHA_TEST);
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_TEXTURE_2D);
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);     
-  glDepthFunc(GL_ALWAYS);    
-    //  glDepthFunc(GL_LEQUAL);
+  //  glDepthFunc(GL_ALWAYS);    
+  //  glDepthFunc(GL_LEQUAL);
   screenRatio = (GLfloat)SCREEN_WIDTH/(GLfloat)SCREEN_HEIGHT;
 
   pngLoad(&tilesTexture, TILES_IMAGE);	/******************** /image init ***********************/
@@ -1644,6 +1688,7 @@ static void initGL (){
   pngLoad(&texturesArray[CANCEL_BUTTON_INDEX],CANCEL_BUTTON);
   pngLoad(&texturesArray[UI_UNITTYPE_BACKGROUND_INDEX],UI_UNITTYPE_BACKGROUND);
   pngLoad(&texturesArray[UI_CITYVIEW_BACKGROUND_INDEX],UI_CITYVIEW_BACKGROUND);
+  pngLoad(&texturesArray[SLASH_ANIMATION_INDEX],SLASH_ANIMATION);
   
   vertexArrays[DESERT_TILE_INDEX] = *desertVertices;
   vertexArrays[GRASS_TILE_INDEX] = *grassVertices;
@@ -1706,13 +1751,13 @@ static void initGL (){
   glNewList(healthBarList,GL_COMPILE);    
   glBegin(GL_QUADS);
   glTexCoord2f(0.0,0.0);
-  glVertex3f(-.75, 1.05, 0.001);
+  glVertex3f(-.75, 1.05, -0.001);
   glTexCoord2f(1.0,0.0);
-  glVertex3f(.75, 1.05, 0.001);
+  glVertex3f(.75, 1.05, -0.001);
   glTexCoord2f(1.0,1.0);
-  glVertex3f(.75, 0.85, 0.001);
+  glVertex3f(.75, 0.85, -0.001);
   glTexCoord2f(0.0,1.0);
-  glVertex3f(-.75, 0.85, 0.001);
+  glVertex3f(-.75, 0.85, -0.001);
   glEnd();
   glEndList();
 
@@ -1751,8 +1796,8 @@ PyObject * pyFocusNextUnit;
 char keyArray[20];
 PyObject * pyClickScroll;
 static void handleInput(){
-  deltaTicks = SDL_GetTicks()-previousTick;
-  previousTick = SDL_GetTicks();
+  deltaTicks = SDL_GetTicks()-currentTick;
+  currentTick = SDL_GetTicks();
   if(PyObject_HasAttrString(gameMode,"clickScroll")){
       pyClickScroll = PyObject_GetAttrString(gameMode, "clickScroll");//New reference
       clickScroll = pyClickScroll == Py_True;
@@ -2013,21 +2058,18 @@ void drawBackground(){
   if(PyObject_HasAttrString(gameMode,"backgroundImageIndex")){
     pyBackgroundImageIndex = PyObject_GetAttrString(gameMode, "backgroundImageIndex");//New reference
     backgroundImageIndex = PyLong_AsLong(pyBackgroundImageIndex);
-    
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     glBindTexture(GL_TEXTURE_2D, texturesArray[backgroundImageIndex]);
-    //    glDepthFunc(GL_ALWAYS);    
     glBegin(GL_QUADS);
-    glTexCoord2f(0.0,0.0); glVertex3f(-1.0,-1.0,0.01);
-    glTexCoord2f(1.0,0.0); glVertex3f(1.0,-1.0,0.01);
-    glTexCoord2f(1.0,1.0); glVertex3f(1.0,1.0,0.01);
-    glTexCoord2f(0.0,1.0); glVertex3f(-1.0,1.0,0.01);
+    glTexCoord2f(0.0,0.0); glVertex3f(-1.0,-1.0,0.0);
+    glTexCoord2f(1.0,0.0); glVertex3f(1.0,-1.0,0.0);
+    glTexCoord2f(1.0,1.0); glVertex3f(1.0,1.0,0.0);
+    glTexCoord2f(0.0,1.0); glVertex3f(-1.0,1.0,0.0);
     glEnd();
     Py_DECREF(pyBackgroundImageIndex);
-  //  glDepthFunc(GL_LEQUAL);
   }
 }
 GLint viewport[4];
@@ -2052,13 +2094,13 @@ static void draw(){
     printPyStackTrace();
     Py_DECREF(pyObj);
   }
+  PyObject_SetAttrString(gameMode,"ticks",PyLong_FromLong(SDL_GetTicks()));
   if(PyObject_HasAttrString(gameMode,"onDraw")){
     pyObj = PyObject_CallMethod(gameMode,"onDraw",NULL);//New reference
     printPyStackTrace();
     Py_DECREF(pyObj);
   }
 
-  glClearDepth(1.0);
   //this needs to be done before glClear...
   //when the mouse is under the pixel this breaks, so we test three points and find any two that match
   glReadPixels( 7*SCREEN_WIDTH/16, SCREEN_HEIGHT/2, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &mapDepthTest1 );
@@ -2073,6 +2115,7 @@ static void draw(){
     printf("mapdepth not found%d\n",1);
   }
   glFlush();
+
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		 
   glSelectBuffer(BUFSIZE,selectBuf);//glSelectBuffer must be issued before selection mode is enabled, and it must not be issued while the rendering mode is GL_SELECT.
   glRenderMode(GL_SELECT);
@@ -2088,6 +2131,7 @@ static void draw(){
   glLoadIdentity();
   glTranslatef(translateX,translateY,translateZ);
   drawBoard();
+
 
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
@@ -2110,6 +2154,7 @@ static void draw(){
   glGetIntegerv(GL_VIEWPORT,viewport);
   gluPerspective(45.0f,(float)viewport[2]/(float)viewport[3],minZoom,maxZoom);
   glMatrixMode(GL_MODELVIEW);
+
   glLoadIdentity();
   glColor3f(0.0,0.0,0.0);
   glBegin(GL_QUADS);
@@ -2118,9 +2163,13 @@ static void draw(){
   glTexCoord2f(1.0,1.0); glVertex3f(1.0,1.0,-1.01);
   glTexCoord2f(0.0,1.0); glVertex3f(-1.0,1.0,-1.01);
   glEnd();
+
   calculateTranslation();
   glTranslatef(translateX,translateY,translateZ);
+  
+  glDepthFunc(GL_GEQUAL);
   drawBoard();
+  glDepthFunc(GL_ALWAYS);
 
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();

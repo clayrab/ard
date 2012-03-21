@@ -25,12 +25,12 @@ class uiElement:
 #			uiElement.focusedElem.focused = False
 #		uiElement.focusedElem = elem
 #		uiElement.focusedElem.focused = True
-	def __init__(self,xPos,yPos,width=1.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor=None,textSize=0.001,color=None,mouseOverColor=None,textXPos=0.0,textYPos=0.0,cursorPosition=-1,fontIndex=0):
+	def __init__(self,xPos,yPos,width=1.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor=None,textSize=0.001,color=None,mouseOverColor=None,textXPos=0.0,textYPos=0.0,cursorPosition=-1,fontIndex=0,frameLength=10,frameCount=1):
 		self.name = nameGenerator.getNextName()
 		self.xPosition = xPos
 		self.yPosition = yPos
 		self.width = width
-		self.height = height
+		self.height = height/frameCount
 		self.textureIndex = textureIndex
 		self.hidden=hidden
 		self.cursorIndex=cursorIndex
@@ -42,6 +42,8 @@ class uiElement:
 		self.textYPos = textYPos
 		self.cursorPosition = cursorPosition
 		self.fontIndex = fontIndex
+		self.frameLength = frameLength
+		self.frameCount = frameCount
 		self.focused = False
 		if(mouseOverColor != None):
 			self.mouseOverColor = mouseOverColor

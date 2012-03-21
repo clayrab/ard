@@ -11,11 +11,11 @@
 #report game state(to look for cheaters/bugs)
 
 #MISSING FEATURES
+#need to show city info and start positions when previewing maps
 #'waiting for opponents' message when it is not player's turn
 #limited time to move
 #researchProgress per player
 #map name clickable to view map
-#need to show city info and start positions when previewing maps
 #testing connection timeout
 #modal for win/lose
 #proper quit and options menus
@@ -23,12 +23,8 @@
 #mountains should be impassable, hills less passable, hills give defense bonus
 #sound effects
 #mouseover effects
-#modals should be dismissed by esc, space, or enter
 #handle disconnections/reconnections gracefully
-#number keys auto-focus cities
 #animated attacks
-#send chat button should refocus chat box
-#quickplay map selection only supports 10ish maps
 
 #BUGS
 #replace open() on map files with mapdatas data
@@ -36,9 +32,7 @@
 #sending " to chat as first character doesn't work... 
 #fix py_decrefs in fonts.h
 #make sure text edit boxes only allow chars and not shift/enter
-#check new/edited city names for duplicates
 #make sure room and/or map names do not contain *
-# + buttons in map edit mode are wrong
 
 #DESIGN
 #cancel movement if any enemy is seen
@@ -65,12 +59,18 @@
 #move gameplay viewport back to entire window. make UI less intrusive, small elements at the corners, encircle map with mountains
 #right-justifiable text
 #add odd/even columns. i.e. every other column will get a new node with you hit +
+#number keys auto-focus cities
+#modals should be dismissed by esc, space, or enter
 
 #BUGS
+#send chat button should refocus chat box
+#quickplay map selection only supports 10ish maps
 #when you create a new map in map editor the player start location buttons are broken and cause crashes
 #clicking playerstartlocation button #1 repeatedly causes a crash
 #make zoomspeed(in main.c) and focusspeed non-framerate dependant
 #map editor: nodes created after the ui render the ui unclickable since clicks go 'thru' to the new nodes
+#check new/edited city names for duplicates
+# + Buttons In map edit mode are wrong
 
 #OPTIONAL FEATURES
 #save and resume games
@@ -290,11 +290,11 @@ class tiledGameMode(gameMode):
 
 class playMode(tiledGameMode):
 	def __init__(self,args):
+		tiledGameMode.__init__(self)
 		self.units = []
 		self.elementalEffects = []
 		self.nextUnit = None
 		self.selectedNode = None
-		tiledGameMode.__init__(self)
 		self.shiftDown = False
 		self.focusing = False
 		self.blueWoodUIElem = None
@@ -303,6 +303,7 @@ class playMode(tiledGameMode):
 		self.focusXPos = 0.0
 		self.focusYPos = 0.0
 		self.chooseNextDelayed = False
+		self.backgroundImageIndex = texIndex("CREATE_GAME_BACKGROUND")
 	def getChooseNextDelayed(self):
 		if(self.chooseNextDelayed):
 			retVal = self.chooseNextDelayed
@@ -425,7 +426,7 @@ class playMode(tiledGameMode):
 #					node.addUnit(gameLogic.unit(gameState.theUnitTypes["gatherer"],node.playerStartValue,rowCount,columnCount,node,1))
 #					node.addUnit(gameLogic.unit(gameState.theUnitTypes["gatherer"],node.playerStartValue,rowCount,columnCount,node,1))
 #					node.addUnit(gameLogic.unit(gameState.theUnitTypes["gatherer"],node.playerStartValue,rowCount,columnCount,node,1))
-#					node.addUnit(gameLogic.unit(gameState.theUnitTypes["swordsman"],node.playerStartValue,rowCount,columnCount,node,1))
+					node.addUnit(gameLogic.unit(gameState.theUnitTypes["swordsman"],node.playerStartValue,rowCount,columnCount,node,1))
 #					node.addUnit(gameLogic.unit(gameState.theUnitTypes["wolf"],node.playerStartValue,rowCount,columnCount,node,1))
 #					node.addUnit(gameLogic.unit(gameState.theUnitTypes["blue mage"],node.playerStartValue,rowCount,columnCount,node,1))
 #					node.addFire(gameLogic.fire(node))
@@ -582,12 +583,12 @@ class textBasedMenuMode(gameMode):
 class newGameScreenMode(textBasedMenuMode):
 	def addUIElements(self):
 		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])
+		uiElements.uiElement(0.5,0.0,textureIndex=texIndex("SLASH_ANIMATION"),width=texWidth("SLASH_ANIMATION"),height=texHeight("SLASH_ANIMATION"),frameCount=13,frameLength=10)
 		uiElements.menuButton(-0.18,-0.4,quickPlayMapSelectMode,text="Quick Play")
 		uiElements.menuButton(-0.28,-0.52,joinLANGameScreenMode,text="Join LAN Game")
 		uiElements.menuButton(-0.30,-0.64,hostGameMode,text="Host LAN Game")
 		uiElements.menuButton(-0.19,-0.76,loginMode,text="Play Online")
 		uiElements.menuButton(-0.19,-0.88,mapEditorSelectMode,text="Map Editor")
-
 
 class comingSoonMode(textBasedMenuMode):
 	def addUIElements(self):
