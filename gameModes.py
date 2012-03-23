@@ -14,6 +14,7 @@
 #cancel movement if any enemy is seen
 #create email form/database table
 #put path finding code in a separate thread
+#teams
 #handle disconnections/reconnections gracefully
 #draw roads properly
 #proper quit and options menus
