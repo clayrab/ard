@@ -365,7 +365,7 @@ class unitTypeViewer(uiElement):
 		if(hasattr(gameState.getGameMode(),"nextUnit")):
 			uiElement.__init__(self,-0.500,0.965,width=texWidth("UI_UNITTYPE_BACKGROUND"),height=texHeight("UI_UNITTYPE_BACKGROUND"),textureIndex=texIndex("UI_UNITTYPE_BACKGROUND"))
 		else:
-			uiElement.__init__(self,0.155,0.79,width=texWidth("UI_UNITTYPE_BACKGROUND"),height=0.8,textureIndex=texIndex("UI_UNITTYPE_BACKGROUND"))
+			uiElement.__init__(self,viewer.theViewer.xPosition+0.465,0.79,width=texWidth("UI_UNITTYPE_BACKGROUND"),height=0.8,textureIndex=texIndex("UI_UNITTYPE_BACKGROUND"))
 			
 		self.unitType = unitType
 		self.names.append(uiElement(self.xPosition+0.022,self.yPosition-0.052,text=self.unitType.name,textSize=0.0006,textColor="ee ed 9b").name)
@@ -465,7 +465,10 @@ class uniitViewer(viewer):
 
 class cityViewerNoPlay(uiElement):
 	def __init__(self,node):
-		uiElement.__init__(self,-0.31,0.79,width=texWidth("UI_CITYVIEW_BACKGROUND"),height=texHeight("UI_CITYVIEW_BACKGROUND"),textureIndex=texIndex("UI_CITYVIEW_BACKGROUND"))
+		if(hasattr(gameState.getGameMode(),"createGameMode")):
+			uiElement.__init__(self,-0.31,0.79,width=texWidth("UI_CITYVIEW_BACKGROUND"),height=texHeight("UI_CITYVIEW_BACKGROUND"),textureIndex=texIndex("UI_CITYVIEW_BACKGROUND"))
+		else:
+			uiElement.__init__(self,-0.91,0.79,width=texWidth("UI_CITYVIEW_BACKGROUND"),height=texHeight("UI_CITYVIEW_BACKGROUND"),textureIndex=texIndex("UI_CITYVIEW_BACKGROUND"))
 		self.node = node
 		height = 0.76
 		for unitType in self.node.city.unitTypes:

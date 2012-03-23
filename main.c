@@ -2124,9 +2124,20 @@ static void draw(){
 
   //this needs to be done before glClear...
   //when the mouse is under the pixel this breaks, so we test three points and find any two that match
-  glReadPixels( 7*SCREEN_WIDTH/16, SCREEN_HEIGHT/2, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &mapDepthTest1 );
-  glReadPixels( 8*SCREEN_WIDTH/16, SCREEN_HEIGHT/2, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &mapDepthTest2 );
-  glReadPixels( 9*SCREEN_WIDTH/16, SCREEN_HEIGHT/2, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &mapDepthTest3 );
+
+  if(PyObject_HasAttrString(gameMode,"joinGameMode")){
+    glReadPixels( 7*SCREEN_WIDTH/16, SCREEN_HEIGHT/2, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &mapDepthTest1 );
+    glReadPixels( 8*SCREEN_WIDTH/16, SCREEN_HEIGHT/2, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &mapDepthTest2 );
+    glReadPixels( 9*SCREEN_WIDTH/16, SCREEN_HEIGHT/2, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &mapDepthTest3 );
+  }else if(PyObject_HasAttrString(gameMode,"createGameMode")){
+    glReadPixels( 13*SCREEN_WIDTH/16, 7*SCREEN_HEIGHT/16, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &mapDepthTest1 );
+    glReadPixels( 13*SCREEN_WIDTH/16, 8*SCREEN_HEIGHT/16, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &mapDepthTest2 );
+    glReadPixels( 13*SCREEN_WIDTH/16, 9*SCREEN_HEIGHT/16, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &mapDepthTest3 );
+  }else{
+    glReadPixels( 7*SCREEN_WIDTH/16, SCREEN_HEIGHT/2, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &mapDepthTest1 );
+    glReadPixels( 8*SCREEN_WIDTH/16, SCREEN_HEIGHT/2, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &mapDepthTest2 );
+    glReadPixels( 9*SCREEN_WIDTH/16, SCREEN_HEIGHT/2, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &mapDepthTest3 );    
+  }
   //  printf("%f %f %f\n",mapDepthTest1,mapDepthTest2,mapDepthTest3);
   if(mapDepthTest1 == mapDepthTest2 || mapDepthTest1 == mapDepthTest3){
     mapDepth = mapDepthTest1;

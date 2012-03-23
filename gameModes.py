@@ -24,7 +24,6 @@
 #sound effects
 #mouseover effects
 #handle disconnections/reconnections gracefully
-#animated attacks
 
 #BUGS
 #replace open() on map files with mapdatas data
@@ -121,6 +120,7 @@ class gameMode:
 		self.modal = None
 		self.mouseX = 0
 		self.mouseY = 0
+		uiElements.viewer.theViewer = None
 	def handleMouseMovement(self,name,mouseX,mouseY):
 		self.mouseX = mouseX
 		self.mouseY = mouseY
