@@ -38,12 +38,12 @@ static void printPyStackTrace(){
 
 #define FULL_SCREEN 1
 
-#define SCREEN_WIDTH 1280
+//#define SCREEN_WIDTH 1280
 //#define SCREEN_HEIGHT 960
-#define SCREEN_HEIGHT 800
+//#define SCREEN_HEIGHT 800
 
-//#define SCREEN_WIDTH 1400
-//#define SCREEN_HEIGHT 1050
+#define SCREEN_WIDTH 1440
+#define SCREEN_HEIGHT 900
 
 //#define SCREEN_WIDTH 1600
 //#define SCREEN_HEIGHT 1200
