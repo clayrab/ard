@@ -539,7 +539,7 @@ static void printPyStackTrace(){
 
 #define DESERT_MOVE_COST 2.0
 #define GRASS_MOVE_COST 1.0
-#define MOUNTAIN_MOVE_COST 3.0
+#define MOUNTAIN_MOVE_COST 99999999.0
 #define FOREST_MOVE_COST 1.0
 #define WATER_MOVE_COST 6.0
 
@@ -1581,6 +1581,11 @@ void drawUI(){
     glScalef(0.0005,0.0005,0.0);
     drawText(frameRate,0,-1,-9999.9,NULL);
     glPopMatrix();
+    if(totalDeltaTicksDataPoints > 100){
+      avgDeltaTicks = 0;
+      totalDeltaTicksDataPoints = 0;
+    }
+
   }
 }
 /************************************* /drawing subroutines ***************************************/
@@ -1817,8 +1822,6 @@ PyObject * pyFocusNextUnit;
 char keyArray[20];
 PyObject * pyClickScroll;
 static void handleInput(){
-  deltaTicks = SDL_GetTicks()-currentTick;
-  currentTick = SDL_GetTicks();
   if(PyObject_HasAttrString(gameMode,"clickScroll")){
       pyClickScroll = PyObject_GetAttrString(gameMode, "clickScroll");//New reference
       clickScroll = pyClickScroll == Py_True;
@@ -2219,6 +2222,8 @@ static void mainLoop (){
     if(PyObject_HasAttrString(gameMode,"map")){
       theMap = PyObject_GetAttrString(gameMode, "map");//New reference
     }
+    deltaTicks = SDL_GetTicks()-currentTick;
+    currentTick = SDL_GetTicks();
     handleInput();
     draw();
     if(PyObject_HasAttrString(gameMode,"map")){

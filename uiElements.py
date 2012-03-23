@@ -331,7 +331,6 @@ class skipButton(clickableElement):
 #,str(gameState.getGameMode().nextUnit.node.xPos) + " " + str(gameState.getGameMode().nextUnit.node.yPos))
 		gameState.getClient().sendCommand("chooseNextUnit")
 
-
 class startSummoningButton(clickableElement):
 	def __init__(self,xPos,yPos):
 		clickableElement.__init__(self,xPos,yPos,height=texHeight('START_SUMMONING_BUTTON'),width=texWidth('START_SUMMONING_BUTTON'),textureIndex=texIndex('START_SUMMONING_BUTTON'))
@@ -1389,6 +1388,23 @@ class smallModal(modal):
 		if(self.dismissable):
 			self.buttonElem = modalButton(self)
 		gameState.getGameMode().modal = self
+
+class winLoseModalButton(clickableElement):
+	def __init__(self,modal):
+		clickableElement.__init__(self,texWidth("OK_BUTTON")/-2.0,0.0,text="ok",textXPos=0.08,textYPos=-0.08,textureIndex=texIndex("OK_BUTTON"),width=texWidth("OK_BUTTON"),height=texHeight("OK_BUTTON"))
+		self.modal = modal
+	def onClick(self):
+		gameState.setGameMode(gameModes.newGameScreenMode)
+
+class winModal(smallModal):
+	def __init__(self):
+		smallModal.__init__(self,"You win",dismissable=False)
+		winLoseModalButton(self)
+
+class loseModal(smallModal):
+	def __init__(self):
+		smallModal.__init__(self,"You lose",dismissable=False)
+		winLoseModalButton(self)
 
 class createMapButton(clickableElement):
 	def __init__(self,xPos,yPos,gameMode,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",selected=False):

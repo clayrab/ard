@@ -10,20 +10,21 @@
 #record wins/losses
 #report game state(to look for cheaters/bugs)
 
-#MISSING FEATURES
-#need to show city info and start positions when previewing maps
-#'waiting for opponents' message when it is not player's turn
-#limited time to move
-#researchProgress per player
+#ISSUES
+#cancel movement if any enemy is seen
+#create email form/database table
+#put path finding code in a separate thread
+#handle disconnections/reconnections gracefully
+#draw roads properly
+#proper quit and options menus
 #map name clickable to view map
 #testing connection timeout
-#modal for win/lose
-#proper quit and options menus
-#draw roads properly
-#mountains should be impassable, hills less passable, hills give defense bonus
 #sound effects
 #mouseover effects
-#handle disconnections/reconnections gracefully
+#racial bonuses
+#red wood/blue wood as resources. green wood for elf racial bonuses.
+#show move speed and attack speed
+#icons for green and blue wood
 
 #BUGS
 #replace open() on map files with mapdatas data
@@ -32,11 +33,6 @@
 #fix py_decrefs in fonts.h
 #make sure text edit boxes only allow chars and not shift/enter
 #make sure room and/or map names do not contain *
-
-#DESIGN
-#cancel movement if any enemy is seen
-#show move speed and attack speed
-#icons for green and blue wood
 
 ############# MINIMUM VIABLE PRODUCT AT THIS POINT ##############
 
@@ -304,6 +300,9 @@ class playMode(tiledGameMode):
 		self.focusYPos = 0.0
 		self.chooseNextDelayed = False
 		self.backgroundImageIndex = texIndex("CREATE_GAME_BACKGROUND")
+		self.ticks = 0#set in main.c
+		self.previousTicks = 0
+		self.timeToMove = 5000
 	def getChooseNextDelayed(self):
 		if(self.chooseNextDelayed):
 			retVal = self.chooseNextDelayed
@@ -325,17 +324,21 @@ class playMode(tiledGameMode):
 	def chooseNextUnit(self):
 		winner = None
 		for player in self.players:
-			player.hasUnits = False
+			player.hasSummoners = False
 		for unit in self.units:
-			self.players[unit.player-1].hasUnits = True
+			if(unit.unitType.name == "summoner"):
+				self.players[unit.player-1].hasSummoners = True
 		for player in self.players:
-			if(winner != None and player.hasUnits):
+			if(winner != None and player.hasSummoners):
 				winner = None
 				break
-			if(player.hasUnits):
+			if(player.hasSummoners):
 				winner = player
 		if(winner != None):
-			print 'Winner: ' + winner.playerNumber
+			if(gameState.getPlayerNumber() == winner.playerNumber):
+				uiElements.winModal()
+			else:
+				uiElements.loseModal()
 			return
 		if(len(self.units) <= 1):
 			   print 'ERROR: ONLY ONE UNIT ON THE BOARD, THE GAME SHOULD HAVE ENDED, THIS WILL CAUSE AN INFINITE LOOP'
@@ -406,11 +409,17 @@ class playMode(tiledGameMode):
 			self.focusNextUnit = 1
 			if(hasattr(gameState.getGameMode().mousedOverObject,"toggleCursor")):
 				gameState.getGameMode().mousedOverObject.toggleCursor()
+		if(self.nextUnit != None and self.nextUnit.isOwnUnit()):
+			self.waitingElem.hidden = True
+			self.timeToMove = self.timeToMove + 5000
+
+		else:
+			self.waitingElem.hidden = False
 		if(gameState.getGameMode().selectedNode != None and uiElements.viewer.theViewer != None):
 			if(hasattr(uiElements.viewer.theViewer,"isCityViewer")):
 				uiElements.viewer.theViewer.destroy()
 				uiElements.viewer.theViewer = uiElements.cityViewer(gameState.getGameMode().selectedNode)
-			else:
+			elif(gameState.getGameMode().selectedNode.unit != None):
 				uiElements.viewer.theViewer.destroy()
 				uiElements.viewer.theViewer = uiElements.uniitViewer(gameState.getGameMode().selectedNode)
 	def loadSummoners(self):
@@ -462,28 +471,32 @@ class playMode(tiledGameMode):
 				number = 1
 		return number
 	def onDraw(self):
+		if(self.timeToMove <= 0 and self.nextUnit != None and self.nextUnit.isOwnUnit()):
+			gameState.getClient().sendCommand("skip")
+			gameState.getClient().sendCommand("chooseNextUnit")
+			self.nextUnit = None
 		self.greenWoodUIElem.text = str(int(math.floor(self.players[self.getPlayerNumber()-1].greenWood)))
 		self.blueWoodUIElem.text = str(int(math.floor(self.players[self.getPlayerNumber()-1].blueWood)))
+		if(self.previousTicks != 0 and self.nextUnit != None and self.nextUnit.isOwnUnit()):
+			self.timeToMove = self.timeToMove - (self.ticks - self.previousTicks)
+			self.timeToMoveElem.text = str(self.timeToMove)
+		self.previousTicks = self.ticks		
 		gameMode.onDraw(self)
 
 	def addUIElements(self):
 		if(gameState.getClient() == None):#single player game
 			server.startServer('')
-#			udpServer.startUdpServer()
 #			client.startClient('127.0.0.1')
 # 			client.startClient('192.168.0.102')
  			client.startClient('84.73.77.222')
-#			udpClient.startUdpClient()
 			gameState.setPlayerNumber(-2)
 			gameState.addPlayer(1).isOwnPlayer = True
 			gameState.addPlayer(2).isOwnPlayer = True
-#		uiElements.uiElement(xPos=-1.0,yPos=1.0,width=2.0,height=texHeight('UI_MAP_EDITOR_TOP_IMAGE'),textureIndex=texIndex('UI_MAP_EDITOR_TOP'))
-#		uiElements.uiElement(xPos=-1.0,yPos=1.0-texHeight('UI_MAP_EDITOR_TOP_IMAGE'),width=texWidth('UI_MAP_EDITOR_LEFT_IMAGE'),height=texHeight('UI_MAP_EDITOR_LEFT_IMAGE'),textureIndex=texIndex('UI_MAP_EDITOR_LEFT'))
-#		uiElements.uiElement(xPos=1.0-texWidth('UI_MAP_EDITOR_RIGHT_IMAGE'),yPos=1.0-texHeight('UI_MAP_EDITOR_TOP_IMAGE'),width=texWidth('UI_MAP_EDITOR_RIGHT_IMAGE'),height=texHeight('UI_MAP_EDITOR_RIGHT_IMAGE'),textureIndex=texIndex('UI_MAP_EDITOR_RIGHT'))
-#		uiElements.uiElement(xPos=-1.0,yPos=-1.0+texHeight('UI_MAP_EDITOR_BOTTOM_IMAGE'),width=2.0,height=texHeight('UI_MAP_EDITOR_BOTTOM_IMAGE'),textureIndex=texIndex('UI_MAP_EDITOR_BOTTOM'))
 		self.players = gameState.getPlayers()
-		self.greenWoodUIElem = uiElements.uiElement(0.80,0.93,text=str(self.players[0].greenWood),textSize=0.0005)
-		self.blueWoodUIElem = uiElements.uiElement(0.90,0.93,text=str(self.players[0].blueWood),textSize=0.0005)
+		self.greenWoodUIElem = uiElements.uiElement(0.90,0.90,text=str(self.players[0].greenWood),textSize=0.0005)
+		self.blueWoodUIElem = uiElements.uiElement(0.90,0.87,text=str(self.players[0].blueWood),textSize=0.0005)
+		self.timeToMoveElem = uiElements.uiElement(0.90,0.93,text="",textSize=0.00055)
+		self.waitingElem = uiElements.uiElement(-0.2,0.93,text="waiting for another player",textColor="ee ed 9b",textSize=0.00055,hidden=True)
 	def startGame(self):
 		self.loadSummoners()
 		self.orderUnits()

@@ -15,7 +15,7 @@ INITIATIVE_ACTION_DEPLETION = 100.0
 RESOURCE_COLLECTION_RATE = 0.15
 #at RESOURCE_COLLECTION_RATE = 0.15 one gatherer will gather 15 green wood per 100 'ticks'(i.e. the build time of a gatherer)
 ZOOM_SPEED = 0.2 
-MOUNTAIN_ATTACK_BONUS_MULTIPLIER = 1.0
+#MOUNTAIN_ATTACK_BONUS_MULTIPLIER = 1.0
 FIRE_SPEED = 10
 FIRE_POWER = 3
 FIRE_SPREAD_CHANCE = 0.99
@@ -43,7 +43,7 @@ class Player:
 		self.isOwnPlayer = False
 		self.greenWood = STARTING_GREEN_WOOD
 		self.blueWood = STARTING_BLUE_WOOD
-		self.hasUnits = True
+		self.hasSummoners = True
 class unitType:
 	def __init__(self,name,textureIndex,movementSpeed,attackSpeed,attackPower,armor,range,health,canFly,canSwim,costGreen,costBlue,buildTime,movementSpeedBonus,researchCostGreen,researchCostBlue,researchTime):
 		self.name = name
@@ -221,11 +221,10 @@ class unit:
 		self.waiting = False
 		if(node.unit != None and node.unit.player != self.player):
 			multiplier = 1.0		
-			if(self.node.tileValue == cDefines.defines['MOUNTAIN_TILE_INDEX']):
-				multiplier = multiplier + MOUNTAIN_ATTACK_BONUS_MULTIPLIER
+#			if(self.node.tileValue == cDefines.defines['MOUNTAIN_TILE_INDEX']):
+#				multiplier = multiplier + MOUNTAIN_ATTACK_BONUS_MULTIPLIER
 			damage = ((self.getAttackPower()-node.unit.getArmor())*multiplier)
 			node.unit.recentDamage[gameState.getGameMode().ticks] = str(int(damage))
-			print node.unit.recentDamage
 			if(damage < 1):
 				damage = 1
 			node.unit.health = node.unit.health - damage
@@ -233,6 +232,8 @@ class unit:
 				for neighb in node.getNeighbors(5):
 					neighb.stopViewing(node.unit)
 				gameState.getGameMode().units.remove(node.unit)
+				if(node.unit.unitType == "summoner" and node.city != None):
+					node.city.researchProgress = {}
 				node.unit = None
 		if(self.unitType.name == "red mage"):
 			node.addFire(fire(node,self.level*1.0))
@@ -350,7 +351,7 @@ class node:
 	def getValue(self):
 		return self.tileValue
 	def addUnit(self,unit):
-		if(self.unit == None):
+		if(self.unit == None and self.tileValue != cDefines.defines['MOUNTAIN_TILE_INDEX']):
 			self.unit = unit
 			unit.node = self
 			gameState.getGameMode().units.append(unit)
@@ -423,8 +424,6 @@ class playModeNode(node):
 			else:
 				gameState.getGameMode().selectedNode.unit.movePath = gameState.getGameMode().selectedNode.unit.node.movePath
 #				gameState.getClient().sendCommand("stopWaiting",str(gameState.getGameMode().selectedNode.xPos) + " " + str(gameState.getGameMode().selectedNode.yPos))
-
-#				uiElements.unitViewer.theUnitViewer.reset()
 			if(gameState.getGameMode().selectedNode != None and gameState.getGameMode().selectedNode.unit != None):
 				for node in gameState.getGameMode().selectedNode.unit.movePath:
 					node.onMovePath = True
@@ -437,7 +436,7 @@ class playModeNode(node):
 		if(gameState.getGameMode().selectedNode != None and gameState.getGameMode().selectedNode.unit != None):
 			for node in gameState.getGameMode().selectedNode.unit.movePath:
 				node.onMovePath = True
-		if(gameState.getGameMode().focusNextUnit == 1):
+		if(gameState.getGameMode().focusNextUnit == 1 or ( gameState.getGameMode().selectedNode != None and gameState.getGameMode().selectedNode.unit != None and gameState.getGameMode().selectedNode.unit.isMeditating )):
 			self.cursorIndex = cDefines.defines['CURSOR_POINTER_INDEX']
 			playModeNode.mode = MODES.SELECT_MODE
 			return;
@@ -455,7 +454,7 @@ class playModeNode(node):
 #				self.cursorIndex = cDefines.defines['CURSOR_GATHER_INDEX']
 #				playModeNode.mode = MODES.GATHER_MODE
 #				self.aStarSearch()
-			elif((gameState.getGameMode().selectedNode.unit.node == self) or (playModeNode.isNeighbor and gameState.getGameMode().shiftDown) or ((not playModeNode.isNeighbor) and (not gameState.getGameMode().shiftDown)) or (self.unit != None) or (gameState.getGameMode().selectedNode == None) or (gameState.getGameMode().selectedNode != None and gameState.getGameMode().selectedNode.unit == None)):
+			elif( (gameState.getGameMode().selectedNode.unit.node == self ) or ( playModeNode.isNeighbor and gameState.getGameMode().shiftDown ) or ( (not playModeNode.isNeighbor) and (not gameState.getGameMode().shiftDown) ) or ( self.unit != None ) or ( gameState.getGameMode().selectedNode == None ) or ( gameState.getGameMode().selectedNode != None and gameState.getGameMode().selectedNode.unit == None ) or ( self.tileValue == cDefines.defines['MOUNTAIN_TILE_INDEX'] and not gameState.getGameMode().selectedNode.unit.unitType.canFly)):
 				self.cursorIndex = cDefines.defines['CURSOR_POINTER_INDEX']
 				playModeNode.mode = MODES.SELECT_MODE
 			else:
