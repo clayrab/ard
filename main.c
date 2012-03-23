@@ -517,9 +517,15 @@ static void printPyStackTrace(){
 #define UI_CITYVIEW_BACKGROUND_INDEX 99
 
 #define SLASH_ANIMATION "assets/slashAnim.png"
-#define SLASH_ANIMATION_HEIGHT 1040
+#define SLASH_ANIMATION_HEIGHT 2080
 #define SLASH_ANIMATION_WIDTH 80
+#define SLASH_ANIMATION_FRAME_COUNT 26
 #define SLASH_ANIMATION_INDEX 100
+
+#define TITLE "assets/title2.png"
+#define TITLE_HEIGHT 371
+#define TITLE_WIDTH 577
+#define TITLE_INDEX 101
 
 #define DESERT_TILE_INDEX 0
 #define GRASS_TILE_INDEX 1
@@ -871,6 +877,20 @@ void drawUnit(){
 
       while (pyDamageTime = PyIter_Next(pyRecentDamageIter)) {
 	damageTime = PyLong_AsLong(pyDamageTime);
+	if(currentTick-damageTime<200){
+	  glPushMatrix();
+	  glBindTexture(GL_TEXTURE_2D, texturesArray[SLASH_ANIMATION_INDEX]);
+	  glColor3f(1.0, 1.0, 1.0);
+	  float frameNumber = (((currentTick-damageTime)*SLASH_ANIMATION_FRAME_COUNT)/200)%SLASH_ANIMATION_FRAME_COUNT;
+	  
+	  glBegin(GL_QUADS);	
+	  glTexCoord2f(1.0,(SLASH_ANIMATION_FRAME_COUNT-frameNumber-1)/SLASH_ANIMATION_FRAME_COUNT); glVertex3f(0.5,-0.5,0.0);
+	  glTexCoord2f(0.0,(SLASH_ANIMATION_FRAME_COUNT-frameNumber-1)/SLASH_ANIMATION_FRAME_COUNT); glVertex3f(-0.5,-0.5,0.0);
+	glTexCoord2f(0.0,(SLASH_ANIMATION_FRAME_COUNT-frameNumber)/SLASH_ANIMATION_FRAME_COUNT); glVertex3f(-0.5,0.5,0.0);
+	  glTexCoord2f(1.0,(SLASH_ANIMATION_FRAME_COUNT-frameNumber)/SLASH_ANIMATION_FRAME_COUNT); glVertex3f(0.5,0.5,0.0);
+	  glEnd();
+	  glPopMatrix();
+	}
 	if(currentTick-damageTime<5000){
 	  glPushMatrix();
 	  pyDamage = PyObject_GetItem(pyRecentDamage,pyDamageTime);
@@ -1689,6 +1709,7 @@ static void initGL (){
   pngLoad(&texturesArray[UI_UNITTYPE_BACKGROUND_INDEX],UI_UNITTYPE_BACKGROUND);
   pngLoad(&texturesArray[UI_CITYVIEW_BACKGROUND_INDEX],UI_CITYVIEW_BACKGROUND);
   pngLoad(&texturesArray[SLASH_ANIMATION_INDEX],SLASH_ANIMATION);
+  pngLoad(&texturesArray[TITLE_INDEX],TITLE);
   
   vertexArrays[DESERT_TILE_INDEX] = *desertVertices;
   vertexArrays[GRASS_TILE_INDEX] = *grassVertices;

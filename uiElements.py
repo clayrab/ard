@@ -1203,11 +1203,11 @@ class menuButton(clickableElement):
 	index = 0
 	buttonsList = []
 	selectedIndex = 0
-	selectedTextColor = "AA AA AA"
-	normalTextColor = "EE EE EE"
+	selectedTextColor = "aa aa aa"
+	normalTextColor = "1f 10 10"
 	gameMode = None
 	def __init__(self,xPos,yPos,gameMode,width=1.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",selected=False):
-		clickableElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=menuButton.normalTextColor,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],mouseOverColor="66 66 66",textSize=0.0013,fontIndex=1)
+		clickableElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=menuButton.normalTextColor,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],mouseOverColor="88 88 88",textSize=0.0013,fontIndex=1)
 		if(menuButton.gameMode != gameState.getGameMode()):
 			menuButton.index = 0
 			menuButton.buttonsList = []

@@ -583,12 +583,12 @@ class textBasedMenuMode(gameMode):
 class newGameScreenMode(textBasedMenuMode):
 	def addUIElements(self):
 		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])
-		uiElements.uiElement(0.5,0.0,textureIndex=texIndex("SLASH_ANIMATION"),width=texWidth("SLASH_ANIMATION"),height=texHeight("SLASH_ANIMATION"),frameCount=13,frameLength=10)
-		uiElements.menuButton(-0.18,-0.4,quickPlayMapSelectMode,text="Quick Play")
-		uiElements.menuButton(-0.28,-0.52,joinLANGameScreenMode,text="Join LAN Game")
-		uiElements.menuButton(-0.30,-0.64,hostGameMode,text="Host LAN Game")
-		uiElements.menuButton(-0.19,-0.76,loginMode,text="Play Online")
-		uiElements.menuButton(-0.19,-0.88,mapEditorSelectMode,text="Map Editor")
+		uiElements.uiElement(-0.5*texWidth("TITLE"),0.35,textureIndex=texIndex("TITLE"),width=texWidth("TITLE"),height=texHeight("TITLE"))
+		uiElements.menuButton(-0.18,-0.48,quickPlayMapSelectMode,text="Quick Play")
+		uiElements.menuButton(-0.28,-0.58,joinLANGameScreenMode,text="Join LAN Game")
+		uiElements.menuButton(-0.30,-0.70,hostGameMode,text="Host LAN Game")
+		uiElements.menuButton(-0.19,-0.82,loginMode,text="Play Online")
+		uiElements.menuButton(-0.19,-0.94,mapEditorSelectMode,text="Map Editor")
 
 class comingSoonMode(textBasedMenuMode):
 	def addUIElements(self):

@@ -171,7 +171,7 @@ static void initFonts(){
       printf("FT_New_Face error");
       exit(1);
     }
-    if(FT_Set_Char_Size(face, 16*64, 16*64, 300, 300)){
+    if(FT_Set_Char_Size(face, 16*64, 0, 300, 0)){
       printf("FT_Set_Char_Size error");
       exit(1);
     }
