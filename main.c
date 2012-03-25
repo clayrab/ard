@@ -36,13 +36,14 @@ static void printPyStackTrace(){
 #define zoomSpeed 5.0//lower is faster
 #define focusSpeed 5.0//lower is faster
 
-#define FULL_SCREEN 1
+#define FULL_SCREEN 0
 
-//#define SCREEN_WIDTH 1280
-//#define SCREEN_HEIGHT 960
+#define SCREEN_WIDTH 1280
+#define SCREEN_HEIGHT 960
 //#define SCREEN_HEIGHT 800
 
-#define SCREEN_WIDTH 1440
+//#define SCREEN_WIDTH 1440
+//
 #define SCREEN_HEIGHT 900
 
 //#define SCREEN_WIDTH 1600
@@ -526,6 +527,11 @@ static void printPyStackTrace(){
 #define TITLE_HEIGHT 371
 #define TITLE_WIDTH 577
 #define TITLE_INDEX 101
+
+#define MENU_BUTTON "assets/menuButton.png"
+#define MENU_BUTTON_HEIGHT 35
+#define MENU_BUTTON_WIDTH 150
+#define MENU_BUTTON_INDEX 102
 
 #define DESERT_TILE_INDEX 0
 #define GRASS_TILE_INDEX 1
@@ -1714,7 +1720,7 @@ static void initGL (){
   pngLoad(&texturesArray[UI_UNITTYPE_BACKGROUND_INDEX],UI_UNITTYPE_BACKGROUND);
   pngLoad(&texturesArray[UI_CITYVIEW_BACKGROUND_INDEX],UI_CITYVIEW_BACKGROUND);
   pngLoad(&texturesArray[SLASH_ANIMATION_INDEX],SLASH_ANIMATION);
-  pngLoad(&texturesArray[TITLE_INDEX],TITLE);
+  pngLoad(&texturesArray[MENU_BUTTON_INDEX],TITLE);
   
   vertexArrays[DESERT_TILE_INDEX] = *desertVertices;
   vertexArrays[GRASS_TILE_INDEX] = *grassVertices;

@@ -11,13 +11,15 @@
 #report game state(to look for cheaters/bugs)
 
 #ISSUES
+#
+#proper quit and options menus
 #cancel movement if any enemy is seen
 #create email form/database table
 #put path finding code in a separate thread
 #teams
+#break units into two textures, one with white that can be colored
 #handle disconnections/reconnections gracefully
 #draw roads properly
-#proper quit and options menus
 #map name clickable to view map
 #testing connection timeout
 #sound effects
@@ -26,6 +28,7 @@
 #red wood/blue wood as resources. green wood for elf racial bonuses.
 #show move speed and attack speed
 #icons for green and blue wood
+#healing animation
 
 #BUGS
 #replace open() on map files with mapdatas data
@@ -304,6 +307,7 @@ class playMode(tiledGameMode):
 		self.ticks = 0#set in main.c
 		self.previousTicks = 0
 		self.timeToMove = 5000
+		self.firstTurn = True
 	def getChooseNextDelayed(self):
 		if(self.chooseNextDelayed):
 			retVal = self.chooseNextDelayed
@@ -403,17 +407,24 @@ class playMode(tiledGameMode):
 			self.nextUnit = None
 		else:
 			self.nextUnit = random.choice(eligibleUnits)
-			if(self.nextUnit.player == self.getPlayerNumber()):
+			if(self.nextUnit.isOwnUnit()):
 				gameLogic.selectNode(self.nextUnit.node)
 				self.focusXPos = self.nextUnit.node.xPos
 				self.focusYPos = self.nextUnit.node.yPos
+			elif(self.firstTurn):
+				for unit in self.units:
+					if(unit.unitType.name == "summoner" and unit.isOwnUnit()):
+						gameLogic.selectNode(unit.node)
+						self.focusXPos = unit.node.xPos
+						self.focusYPos = unit.node.yPos
+						break
+				self.firstTurn = False
 			self.focusNextUnit = 1
 			if(hasattr(gameState.getGameMode().mousedOverObject,"toggleCursor")):
 				gameState.getGameMode().mousedOverObject.toggleCursor()
 		if(self.nextUnit != None and self.nextUnit.isOwnUnit()):
 			self.waitingElem.hidden = True
 			self.timeToMove = self.timeToMove + 5000
-
 		else:
 			self.waitingElem.hidden = False
 		if(gameState.getGameMode().selectedNode != None and uiElements.viewer.theViewer != None):
@@ -805,7 +816,6 @@ class joinGameMode(tiledGameMode):
 		uiElements.sendChatButton(0.842,-0.595)
 		for i in range(0,2*self.teamSize):
 			self.playerElements.append(uiElements.uiElement(0.36,0.775-(0.033*i),text="empty",textSize=0.0005,textColor="55 55 55",mouseOverColor="55 55 55"))
-		print 'addui'
 
 class joinLANGameMode(joinGameMode):
 	def __init__(self,args):
