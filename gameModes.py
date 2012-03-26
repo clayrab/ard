@@ -6,6 +6,7 @@
 #how to host instructions page
 
 #server:
+#
 #*,|, and - cannot be allowed in roomnames
 #record wins/losses
 #report game state(to look for cheaters/bugs)
@@ -13,9 +14,12 @@
 #ISSUES
 #
 #proper quit and options menus
+#put path finding code in a separate thread
+#change togglecursor so nextUnit is always on move_mode
+#
 #cancel movement if any enemy is seen
 #create email form/database table
-#put path finding code in a separate thread
+
 #teams
 #break units into two textures, one with white that can be colored
 #handle disconnections/reconnections gracefully
