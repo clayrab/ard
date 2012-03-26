@@ -41,6 +41,7 @@
 #fix py_decrefs in fonts.h
 #make sure text edit boxes only allow chars and not shift/enter
 #make sure room and/or map names do not contain *
+#aStar heuristic is slowest possible heuristic(also finds ideal solution, but it's slow)
 
 ############# MINIMUM VIABLE PRODUCT AT THIS POINT ##############
 
@@ -229,8 +230,10 @@ class tiledGameMode(gameMode):
 #		return self.focusNextUnitTemp
 	def onDoneFocusing(self):
 		self.focusNextUnit = 0
-		if(hasattr(self,"nextUnit") and self.nextUnit != None and len(self.nextUnit.movePath) > 0 and gameState.getPlayers()[gameState.getGameMode().nextUnit.player-1].isOwnPlayer):
+		if(hasattr(self,"nextUnit") and self.nextUnit != None and len(self.nextUnit.movePath) > 0 and self.nextUnit.isOwnUnit()):
 			self.nextUnit.move()
+		elif(hasattr(self,"nextUnit") and self.nextUnit != None and self.nextUnit.isOwnUnit()):
+			gameLogic.selectNode(self.nextUnit.node)
 		elif(hasattr(gameState.getGameMode().mousedOverObject,"toggleCursor")):
 			gameState.getGameMode().mousedOverObject.toggleCursor()
 			
@@ -310,7 +313,7 @@ class playMode(tiledGameMode):
 		self.backgroundImageIndex = texIndex("CREATE_GAME_BACKGROUND")
 		self.ticks = 0#set in main.c
 		self.previousTicks = 0
-		self.timeToMove = 5000
+		self.timeToMove = 60000
 		self.firstTurn = True
 	def getChooseNextDelayed(self):
 		if(self.chooseNextDelayed):
@@ -323,6 +326,7 @@ class playMode(tiledGameMode):
 		gameState.getClient().sendCommand("chooseNextUnit")
 	def loadMap(self):
 		self.map = gameLogic.map(gameLogic.playModeNode)
+		gameLogic.aStarSearch.map = gameLogic.map(gameLogic.aStarNode)
 	def unitComparater(self,unit):
 		if (unit.waiting or unit.isMeditating or (unit.attackPoints > 0.0)):
 			return 1000.0
@@ -412,13 +416,13 @@ class playMode(tiledGameMode):
 		else:
 			self.nextUnit = random.choice(eligibleUnits)
 			if(self.nextUnit.isOwnUnit()):
-				gameLogic.selectNode(self.nextUnit.node)
+#				gameLogic.selectNode(self.nextUnit.node)
 				self.focusXPos = self.nextUnit.node.xPos
 				self.focusYPos = self.nextUnit.node.yPos
 			elif(self.firstTurn):
 				for unit in self.units:
 					if(unit.unitType.name == "summoner" and unit.isOwnUnit()):
-						gameLogic.selectNode(unit.node)
+#						gameLogic.selectNode(unit.node)
 						self.focusXPos = unit.node.xPos
 						self.focusYPos = unit.node.yPos
 						break
@@ -487,6 +491,14 @@ class playMode(tiledGameMode):
 				number = 1
 		return number
 	def onDraw(self):
+		if(gameLogic.aStarSearch.searchComplete):
+			#lock on movepath
+			gameLogic.playModeNode.movePath = []
+			for node in gameLogic.aStarSearch.movePath:
+				gameLogic.playModeNode.movePath.append(node)
+				node.onMovePath = True
+			gameLogic.aStarSearch.searchComplete = False
+			gameLogic.aStarSearch.movePath = []
 		if(self.timeToMove <= 0 and self.nextUnit != None and self.nextUnit.isOwnUnit()):
 			gameState.getClient().sendCommand("skip")
 			gameState.getClient().sendCommand("chooseNextUnit")

@@ -43,8 +43,7 @@ static void printPyStackTrace(){
 //#define SCREEN_HEIGHT 800
 
 //#define SCREEN_WIDTH 1440
-//
-#define SCREEN_HEIGHT 900
+//#define SCREEN_HEIGHT 900
 
 //#define SCREEN_WIDTH 1600
 //#define SCREEN_HEIGHT 1200
@@ -1846,6 +1845,11 @@ static void handleInput(){
     if(repeatKey){
       if(SDL_GetTicks() - keyHeldTime > 40){
 	keyHeldTime = SDL_GetTicks();
+
+	       //	       || event.key.keysym.sym ==SDLK_RSHIFT
+	       //	       || event.key.keysym.sym ==SDLK_LSHIFT
+
+
 	if(PyObject_HasAttrString(gameMode,"handleKeyDown")){
 	  pyObj = PyObject_CallMethod(gameMode,"handleKeyDown","s",keyArray);
 	  printPyStackTrace();
@@ -1964,8 +1968,10 @@ static void handleInput(){
 	       || event.key.keysym.sym == SDLK_UNDO){
 	printf("rejected: %d\n",event.key.keysym.sym);
       }else{
-	keyHeld = 1;
-	repeatKey = 0;
+	if(event.key.keysym.sym != SDLK_RSHIFT && event.key.keysym.sym != SDLK_LSHIFT){
+	  keyHeld = 1;
+	  repeatKey = 0;
+	}
 	keyHeldTime = SDL_GetTicks();
 	if((event.key.keysym.mod & KMOD_CAPS | event.key.keysym.mod & KMOD_LSHIFT | event.key.keysym.mod & KMOD_RSHIFT) && (event.key.keysym.sym > 0x60 && event.key.keysym.sym <= 0x7A)){
 	  keyArray[0] = (*SDL_GetKeyName(event.key.keysym.sym))-32;
