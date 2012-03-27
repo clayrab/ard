@@ -457,7 +457,7 @@ class playMode(tiledGameMode):
 #					node.addUnit(gameLogic.unit(gameState.theUnitTypes["gatherer"],node.playerStartValue,rowCount,columnCount,node,1))
 					node.addUnit(gameLogic.unit(gameState.theUnitTypes["swordsman"],node.playerStartValue,rowCount,columnCount,node,1))
 #					node.addUnit(gameLogic.unit(gameState.theUnitTypes["wolf"],node.playerStartValue,rowCount,columnCount,node,1))
-#					node.addUnit(gameLogic.unit(gameState.theUnitTypes["blue mage"],node.playerStartValue,rowCount,columnCount,node,1))
+					node.addUnit(gameLogic.unit(gameState.theUnitTypes["white mage"],node.playerStartValue,rowCount,columnCount,node,1))
 #					node.addFire(gameLogic.fire(node))
 #					node.addIce(gameLogic.ice(node))
 	
@@ -492,13 +492,13 @@ class playMode(tiledGameMode):
 		return number
 	def onDraw(self):
 		if(gameLogic.aStarSearch.searchComplete):
-			#lock on movepath
-			gameLogic.playModeNode.movePath = []
-			for node in gameLogic.aStarSearch.movePath:
-				gameLogic.playModeNode.movePath.append(node)
-				node.onMovePath = True
-			gameLogic.aStarSearch.searchComplete = False
-			gameLogic.aStarSearch.movePath = []
+			with gameLogic.aStarSearch.aStarLock:
+				gameLogic.playModeNode.movePath = []
+				for node in gameLogic.aStarSearch.movePath:
+					gameLogic.playModeNode.movePath.append(node)
+					node.onMovePath = True
+				gameLogic.aStarSearch.searchComplete = False
+				gameLogic.aStarSearch.movePath = []
 		if(self.timeToMove <= 0 and self.nextUnit != None and self.nextUnit.isOwnUnit()):
 			gameState.getClient().sendCommand("skip")
 			gameState.getClient().sendCommand("chooseNextUnit")
