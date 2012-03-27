@@ -19,8 +19,6 @@ for fileName in dirList:
 		file = open("maps/"+fileName)
 		mapData = gameLogic.mapData(fileName,file.read())
 		mapDatas[mapData.teamSize-1].append(mapData)
-		
-		print fileName
 def getMapDatas():
 	global mapDatas
 	return mapDatas

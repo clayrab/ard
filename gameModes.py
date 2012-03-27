@@ -105,7 +105,8 @@ from textureFunctions import texWidth, texHeight, texIndex
 
 print random.__file__
 
-sys.setrecursionlimit(100000)
+#sys.setrecursionlimit(100000)
+sys.setrecursionlimit(800)
 #need this to allow deep recursion for AStar
 #defaults to 1000... may cause crash on systems where 1000000 is too large...
 def printTraceBack(excType,excValue,tb=None):
@@ -326,7 +327,8 @@ class playMode(tiledGameMode):
 		gameState.getClient().sendCommand("chooseNextUnit")
 	def loadMap(self):
 		self.map = gameLogic.map(gameLogic.playModeNode)
-		gameLogic.aStarSearch.map = gameLogic.map(gameLogic.aStarNode)
+		with gameLogic.aStarSearch.aStarLock:
+			gameLogic.aStarSearch.map = gameLogic.map(gameLogic.aStarNode)
 	def unitComparater(self,unit):
 		if (unit.waiting or unit.isMeditating or (unit.attackPoints > 0.0)):
 			return 1000.0
@@ -491,14 +493,16 @@ class playMode(tiledGameMode):
 				number = 1
 		return number
 	def onDraw(self):
-		if(gameLogic.aStarSearch.searchComplete):
-			with gameLogic.aStarSearch.aStarLock:
-				gameLogic.playModeNode.movePath = []
-				for node in gameLogic.aStarSearch.movePath:
-					gameLogic.playModeNode.movePath.append(node)
-					node.onMovePath = True
-				gameLogic.aStarSearch.searchComplete = False
-				gameLogic.aStarSearch.movePath = []
+		with gameLogic.aStarSearch.searchCompleteLock:
+			if(gameLogic.aStarSearch.searchComplete):
+				print 'complete...'
+				with gameLogic.aStarSearch.aStarLock:
+					gameLogic.playModeNode.movePath = []
+					for node in gameLogic.aStarSearch.movePath:
+						gameLogic.playModeNode.movePath.append(node)
+						node.onMovePath = True
+					gameLogic.aStarSearch.searchComplete = False
+					gameLogic.aStarSearch.movePath = []
 		if(self.timeToMove <= 0 and self.nextUnit != None and self.nextUnit.isOwnUnit()):
 			gameState.getClient().sendCommand("skip")
 			gameState.getClient().sendCommand("chooseNextUnit")
