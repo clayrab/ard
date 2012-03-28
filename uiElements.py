@@ -807,7 +807,9 @@ class buildUnitElem(scrollableElement):
 		scrollableElement.__init__(self,xPos,yPos)
 		self.unitType = unitType
 		self.names.append(uiElement(self.xPosition,self.yPosition,textureIndex=texIndex("UNIT_UI_BACK"),height=texHeight("UNIT_UI_BACK"),width=texWidth("UNIT_UI_BACK")).name)
-		self.names.append(uiElement(self.xPosition+23.0/cDefines.defines["SCREEN_WIDTH"],self.yPosition-23.0/cDefines.defines["SCREEN_HEIGHT"],textureIndex=self.unitType.textureIndex,height=70.0/cDefines.defines["SCREEN_HEIGHT"],width=70.0/cDefines.defines["SCREEN_WIDTH"]).name)
+#		self.names.append(unitTypeViewerButton(self.xPosition+0.040,self.yPosition-0.120,self.node.unit.unitType,textureIndex=self.node.unit.unitType.textureIndex,height=0.14,width=0.14*0.75).name)
+
+		self.names.append(unitTypeViewerButton(self.xPosition+23.0/cDefines.defines["SCREEN_WIDTH"],self.yPosition-23.0/cDefines.defines["SCREEN_HEIGHT"],textureIndex=self.unitType.textureIndex,height=70.0/cDefines.defines["SCREEN_HEIGHT"],width=70.0/cDefines.defines["SCREEN_WIDTH"]).name)
 		self.names.append(uiElement(self.xPosition+0.085,self.yPosition-0.05,text=self.unitType.name,textSize=0.0005,textColor="ee ee ee",fontIndex=2).name)
 		self.names.append(uiElement(self.xPosition+0.085,self.yPosition-0.071,textureIndex=texIndex("GREEN_WOOD_ICON"),width=texWidth("GREEN_WOOD_ICON"),height=texHeight("GREEN_WOOD_ICON")).name)
 		self.names.append(uiElement(self.xPosition+0.108,self.yPosition-0.094,text=str(self.unitType.costGreen),textSize=0.00034,textColor="ee ee ee",fontIndex=0).name)
