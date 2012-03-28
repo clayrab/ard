@@ -5,8 +5,15 @@ import copy
 import uiElements
 import random
 import threading
+import thread
 import time
+import sys
 #import aStar
+
+#thread.stack_size(32768)
+thread.stack_size(1024*1024)
+print "thread stack size: " + str(thread.stack_size())
+sys.setcheckinterval(10)
 
 #researchBuildTime = 100
 #unitBuildSpeed = 0.1
@@ -358,7 +365,7 @@ class node:
 			gameState.getGameMode().clickScroll = False		
 	def getValue(self):
 		return self.tileValue
-	def findDistance(self,target):
+	def findDistance(self,target,polarity):
 		#'even row' means map polarity = 0 and row # is even OR map polarity = 0 and row # is odd...
 		#polarity 0 means 'even' rows are to the left
 		#polarity 1 means 'even' rows are to the right
@@ -368,7 +375,7 @@ class node:
 		#if moving from odd to even row left gives you free x at 3,5,7...
 		distance = float(abs(self.xPos - target.xPos))
 		if(abs(self.yPos-target.yPos)%2 == 1):#one row is even, other is odd...
-			if(self.yPos%2 == gameState.getGameMode().map.polarity):#self is even...
+			if(self.yPos%2 == polarity):#self is even...
 				if(self.xPos > target.xPos):
 					distance = distance - (abs(self.yPos-target.yPos))/2
 				else:
@@ -480,7 +487,7 @@ class playModeNode(node):
 		else:
 			state = (self.unit != None,
 				 gameState.getGameMode().selectedNode.unit == gameState.getGameMode().nextUnit,
-				 self.findDistance(gameState.getGameMode().selectedNode) <= float(gameState.getGameMode().selectedNode.unit.unitType.range),
+				 self.findDistance(gameState.getGameMode().selectedNode,gameState.getGameMode().map.polarity) <= float(gameState.getGameMode().selectedNode.unit.unitType.range),
 				 self.unit != None and self.unit.isOwnTeam(),
 				 gameState.getGameMode().selectedNode.unit.unitType.name == "white mage",
 				 self.tileValue == cDefines.defines['MOUNTAIN_TILE_INDEX'],
@@ -506,7 +513,7 @@ class playModeNode(node):
 			for yDelta in range(0-distance,distance):
 				if((self.yPos + yDelta >= 0) and (self.yPos + yDelta < len(gameState.getGameMode().map.nodes))):
 					if((self.xPos + xDelta >= 0) and (self.xPos + xDelta < len(gameState.getGameMode().map.nodes[self.yPos + yDelta]))):
-						if(self.findDistance(gameState.getGameMode().map.nodes[self.yPos + yDelta][self.xPos + xDelta]) < 5.0):
+						if(self.findDistance(gameState.getGameMode().map.nodes[self.yPos + yDelta][self.xPos + xDelta],gameState.getGameMode().map.polarity) < 5.0):
 							neighbs.append(gameState.getGameMode().map.nodes[self.yPos + yDelta][self.xPos + xDelta])
 		return neighbs
 	def onMouseOver(self):
@@ -581,24 +588,25 @@ class aStarThread(threading.Thread):
 		self.canFly = False
 		self.canSwim = True
 		self.searchComplete = False
-		self.searching = True
-		self.aStarLock = threading.Lock()
-		self.searchCompleteLock = threading.Lock()
+		self.doneSearching = True
+		self.aStarLock = threading.RLock()
+#		self.searchCompleteLock = threading.RLock()
 		threading.Thread.__init__(self)
 	def run(self):
 		while True:
-			if(not self.searching):
-				print 'start'
-				self.searching = True
+			if(not self.doneSearching):
+#				print 'start'
+#				self.searching = True
 				with self.aStarLock:
 					self.aStarSearchRecurse()
+#				print 'done'
         @staticmethod
         def search(startNode,endNode,canFly,canSwim):
 		with aStarSearch.aStarLock:
 
 #		print 'search ' + str(gameState.getGameMode().ticks) 
-			with aStarSearch.searchCompleteLock:
-				aStarSearch.searchComplete = False
+#			with aStarSearch.searchCompleteLock:
+			aStarSearch.searchComplete = False
 			aStarSearch.movePath = []
 			aStarSearch.resetNodes()
 			aStarSearch.canFly = canFly
@@ -607,7 +615,7 @@ class aStarThread(threading.Thread):
 			startNode = aStarSearch.map.nodes[startNode.yPos][startNode.xPos]		
 			startNode.findAStarHeuristicCost(aStarSearch.endNode)
 			aStarSearch.openNodes.append(startNode)
-		aStarSearch.searching = False
+		aStarSearch.doneSearching = False
 	def resetNodes(self):
 		for node in self.openNodes:
 			node.closed = False
@@ -624,7 +632,10 @@ class aStarThread(threading.Thread):
 		self.openNodes = []
 		self.closedNodes = []
 	def aStarSearchRecurse(self,count=0):
+		print str(time.clock())+'a'
+		print len(self.closedNodes)
 		if(len(self.openNodes) == 0):
+#			self.searching = False
 			return
 		node = None
 		for openNode in self.openNodes:
@@ -638,9 +649,10 @@ class aStarThread(threading.Thread):
 			while nextNode != None:
 				self.movePath.append(gameState.getGameMode().map.nodes[nextNode.yPos][nextNode.xPos])
 				nextNode = nextNode.aStarParent
-			with self.searchCompleteLock:
-				self.searchComplete = True
+#			with self.searchCompleteLock:
+			self.searchComplete = True
 			self.resetNodes()
+			self.doneSearching = True
 			return
 		node.closed = True
 		self.closedNodes.append(node)
@@ -677,13 +689,9 @@ class aStarThread(threading.Thread):
 					else:
 						if(neighbor.aStarKnownCost > node.aStarKnownCost + (cDefines.defines['GRASS_MOVE_COST']/(1.0+float(neighbor.roadValue)))):
 							neighbor.aStarKnownCost = node.aStarKnownCost + (cDefines.defines['GRASS_MOVE_COST']/(1.0+float(neighbor.roadValue)))
-		count = count + 1
-		self.aStarSearchRecurse(count)
-
-global aStarSearch
-aStarSearch = aStarThread()
-aStarSearch.daemon = True
-aStarSearch.start()
+		print str(time.clock())+'b'
+		return
+#		self.aStarSearchRecurse(count)
 
 class aStarNode(node):
 	def __init__(self,xPos,yPos,tileValue=cDefines.defines['GRASS_TILE_INDEX'],roadValue=0,city=None,playerStartValue=0):
@@ -701,11 +709,12 @@ class aStarNode(node):
 	def findAStarHeuristicCost(self,target):
 		#current 'heuristic' is just the distance assuming everything is grass
 		#I might want to change this to assume that everything is mountain... or somewhere in between... gotta think about it.
-		self.aStarHeuristicCost = self.findDistance(target)
+		self.aStarHeuristicCost = self.findDistance(target,aStarSearch.map.polarity)
 
-
-
-
+global aStarSearch
+aStarSearch = aStarThread()
+aStarSearch.daemon = True
+aStarSearch.start()
 
 class mapData:
 	def __init__(self,name,mapDataString):

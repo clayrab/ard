@@ -106,7 +106,7 @@ from textureFunctions import texWidth, texHeight, texIndex
 print random.__file__
 
 #sys.setrecursionlimit(100000)
-sys.setrecursionlimit(800)
+#sys.setrecursionlimit(800)
 #need this to allow deep recursion for AStar
 #defaults to 1000... may cause crash on systems where 1000000 is too large...
 def printTraceBack(excType,excValue,tb=None):
@@ -493,16 +493,16 @@ class playMode(tiledGameMode):
 				number = 1
 		return number
 	def onDraw(self):
-		with gameLogic.aStarSearch.searchCompleteLock:
-			if(gameLogic.aStarSearch.searchComplete):
-				print 'complete...'
-				with gameLogic.aStarSearch.aStarLock:
-					gameLogic.playModeNode.movePath = []
-					for node in gameLogic.aStarSearch.movePath:
-						gameLogic.playModeNode.movePath.append(node)
-						node.onMovePath = True
-					gameLogic.aStarSearch.searchComplete = False
-					gameLogic.aStarSearch.movePath = []
+#		with gameLogic.aStarSearch.searchCompleteLock:
+		if(gameLogic.aStarSearch.searchComplete):
+			print 'complete...'
+			with gameLogic.aStarSearch.aStarLock:
+				gameLogic.playModeNode.movePath = []
+				for node in gameLogic.aStarSearch.movePath:
+					gameLogic.playModeNode.movePath.append(node)
+					node.onMovePath = True
+				gameLogic.aStarSearch.searchComplete = False
+				gameLogic.aStarSearch.movePath = []
 		if(self.timeToMove <= 0 and self.nextUnit != None and self.nextUnit.isOwnUnit()):
 			gameState.getClient().sendCommand("skip")
 			gameState.getClient().sendCommand("chooseNextUnit")
