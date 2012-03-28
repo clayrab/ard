@@ -1938,7 +1938,7 @@ static void handleInput(){
       break;
     case SDL_KEYDOWN:
       if(event.key.keysym.sym == SDLK_ESCAPE){
-	done = 1;
+	done = 1;	
 	/*      }else if(event.key.keysym.sym == SDLK_BACKQUOTE){
 	clickScroll = 1;
 	avgDeltaTicks = 0;

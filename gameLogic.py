@@ -8,12 +8,13 @@ import threading
 import thread
 import time
 import sys
+from multiprocessing import Process, Queue, Pipe
 #import aStar
 
 #thread.stack_size(32768)
-thread.stack_size(1024*1024)
-print "thread stack size: " + str(thread.stack_size())
-sys.setcheckinterval(10)
+#thread.stack_size(1024*1024)
+#print "thread stack size: " + str(thread.stack_size())
+#sys.setcheckinterval(10)
 
 #researchBuildTime = 100
 #unitBuildSpeed = 0.1
@@ -409,17 +410,17 @@ class node:
 class playModeNode(node):
 	isNeighbor = False
 	mode = MODES.SELECT_MODE
-	openNodes = []
-	closedNodes = []
+#	openNodes = []
+#	closedNodes = []
 	movePath = []
-	aStarMap = None
+#	aStarMap = None
 	def __init__(self,xPos,yPos,tileValue=cDefines.defines['GRASS_TILE_INDEX'],roadValue=0,city=None,playerStartValue=0):
 		node.__init__(self,xPos,yPos,tileValue=tileValue,roadValue=roadValue,city=city,playerStartValue=playerStartValue)
-		self.closed = False
-		self.open = False
-		self.aStarKnownCost = 0.0
-		self.aStarHeuristicCost = 0.0
-		self.aStarParent = None
+#		self.closed = False
+#		self.open = False
+#		self.aStarKnownCost = 0.0
+#		self.aStarHeuristicCost = 0.0
+#		self.aStarParent = None
 		self.visible = False
 		self.viewingUnits = []
 		self.fire = None
@@ -578,44 +579,77 @@ class mapViewNode(node):
 	def onClick(self):
 		selectNode(self,uiElements.cityViewerNoPlay)			
 
-class aStarThread(threading.Thread):
+#class aStarThread(threading.Thread):
+class aStarThread():
 	def __init__(self):
 		self.openNodes = []
 		self.closedNodes = []
 		self.movePath = []
 		self.map = None
+		self.nodes = []
+		self.polarity = 0
 		self.endNode = None
 		self.canFly = False
 		self.canSwim = True
 		self.searchComplete = False
-		self.doneSearching = True
+		self.parentPipe,self.childPipe = Pipe()
+		self.queue = None
+#		self.doneSearching = True
 		self.aStarLock = threading.RLock()
 #		self.searchCompleteLock = threading.RLock()
-		threading.Thread.__init__(self)
-	def run(self):
+#		threading.Thread.__init__(self)
+#		Process.__init__(self)
+	@staticmethod
+	def runTarget(pipe):
+#		aStarSearch.queueFuck = queue
+		print 'run'
+#	startNode.findAStarHeuristicCost(aStarSearch.endNode)
+	#	aStarSearch.openNodes.append(startNode)
 		while True:
-			if(not self.doneSearching):
-#				print 'start'
+			if(pipe.poll()):
+				data = pipe.recv()
+				if(data[0] == "kill"):
+					break
+				elif(data[0] == "clear"):
+					aStarSearch.nodes = []
+				elif(data[0] == "polarity"):
+					aStarSearch.polarity = data[1]
+				elif(data[0] == "map"):
+					print mapp
+					aStarSearch.map = mapp(aStarNode,mapName=data[1],ignoreCities=True)
+				else:
+					if(len(data) == 1):
+						print data
+#						aStarSearch.nodes.append(data)
+#,translateZ=0.0,mapName=data[0])
+						
+					else:
+						print data
+						print aStarSearch.map
+						aStarSearch.movePath = []
+						aStarSearch.resetNodes()
+						aStarSearch.canFly = data[4]
+						aStarSearch.canSwim = data[5]
+						aStarSearch.endNode = aStarSearch.map.nodes[data[3]][data[2]]
+						startNode = aStarSearch.map.nodes[data[1]][data[0]]
+						aStarSearch.openNodes.append(startNode)
+			else:
+				aStarSearch.aStarSearchRecurse()
+				pass
+#			print 'start'
+			
 #				self.searching = True
-				with self.aStarLock:
-					self.aStarSearchRecurse()
-#				print 'done'
+#				with self.aStarLock:
+#					self.aStarSearchRecurse()
+#			print 'done'
         @staticmethod
         def search(startNode,endNode,canFly,canSwim):
-		with aStarSearch.aStarLock:
 
 #		print 'search ' + str(gameState.getGameMode().ticks) 
 #			with aStarSearch.searchCompleteLock:
-			aStarSearch.searchComplete = False
-			aStarSearch.movePath = []
-			aStarSearch.resetNodes()
-			aStarSearch.canFly = canFly
-			aStarSearch.canSwim = canSwim
-			aStarSearch.endNode = aStarSearch.map.nodes[endNode.yPos][endNode.xPos]
-			startNode = aStarSearch.map.nodes[startNode.yPos][startNode.xPos]		
-			startNode.findAStarHeuristicCost(aStarSearch.endNode)
-			aStarSearch.openNodes.append(startNode)
-		aStarSearch.doneSearching = False
+#		aStarSearch.searchComplete = False
+		aStarSearch.parentPipe.send([startNode.xPos,startNode.yPos,endNode.xPos,endNode.yPos,canFly,canSwim])
+#		aStarSearch.doneSearching = False
 	def resetNodes(self):
 		for node in self.openNodes:
 			node.closed = False
@@ -631,45 +665,70 @@ class aStarThread(threading.Thread):
 			node.aStarParent = None
 		self.openNodes = []
 		self.closedNodes = []
+	@staticmethod
+	def aStarHeuristic(node1,node2,polarity):
+		distance = float(abs(node1.xPos - node2.xPos))
+		if(abs(node1.yPos-node2.yPos)%2 == 1):#one row is even, other is odd...
+			if(node1.yPos%2 == polarity):#node1 is even...
+				if(node1.xPos > node2.xPos):
+					distance = distance - (abs(node1.yPos-node2.yPos))/2
+				else:
+					distance = distance - (abs(node1.yPos-node2.yPos)+1)/2
+			else:#node1 is odd
+				if(node1.xPos > node2.xPos):
+					distance = distance - (abs(node1.yPos-node2.yPos)+1)/2
+				else:
+					distance = distance - (abs(node1.yPos-node2.yPos))/2
+		else:
+			distance = distance - abs(node1.yPos-node2.yPos)/2
+		if(distance < 0.0):
+			distance = 0.0
+		distance = distance + abs(node1.yPos - node2.yPos)
+		return distance
+
 	def aStarSearchRecurse(self,count=0):
-		print str(time.clock())+'a'
-		print len(self.closedNodes)
-		if(len(self.openNodes) == 0):
-#			self.searching = False
+#		print str(time.clock())+'a'
+#		print len(aStarSearch.closedNodes)
+		if(len(aStarSearch.openNodes) == 0):
+#			aStarSearch.searching = False
 			return
 		node = None
-		for openNode in self.openNodes:
+		for openNode in aStarSearch.openNodes:
 			if(not openNode.closed):
 				if(node == None):
 					node = openNode
 				if((openNode.aStarKnownCost + openNode.aStarHeuristicCost) < (node.aStarKnownCost + node.aStarHeuristicCost)):
 					node = openNode
-		if(node == self.endNode):
-			nextNode = self.endNode.aStarParent
+		if(node == aStarSearch.endNode):
+			print 'found'
+			nextNode = aStarSearch.endNode.aStarParent
 			while nextNode != None:
-				self.movePath.append(gameState.getGameMode().map.nodes[nextNode.yPos][nextNode.xPos])
+#				aStarSearch.queueFuck.put([nextNode.xPos,nextNode.yPos])
+				aStarSearch.childPipe.send([nextNode.xPos,nextNode.yPos])
+#movePath.append(gameState.getGameMode().map.nodes[nextNode.yPos][nextNode.xPos])
 				nextNode = nextNode.aStarParent
-#			with self.searchCompleteLock:
-			self.searchComplete = True
-			self.resetNodes()
-			self.doneSearching = True
+#			with aStarSearch.searchCompleteLock:
+			aStarSearch.searchComplete = True
+			aStarSearch.resetNodes()
+#			aStarSearch.doneSearching = True
 			return
 		node.closed = True
-		self.closedNodes.append(node)
+		aStarSearch.closedNodes.append(node)
 		for neighbor in node.neighbors:
 			if(not neighbor.closed):
 				if(not neighbor.open):
-					self.openNodes.append(neighbor)
+					aStarSearch.openNodes.append(neighbor)
 					neighbor.open = True
 					neighbor.aStarParent = node
-					neighbor.findAStarHeuristicCost(self.endNode)
+					aStarThread.aStarHeuristic(neighbor,aStarSearch.endNode,aStarSearch.polarity)
+#					Neighbor.findAStarHeuristicCost(aStarSearch.endNode)
 					if(neighbor.unit != None):
 						neighbor.aStarKnownCost = node.aStarKnownCost + 999.9
-					elif(neighbor.tileValue == cDefines.defines['MOUNTAIN_TILE_INDEX'] and not self.canFly):
+					elif(neighbor.tileValue == cDefines.defines['MOUNTAIN_TILE_INDEX'] and not aStarSearch.canFly):
 						neighbor.aStarKnownCost = node.aStarKnownCost + (cDefines.defines['MOUNTAIN_MOVE_COST']/(1.0+float(neighbor.roadValue)))
-					elif(neighbor.tileValue == cDefines.defines['WATER_TILE_INDEX'] and not self.canFly and not self.canFly):
+					elif(neighbor.tileValue == cDefines.defines['WATER_TILE_INDEX'] and not aStarSearch.canFly and not aStarSearch.canFly):
 						neighbor.aStarKnownCost = node.aStarKnownCost + (cDefines.defines['WATER_MOVE_COST']/(1.0+float(neighbor.roadValue)))
-					elif(neighbor.tileValue == cDefines.defines['DESERT_TILE_INDEX'] and not self.canFly):
+					elif(neighbor.tileValue == cDefines.defines['DESERT_TILE_INDEX'] and not aStarSearch.canFly):
 						neighbor.aStarKnownCost = node.aStarKnownCost + (cDefines.defines['DESERT_MOVE_COST']/(1.0+float(neighbor.roadValue)))
 					else:
 						neighbor.aStarKnownCost = node.aStarKnownCost + (cDefines.defines['GRASS_MOVE_COST']/(1.0+float(neighbor.roadValue)))
@@ -680,7 +739,7 @@ class aStarThread(threading.Thread):
 					elif(neighbor.tileValue == cDefines.defines['MOUNTAIN_TILE_INDEX']):
 						if(neighbor.aStarKnownCost > node.aStarKnownCost + (cDefines.defines['MOUNTAIN_MOVE_COST']/(1.0+float(neighbor.roadValue)))):
 							neighbor.aStarKnownCost = node.aStarKnownCost + (cDefines.defines['MOUNTAIN_MOVE_COST']/(1.0+float(neighbor.roadValue)))
-					elif(neighbor.tileValue == cDefines.defines['WATER_TILE_INDEX'] and self.canSwim == False):
+					elif(neighbor.tileValue == cDefines.defines['WATER_TILE_INDEX'] and aStarSearch.canSwim == False):
 						if(neighbor.aStarKnownCost > node.aStarKnownCost + (cDefines.defines['WATER_MOVE_COST']/(1.0+float(neighbor.roadValue)))):
 							neighbor.aStarKnownCost = node.aStarKnownCost + (cDefines.defines['WATER_MOVE_COST']/(1.0+float(neighbor.roadValue)))
 					elif(neighbor.tileValue == cDefines.defines['DESERT_TILE_INDEX']):
@@ -689,13 +748,18 @@ class aStarThread(threading.Thread):
 					else:
 						if(neighbor.aStarKnownCost > node.aStarKnownCost + (cDefines.defines['GRASS_MOVE_COST']/(1.0+float(neighbor.roadValue)))):
 							neighbor.aStarKnownCost = node.aStarKnownCost + (cDefines.defines['GRASS_MOVE_COST']/(1.0+float(neighbor.roadValue)))
-		print str(time.clock())+'b'
+#		print str(time.clock())+'b'
 		return
 #		self.aStarSearchRecurse(count)
 
-class aStarNode(node):
+class aStarNode():
 	def __init__(self,xPos,yPos,tileValue=cDefines.defines['GRASS_TILE_INDEX'],roadValue=0,city=None,playerStartValue=0):
-		node.__init__(self,xPos,yPos,tileValue=tileValue,roadValue=roadValue,city=city,playerStartValue=playerStartValue)
+		self.xPos = xPos
+		self.yPos = yPos
+		self.tileValue = tileValue
+		self.roadValue = roadValue
+		self.neighbors = []
+		self.unit = None
 		self.closed = False
 		self.open = False
 		self.aStarKnownCost = 0.0
@@ -706,15 +770,13 @@ class aStarNode(node):
 #		self.findAStarHeuristicCost(aStarSearch.endNode.unit.node)
 #		aStarSearch.openNodes.append(self)
 #		aStarSearch.aStarSearchRecurse(aStarSearch.endNode.unit.node)
-	def findAStarHeuristicCost(self,target):
+#	def findAStarHeuristicCost(self,target):
 		#current 'heuristic' is just the distance assuming everything is grass
 		#I might want to change this to assume that everything is mountain... or somewhere in between... gotta think about it.
-		self.aStarHeuristicCost = self.findDistance(target,aStarSearch.map.polarity)
+#		self.aStarHeuristicCost = self.findDistance(target,aStarSearch.map.polarity)
 
-global aStarSearch
-aStarSearch = aStarThread()
-aStarSearch.daemon = True
-aStarSearch.start()
+
+#aStarProcess.join()
 
 class mapData:
 	def __init__(self,name,mapDataString):
@@ -724,8 +786,13 @@ class mapData:
 #		print lineTokens
 		self.teamSize = int(lineTokens[1])/2
 
-class map:
-	def __init__(self,nodeType,translateZ=0.0-cDefines.defines['initZoom']):
+class mapp:
+	def __init__(self,nodeType,translateZ=0.0-cDefines.defines['initZoom'],mapName="",ignoreCities=False):
+		if(mapName == ""):
+			self.mapName = gameState.getMapName()
+		else:
+			self.mapName = mapName
+		self.ignoreCities = ignoreCities
 		self.polarity = 0
 		self.nodeType = nodeType
 		self.translateZ = translateZ
@@ -737,7 +804,7 @@ class map:
 	def getHeight(self):
 		return len(self.nodes)
 	def load(self):
-		mapFile = open('maps/' + gameState.getMapName() + ".map",'r')
+		mapFile = open('maps/' + self.mapName + ".map",'r')
 		self.nodes = []
 		count = 0
 		yPos = -1
@@ -784,7 +851,7 @@ class map:
 										self.nodes[yPos-1][xPos].neighbors.append(newNode)
 							newRow.append(newNode)
 					self.nodes.append(newRow)
-		                elif(line.startswith("*")):#city
+		                elif(line.startswith("*") and not self.ignoreCities):#city
 					tokens = line.split(":")
 					coords = tokens[0].strip("*").split(",")
 					cityName = tokens[1]
@@ -877,3 +944,16 @@ def selectNode(node,theCityViewer = uiElements.cityViewer):
 	if(hasattr(gameState.getGameMode().mousedOverObject,"toggleCursor")):
 		gameState.getGameMode().mousedOverObject.toggleCursor()
 #	node.toggleCursor()
+
+
+global aStarSearch
+aStarSearch = aStarThread()
+#global aStarQueue
+#aStarQueue = Queue()
+#print aStarQueue
+#aStarSearch.daemon = True
+#aStarSearch.start()
+aStarProcess = Process(target=aStarSearch.runTarget,args=(aStarSearch.childPipe,))
+aStarProcess.daemon = True
+aStarProcess.start()
+aStarProcess.terminate()

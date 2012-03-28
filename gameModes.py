@@ -105,7 +105,7 @@ from textureFunctions import texWidth, texHeight, texIndex
 
 print random.__file__
 
-#sys.setrecursionlimit(100000)
+sys.setrecursionlimit(10000)
 #sys.setrecursionlimit(800)
 #need this to allow deep recursion for AStar
 #defaults to 1000... may cause crash on systems where 1000000 is too large...
@@ -206,9 +206,19 @@ class gameMode:
 	def setMouseTextPosition(self,position):
 		self.mouseTextPosition = position
 	def onQuit(self):
+#		gameLogic.aStarProcess.join()
 		if(gameState.getClient() != None):
 			gameState.getClient().socket.close()
 		server.shutdownServer()
+		gameLogic.aStarSearch.parentPipe.send(["kill"])#this causes the thread to quit
+#		print 'wtf'
+#		print gameLogic.aStarQueue.empty()
+#		print gameLogic.aStarQueue
+#		while(not gameLogic.aStarQueue.empty()):
+#			print 'fuck'
+#			gameLogic.aStarQueue.get()
+#		print 'wtfff'
+#		gameLogic.aStarProcess.terminate()
 	def onDraw(self):
 		if(gameState.getClient() != None):
 			if(hasattr(gameState.getClient(),"checkSocket")):
@@ -326,9 +336,16 @@ class playMode(tiledGameMode):
 	def sendChooseNextUnit(self):
 		gameState.getClient().sendCommand("chooseNextUnit")
 	def loadMap(self):
-		self.map = gameLogic.map(gameLogic.playModeNode)
-		with gameLogic.aStarSearch.aStarLock:
-			gameLogic.aStarSearch.map = gameLogic.map(gameLogic.aStarNode)
+		self.map = gameLogic.mapp(gameLogic.playModeNode)
+#		with gameLogic.aStarSearch.aStarLock:
+		print 'loading map'
+#		gameLogic.aStarSearch.map = gameLogic.mapp(gameLogic.aStarNode)
+#		print gameLogic.mapp
+		gameLogic.aStarSearch.parentPipe.send(['map',gameState.getMapName()])
+#		gameLogic.aStarSearch.parentPipe.send(['clear'])#clears map
+#		for row in self.map.nodes:
+#			for node in row:
+#			gameLogic.aStarSearch.parentPipe.send([row])
 	def unitComparater(self,unit):
 		if (unit.waiting or unit.isMeditating or (unit.attackPoints > 0.0)):
 			return 1000.0
@@ -494,8 +511,9 @@ class playMode(tiledGameMode):
 		return number
 	def onDraw(self):
 #		with gameLogic.aStarSearch.searchCompleteLock:
+#		print 'astarseach:' + str(gameLogic.aStarSearch)
+#		print gameLogic.aStarSearch.map
 		if(gameLogic.aStarSearch.searchComplete):
-			print 'complete...'
 			with gameLogic.aStarSearch.aStarLock:
 				gameLogic.playModeNode.movePath = []
 				for node in gameLogic.aStarSearch.movePath:
@@ -503,6 +521,11 @@ class playMode(tiledGameMode):
 					node.onMovePath = True
 				gameLogic.aStarSearch.searchComplete = False
 				gameLogic.aStarSearch.movePath = []
+		while(gameLogic.aStarSearch.parentPipe.poll()):
+			data = gameLogic.aStarSearch.parentPipe.recv()
+			node = gameState.getGameMode().map.nodes[data[1]][data[0]]
+			gameLogic.playModeNode.movePath.append(node)
+			node.onMovePath = True
 		if(self.timeToMove <= 0 and self.nextUnit != None and self.nextUnit.isOwnUnit()):
 			gameState.getClient().sendCommand("skip")
 			gameState.getClient().sendCommand("chooseNextUnit")
@@ -540,7 +563,7 @@ class mapEditorMode(tiledGameMode):
 		self.selectedCityNode = None
 		tiledGameMode.__init__(self)
 	def loadMap(self):
-		self.map = gameLogic.map(gameLogic.mapEditorNode)
+		self.map = gameLogic.mapp(gameLogic.mapEditorNode)
 		self.focusXPos = int(len(self.map.nodes[0])/2)
 		self.focusYPos = int(len(self.map.nodes)/2)
 		self.focusNextUnit = 1
@@ -819,7 +842,7 @@ class joinGameMode(tiledGameMode):
 				previousElem = elem
 	def setMap(self,mapName):
 		gameState.setMapName(mapName)
-		self.map = gameLogic.map(gameLogic.mapViewNode,-60.0)
+		self.map = gameLogic.mapp(gameLogic.mapViewNode,-60.0)
 		self.mapNameElem.text = mapName
 		self.focusXPos = int(len(self.map.nodes[0])/2)
 		self.focusYPos = int(len(self.map.nodes)/2)
@@ -855,7 +878,7 @@ class createGameMode(tiledGameMode):
 		self.selectedNode = None
 	def setMap(self,mapName):
 		gameState.setMapName(mapName)
-		self.map = gameLogic.map(gameLogic.mapViewNode,-60.0)
+		self.map = gameLogic.mapp(gameLogic.mapViewNode,-60.0)
 		if(self.mapSelector != None):
 			self.mapSelector.destroy()
 		self.mapNameField.text = mapName
