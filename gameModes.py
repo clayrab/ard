@@ -337,15 +337,7 @@ class playMode(tiledGameMode):
 		gameState.getClient().sendCommand("chooseNextUnit")
 	def loadMap(self):
 		self.map = gameLogic.mapp(gameLogic.playModeNode)
-#		with gameLogic.aStarSearch.aStarLock:
-		print 'loading map'
-#		gameLogic.aStarSearch.map = gameLogic.mapp(gameLogic.aStarNode)
-#		print gameLogic.mapp
 		gameLogic.aStarSearch.parentPipe.send(['map',gameState.getMapName()])
-#		gameLogic.aStarSearch.parentPipe.send(['clear'])#clears map
-#		for row in self.map.nodes:
-#			for node in row:
-#			gameLogic.aStarSearch.parentPipe.send([row])
 	def unitComparater(self,unit):
 		if (unit.waiting or unit.isMeditating or (unit.attackPoints > 0.0)):
 			return 1000.0
@@ -523,9 +515,10 @@ class playMode(tiledGameMode):
 				gameLogic.aStarSearch.movePath = []
 		while(gameLogic.aStarSearch.parentPipe.poll()):
 			data = gameLogic.aStarSearch.parentPipe.recv()
-			node = gameState.getGameMode().map.nodes[data[1]][data[0]]
-			gameLogic.playModeNode.movePath.append(node)
-			node.onMovePath = True
+			for arr in data:
+				node = gameState.getGameMode().map.nodes[arr[1]][arr[0]]
+				gameLogic.playModeNode.movePath.append(node)
+				node.onMovePath = True
 		if(self.timeToMove <= 0 and self.nextUnit != None and self.nextUnit.isOwnUnit()):
 			gameState.getClient().sendCommand("skip")
 			gameState.getClient().sendCommand("chooseNextUnit")

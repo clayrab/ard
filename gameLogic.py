@@ -610,46 +610,23 @@ class aStarThread():
 				data = pipe.recv()
 				if(data[0] == "kill"):
 					break
-				elif(data[0] == "clear"):
-					aStarSearch.nodes = []
 				elif(data[0] == "polarity"):
 					aStarSearch.polarity = data[1]
 				elif(data[0] == "map"):
-					print mapp
 					aStarSearch.map = mapp(aStarNode,mapName=data[1],ignoreCities=True)
 				else:
-					if(len(data) == 1):
-						print data
-#						aStarSearch.nodes.append(data)
-#,translateZ=0.0,mapName=data[0])
-						
-					else:
-						print data
-						print aStarSearch.map
-						aStarSearch.movePath = []
-						aStarSearch.resetNodes()
-						aStarSearch.canFly = data[4]
-						aStarSearch.canSwim = data[5]
-						aStarSearch.endNode = aStarSearch.map.nodes[data[3]][data[2]]
-						startNode = aStarSearch.map.nodes[data[1]][data[0]]
-						aStarSearch.openNodes.append(startNode)
+					aStarSearch.movePath = []
+					aStarSearch.resetNodes()
+					aStarSearch.canFly = data[4]
+					aStarSearch.canSwim = data[5]
+					aStarSearch.endNode = aStarSearch.map.nodes[data[3]][data[2]]
+					startNode = aStarSearch.map.nodes[data[1]][data[0]]
+					aStarSearch.openNodes.append(startNode)
 			else:
 				aStarSearch.aStarSearchRecurse()
-				pass
-#			print 'start'
-			
-#				self.searching = True
-#				with self.aStarLock:
-#					self.aStarSearchRecurse()
-#			print 'done'
         @staticmethod
         def search(startNode,endNode,canFly,canSwim):
-
-#		print 'search ' + str(gameState.getGameMode().ticks) 
-#			with aStarSearch.searchCompleteLock:
-#		aStarSearch.searchComplete = False
 		aStarSearch.parentPipe.send([startNode.xPos,startNode.yPos,endNode.xPos,endNode.yPos,canFly,canSwim])
-#		aStarSearch.doneSearching = False
 	def resetNodes(self):
 		for node in self.openNodes:
 			node.closed = False
@@ -687,8 +664,6 @@ class aStarThread():
 		return distance
 
 	def aStarSearchRecurse(self,count=0):
-#		print str(time.clock())+'a'
-#		print len(aStarSearch.closedNodes)
 		if(len(aStarSearch.openNodes) == 0):
 #			aStarSearch.searching = False
 			return
@@ -700,17 +675,13 @@ class aStarThread():
 				if((openNode.aStarKnownCost + openNode.aStarHeuristicCost) < (node.aStarKnownCost + node.aStarHeuristicCost)):
 					node = openNode
 		if(node == aStarSearch.endNode):
-			print 'found'
+			foundNodes = []
 			nextNode = aStarSearch.endNode.aStarParent
 			while nextNode != None:
-#				aStarSearch.queueFuck.put([nextNode.xPos,nextNode.yPos])
-				aStarSearch.childPipe.send([nextNode.xPos,nextNode.yPos])
-#movePath.append(gameState.getGameMode().map.nodes[nextNode.yPos][nextNode.xPos])
+				foundNodes.append([nextNode.xPos,nextNode.yPos])
 				nextNode = nextNode.aStarParent
-#			with aStarSearch.searchCompleteLock:
-			aStarSearch.searchComplete = True
+			aStarSearch.childPipe.send(foundNodes)
 			aStarSearch.resetNodes()
-#			aStarSearch.doneSearching = True
 			return
 		node.closed = True
 		aStarSearch.closedNodes.append(node)
@@ -956,4 +927,4 @@ aStarSearch = aStarThread()
 aStarProcess = Process(target=aStarSearch.runTarget,args=(aStarSearch.childPipe,))
 aStarProcess.daemon = True
 aStarProcess.start()
-aStarProcess.terminate()
+#aStarProcess.terminate()
