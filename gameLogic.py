@@ -448,6 +448,10 @@ class playModeNode(node):
 	def startViewing(self,unit):
 		if(gameState.getPlayerNumber() == unit.player or gameState.getPlayerNumber() == -2):
 			self.viewingUnits.append(unit)
+			if(not self.visible and self.unit != None and not self.unit.isOwnUnit() and len(unit.movePath) > 0):
+				for node in unit.movePath:
+					node.onMovePath = False
+				unit.movePath = []
 			self.visible = True
 	def stopViewing(self,unit):
 		if(gameState.getPlayerNumber() == unit.player or gameState.getPlayerNumber() == -2):

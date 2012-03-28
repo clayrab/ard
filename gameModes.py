@@ -13,13 +13,11 @@
 
 #ISSUES
 #
-#proper quit and options menus
-#
-#cancel movement if any enemy is seen
-#create email form/database table
-
-#teams
 #break units into two textures, one with white that can be colored
+#proper quit and options menus
+
+#create email form/database table
+#teams
 #handle disconnections/reconnections gracefully
 #draw roads properly
 #map name clickable to view map
@@ -34,7 +32,6 @@
 
 #BUGS
 #replace open() on map files with mapdatas data
-#movepaths are not cleared properly
 #sending " to chat as first character doesn't work... 
 #fix py_decrefs in fonts.h
 #make sure text edit boxes only allow chars and not shift/enter
