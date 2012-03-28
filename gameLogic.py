@@ -56,9 +56,10 @@ class Player:
 		self.blueWood = STARTING_BLUE_WOOD
 		self.hasSummoners = True
 class unitType:
-	def __init__(self,name,textureIndex,movementSpeed,attackSpeed,attackPower,armor,range,health,canFly,canSwim,costGreen,costBlue,buildTime,movementSpeedBonus,researchCostGreen,researchCostBlue,researchTime,canAttackGround=False):
+	def __init__(self,name,textureIndex,overlayTextureIndex,movementSpeed,attackSpeed,attackPower,armor,range,health,canFly,canSwim,costGreen,costBlue,buildTime,movementSpeedBonus,researchCostGreen,researchCostBlue,researchTime,canAttackGround=False):
 		self.name = name
 		self.textureIndex = textureIndex
+		self.overlayTextureIndex = overlayTextureIndex
 		self.movementSpeed = movementSpeed
 		self.attackSpeed = attackSpeed
 		self.attackPower = attackPower
@@ -448,7 +449,7 @@ class playModeNode(node):
 	def startViewing(self,unit):
 		if(gameState.getPlayerNumber() == unit.player or gameState.getPlayerNumber() == -2):
 			self.viewingUnits.append(unit)
-			if(not self.visible and self.unit != None and not self.unit.isOwnUnit() and len(unit.movePath) > 0):
+			if(not self.visible and self.unit != None and not self.unit.isOwnTeam() and len(unit.movePath) > 0):
 				for node in unit.movePath:
 					node.onMovePath = False
 				unit.movePath = []

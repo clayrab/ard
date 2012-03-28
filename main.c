@@ -38,11 +38,11 @@ static void printPyStackTrace(){
 
 #define FULL_SCREEN 0
 
-//#define SCREEN_WIDTH 1280
-//#define SCREEN_HEIGHT 960
+#define SCREEN_WIDTH 1280
+#define SCREEN_HEIGHT 960
 
-#define SCREEN_WIDTH 1024
-#define SCREEN_HEIGHT 768
+//#define SCREEN_WIDTH 1024
+//#define SCREEN_HEIGHT 768
 
 
 //#define SCREEN_WIDTH 1440
@@ -535,6 +535,36 @@ static void printPyStackTrace(){
 #define MENU_BUTTON_WIDTH 150
 #define MENU_BUTTON_INDEX 102
 
+#define SWORDSMAN_OVERLAY "assets/swordsmanOverlay.png"
+#define SWORDSMAN_OVERLAY_INDEX 103
+
+#define SUMMONER_OVERLAY "assets/summonerOverlay.png"
+#define SUMMONER_OVERLAY_INDEX 104
+
+#define ARCHER_OVERLAY "assets/archerOverlay.png"
+#define ARCHER_OVERLAY_INDEX 105
+
+#define WHITE_MAGE_OVERLAY "assets/mageOverlay.png"
+#define WHITE_MAGE_OVERLAY_INDEX 106
+
+#define BLUE_MAGE_OVERLAY "assets/mageOverlay.png"
+#define BLUE_MAGE_OVERLAY_INDEX 107
+
+#define RED_MAGE_OVERLAY "assets/mageOverlay.png"
+#define RED_MAGE_OVERLAY_INDEX 108
+
+#define WOLF_OVERLAY "assets/wolfOverlay.png"
+#define WOLF_OVERLAY_INDEX 109
+
+#define DRAGON_OVERLAY "assets/dragonOverlay.png"
+#define DRAGON_OVERLAY_INDEX 110
+
+#define GATHERER_OVERLAY "assets/gathererOverlay.png"
+#define GATHERER_OVERLAY_INDEX 111
+
+#define OGRE_OVERLAY "assets/replaceMe.png"
+#define OGRE_OVERLAY_INDEX 112
+
 #define DESERT_TILE_INDEX 0
 #define GRASS_TILE_INDEX 1
 #define MOUNTAIN_TILE_INDEX 2
@@ -597,6 +627,7 @@ GLdouble convertedTopRightX,convertedTopRightY,convertedTopRightZ;
 
 PyObject * pyUnitType;
 PyObject * pyUnitTextureIndex;
+PyObject * pyUnitTextureOverlayIndex;
 PyObject * pyName;
 PyObject * pyHealth;
 PyObject * pyMaxHealth;
@@ -610,6 +641,7 @@ char * damageStr;
 char * unitName;
 long playerNumber;
 long unitTextureIndex;
+long unitTextureOverlayIndex;
 double healthBarLength;
 PyObject * uiElement;
 //PyObject * gameModule;
@@ -849,6 +881,7 @@ void drawFire(){
 void drawUnit(){
       pyUnitType = PyObject_GetAttrString(pyUnit,"unitType");
       pyUnitTextureIndex = PyObject_GetAttrString(pyUnitType,"textureIndex");
+      pyUnitTextureOverlayIndex = PyObject_GetAttrString(pyUnitType,"overlayTextureIndex");
       pyName = PyObject_GetAttrString(pyUnitType,"name");
       unitName = PyString_AsString(pyName);
       pyHealth = PyObject_GetAttrString(pyUnit,"health");
@@ -856,17 +889,26 @@ void drawUnit(){
       pyPlayerNumber = PyObject_GetAttrString(pyUnit,"player");
       playerNumber = PyLong_AsLong(pyPlayerNumber);
       unitTextureIndex = PyLong_AsLong(pyUnitTextureIndex);
+      unitTextureOverlayIndex = PyLong_AsLong(pyUnitTextureOverlayIndex);
       healthBarLength = 1.5*PyFloat_AsDouble(pyHealth)/PyFloat_AsDouble(pyMaxHealth);
       pyRecentDamage = PyObject_GetAttrString(pyUnit,"recentDamage");
       pyRecentDamageIter = PyObject_GetIter(pyRecentDamage);
       glColor3f(1.0,1.0,1.0);
       if(isNextUnit == 1 && !isFocusing){
 	glBindTexture(GL_TEXTURE_2D, texturesArray[SELECTION_BOX_INDEX]);
-      }else{
-	glBindTexture(GL_TEXTURE_2D, texturesArray[UNIT_CIRCLE_RED_INDEX+playerNumber-1]);
+	glCallList(selectionBoxList);
       }
-      glCallList(selectionBoxList);
+      //else{
+	//glBindTexture(GL_TEXTURE_2D, texturesArray[UNIT_CIRCLE_RED_INDEX+playerNumber-1]);
+      //      }
       glBindTexture(GL_TEXTURE_2D, texturesArray[unitTextureIndex]);
+      glCallList(unitList);
+      if(playerNumber == 1){
+	glColor3f(1.0,0.0,0.0);
+      }else{
+	glColor3f(0.0,0.0,1.0);
+      }
+      glBindTexture(GL_TEXTURE_2D, texturesArray[unitTextureOverlayIndex]);
       glCallList(unitList);
       glBindTexture(GL_TEXTURE_2D, texturesArray[HEALTH_BAR_INDEX]);
       glCallList(healthBarList);
@@ -918,6 +960,7 @@ void drawUnit(){
 
       Py_DECREF(pyUnitType);
       Py_DECREF(pyUnitTextureIndex);
+      Py_DECREF(pyUnitTextureOverlayIndex);
       Py_DECREF(pyName);
       Py_DECREF(pyHealth);
       Py_DECREF(pyMaxHealth);
@@ -1724,7 +1767,17 @@ static void initGL (){
   pngLoad(&texturesArray[SLASH_ANIMATION_INDEX],SLASH_ANIMATION);
   pngLoad(&texturesArray[TITLE_INDEX],TITLE);
   pngLoad(&texturesArray[MENU_BUTTON_INDEX],MENU_BUTTON);
-  
+  pngLoad(&texturesArray[SWORDSMAN_OVERLAY_INDEX],SWORDSMAN_OVERLAY);
+  pngLoad(&texturesArray[SUMMONER_OVERLAY_INDEX],SUMMONER_OVERLAY);
+  pngLoad(&texturesArray[ARCHER_OVERLAY_INDEX],ARCHER_OVERLAY);
+  pngLoad(&texturesArray[WHITE_MAGE_OVERLAY_INDEX],WHITE_MAGE_OVERLAY);
+  pngLoad(&texturesArray[RED_MAGE_OVERLAY_INDEX],RED_MAGE_OVERLAY);
+  pngLoad(&texturesArray[BLUE_MAGE_OVERLAY_INDEX],BLUE_MAGE_OVERLAY);
+  pngLoad(&texturesArray[WOLF_OVERLAY_INDEX],WOLF_OVERLAY);
+  pngLoad(&texturesArray[DRAGON_OVERLAY_INDEX],DRAGON_OVERLAY);
+  pngLoad(&texturesArray[OGRE_OVERLAY_INDEX],OGRE_OVERLAY);
+  pngLoad(&texturesArray[GATHERER_OVERLAY_INDEX],GATHERER_OVERLAY);
+
   vertexArrays[DESERT_TILE_INDEX] = *desertVertices;
   vertexArrays[GRASS_TILE_INDEX] = *grassVertices;
   vertexArrays[MOUNTAIN_TILE_INDEX] = *mountainVertices;

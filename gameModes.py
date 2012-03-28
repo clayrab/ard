@@ -12,8 +12,6 @@
 #report game state(to look for cheaters/bugs)
 
 #ISSUES
-#
-#break units into two textures, one with white that can be colored
 #proper quit and options menus
 
 #create email form/database table
@@ -213,7 +211,8 @@ class gameMode:
 #			print 'fuck'
 #			gameLogic.aStarQueue.get()
 #		print 'wtfff'
-#		gameLogic.aStarProcess.terminate()
+		gameLogic.aStarProcess.terminate()
+		gameLogic.aStarProcess.join()
 	def onDraw(self):
 		if(gameState.getClient() != None):
 			if(hasattr(gameState.getClient(),"checkSocket")):
@@ -458,12 +457,14 @@ class playMode(tiledGameMode):
 				columnCount = columnCount + 1
 				if(node.playerStartValue != 0):
 					node.addUnit(gameLogic.unit(gameState.theUnitTypes["summoner"],node.playerStartValue,rowCount,columnCount,node,1))
-#					node.addUnit(gameLogic.unit(gameState.theUnitTypes["gatherer"],node.playerStartValue,rowCount,columnCount,node,1))
-#					node.addUnit(gameLogic.unit(gameState.theUnitTypes["gatherer"],node.playerStartValue,rowCount,columnCount,node,1))
-#					node.addUnit(gameLogic.unit(gameState.theUnitTypes["gatherer"],node.playerStartValue,rowCount,columnCount,node,1))
+					node.addUnit(gameLogic.unit(gameState.theUnitTypes["dragon"],node.playerStartValue,rowCount,columnCount,node,1))
+					node.addUnit(gameLogic.unit(gameState.theUnitTypes["gatherer"],node.playerStartValue,rowCount,columnCount,node,1))
 					node.addUnit(gameLogic.unit(gameState.theUnitTypes["swordsman"],node.playerStartValue,rowCount,columnCount,node,1))
-#					node.addUnit(gameLogic.unit(gameState.theUnitTypes["wolf"],node.playerStartValue,rowCount,columnCount,node,1))
+					node.addUnit(gameLogic.unit(gameState.theUnitTypes["wolf"],node.playerStartValue,rowCount,columnCount,node,1))
+					node.addUnit(gameLogic.unit(gameState.theUnitTypes["blue mage"],node.playerStartValue,rowCount,columnCount,node,1))
 					node.addUnit(gameLogic.unit(gameState.theUnitTypes["white mage"],node.playerStartValue,rowCount,columnCount,node,1))
+					node.addUnit(gameLogic.unit(gameState.theUnitTypes["red mage"],node.playerStartValue,rowCount,columnCount,node,1))
+					node.addUnit(gameLogic.unit(gameState.theUnitTypes["archer"],node.playerStartValue,rowCount,columnCount,node,1))
 #					node.addFire(gameLogic.fire(node))
 #					node.addIce(gameLogic.ice(node))
 	
