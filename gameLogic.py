@@ -463,15 +463,17 @@ class playModeNode(node):
 				gameState.getGameMode().nextUnit.heal(self)
 			elif(playModeNode.mode == MODES.MOVE_MODE):
 				if(gameState.getGameMode().selectedNode != None and gameState.getGameMode().selectedNode.unit != None and len(playModeNode.movePath) > 0):
+					if(len(gameState.getGameMode().selectedNode.unit.movePath) > 0):
+						for node in gameState.getGameMode().selectedNode.unit.movePath:
+							node.onMovePath = False
+
 					if(gameState.getGameMode().selectedNode.unit == gameState.getGameMode().nextUnit):
 						gameState.getGameMode().selectedNode.unit.movePath = playModeNode.movePath
 						gameState.getGameMode().selectedNode.unit.move()
 					else:
 						gameState.getGameMode().selectedNode.unit.movePath = playModeNode.movePath
-				#				gameState.getClient().sendCommand("stopWaiting",str(gameState.getGameMode().selectedNode.xPos) + " " + str(gameState.getGameMode().selectedNode.yPos))
-					if(gameState.getGameMode().selectedNode != None and gameState.getGameMode().selectedNode.unit != None):
-						for node in gameState.getGameMode().selectedNode.unit.movePath:
-							node.onMovePath = True
+#					for node in gameState.getGameMode().selectedNode.unit.movePath:
+#						node.onMovePath = True
 			else:
 				selectNode(self)
 	def toggleCursor(self):
@@ -916,14 +918,8 @@ def selectNode(node,theCityViewer = uiElements.cityViewer):
 		gameState.getGameMode().mousedOverObject.toggleCursor()
 #	node.toggleCursor()
 
-
 global aStarSearch
 aStarSearch = aStarThread()
-#global aStarQueue
-#aStarQueue = Queue()
-#print aStarQueue
-#aStarSearch.daemon = True
-#aStarSearch.start()
 aStarProcess = Process(target=aStarSearch.runTarget,args=(aStarSearch.childPipe,))
 aStarProcess.daemon = True
 aStarProcess.start()

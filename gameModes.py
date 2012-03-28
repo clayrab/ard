@@ -14,8 +14,6 @@
 #ISSUES
 #
 #proper quit and options menus
-#put path finding code in a separate thread
-#change togglecursor so nextUnit is always on move_mode
 #
 #cancel movement if any enemy is seen
 #create email form/database table
@@ -513,7 +511,10 @@ class playMode(tiledGameMode):
 					node.onMovePath = True
 				gameLogic.aStarSearch.searchComplete = False
 				gameLogic.aStarSearch.movePath = []
-		while(gameLogic.aStarSearch.parentPipe.poll()):
+		if(gameLogic.aStarSearch.parentPipe.poll()):
+			for node in gameLogic.playModeNode.movePath:
+				node.onMovePath = False
+			gameLogic.playModeNode.movePath = []
 			data = gameLogic.aStarSearch.parentPipe.recv()
 			for arr in data:
 				node = gameState.getGameMode().map.nodes[arr[1]][arr[0]]

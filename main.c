@@ -522,7 +522,7 @@ static void printPyStackTrace(){
 #define SLASH_ANIMATION_FRAME_COUNT 26
 #define SLASH_ANIMATION_INDEX 100
 
-#define TITLE "assets/title2.png"
+#define TITLE "assets/title.png"
 #define TITLE_HEIGHT 371
 #define TITLE_WIDTH 577
 #define TITLE_INDEX 101
@@ -1719,7 +1719,8 @@ static void initGL (){
   pngLoad(&texturesArray[UI_UNITTYPE_BACKGROUND_INDEX],UI_UNITTYPE_BACKGROUND);
   pngLoad(&texturesArray[UI_CITYVIEW_BACKGROUND_INDEX],UI_CITYVIEW_BACKGROUND);
   pngLoad(&texturesArray[SLASH_ANIMATION_INDEX],SLASH_ANIMATION);
-  pngLoad(&texturesArray[MENU_BUTTON_INDEX],TITLE);
+  pngLoad(&texturesArray[TITLE_INDEX],TITLE);
+  pngLoad(&texturesArray[MENU_BUTTON_INDEX],MENU_BUTTON);
   
   vertexArrays[DESERT_TILE_INDEX] = *desertVertices;
   vertexArrays[GRASS_TILE_INDEX] = *grassVertices;
