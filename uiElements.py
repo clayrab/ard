@@ -246,7 +246,7 @@ class cityNameInputElement(textInputElement):
 
 class hostIPInputElement(textInputElement):
 	def __init__(self,xPos,yPos):
-		textInputElement.__init__(self,xPos,yPos,width=texWidth("UI_TEXT_INPUT_IMAGE"),height=texHeight("UI_TEXT_INPUT_IMAGE"),textureIndex=texIndex("UI_TEXT_INPUT"),text="127.0.0.1")
+		textInputElement.__init__(self,xPos,yPos,width=texWidth("UI_TEXT_INPUT_IMAGE"),height=texHeight("UI_TEXT_INPUT_IMAGE"),textureIndex=texIndex("UI_TEXT_INPUT"),text="192.168.0.102")
 #		self.gameMode = gameMode
 	def onKeyDown(self,keycode):
 		if(keycode == "return"):
