@@ -562,9 +562,6 @@ static void printPyStackTrace(){
 #define GATHERER_OVERLAY "assets/gathererOverlay.png"
 #define GATHERER_OVERLAY_INDEX 111
 
-#define OGRE_OVERLAY "assets/replaceMe.png"
-#define OGRE_OVERLAY_INDEX 112
-
 #define DESERT_TILE_INDEX 0
 #define GRASS_TILE_INDEX 1
 #define MOUNTAIN_TILE_INDEX 2
@@ -1775,7 +1772,6 @@ static void initGL (){
   pngLoad(&texturesArray[BLUE_MAGE_OVERLAY_INDEX],BLUE_MAGE_OVERLAY);
   pngLoad(&texturesArray[WOLF_OVERLAY_INDEX],WOLF_OVERLAY);
   pngLoad(&texturesArray[DRAGON_OVERLAY_INDEX],DRAGON_OVERLAY);
-  pngLoad(&texturesArray[OGRE_OVERLAY_INDEX],OGRE_OVERLAY);
   pngLoad(&texturesArray[GATHERER_OVERLAY_INDEX],GATHERER_OVERLAY);
 
   vertexArrays[DESERT_TILE_INDEX] = *desertVertices;
