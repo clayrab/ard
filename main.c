@@ -36,17 +36,17 @@ static void printPyStackTrace(){
 #define zoomSpeed 5.0//lower is faster
 #define focusSpeed 5.0//lower is faster
 
-#define FULL_SCREEN 1
+#define FULL_SCREEN 0
 
-//#define SCREEN_WIDTH 1280
-//#define SCREEN_HEIGHT 960
+#define SCREEN_WIDTH 1280
+#define SCREEN_HEIGHT 960
 
 //#define SCREEN_WIDTH 1024
 //#define SCREEN_HEIGHT 768
 
 
-#define SCREEN_WIDTH 1440
-#define SCREEN_HEIGHT 900
+//#define SCREEN_WIDTH 1440
+//#define SCREEN_HEIGHT 900
 
 //#define SCREEN_WIDTH 1600
 //#define SCREEN_HEIGHT 1200
@@ -854,7 +854,7 @@ int isNextUnit;
 PyObject * pyUnit;
 PyObject * pyFire;
 PyObject * pyIce;
-
+long isVisible;
 void drawIce(){
   glBindTexture(GL_TEXTURE_2D, texturesArray[ICE_INDEX]);
   glCallList(unitList);
@@ -891,7 +891,7 @@ void drawUnit(){
       pyRecentDamage = PyObject_GetAttrString(pyUnit,"recentDamage");
       pyRecentDamageIter = PyObject_GetIter(pyRecentDamage);
       glColor3f(1.0,1.0,1.0);
-      if(isNextUnit == 1 && !isFocusing){
+      if(isNextUnit == 1 && !isFocusing && isVisible){
 	glBindTexture(GL_TEXTURE_2D, texturesArray[SELECTION_BOX_INDEX]);
 	glCallList(selectionBoxList);
       }
@@ -967,7 +967,7 @@ double xPosition;
 double yPosition;
 float shading;
 char playerStartVal[2];
-void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long roadValue,char * cityName,long isSelected, long isOnMovePath, long isVisible,long playerStartValue, long cursorIndex){
+void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long roadValue,char * cityName,long isSelected, long isOnMovePath,long playerStartValue, long cursorIndex){
   xPosition = translateTilesXToPositionX(tilesXIndex,tilesYIndex);
   yPosition = translateTilesYToPositionY(tilesYIndex);
   textureVertices = vertexArrays[tileValue];
@@ -1086,15 +1086,12 @@ long cursorIndex;
 PyObject * pyCityName;
 char * cityName;
 PyObject * nextUnit;
-PyObject * unit;
-PyObject * pyPlayerNumber;
+//PyObject * unit;
 PyObject * pyUnitPlayer;
-long playerNumber;
 long unitPlayer;
 long playerStartValue;
 long isSelected;
 long isOnMovePath;
-long isVisible;
 void drawTiles(){
   rowNumber = -1;
   if(PyObject_HasAttrString(gameMode,"focusXPos")){
@@ -1139,15 +1136,10 @@ void drawTiles(){
       }
       isNextUnit = 0;
       nextUnit = PyObject_GetAttrString(gameMode,"nextUnit");
-      unit = PyObject_GetAttrString(node,"unit");
-      pyPlayerNumber = PyObject_CallMethod(gameState,"getPlayerNumber",NULL);//New reference
-      pyUnitPlayer = PyObject_GetAttrString(unit,"player");
-      playerNumber = PyLong_AsLong(pyPlayerNumber);
-      unitPlayer = PyLong_AsLong(pyUnitPlayer);
-      if(unit != Py_None && unit == nextUnit && (playerNumber == unitPlayer || playerNumber == -2)){
-      	  isNextUnit = 1;
-	  Py_DECREF(unit);
-	  Py_DECREF(pyUnitPlayer);
+      if(pyUnit != NULL){
+	if(pyUnit == nextUnit){
+	  isNextUnit = 1;
+	}
       }
       playerStartValue = PyLong_AsLong(pyPlayerStartValue);
       isSelected = PyLong_AsLong(pyIsSelected);
@@ -1168,10 +1160,11 @@ void drawTiles(){
       if(nextUnit != NULL){
       	Py_DECREF(nextUnit);
       }
-      Py_DECREF(pyPlayerNumber);
-      drawTile(colNumber,rowNumber,longName,longValue,longRoadValue,cityName,isSelected,isOnMovePath,isVisible,playerStartValue,cursorIndex);
-      Py_DECREF(pyUnit);
+      drawTile(colNumber,rowNumber,longName,longValue,longRoadValue,cityName,isSelected,isOnMovePath,playerStartValue,cursorIndex);
       colNumber = colNumber - 1;
+      if(pyUnit != NULL){
+	Py_DECREF(pyUnit);
+      }
     }
     Py_DECREF(row);
     Py_DECREF(nodeIterator);
@@ -2297,7 +2290,7 @@ static void mainLoop (){
     Py_DECREF(gameMode);
   }
   pyObj = PyObject_CallMethod(gameMode,"onQuit",NULL);
- 
+  Py_DECREF(pyObj);
 }
 int nextPowerOf2(unsigned int v){
   const unsigned int b[] = {0x2, 0xC, 0xF0, 0xFF00, 0xFFFF0000};
@@ -2342,9 +2335,7 @@ int main(int argc, char **argv){
   initFonts();
   //SDL_EnableUNICODE(1);
   gameModule = PyImport_ImportModule("gameModes");//New reference
-  printPyStackTrace();
   gameState = PyImport_ImportModule("gameState");
-  printPyStackTrace();
   mainLoop();
   Py_DECREF(gameModule);
   Py_DECREF(gameState);

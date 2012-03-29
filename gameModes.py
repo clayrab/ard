@@ -6,13 +6,16 @@
 #how to host instructions page
 
 #server:
-#
 #*,|, and - cannot be allowed in roomnames
 #record wins/losses
 #report game state(to look for cheaters/bugs)
 
 #ISSUES
+#need to put units in astar
+#return focus to nextUnit on action
+#cancel anything in queue
 #proper quit and options menus
+#join lan ip input send button
 
 #create email form/database table
 #teams
@@ -235,9 +238,9 @@ class tiledGameMode(gameMode):
 #		return self.focusNextUnitTemp
 	def onDoneFocusing(self):
 		self.focusNextUnit = 0
-		if(hasattr(self,"nextUnit") and self.nextUnit != None and len(self.nextUnit.movePath) > 0 and self.nextUnit.isOwnUnit()):
+		if(hasattr(self,"nextUnit") and self.nextUnit != None and len(self.nextUnit.movePath) > 0 and self.nextUnit.isControlled()):
 			self.nextUnit.move()
-		elif(hasattr(self,"nextUnit") and self.nextUnit != None and self.nextUnit.isOwnUnit()):
+		elif(hasattr(self,"nextUnit") and self.nextUnit != None and self.nextUnit.isControlled()):
 			gameLogic.selectNode(self.nextUnit.node)
 		elif(hasattr(gameState.getGameMode().mousedOverObject,"toggleCursor")):
 			gameState.getGameMode().mousedOverObject.toggleCursor()
@@ -420,13 +423,13 @@ class playMode(tiledGameMode):
 			self.nextUnit = None
 		else:
 			self.nextUnit = random.choice(eligibleUnits)
-			if(self.nextUnit.isOwnUnit()):
+			if(self.nextUnit.isControlled()):
 #				gameLogic.selectNode(self.nextUnit.node)
 				self.focusXPos = self.nextUnit.node.xPos
 				self.focusYPos = self.nextUnit.node.yPos
 			elif(self.firstTurn):
 				for unit in self.units:
-					if(unit.unitType.name == "summoner" and unit.isOwnUnit()):
+					if(unit.unitType.name == "summoner" and unit.isControlled()):
 #						gameLogic.selectNode(unit.node)
 						self.focusXPos = unit.node.xPos
 						self.focusYPos = unit.node.yPos
@@ -459,9 +462,9 @@ class playMode(tiledGameMode):
 					node.addUnit(gameLogic.unit(gameState.theUnitTypes["summoner"],node.playerStartValue,rowCount,columnCount,node,1))
 #					node.addUnit(gameLogic.unit(gameState.theUnitTypes["dragon"],node.playerStartValue,rowCount,columnCount,node,1))
 					node.addUnit(gameLogic.unit(gameState.theUnitTypes["gatherer"],node.playerStartValue,rowCount,columnCount,node,1))
-					node.addUnit(gameLogic.unit(gameState.theUnitTypes["gatherer"],node.playerStartValue,rowCount,columnCount,node,1))
-					node.addUnit(gameLogic.unit(gameState.theUnitTypes["gatherer"],node.playerStartValue,rowCount,columnCount,node,1))
-					node.addUnit(gameLogic.unit(gameState.theUnitTypes["gatherer"],node.playerStartValue,rowCount,columnCount,node,1))
+#					node.addUnit(gameLogic.unit(gameState.theUnitTypes["gatherer"],node.playerStartValue,rowCount,columnCount,node,1))
+#					node.addUnit(gameLogic.unit(gameState.theUnitTypes["gatherer"],node.playerStartValue,rowCount,columnCount,node,1))
+#					node.addUnit(gameLogic.unit(gameState.theUnitTypes["gatherer"],node.playerStartValue,rowCount,columnCount,node,1))
 #					node.addUnit(gameLogic.unit(gameState.theUnitTypes["swordsman"],node.playerStartValue,rowCount,columnCount,node,1))
 #					node.addUnit(gameLogic.unit(gameState.theUnitTypes["wolf"],node.playerStartValue,rowCount,columnCount,node,1))
 #					node.addUnit(gameLogic.unit(gameState.theUnitTypes["blue mage"],node.playerStartValue,rowCount,columnCount,node,1))
@@ -536,9 +539,9 @@ class playMode(tiledGameMode):
 	def addUIElements(self):
 		if(gameState.getClient() == None):#single player game
 			server.startServer('')
-#			client.startClient('127.0.0.1')
+			client.startClient('127.0.0.1')
 # 			client.startClient('192.168.0.102')
- 			client.startClient('84.73.77.222')
+# 			client.startClient('84.73.77.222')
 			gameState.setPlayerNumber(-2)
 			gameState.addPlayer(1).isOwnPlayer = True
 			gameState.addPlayer(2).isOwnPlayer = True

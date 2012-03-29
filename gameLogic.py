@@ -149,6 +149,7 @@ class fire:
 class unit:
 	def __init__(self,unitType,player,xPos,yPos,node,level=None):
 		self.unitType = unitType
+		print player
 		self.player = player
 		self.node = node
 		self.movementPoints = 0
@@ -165,10 +166,12 @@ class unit:
 #		self.gatheringNode = None
 		self.isMeditating = False
 		self.recentDamage = {}
+	def isControlled(self):
+		return gameState.getPlayers()[self.player-1].isOwnPlayer		
 	def isOwnUnit(self):
-		return (gameState.getPlayerNumber() == self.player or gameState.getPlayerNumber() == -2)
+		return (gameState.getPlayerNumber() == self.player)
 	def isOwnTeam(self):
-		return self.isOwnUnit()#for now
+		return (gameState.getPlayerNumber() == self.player)
 	def getMaxHealth(self):
 		return self.unitType.health*self.level
 	def getAttackPower(self):
@@ -447,12 +450,16 @@ class playModeNode(node):
 		
 #(self.fire)
 	def startViewing(self,unit):
-		if(gameState.getPlayerNumber() == unit.player or gameState.getPlayerNumber() == -2):
+#		print "***"
+#		print gameState.getPlayerNumber()
+#		print unit.player
+		if(unit.isControlled()):
 			self.viewingUnits.append(unit)
-			if(not self.visible and self.unit != None and not self.unit.isOwnTeam() and len(unit.movePath) > 0):
-				for node in unit.movePath:
-					node.onMovePath = False
-				unit.movePath = []
+#this doesn't work because the algorithm is simply to stop viewing all nodes in range before move and start viewing all nodes in range after move
+#			if(not self.visible and self.unit != None and not self.unit.isOwnTeam() and len(unit.movePath) > 0):
+#				for node in unit.movePath:
+#					node.onMovePath = False
+#				unit.movePath = []
 			self.visible = True
 	def stopViewing(self,unit):
 		if(gameState.getPlayerNumber() == unit.player or gameState.getPlayerNumber() == -2):
@@ -489,7 +496,7 @@ class playModeNode(node):
 			for node in gameState.getGameMode().selectedNode.unit.movePath:
 				node.onMovePath = True
 
-		if(gameState.getGameMode().focusNextUnit == 1 or gameState.getGameMode().selectedNode == None or gameState.getGameMode().selectedNode == self or gameState.getGameMode().selectedNode.unit == None or gameState.getGameMode().selectedNode.unit.isMeditating):
+		if(gameState.getGameMode().focusNextUnit == 1 or gameState.getGameMode().selectedNode == None or gameState.getGameMode().selectedNode == self or gameState.getGameMode().selectedNode.unit == None or gameState.getGameMode().selectedNode.unit.isMeditating or not gameState.getGameMode().selectedNode.unit.isControlled()):
 			self.cursorIndex = cDefines.defines['CURSOR_POINTER_INDEX']
 			playModeNode.mode = MODES.SELECT_MODE
 		else:
@@ -499,7 +506,7 @@ class playModeNode(node):
 				 self.unit != None and self.unit.isOwnTeam(),
 				 gameState.getGameMode().selectedNode.unit.unitType.name == "white mage",
 				 self.tileValue == cDefines.defines['MOUNTAIN_TILE_INDEX'],
-				 gameState.getGameMode().selectedNode.unit.unitType.canFly)
+				 gameState.getGameMode().selectedNode.unit.unitType.canFly,)
 			# playModeNode.isNeighbor
 			# gameState.getGameMode().shiftDown
 			if(state[0] == False and (state[5] == False or state[5:] == (True,True))):

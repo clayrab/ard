@@ -19,6 +19,8 @@ class Commands:
             gameState.getGameMode().setMap(mapName)
     @staticmethod
     def setPlayerNumber(playerNumber):
+        print 'setting...'
+        print gameState.getPlayerNumber()
         if(gameState.getPlayerNumber() != SINGLE_PLAYER):
             gameState.setPlayerNumber(int(playerNumber))
         if(gameState.getUserName() == None):

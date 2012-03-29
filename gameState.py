@@ -110,6 +110,13 @@ def setPlayerNumber(playerNumber):
 	thePlayerNumber = playerNumber
 def getPlayerNumber():
 	global thePlayerNumber
+#	print 'playernumber: ' + str(thePlayerNumber)
+#	if(thePlayerNumber == -2):
+#		if(getGameMode().nextUnit == None):
+#			return 2
+#		else:
+#			return getGameMode().nextUnit.player
+#	else:
 	return thePlayerNumber
 
 #thePlayersLock = threading.Lock()
