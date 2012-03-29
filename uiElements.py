@@ -305,6 +305,8 @@ class cancelButton(clickableElement):
 		clickableElement.__init__(self,xPos,yPos,height=texHeight('CANCEL_BUTTON'),width=texWidth('CANCEL_BUTTON'),textureIndex=texIndex('CANCEL_BUTTON'))	
 	def onClick(self):
 		gameState.getClient().sendCommand("cancelQueuedThing",str(gameState.getGameMode().selectedNode.xPos) + " " + str(gameState.getGameMode().selectedNode.yPos))
+		if(gameState.getGameMode().nextUnit != None and gameState.getGameMode().nextUnit.isControlled()):
+			gameLogic.selectNode(gameState.getGameMode().nextUnit.node)
 
 class startGatheringButton(clickableElement):
 	def __init__(self,xPos,yPos):
@@ -314,6 +316,8 @@ class startGatheringButton(clickableElement):
 		gameState.getClient().sendCommand("startMeditating",str(gameState.getGameMode().selectedNode.xPos) + " " + str(gameState.getGameMode().selectedNode.yPos))
 		if(gameState.getGameMode().selectedNode.unit == gameState.getGameMode().nextUnit):
 			gameState.getClient().sendCommand("chooseNextUnit")
+		elif(gameState.getGameMode().nextUnit != None and gameState.getGameMode().nextUnit.isControlled()):
+			gameLogic.selectNode(gameState.getGameMode().nextUnit.node)
 
 class cancelMovementButton(clickableElement):
 	def __init__(self,xPos,yPos):
@@ -322,6 +326,8 @@ class cancelMovementButton(clickableElement):
 		for pathNode in gameState.getGameMode().selectedNode.unit.movePath:
 			pathNode.onMovePath = False
 		gameState.getGameMode().selectedNode.unit.movePath = []
+		if(gameState.getGameMode().nextUnit != None and gameState.getGameMode().nextUnit.isControlled()):
+			gameLogic.selectNode(gameState.getGameMode().nextUnit.node)
 
 class skipButton(clickableElement):
 	def __init__(self,xPos,yPos):
@@ -339,6 +345,8 @@ class startSummoningButton(clickableElement):
 		gameState.getClient().sendCommand("startMeditating",str(gameState.getGameMode().selectedNode.xPos) + " " + str(gameState.getGameMode().selectedNode.yPos))
 		if(gameState.getGameMode().selectedNode.unit == gameState.getGameMode().nextUnit):
 			gameState.getClient().sendCommand("chooseNextUnit")
+		elif(gameState.getGameMode().nextUnit != None and gameState.getGameMode().nextUnit.isControlled()):
+			gameLogic.selectNode(gameState.getGameMode().nextUnit.node)
 
 class summonButton(clickableElement):
        	def __init__(self,xPos,yPos,unitType):
@@ -348,6 +356,8 @@ class summonButton(clickableElement):
 		gameState.getClient().sendCommand("startSummoning",str(gameState.getGameMode().selectedNode.xPos) + " " + str(gameState.getGameMode().selectedNode.yPos) + " " + self.unitType.name)
 		if(gameState.getGameMode().selectedNode.unit == gameState.getGameMode().nextUnit):
 			gameState.getClient().sendCommand("chooseNextUnit")
+		elif(gameState.getGameMode().nextUnit != None and gameState.getGameMode().nextUnit.isControlled()):
+			gameLogic.selectNode(gameState.getGameMode().nextUnit.node)
 
 class researchButton(clickableElement):
 	def __init__(self,xPos,yPos,unitType):
@@ -357,6 +367,8 @@ class researchButton(clickableElement):
 		gameState.getClient().sendCommand("startResearch",str(gameState.getGameMode().selectedNode.xPos) + " " + str(gameState.getGameMode().selectedNode.yPos) + " " + self.unitType.name)
 		if(gameState.getGameMode().nextUnit == gameState.getGameMode().selectedNode.unit):
 			gameState.getClient().sendCommand("chooseNextUnit")
+		elif(gameState.getGameMode().nextUnit != None and gameState.getGameMode().nextUnit.isControlled()):
+			gameLogic.selectNode(gameState.getGameMode().nextUnit.node)
 
 class unitTypeViewer(uiElement):
 	theViewer = None
@@ -815,7 +827,7 @@ class buildUnitElem(scrollableElement):
 		self.names.append(uiElement(self.xPosition+0.174,self.yPosition-0.094,text=str(self.unitType.costBlue),textSize=0.00034,textColor="ee ee ee",fontIndex=0).name)
 		self.names.append(uiElement(self.xPosition+0.221,self.yPosition-0.071,textureIndex=texIndex("TIME_ICON"),width=texWidth("TIME_ICON"),height=texHeight("TIME_ICON")).name)
 		self.names.append(uiElement(self.xPosition+0.244,self.yPosition-0.094,text=str(self.unitType.buildTime),textSize=0.00034,textColor="ee ee ee",fontIndex=0).name)
-		if(gameState.getGameMode().selectedNode.unit != None and gameState.getGameMode().selectedNode.unit.isMeditating and gameState.getGameMode().selectedNode.unit.isOwnUnit() and gameState.getGameMode().players[gameState.getGameMode().getPlayerNumber()-1].greenWood >= self.unitType.costGreen and gameState.getGameMode().players[gameState.getGameMode().getPlayerNumber()-1].blueWood >= self.unitType.costBlue):
+		if(gameState.getGameMode().selectedNode.unit != None and gameState.getGameMode().selectedNode.unit.isMeditating and gameState.getGameMode().selectedNode.unit.isControlled() and gameState.getGameMode().players[gameState.getGameMode().getPlayerNumber()-1].greenWood >= self.unitType.costGreen and gameState.getGameMode().players[gameState.getGameMode().getPlayerNumber()-1].blueWood >= self.unitType.costBlue):
 			self.names.append(summonButton(self.xPosition+0.293,self.yPosition-0.068,self.unitType).name)
 
 class researchUnitElem(scrollableElement):
@@ -831,7 +843,7 @@ class researchUnitElem(scrollableElement):
 		self.names.append(uiElement(self.xPosition+0.174,self.yPosition-0.094,text=str(self.unitType.costBlue),textSize=0.00034,textColor="ee ee ee",fontIndex=0).name)
 		self.names.append(uiElement(self.xPosition+0.221,self.yPosition-0.071,textureIndex=texIndex("TIME_ICON"),width=texWidth("TIME_ICON"),height=texHeight("TIME_ICON")).name)
 		self.names.append(uiElement(self.xPosition+0.244,self.yPosition-0.094,text=str(self.unitType.buildTime),textSize=0.00034,textColor="ee ee ee",fontIndex=0).name)
-		if(gameState.getGameMode().selectedNode.unit != None and gameState.getGameMode().selectedNode.unit.isMeditating and gameState.getGameMode().selectedNode.unit.isOwnUnit() and gameState.getGameMode().players[gameState.getGameMode().getPlayerNumber()-1].greenWood >= self.unitType.researchCostGreen and gameState.getGameMode().players[gameState.getGameMode().getPlayerNumber()-1].blueWood >= self.unitType.researchCostBlue):
+		if(gameState.getGameMode().selectedNode.unit != None and gameState.getGameMode().selectedNode.unit.isMeditating and gameState.getGameMode().selectedNode.unit.isControlled() and gameState.getGameMode().players[gameState.getGameMode().selectedNode.unit.player-1].greenWood >= self.unitType.researchCostGreen and gameState.getGameMode().players[gameState.getGameMode().selectedNode.unit.player-1].blueWood >= self.unitType.researchCostBlue):
 			self.names.append(researchButton(self.xPosition+0.293,self.yPosition-0.068,self.unitType).name)
 
 class queuedThingElem(scrollableElement):

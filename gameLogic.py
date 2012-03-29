@@ -171,7 +171,13 @@ class unit:
 	def isOwnUnit(self):
 		return (gameState.getPlayerNumber() == self.player)
 	def isOwnTeam(self):
-		return (gameState.getPlayerNumber() == self.player)
+		if(gameState.getPlayerNumber() == -2):
+			if(gameState.getGameMode().nextUnit == None):
+				return 1
+			else:
+				return gameState.getGameMode().nextUnit.player
+		else:
+			return (gameState.getPlayerNumber() == self.player)
 	def getMaxHealth(self):
 		return self.unitType.health*self.level
 	def getAttackPower(self):
@@ -211,6 +217,8 @@ class unit:
 #				if(len(self.movePath) > 0):
 #					self.movePath = []
 #		else:
+		aStarSearch.parentPipe.send(["unitRemove",self.node.xPos,self.node.yPos])
+		aStarSearch.parentPipe.send(["unitAdd",node.xPos,node.yPos])
 		self.node.unit = None
 		self.node = node
 		node.unit = self
@@ -478,14 +486,13 @@ class playModeNode(node):
 					if(len(gameState.getGameMode().selectedNode.unit.movePath) > 0):
 						for node in gameState.getGameMode().selectedNode.unit.movePath:
 							node.onMovePath = False
-
 					if(gameState.getGameMode().selectedNode.unit == gameState.getGameMode().nextUnit):
 						gameState.getGameMode().selectedNode.unit.movePath = playModeNode.movePath
 						gameState.getGameMode().selectedNode.unit.move()
 					else:
 						gameState.getGameMode().selectedNode.unit.movePath = playModeNode.movePath
-#					for node in gameState.getGameMode().selectedNode.unit.movePath:
-#						node.onMovePath = True
+						if(gameState.getGameMode().nextUnit.isControlled()):
+							selectNode(gameState.getGameMode().nextUnit.node)
 			else:
 				selectNode(self)
 	def toggleCursor(self):
@@ -628,6 +635,11 @@ class aStarThread():
 					aStarSearch.polarity = data[1]
 				elif(data[0] == "map"):
 					aStarSearch.map = mapp(aStarNode,mapName=data[1],ignoreCities=True)
+				elif(data[0] == "unitAdd"):
+					aStarSearch.map.nodes[data[2]][data[1]].unit = True
+				elif(data[0] == "unitRemove"):
+					aStarSearch.map.nodes[data[2]][data[1]].unit = False
+#					aStarSearch.map.nodes[data[4]][data[3]].unit = True
 				else:
 					aStarSearch.movePath = []
 					aStarSearch.resetNodes()
@@ -707,7 +719,7 @@ class aStarThread():
 					neighbor.aStarParent = node
 					aStarThread.aStarHeuristic(neighbor,aStarSearch.endNode,aStarSearch.polarity)
 #					Neighbor.findAStarHeuristicCost(aStarSearch.endNode)
-					if(neighbor.unit != None):
+					if(neighbor.unit):
 						neighbor.aStarKnownCost = node.aStarKnownCost + 999.9
 					elif(neighbor.tileValue == cDefines.defines['MOUNTAIN_TILE_INDEX'] and not aStarSearch.canFly):
 						neighbor.aStarKnownCost = node.aStarKnownCost + (cDefines.defines['MOUNTAIN_MOVE_COST']/(1.0+float(neighbor.roadValue)))
@@ -744,7 +756,7 @@ class aStarNode():
 		self.tileValue = tileValue
 		self.roadValue = roadValue
 		self.neighbors = []
-		self.unit = None
+		self.unit = False
 		self.closed = False
 		self.open = False
 		self.aStarKnownCost = 0.0

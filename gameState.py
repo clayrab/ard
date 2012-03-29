@@ -110,12 +110,13 @@ def setPlayerNumber(playerNumber):
 	thePlayerNumber = playerNumber
 def getPlayerNumber():
 	global thePlayerNumber
-#	print 'playernumber: ' + str(thePlayerNumber)
 #	if(thePlayerNumber == -2):
-#		if(getGameMode().nextUnit == None):
-#			return 2
-#		else:
+#		if(getGameMode().selectedNode != None and getGameMode().selectedNode.unit != None):
+#			return getGameMode().selectedNode.unit.player
+#		elif(getGameMode().nextUnit != None):
 #			return getGameMode().nextUnit.player
+#		else:
+#			return 1
 #	else:
 	return thePlayerNumber
 

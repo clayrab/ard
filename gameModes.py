@@ -12,7 +12,6 @@
 
 #ISSUES
 #need to put units in astar
-#return focus to nextUnit on action
 #cancel anything in queue
 #proper quit and options menus
 #join lan ip input send button
@@ -207,13 +206,6 @@ class gameMode:
 			gameState.getClient().socket.close()
 		server.shutdownServer()
 		gameLogic.aStarSearch.parentPipe.send(["kill"])#this causes the thread to quit
-#		print 'wtf'
-#		print gameLogic.aStarQueue.empty()
-#		print gameLogic.aStarQueue
-#		while(not gameLogic.aStarQueue.empty()):
-#			print 'fuck'
-#			gameLogic.aStarQueue.get()
-#		print 'wtfff'
 		gameLogic.aStarProcess.terminate()
 		gameLogic.aStarProcess.join()
 	def onDraw(self):
@@ -552,6 +544,9 @@ class playMode(tiledGameMode):
 		self.waitingElem = uiElements.uiElement(-0.2,0.93,text="waiting for another player",textColor="ee ed 9b",textSize=0.00055,hidden=True)
 	def startGame(self):
 		self.loadSummoners()
+		for unit in self.units:
+			if(unit.node.visible):
+				gameLogic.aStarSearch.parentPipe.send(["unitAdd",unit.node.xPos,unit.node.yPos])
 		self.orderUnits()
 		self.chooseNextUnit()
 

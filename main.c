@@ -56,7 +56,7 @@ static void printPyStackTrace(){
 #define SCREEN_BASE_WIDTH 1600
 #define SCREEN_BASE_HEIGHT 1200
 
-#define AUTO_CHOOSE_NEXT_DELAY 5000
+#define AUTO_CHOOSE_NEXT_DELAY 1500
 
 #define TILES_IMAGE "assets/tiles2.png"
 #define UI_IMAGE "assets/UI.png"
