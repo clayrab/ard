@@ -19,8 +19,6 @@ class Commands:
             gameState.getGameMode().setMap(mapName)
     @staticmethod
     def setPlayerNumber(playerNumber):
-        print 'setting...'
-        print gameState.getPlayerNumber()
         if(gameState.getPlayerNumber() != SINGLE_PLAYER):
             gameState.setPlayerNumber(int(playerNumber))
         if(gameState.getUserName() == None):
@@ -150,29 +148,34 @@ class Commands:
     def cancelQueuedThing(args):
         tokens = args.split(" ")
         node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
+        index = int(tokens[2])
         if(len(node.city.unitBuildQueue) > 0):
-            lastQueuedThing = node.city.unitBuildQueue.pop()
-            node.city.cancelledUnits.append(lastQueuedThing)
-            if(hasattr(lastQueuedThing,"unitType")):#unit
-                gameState.getGameMode().players[node.unit.player-1].greenWood = gameState.getGameMode().players[node.unit.player-1].greenWood + lastQueuedThing.unitType.costGreen
-                gameState.getGameMode().players[node.unit.player-1].blueWood = gameState.getGameMode().players[node.unit.player-1].blueWood + lastQueuedThing.unitType.costBlue
+            cancelledQueuedThing = node.city.unitBuildQueue.pop(index-1)
+            print cancelledQueuedThing
+            node.city.cancelledUnits.append((cancelledQueuedThing,index,))
+            if(hasattr(cancelledQueuedThing,"unitType")):#unit
+                gameState.getGameMode().players[node.unit.player-1].greenWood = gameState.getGameMode().players[node.unit.player-1].greenWood + cancelledQueuedThing.unitType.costGreen
+                gameState.getGameMode().players[node.unit.player-1].blueWood = gameState.getGameMode().players[node.unit.player-1].blueWood + cancelledQueuedThing.unitType.costBlue
             else:#unittype
-                gameState.getGameMode().players[node.unit.player-1].greenWood = gameState.getGameMode().players[node.unit.player-1].greenWood + lastQueuedThing.researchCostGreen
-                gameState.getGameMode().players[node.unit.player-1].blueWood = gameState.getGameMode().players[node.unit.player-1].blueWood + lastQueuedThing.researchCostBlue
+                gameState.getGameMode().players[node.unit.player-1].greenWood = gameState.getGameMode().players[node.unit.player-1].greenWood + cancelledQueuedThing.researchCostGreen
+                gameState.getGameMode().players[node.unit.player-1].blueWood = gameState.getGameMode().players[node.unit.player-1].blueWood + cancelledQueuedThing.researchCostBlue
         if(gameState.getGameMode().selectedNode == node and hasattr(uiElements.viewer.theViewer,"isCityViewer")):
             uiElements.viewer.theViewer.destroy()
             uiElements.viewer.theViewer = uiElements.cityViewer(node)
     @staticmethod
     def cancelQueuedThingUndo(args):
         tokens = args.split(" ")
+        index = int(tokens[2])
         node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
-        node.city.unitBuildQueue.append(node.city.cancelledUnits.pop())
+        cancelledThing,index = node.city.cancelledUnits.pop()
+        node.city.unitBuildQueue.insert(index-1,cancelledThing)
     @staticmethod
     def cancelQueuedThingRedo(args):
         tokens = args.split(" ")
+        index = int(tokens[2])
         node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
         if(len(node.city.unitBuildQueue) > 0):
-            node.city.unitBuildQueue.pop()
+            node.city.unitBuildQueue.pop(index-1)
     @staticmethod
     def startResearch(args):
         tokens = args.split(" ")
@@ -295,6 +298,9 @@ class Client:
             self.commandLog.append((command,argsString))
             if(argsString != ""):
                 doCommand(command,argsString)
+#TODO: TEST THE ENTIRE GAME IN SINGLE PLAYER WITH THESE COMMANDS UNCOMMENTED
+#                doCommand(command+"Undo",argsString)
+#                doCommand(command+"Redo",argsString)
             else:
                 doCommand(command)
         self.socket.send(command + " " + str(gameState.getPlayerNumber()) + " " + argsString + "|")

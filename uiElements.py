@@ -243,6 +243,14 @@ class cityNameInputElement(textInputElement):
 		textInputElement.onKeyDown(self,keycode)
 		cityEditor.theCityEditor.city.name = self.text
 
+class hostIPConnectButton(clickableElement):
+	def __init__(self,xPos,yPos):
+		clickableElement.__init__(self,xPos,yPos,textureIndex=texIndex("CONNECT_BUTTON"),width=texWidth("CONNECT_BUTTON"),height=texHeight("CONNECT_BUTTON"))
+	def onClick(self):
+		if(len(gameState.hostIPInputElem.text) > 0):
+			gameState.setGameMode(gameModes.joinLANGameMode,[gameState.hostIPInputElem.text])
+			gameState.setHostIP(gameState.hostIPInputElem.text)
+		
 
 class hostIPInputElement(textInputElement):
 	def __init__(self,xPos,yPos):
@@ -301,10 +309,11 @@ class unitViewerButton(clickableElement):
 		viewer.theViewer = uniitViewer(node)
 
 class cancelButton(clickableElement):
-	def __init__(self,xPos,yPos):
+	def __init__(self,xPos,yPos,index):
 		clickableElement.__init__(self,xPos,yPos,height=texHeight('CANCEL_BUTTON'),width=texWidth('CANCEL_BUTTON'),textureIndex=texIndex('CANCEL_BUTTON'))	
+		self.index = index
 	def onClick(self):
-		gameState.getClient().sendCommand("cancelQueuedThing",str(gameState.getGameMode().selectedNode.xPos) + " " + str(gameState.getGameMode().selectedNode.yPos))
+		gameState.getClient().sendCommand("cancelQueuedThing",str(gameState.getGameMode().selectedNode.xPos) + " " + str(gameState.getGameMode().selectedNode.yPos) + " " + str(self.index))
 		if(gameState.getGameMode().nextUnit != None and gameState.getGameMode().nextUnit.isControlled()):
 			gameLogic.selectNode(gameState.getGameMode().nextUnit.node)
 
@@ -526,81 +535,6 @@ class cityViewer(viewer):
 		queuedThingElem.firstThing = True
 		self.names.append(cityUnitDisplay(self.xPosition+0.012,self.yPosition-1.358,queuedThings,queuedThingElem,"QUEUE_BORDER").name)
 		
-"""		
-self.names.append(cancelUnitButton(-0.972,height,text="cancel " + self.node.city.unitBuildQueue[-1].unitType.name,textSize=0.0005).name)
-
-							self.names.append(startSummoningButton(-0.68,height+0.028,unitType,textureIndex=texIndex("ADD_BUTTON_SMALL"),width=texWidth("ADD_BUTTON_SMALL"),height=texHeight("ADD_BUTTON_SMALL")).name)
-						height = height - 0.08
-"""
-
-
-class actionViewer(uiElement):
-	theViewer = None
-	def __init__(self,node,xPos=0.0,yPos=0.0,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None):
-		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],color=color,mouseOverColor=mouseOverColor)
-		self.node = node
-		self.names = []
-		self.names.append(uiElement(-0.978,-0.085,textureIndex=texIndex('CITY_VIEWER_BOX'),width=texWidth('CITY_VIEWER_BOX'),height=texHeight('CITY_VIEWER_BOX'),textSize=0.0007).name)
-		if(self.node.city != None):
-			self.names.append(uiElement(-0.964,-0.13,text=self.node.city.name,textSize=0.0007).name)
-			if(self.node.city.researching):
-				self.names.append(uiElement(-0.964,-0.19,text="researching",textSize=0.0005).name)
-				self.names.append(uiElement(-0.964,-0.23,text=self.node.city.researchUnitType.name,textSize=0.0005).name)
-				self.names.append(uiElement(-0.964,-0.25,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE'),textureIndex=texIndex('UNIT_BUILD_BAR')).name)
-				self.names.append(uiElement(-0.964,-0.25,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE')*(float(self.node.city.researchProgress[self.node.city.researchUnitType][1])/self.node.city.researchUnitType.researchTime),textureIndex=texIndex('UNIT_BUILD_BAR'),color="FF 00 00").name)
-				#			if(self.node.city.researchLevel > 0):
-#				self.names.append(uiElement(-0.964,-0.32,text="level "+str(self.node.city.researchLevel) + " complete",textSize=0.0005).name)
-			else:
-				if(self.node.city.unitBeingBuilt != None):
-					height = -0.55
-					self.names.append(uiElement(-0.972,height,text=self.node.city.unitBeingBuilt.unitType.name,textSize=0.0005).name)
-					height = height - 0.06
-					for unit in self.node.city.unitBuildQueue:
-						height = height - 0.04
-						self.names.append(uiElement(-0.972,height,text=str(unit.unitType.name),textSize=0.0005).name)
-					height = height - 0.04
-					if(len(node.city.unitBuildQueue) > 0):
-						self.names.append(cancelUnitButton(-0.972,height,text="cancel " + self.node.city.unitBuildQueue[-1].unitType.name,textSize=0.0005).name)
-				else:
-					height = -0.55					
-					self.names.append(uiElement(-0.9,-0.51,text="research",textSize=0.0007).name)
-					for unitType in self.node.city.unitTypes:
-						if(unitType.name != "summoner" and unitType.name != "gatherer"): 
-							if(self.node.unit != None and self.node.unit.unitType.name == "summoner" and self.node.unit.player == gameState.getGameMode().getPlayerNumber() and gameState.getGameMode().players[gameState.getGameMode().getPlayerNumber()-1].greenWood >= unitType.researchCostGreen and gameState.getGameMode().players[gameState.getGameMode().getPlayerNumber()-1].blueWood >= unitType.researchCostBlue):
-								self.names.append(startResearchButton(-0.68,height+0.025,unitType,textureIndex=texIndex("ADD_BUTTON_SMALL"),width=texWidth("ADD_BUTTON_SMALL"),height=texHeight("ADD_BUTTON_SMALL")).name)
-							self.names.append(viewResearchButton(-0.965,height,unitType,self.node,text=unitType.name + " lvl " + str(self.node.city.researchProgress[unitType][0]+1),textSize=0.0005).name)
-							self.names.append(uiElement(-0.93,height-0.04,text=str(unitType.researchCostGreen),textSize=0.0005).name)
-							self.names.append(uiElement(-0.83,height-0.04,text=str(unitType.researchCostBlue),textSize=0.0005).name)
-							self.names.append(uiElement(-0.73,height-0.04,text=str(unitType.researchTime),textSize=0.0005).name)
-							height = height - 0.08
-				self.names.append(uiElement(-0.9,-0.19,text="summon",textSize=0.0007).name)
-				height = -0.23
-				for unitType in self.node.city.researchProgress:
-					if(self.node.city.researchProgress[unitType][0] > 0):
-						
-						self.names.append(viewUnitTypeButton(-0.965,height,unitType,text=unitType.name + " lvl " + str(self.node.city.researchProgress[unitType][0]),textSize=0.0005).name)
-						self.names.append(uiElement(-0.93,height-0.04,text=str(unitType.costGreen*self.node.city.researchProgress[unitType][0]),textSize=0.0005).name)
-						self.names.append(uiElement(-0.83,height-0.04,text=str(unitType.costBlue*self.node.city.researchProgress[unitType][0]),textSize=0.0005).name)
-						self.names.append(uiElement(-0.73,height-0.04,text=str(unitType.buildTime),textSize=0.0005).name)
-						if(self.node.unit != None and self.node.unit.unitType.name == "summoner" and self.node.unit.player == gameState.getGameMode().getPlayerNumber() and gameState.getGameMode().players[gameState.getGameMode().getPlayerNumber()-1].greenWood >= unitType.costGreen and gameState.getGameMode().players[gameState.getGameMode().getPlayerNumber()-1].blueWood >= unitType.costBlue):
-							self.names.append(startSummoningButtonOld(-0.68,height+0.028,unitType,textureIndex=texIndex("ADD_BUTTON_SMALL"),width=texWidth("ADD_BUTTON_SMALL"),height=texHeight("ADD_BUTTON_SMALL")).name)
-						height = height - 0.08
-			
-	@staticmethod
-	def destroy():
-		if(actionViewer.theViewer != None):
-			actionViewer.theViewer._destroy()
-			actionViewer.theViewer = None
-	def _destroy(self):
-		del gameState.getGameMode().elementsDict[self.name]
-		for name in self.names:
-			del gameState.getGameMode().elementsDict[name]
-		self.names = []
-		gameState.getGameMode().resortElems = True
-	def reset(self):
-		self._destroy()
-		actionViewer.theViewer = actionViewer(self.node)
-
 class unitTypeResearchViewer(uiElement):
 	theUnitTypeResearchViewer = None
 	@staticmethod
@@ -875,8 +809,7 @@ class queuedThingElem(scrollableElement):
 			else:
 				self.names.append(uiElement(self.xPosition+0.085,self.yPosition-0.05,text="research",textSize=0.0005,textColor="ee ee ee",fontIndex=2).name)
 			self.names.append(uiElement(self.xPosition+0.085,self.yPosition-0.095,text=self.unitType.name,textSize=0.0005,textColor="ee ee ee",fontIndex=2).name)
-			if(len(gameState.getGameMode().selectedNode.city.unitBuildQueue) == index):
-				self.names.append(cancelButton(self.xPosition+0.293,self.yPosition-0.068).name)
+			self.names.append(cancelButton(self.xPosition+0.293,self.yPosition-0.068,index).name)
 
 class scrollingTextElement(scrollableElement):
 	def __init__(self,xPos,yPos,scrollableElement,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None):
@@ -1330,8 +1263,7 @@ class startButton(menuButton):
 			for player in gameState.getNetworkPlayers():
 				player.dispatchCommand("startGame -1")
 		else:
-			#TODO: show host a friendly message
-			print 'choose a map!!'		
+			uiElements.smallModal("Choose a map.")
 
 class loginInputElement(textInputElement):
 	usernameElem = None
@@ -1375,7 +1307,7 @@ class loginButton(clickableElement):
 		loginInputElement.doLogin()
 		
 class modalButton(clickableElement):
-	def __init__(self,modal,yPos=-0.05,text="ok",textureIndex=cDefines.defines["OK_BUTTON_INDEX"]):
+	def __init__(self,modal,yPos=-0.05,text="",textureIndex=cDefines.defines["OK_BUTTON_INDEX"]):
 		self.modal = modal
 		clickableElement.__init__(self,texWidth("OK_BUTTON")/-2.0,yPos,text=text,width=texWidth("OK_BUTTON"),height=texHeight("OK_BUTTON"),textureIndex=textureIndex,textXPos=0.1,textYPos=-0.1)
 	def onClick(self):
@@ -1396,14 +1328,14 @@ class smallModal(modal):
 		uiElement.__init__(self,texWidth("MODAL_SMALL")/-2.0,texHeight("MODAL_SMALL")/2.0,width=texWidth("MODAL_SMALL"),height=texHeight("MODAL_SMALL"),textureIndex=cDefines.defines["MODAL_SMALL_INDEX"])
 		self.dismissable = dismissable
 		self.backgroundElem = uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines["MODAL_BACKGROUND_INDEX"])
-		self.textElem = uiElement((texWidth("MODAL_SMALL")/-2.0)+0.03,0.1,width=texWidth("MODAL_SMALL")-0.06,text=text,textSize=0.0007)
+		self.textElem = uiElement((texWidth("MODAL_SMALL")/-2.0)+0.03,0.1,width=texWidth("MODAL_SMALL")-0.06,text=text,textSize=0.0007,textColor="ee ed 9b")
 		if(self.dismissable):
-			self.buttonElem = modalButton(self)
+			self.buttonElem = modalButton(self,self.yPosition-0.4)
 		gameState.getGameMode().modal = self
 
 class winLoseModalButton(clickableElement):
 	def __init__(self,modal):
-		clickableElement.__init__(self,texWidth("OK_BUTTON")/-2.0,0.0,text="ok",textXPos=0.08,textYPos=-0.08,textureIndex=texIndex("OK_BUTTON"),width=texWidth("OK_BUTTON"),height=texHeight("OK_BUTTON"))
+		clickableElement.__init__(self,texWidth("OK_BUTTON")/-2.0,0.0,textXPos=0.08,textYPos=-0.08,textureIndex=texIndex("OK_BUTTON"),width=texWidth("OK_BUTTON"),height=texHeight("OK_BUTTON"))
 		self.modal = modal
 	def onClick(self):
 		gameState.setGameMode(gameModes.newGameScreenMode)

@@ -149,7 +149,6 @@ class fire:
 class unit:
 	def __init__(self,unitType,player,xPos,yPos,node,level=None):
 		self.unitType = unitType
-		print player
 		self.player = player
 		self.node = node
 		self.movementPoints = 0
@@ -218,7 +217,8 @@ class unit:
 #					self.movePath = []
 #		else:
 		aStarSearch.parentPipe.send(["unitRemove",self.node.xPos,self.node.yPos])
-		aStarSearch.parentPipe.send(["unitAdd",node.xPos,node.yPos])
+		if(node.visible):
+			aStarSearch.parentPipe.send(["unitAdd",node.xPos,node.yPos])
 		self.node.unit = None
 		self.node = node
 		node.unit = self
@@ -458,9 +458,6 @@ class playModeNode(node):
 		
 #(self.fire)
 	def startViewing(self,unit):
-#		print "***"
-#		print gameState.getPlayerNumber()
-#		print unit.player
 		if(unit.isControlled()):
 			self.viewingUnits.append(unit)
 #this doesn't work because the algorithm is simply to stop viewing all nodes in range before move and start viewing all nodes in range after move
@@ -623,7 +620,6 @@ class aStarThread():
 	@staticmethod
 	def runTarget(pipe):
 #		aStarSearch.queueFuck = queue
-		print 'run'
 #	startNode.findAStarHeuristicCost(aStarSearch.endNode)
 	#	aStarSearch.openNodes.append(startNode)
 		while True:
@@ -745,9 +741,7 @@ class aStarThread():
 					else:
 						if(neighbor.aStarKnownCost > node.aStarKnownCost + (cDefines.defines['GRASS_MOVE_COST']/(1.0+float(neighbor.roadValue)))):
 							neighbor.aStarKnownCost = node.aStarKnownCost + (cDefines.defines['GRASS_MOVE_COST']/(1.0+float(neighbor.roadValue)))
-#		print str(time.clock())+'b'
 		return
-#		self.aStarSearchRecurse(count)
 
 class aStarNode():
 	def __init__(self,xPos,yPos,tileValue=cDefines.defines['GRASS_TILE_INDEX'],roadValue=0,city=None,playerStartValue=0):
@@ -780,7 +774,6 @@ class mapData:
 		self.dataString = mapDataString
 		self.name = name[:len(name)-4]
 		lineTokens = self.dataString.split("\n")
-#		print lineTokens
 		self.teamSize = int(lineTokens[1])/2
 
 class mapp:

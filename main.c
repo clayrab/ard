@@ -290,8 +290,8 @@ static void printPyStackTrace(){
 #define MODAL_INDEX 54
 
 #define OK_BUTTON "assets/okButton.png"
-#define OK_BUTTON_HEIGHT 67
-#define OK_BUTTON_WIDTH 177
+#define OK_BUTTON_HEIGHT 40
+#define OK_BUTTON_WIDTH 97
 #define OK_BUTTON_INDEX 55
 
 #define MODAL_BACKGROUND "assets/modalBackground.png"
@@ -300,8 +300,8 @@ static void printPyStackTrace(){
 #define MODAL_BACKGROUND_INDEX 56
 
 #define MODAL_SMALL "assets/modalSmall.png"
-#define MODAL_SMALL_HEIGHT 200
-#define MODAL_SMALL_WIDTH 600
+#define MODAL_SMALL_HEIGHT 326
+#define MODAL_SMALL_WIDTH 593
 #define MODAL_SMALL_INDEX 57
 
 #define SEND_BUTTON "assets/sendButton.png"
@@ -561,6 +561,11 @@ static void printPyStackTrace(){
 
 #define GATHERER_OVERLAY "assets/gathererOverlay.png"
 #define GATHERER_OVERLAY_INDEX 111
+
+#define CONNECT_BUTTON "assets/connectButton.png"
+#define CONNECT_BUTTON_HEIGHT 40
+#define CONNECT_BUTTON_WIDTH 303
+#define CONNECT_BUTTON_INDEX 112
 
 #define DESERT_TILE_INDEX 0
 #define GRASS_TILE_INDEX 1
@@ -1766,6 +1771,7 @@ static void initGL (){
   pngLoad(&texturesArray[WOLF_OVERLAY_INDEX],WOLF_OVERLAY);
   pngLoad(&texturesArray[DRAGON_OVERLAY_INDEX],DRAGON_OVERLAY);
   pngLoad(&texturesArray[GATHERER_OVERLAY_INDEX],GATHERER_OVERLAY);
+  pngLoad(&texturesArray[CONNECT_BUTTON_INDEX],CONNECT_BUTTON);
 
   vertexArrays[DESERT_TILE_INDEX] = *desertVertices;
   vertexArrays[GRASS_TILE_INDEX] = *grassVertices;

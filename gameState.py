@@ -12,7 +12,6 @@ mapDatas.append([])
 mapDatas.append([])
 mapDatas.append([])
 mapDatas.append([])
-print mapDatas
 dirList=os.listdir("maps")
 for fileName in dirList:
 	if((not fileName.startswith(".")) and fileName != "defaultMap" and (not fileName.endswith("~"))):
@@ -29,7 +28,6 @@ for fileName in dirList:
 	if((not fileName.startswith(".")) and fileName != "template" and (not fileName.endswith("~"))):
 		unitFile = open("units/"+fileName)
 		obj = json.load(unitFile)
-		print fileName
 		unitTypesList.append(gameLogic.unitType(fileName.replace("_"," ").strip(),cDefines.defines[obj['textureName']+"_INDEX"],cDefines.defines[obj['textureName']+"_OVERLAY_INDEX"],obj['movementSpeed'],obj['attackSpeed'],obj['attackPower'],obj['armor'],obj['range'],obj['health'],bool(obj['canFly']),bool(obj['canSwim']),obj['costGreen'],obj['costBlue'],obj['buildTime'],obj['movementSpeedBonus'],obj['researchCostGreen'],obj['researchCostBlue'],obj['researchTime']))
 		unitFile.close()
 
@@ -44,12 +42,9 @@ for line in configFile:
 	tokens = line.split("=")
 	configOptions[tokens[0]] = tokens[1].strip()
 configFile.close()
-print configOptions
 def getConfig():
 	global configOptions
 	return configOptions
-
-
 
 userName = None
 def getUserName():

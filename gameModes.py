@@ -11,8 +11,6 @@
 #report game state(to look for cheaters/bugs)
 
 #ISSUES
-#need to put units in astar
-#cancel anything in queue
 #proper quit and options menus
 #join lan ip input send button
 
@@ -87,6 +85,7 @@ import random
 import math
 import copy
 import time
+import socket
 import traceback
 import gameState
 import nameGenerator
@@ -169,17 +168,7 @@ class gameMode:
 					self.elementWithFocus.onLeftClickUp()
 	def handleKeyDown(self,keycode):
 		if(keycode == "t"):
-			print gameState.getGameMode().nextUnit.unitType.name
-			print gameState.getGameMode().nextUnit.node.xPos
-			print gameState.getGameMode().nextUnit.node.yPos
-#			gameState.setMapName("foo")
-#			gameState.setGameMode(joinGameMode)
-#			print 'test'
-			
-		if(keycode == "y"):
-			gameState.getGameMode().changeMap("Clay's Map")
-		if(keycode == "u"):
-			gameState.getGameMode().changeMap("test4")
+			pass
 		if(self.modal == None):
 			if(hasattr(self,"keyDown")):
 				self.keyDown(keycode)
@@ -696,8 +685,10 @@ class joinLANGameScreenMode(gameMode):
 		gameMode.__init__(self)
 	def addUIElements(self):
 		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])
-		uiElements.uiElement(-0.15,0.2,text="Host IP Address")
-		self.setFocus(uiElements.hostIPInputElement(-0.15,0.15))
+		uiElements.uiElement(-0.15,0.165,text="Host IP Address",textSize=0.0007,textColor="ee ed 9b")
+		self.hostIPInputElem = uiElements.hostIPInputElement(-0.15,0.15)
+		self.setFocus(self.hostIPInputElem)
+		uiElements.hostIPConnectButton(-0.15,0.07)
 
 class joiningLANGameScreenMode(gameMode):
 	def __init__(self,args):
@@ -754,12 +745,17 @@ class hostLANGameScreenMode(gameMode):
 class loginMode(gameMode):
 	def __init__(self,args):
 		gameMode.__init__(self)
-		gameFindClient.startClient()
+			
 	def addUIElements(self):
 		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])	
 		self.setFocus(uiElements.loginUserName(-0.12,0.02))
 		uiElements.loginPassword(-0.12,-0.06)
 		uiElements.loginButton(-0.12,-0.14)
+		try:
+			gameFindClient.startClient()
+		except socket.error:
+			gameState.setGameMode(newGameScreenMode)
+			uiElements.smallModal("Cannot connect to server.")
 
 class gameFindMode(gameMode):
 	def __init__(self,args):
