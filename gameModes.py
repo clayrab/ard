@@ -11,9 +11,8 @@
 #report game state(to look for cheaters/bugs)
 
 #ISSUES
+#max move time(30 secs? 60 secs?)
 #proper quit and options menus
-#join lan ip input send button
-
 #create email form/database table
 #teams
 #handle disconnections/reconnections gracefully
