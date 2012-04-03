@@ -679,7 +679,7 @@ char unitNames[MAX_UNITS][MAX_UNIT_NAME_LENGTH];
 int unitNamesCount = 0;
 */
 GLuint tilesTexture;
-GLdouble mouseMapPosX, mouseMapPosY, mouseMapPosZ, mouseMapPosXNew, mouseMapPosYNew, mouseMapPosZNew;
+GLdouble mouseMapPosX, mouseMapPosY, mouseMapPosZ;
 GLdouble mouseMapPosXPrevious, mouseMapPosYPrevious, mouseMapPosZPrevious = -initZoom;
 GLint bufRenderMode;
 float *textureVertices;
@@ -1202,7 +1202,6 @@ void calculateTranslation(){
   frameNumber++;
   glPushMatrix();
   if(theMap != NULL){
-    //    translateZPrev2 = translateZ;
     pyTranslateZ = PyObject_GetAttrString(theMap,"translateZ");
     translateZ = PyFloat_AsDouble(pyTranslateZ);
   }
@@ -1251,8 +1250,8 @@ void calculateTranslation(){
     convertWindowCoordsToViewportCoords(60.0*SCREEN_WIDTH/SCREEN_BASE_WIDTH,SCREEN_HEIGHT-(258.0*SCREEN_HEIGHT/SCREEN_BASE_HEIGHT),translateZ,&convertedBottomLeftX,&convertedBottomLeftY,&convertedBottomLeftZ);
     convertWindowCoordsToViewportCoords(1051.5*SCREEN_WIDTH/SCREEN_BASE_WIDTH,SCREEN_HEIGHT-(1082.0*SCREEN_HEIGHT/SCREEN_BASE_HEIGHT),translateZ,&convertedTopRightX,&convertedTopRightY,&convertedTopRightZ);
   }else if(PyObject_HasAttrString(gameMode,"createGameMode")){
-    convertWindowCoordsToViewportCoords(544.0*SCREEN_WIDTH/SCREEN_BASE_WIDTH,SCREEN_HEIGHT-(258.0*SCREEN_HEIGHT/SCREEN_BASE_HEIGHT),translateZ,&convertedBottomLeftX,&convertedBottomLeftY,&convertedBottomLeftZ);
-    convertWindowCoordsToViewportCoords(1535.5*SCREEN_WIDTH/SCREEN_BASE_WIDTH,SCREEN_HEIGHT-(1082.0*SCREEN_HEIGHT/SCREEN_BASE_HEIGHT),translateZ,&convertedTopRightX,&convertedTopRightY,&convertedTopRightZ);
+    convertWindowCoordsToViewportCoords(100.0*SCREEN_WIDTH/SCREEN_BASE_WIDTH,SCREEN_HEIGHT,translateZ,&convertedBottomLeftX,&convertedBottomLeftY,&convertedBottomLeftZ);
+    convertWindowCoordsToViewportCoords(1535.5*SCREEN_WIDTH/SCREEN_BASE_WIDTH,0.0,translateZ,&convertedTopRightX,&convertedTopRightY,&convertedTopRightZ);
   }else{
     convertWindowCoordsToViewportCoords(UI_MAP_EDITOR_LEFT_IMAGE_WIDTH,SCREEN_HEIGHT,translateZ,&convertedBottomLeftX,&convertedBottomLeftY,&convertedBottomLeftZ);
     convertWindowCoordsToViewportCoords(SCREEN_WIDTH,0.0,translateZ,&convertedTopRightX,&convertedTopRightY,&convertedTopRightZ);
@@ -1261,7 +1260,6 @@ void calculateTranslation(){
   mouseMapPosXPrevious = mouseMapPosX;
   mouseMapPosYPrevious = mouseMapPosY;
   convertWindowCoordsToViewportCoords(mouseX,mouseY,translateZ,&mouseMapPosX,&mouseMapPosY,&mouseMapPosZ);  
-
   if(translateZ > translateZPrev){
     translateX = translateX + mouseMapPosX - mouseMapPosXPrevious;
     translateY = translateY + mouseMapPosY - mouseMapPosYPrevious;
@@ -2291,6 +2289,13 @@ static void draw(){
   glMatrixMode(GL_MODELVIEW);
 
   glLoadIdentity();
+  glColor3f(0.0,0.0,0.0);
+  glBegin(GL_QUADS);
+  glTexCoord2f(0.0,0.0); glVertex3f(-1.0,-1.0,-1.01);
+  glTexCoord2f(1.0,0.0); glVertex3f(1.0,-1.0,-1.01);
+  glTexCoord2f(1.0,1.0); glVertex3f(1.0,1.0,-1.01);
+  glTexCoord2f(0.0,1.0); glVertex3f(-1.0,1.0,-1.01);
+  glEnd();
   
   glTranslatef(translateX,translateY,translateZ);
   glDepthFunc(GL_GEQUAL);

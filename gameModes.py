@@ -119,6 +119,7 @@ class gameMode:
 		self.modal = None
 		self.mouseX = 0
 		self.mouseY = 0
+		self.scrolledDistance = 0.0
 		uiElements.viewer.theViewer = None
 	def handleMouseMovement(self,name,mouseX,mouseY):
 		self.mouseX = mouseX
@@ -197,6 +198,14 @@ class gameMode:
 		gameLogic.aStarProcess.terminate()
 		gameLogic.aStarProcess.join()
 	def onDraw(self,deltaTicks):
+		if(self.scrolledDistance != 0.0):
+			self.map.translateZ = self.map.translateZ + self.scrolledDistance*deltaTicks
+			if(self.map.translateZ < (1.0-cDefines.defines['maxZoom'])):
+				self.map.translateZ = 1.0-cDefines.defines['maxZoom']
+			if(self.map.translateZ > (-10.0-cDefines.defines['minZoom'])):
+				self.map.translateZ = -10.0-cDefines.defines['minZoom']
+		self.scrolledDistance = 0.0
+
 		if(gameState.getClient() != None):
 			if(hasattr(gameState.getClient(),"checkSocket")):
 				gameState.getClient().checkSocket()
@@ -208,7 +217,6 @@ class tiledGameMode(gameMode):
 	def __init__(self,args=[]):
 		self.mousedOverObject = None
 		self.clickScroll = False
-		self.scrolledDistance = 0.0
 		gameMode.__init__(self)
 		self.focusNextUnit = 0
 		self.focusNextUnitTemp = 0
@@ -487,13 +495,6 @@ class playMode(tiledGameMode):
 #		with gameLogic.aStarSearch.searchCompleteLock:
 #		print 'astarseach:' + str(gameLogic.aStarSearch)
 #		print gameLogic.aStarSearch.map
-		if(self.scrolledDistance != 0.0):
-			self.map.translateZ = self.map.translateZ + self.scrolledDistance*deltaTicks
-			if(self.map.translateZ < (1.0-cDefines.defines['maxZoom'])):
-				self.map.translateZ = 1.0-cDefines.defines['maxZoom']
-			if(self.map.translateZ > (-10.0-cDefines.defines['minZoom'])):
-				self.map.translateZ = -10.0-cDefines.defines['minZoom']
-		self.scrolledDistance = 0.0
 		
 		if(gameLogic.aStarSearch.searchComplete):
 			with gameLogic.aStarSearch.aStarLock:
@@ -838,7 +839,7 @@ class joinGameMode(tiledGameMode):
 				previousElem = elem
 	def setMap(self,mapName):
 		gameState.setMapName(mapName)
-		self.map = gameLogic.mapp(gameLogic.mapViewNode,-60.0)
+		self.map = gameLogic.mapp(gameLogic.mapViewNode,-50.0)
 		self.mapNameElem.text = mapName
 		self.focusXPos = int(len(self.map.nodes[0])/2)
 		self.focusYPos = int(len(self.map.nodes)/2)
@@ -874,7 +875,7 @@ class createGameMode(tiledGameMode):
 		self.selectedNode = None
 	def setMap(self,mapName):
 		gameState.setMapName(mapName)
-		self.map = gameLogic.mapp(gameLogic.mapViewNode,-60.0)
+		self.map = gameLogic.mapp(gameLogic.mapViewNode,-50.0)
 		if(self.mapSelector != None):
 			self.mapSelector.destroy()
 		self.mapNameField.text = mapName
@@ -897,6 +898,7 @@ class hostGameMode(createGameMode):
 	def __init__(self,args):
 		createGameMode.__init__(self,args)
 		self.hostGameMode = True
+		self.createGameMode = True
 	def addUIElements(self):
 		self.mapNameField = uiElements.uiElement(-1.0+texWidth("CREATE_GAME_BACKGROUND_LEFT"),0.85,fontIndex=3,textColor="ee ed 9b")
 		uiElements.backButtun(-0.930,0.9,newGameScreenMode)
