@@ -816,11 +816,7 @@ class joinGameMode(tiledGameMode):
 		self.backgroundImageIndex = texIndex("JOIN_GAME_BACKGROUND")
 		self.selectedNode = None
 		self.playerElements = []
-		if(gameState.getClient() == None):#host connects to itself early at 127.0.0.1
-			client.startClient(self.hostIP,self.hostPort)
-			self.isHost = False
-		else:
-			self.isHost = True
+		self.isHost = False
 	def addPlayer(self,playerName):
 		for elem in self.playerElements:
 			if(elem.text == "empty"):
@@ -864,6 +860,13 @@ class joinGameMode(tiledGameMode):
 		uiElements.sendChatButton(0.842,-0.595)
 		for i in range(0,2*self.teamSize):
 			self.playerElements.append(uiElements.uiElement(0.36,0.775-(0.033*i),text="empty",textSize=0.0005,textColor="55 55 55",mouseOverColor="55 55 55"))
+		if(gameState.getClient() == None):#host connects to itself early at 127.0.0.1
+			try:
+				client.startClient(self.hostIP,self.hostPort)
+			except socket.error:
+				uiElements.lanConnectErrorModal()
+		else:
+			self.isHost = True
 
 class joinLANGameMode(joinGameMode):
 	def __init__(self,args):

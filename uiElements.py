@@ -1370,6 +1370,18 @@ class socketErrorModal(smallModal):
 		smallModal.__init__(self,"Cannot create server. The socket may be in use. Try again in 30 seconds.",dismissable=False)
 		socketErrorModalButton(self)
 
+class lanConnectErrorModalButton(clickableElement,modal):
+	def __init__(self,modal):
+		clickableElement.__init__(self,texWidth("OK_BUTTON")/-2.0,0.0,textXPos=0.08,textYPos=-0.08,textureIndex=texIndex("OK_BUTTON"),width=texWidth("OK_BUTTON"),height=texHeight("OK_BUTTON"))
+		self.modal = modal
+	def onClick(self):
+		gameState.setGameMode(gameModes.newGameScreenMode)
+
+class lanConnectErrorModal(smallModal):
+	def __init__(self):
+		smallModal.__init__(self,"Cannot connect.",dismissable=False)
+		lanConnectErrorModalButton(self)
+
 class createMapButton(clickableElement):
 	def __init__(self,xPos,yPos,gameMode,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",selected=False):
 		clickableElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=menuButton.normalTextColor,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],mouseOverColor="66 66 66",textSize=0.0013,fontIndex=1)
