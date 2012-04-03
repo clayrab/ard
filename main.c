@@ -36,17 +36,17 @@ static void printPyStackTrace(){
 #define zoomSpeed 5.0//lower is faster
 #define focusSpeed 5.0//lower is faster
 
-#define FULL_SCREEN 1
+#define FULL_SCREEN 0
 
-//#define SCREEN_WIDTH 1280
-//#define SCREEN_HEIGHT 960
+#define SCREEN_WIDTH 1280
+#define SCREEN_HEIGHT 960
 
 //#define SCREEN_WIDTH 1024
 //#define SCREEN_HEIGHT 768
 
 
-#define SCREEN_WIDTH 1440
-#define SCREEN_HEIGHT 900
+//#define SCREEN_WIDTH 1440
+//#define SCREEN_HEIGHT 900
 
 //#define SCREEN_WIDTH 1600
 //#define SCREEN_HEIGHT 1200
@@ -619,6 +619,7 @@ float translateZ = 0.0-initZoom;
 float translateXPrev = 0.0;
 float translateYPrev = 0.0;
 float translateZPrev = 0.0-initZoom;
+//float translateZPrev2 = 0.0;
 float scrollSpeed = 0.10;
 
 PyObject * pyPolarity;
@@ -626,6 +627,7 @@ long mapPolarity;
 
 GLdouble convertedBottomLeftX,convertedBottomLeftY,convertedBottomLeftZ;
 GLdouble convertedTopRightX,convertedTopRightY,convertedTopRightZ;
+GLdouble convertedCenterX,convertedCenterY,convertedCenterZ;
 
 PyObject * pyUnitType;
 PyObject * pyUnitTextureIndex;
@@ -677,7 +679,7 @@ char unitNames[MAX_UNITS][MAX_UNIT_NAME_LENGTH];
 int unitNamesCount = 0;
 */
 GLuint tilesTexture;
-GLdouble mouseMapPosX, mouseMapPosY, mouseMapPosZ;
+GLdouble mouseMapPosX, mouseMapPosY, mouseMapPosZ, mouseMapPosXNew, mouseMapPosYNew, mouseMapPosZNew;
 GLdouble mouseMapPosXPrevious, mouseMapPosYPrevious, mouseMapPosZPrevious = -initZoom;
 GLint bufRenderMode;
 float *textureVertices;
@@ -1191,13 +1193,60 @@ void doViewport(){
 PyObject * pyTranslateZ;
 float mapRightOffset;
 float mapTopOffset;
+int frameNumber = 0;
 void calculateTranslation(){
-  mouseMapPosXPrevious = mouseMapPosX;
-  mouseMapPosYPrevious = mouseMapPosY;
   pyMapWidth = PyObject_CallMethod(theMap,"getWidth",NULL);//New reference
   pyMapHeight = PyObject_CallMethod(theMap,"getHeight",NULL);//New reference
   mapWidth = PyLong_AsLong(pyMapWidth);
   mapHeight = PyLong_AsLong(pyMapHeight);
+  frameNumber++;
+  glPushMatrix();
+  if(theMap != NULL){
+    //    translateZPrev2 = translateZ;
+    pyTranslateZ = PyObject_GetAttrString(theMap,"translateZ");
+    translateZ = PyFloat_AsDouble(pyTranslateZ);
+  }
+  if(translateX - mapRightOffset < convertedTopRightX
+     && translateX - (2.0*SIN60) > convertedBottomLeftX
+     && translateY < convertedTopRightY - mapTopOffset
+     && translateY > convertedBottomLeftY+2.0
+     && translateZ < translateZPrev){
+    //    printf("frame %d\n", frameNumber);
+    translateZ = translateZPrev;
+    pyObj = PyObject_CallMethod(theMap,"setTranslateZ","f",translateZ);//New reference
+    Py_DECREF(pyObj);
+  }
+  glTranslatef(translateX,translateY,translateZ);
+  //glTranslatef(0.0,0.0,translateZ);
+  glBindTexture(GL_TEXTURE_2D, texturesArray[OK_BUTTON_INDEX]);//draw a big texture for sampling map depth
+  glBegin(GL_QUADS);
+  glTexCoord2f(0.0,0.0); glVertex3f(-1000.0,-1000.0,0.0);
+  glTexCoord2f(1.0,0.0); glVertex3f(1000.0,-1000.0,0.0);
+  glTexCoord2f(1.0,1.0); glVertex3f(1000.0,1000.0,0.0);
+  glTexCoord2f(0.0,1.0); glVertex3f(-1000.0,1000.0,0.0);
+  glEnd();
+  glPopMatrix();
+  if(PyObject_HasAttrString(gameMode,"joinGameMode")){
+    glReadPixels( 7*SCREEN_WIDTH/16, SCREEN_HEIGHT/2, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &mapDepthTest1 );
+    glReadPixels( 8*SCREEN_WIDTH/16, SCREEN_HEIGHT/2, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &mapDepthTest2 );
+    glReadPixels( 9*SCREEN_WIDTH/16, SCREEN_HEIGHT/2, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &mapDepthTest3 );
+  }else if(PyObject_HasAttrString(gameMode,"createGameMode")){
+    glReadPixels( 13*SCREEN_WIDTH/16, 7*SCREEN_HEIGHT/16, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &mapDepthTest1 );
+    glReadPixels( 13*SCREEN_WIDTH/16, 8*SCREEN_HEIGHT/16, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &mapDepthTest2 );
+    glReadPixels( 13*SCREEN_WIDTH/16, 9*SCREEN_HEIGHT/16, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &mapDepthTest3 );
+  }else{
+    glReadPixels( 7*SCREEN_WIDTH/16, SCREEN_HEIGHT/2, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &mapDepthTest1 );
+    glReadPixels( 8*SCREEN_WIDTH/16, SCREEN_HEIGHT/2, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &mapDepthTest2 );
+    glReadPixels( 9*SCREEN_WIDTH/16, SCREEN_HEIGHT/2, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &mapDepthTest3 );    
+  }
+  //  printf("%f %f %f\n",mapDepthTest1,mapDepthTest2,mapDepthTest3);
+  if(mapDepthTest1 == mapDepthTest2 || mapDepthTest1 == mapDepthTest3){
+    mapDepth = mapDepthTest1;
+  }else if(mapDepthTest2 == mapDepthTest3){
+    mapDepth = mapDepthTest2;
+  }else{
+    printf("mapdepth not found%d\n",1);
+  }
   if(PyObject_HasAttrString(gameMode,"joinGameMode")){
     convertWindowCoordsToViewportCoords(60.0*SCREEN_WIDTH/SCREEN_BASE_WIDTH,SCREEN_HEIGHT-(258.0*SCREEN_HEIGHT/SCREEN_BASE_HEIGHT),translateZ,&convertedBottomLeftX,&convertedBottomLeftY,&convertedBottomLeftZ);
     convertWindowCoordsToViewportCoords(1051.5*SCREEN_WIDTH/SCREEN_BASE_WIDTH,SCREEN_HEIGHT-(1082.0*SCREEN_HEIGHT/SCREEN_BASE_HEIGHT),translateZ,&convertedTopRightX,&convertedTopRightY,&convertedTopRightZ);
@@ -1209,26 +1258,31 @@ void calculateTranslation(){
     convertWindowCoordsToViewportCoords(SCREEN_WIDTH,0.0,translateZ,&convertedTopRightX,&convertedTopRightY,&convertedTopRightZ);
   }
 
-  convertWindowCoordsToViewportCoords(mouseX,mouseY,translateZ,&mouseMapPosX,&mouseMapPosY,&mouseMapPosZ);
+  mouseMapPosXPrevious = mouseMapPosX;
+  mouseMapPosYPrevious = mouseMapPosY;
+  convertWindowCoordsToViewportCoords(mouseX,mouseY,translateZ,&mouseMapPosX,&mouseMapPosY,&mouseMapPosZ);  
 
-  if(theMap != NULL){
-    pyTranslateZ = PyObject_GetAttrString(theMap,"translateZ");
-    translateZ = PyFloat_AsDouble(pyTranslateZ);
+  if(translateZ > translateZPrev){
+    translateX = translateX + mouseMapPosX - mouseMapPosXPrevious;
+    translateY = translateY + mouseMapPosY - mouseMapPosYPrevious;
   }
+
+  //  convertWindowCoordsToViewportCoords(mouseX,mouseY,translateZ,&mouseMapPosXNew,&mouseMapPosYNew,&mouseMapPosZNew);
   mapRightOffset = translateTilesXToPositionX(mapWidth+1,0);
   mapTopOffset = translateTilesYToPositionY(mapHeight);
-  //printf("screen topright %f,%f\n",convertedTopRightX,convertedTopRightY);
+  //  printf("screen topright %f,%f\n",convertedTopRightX,convertedTopRightY);
   //printf("screen bottomleft %f,%f\n",convertedBottomLeftX,convertedBottomLeftY);
-  //printf("translate %f,%f,%f\n",translateX,translateY,translateZ);
+  //  printf("translate %f,%f,%f\n",translateX,translateY,translateZ);
   //printf("offsets: %f %f\n",mapRightOffset,mapTopOffset);
   //printf("%f\n",translateTilesYToPositionY(mapHeight));//setting translateY to this number will focus on it
   //printf("mouse %d:%f\t%d:%f\n",mouseX,mouseMapPosX,mouseY,mouseMapPosY);
   
    if(clickScroll > 0 && !isFocusing){
-    translateX = translateX + mouseMapPosX - mouseMapPosXPrevious;
-    translateY = translateY + mouseMapPosY - mouseMapPosYPrevious;
+     translateX = translateX + mouseMapPosX - mouseMapPosXPrevious;
+     translateY = translateY + mouseMapPosY - mouseMapPosYPrevious;
   }else{
-      if(moveRight > 0){// && translateX > -10.0){
+
+     /*      if(moveRight > 0){// && translateX > -10.0){
 	translateX -= scrollSpeed*deltaTicks;
       }
       if(moveRight < 0){// && translateX < 10.0){
@@ -1239,9 +1293,9 @@ void calculateTranslation(){
       }
       if(moveUp < 0){// && translateY < 10.0){
 	translateY += scrollSpeed*deltaTicks;
-      }
+	}*/
   }
-  if(isFocusing){
+   if(isFocusing){
     //printf("%f %f %f %f\n",translateXPrev,translateX,translateYPrev,translateY);
     if((considerDoneFocusing == 1) && abs(50.0*(translateXPrev - translateX)) == 0 && abs(50.0*(translateYPrev - translateY)) == 0){//this indicates the auto-scrolling code is not allowing us to move any more
       isFocusing = 0;
@@ -1258,22 +1312,24 @@ void calculateTranslation(){
     translateYPrev = translateY;
     translateX = translateX-((translateX+focusXPos)/focusSpeed);
     translateY = translateY-((translateY+focusYPos)/focusSpeed);
-  }
+   }
   //The following code will adjust translateX/Y so that no off-map area is shown
-  if(translateX - mapRightOffset < convertedTopRightX){
+   //printf("%f\t%f\t%f\n",translateX,mapRightOffset,convertedBottomLeftX);
+   if(translateX - mapRightOffset < convertedTopRightX){
     translateX = convertedTopRightX + mapRightOffset;
     if(translateX - (2.0*SIN60) > convertedBottomLeftX){
       //prevents shaking issue that occurs when the map is slightly larger than viewable area
       translateX = (convertedTopRightX + mapRightOffset + convertedBottomLeftX + (2.0*SIN60))/2.0;
     }
+
   }else if(translateX - (2.0*SIN60) > convertedBottomLeftX){
     translateX = convertedBottomLeftX + (2.0*SIN60);
     if(translateX - mapRightOffset < convertedTopRightX){
       //prevents shaking issue that occurs when the map is slightly larger than viewable area
       translateX = (convertedTopRightX + mapRightOffset + convertedBottomLeftX + (2.0*SIN60))/2.0;
     }
-  }
-  if(translateY < convertedTopRightY - mapTopOffset){
+   }
+   if(translateY < convertedTopRightY - mapTopOffset){
     translateY = convertedTopRightY - mapTopOffset;
     if(translateY > convertedBottomLeftY+2.0){
       //prevents shaking issue that occurs when the map is slightly larger than viewable area
@@ -1285,29 +1341,26 @@ void calculateTranslation(){
       //prevents shaking issue that occurs when the map is slightly larger than viewable area
       translateY = (convertedTopRightY-mapTopOffset+convertedBottomLeftY+2.0)/2.0;
     }
-  }
-  if(translateX - mapRightOffset < convertedTopRightX
-     && translateX - (2.0*SIN60) > convertedBottomLeftX
-     && translateY < convertedTopRightY - mapTopOffset
-     && translateY > convertedBottomLeftY+2.0
-     && translateZ < translateZPrev){
-    translateZ = translateZPrev;
-    pyObj = PyObject_CallMethod(theMap,"setTranslateZ","f",translateZ);//New reference
-    Py_DECREF(pyObj);
-
-  }else{
+   }
+/*else{
   //    translateZ = translateZPrev;
-  if(abs(100.0*(translateZ - translateZPrev)) > 0){
+    if(abs(100.0*(translateZ - translateZPrev)) > 0){
     translateZ = translateZPrev + ((translateZ - translateZPrev)/zoomSpeed);
-    translateZPrev = translateZ;
-  }
-  }
-
+        translateZPrev = translateZ;
+          if(PyObject_HasAttrString(theMap,"setTranslateZ")){
+	pyObj = PyObject_CallMethod(theMap,"setTranslateZ","f",translateZ);//New reference
+	Py_DECREF(pyObj);
+	}
+      }
+        }
+   */
   //glTranslatef(translateX,translateY,mouseMapPosZ);
   if(theMap != Py_None && theMap != NULL){
     Py_DECREF(pyMapWidth);
     Py_DECREF(pyMapHeight);
   }
+  translateZPrev = translateZ;
+
 }
 
 drawBoard(){
@@ -1941,12 +1994,12 @@ static void handleInput(){
     case SDL_MOUSEBUTTONDOWN:
       if(event.button.button == SDL_BUTTON_WHEELUP){
 	if(PyObject_HasAttrString(gameMode,"handleScrollUp")){
-	  pyObj = PyObject_CallMethod(gameMode,"handleScrollUp","(ii)",selectedName,deltaTicks);//New reference
+	  pyObj = PyObject_CallMethod(gameMode,"handleScrollUp","i",selectedName);//New reference
 	  Py_DECREF(pyObj);
 	}
       }else if(event.button.button == SDL_BUTTON_WHEELDOWN){
 	if(PyObject_HasAttrString(gameMode,"handleScrollDown")){
-	  PyObject_CallMethod(gameMode,"handleScrollDown","(ii)",selectedName,deltaTicks);//New reference
+	  PyObject_CallMethod(gameMode,"handleScrollDown","i",selectedName);//New reference
 	  Py_DECREF(pyObj);
 	}
       }
@@ -2184,40 +2237,14 @@ static void draw(){
   }
   PyObject_SetAttrString(gameMode,"ticks",PyLong_FromLong(SDL_GetTicks()));
   if(PyObject_HasAttrString(gameMode,"onDraw")){
-    pyObj = PyObject_CallMethod(gameMode,"onDraw",NULL);//New reference
+    pyObj = PyObject_CallMethod(gameMode,"onDraw","i",deltaTicks);//New reference
     printPyStackTrace();
     Py_DECREF(pyObj);
   }
 
-  //this needs to be done before glClear...
-  //when the mouse is under the pixel this breaks, so we test three points and find any two that match
-
-  if(PyObject_HasAttrString(gameMode,"joinGameMode")){
-    glReadPixels( 7*SCREEN_WIDTH/16, SCREEN_HEIGHT/2, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &mapDepthTest1 );
-    glReadPixels( 8*SCREEN_WIDTH/16, SCREEN_HEIGHT/2, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &mapDepthTest2 );
-    glReadPixels( 9*SCREEN_WIDTH/16, SCREEN_HEIGHT/2, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &mapDepthTest3 );
-  }else if(PyObject_HasAttrString(gameMode,"createGameMode")){
-    glReadPixels( 13*SCREEN_WIDTH/16, 7*SCREEN_HEIGHT/16, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &mapDepthTest1 );
-    glReadPixels( 13*SCREEN_WIDTH/16, 8*SCREEN_HEIGHT/16, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &mapDepthTest2 );
-    glReadPixels( 13*SCREEN_WIDTH/16, 9*SCREEN_HEIGHT/16, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &mapDepthTest3 );
-  }else{
-    glReadPixels( 7*SCREEN_WIDTH/16, SCREEN_HEIGHT/2, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &mapDepthTest1 );
-    glReadPixels( 8*SCREEN_WIDTH/16, SCREEN_HEIGHT/2, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &mapDepthTest2 );
-    glReadPixels( 9*SCREEN_WIDTH/16, SCREEN_HEIGHT/2, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &mapDepthTest3 );    
-  }
-  //  printf("%f %f %f\n",mapDepthTest1,mapDepthTest2,mapDepthTest3);
-  if(mapDepthTest1 == mapDepthTest2 || mapDepthTest1 == mapDepthTest3){
-    mapDepth = mapDepthTest1;
-  }else if(mapDepthTest2 == mapDepthTest3){
-    mapDepth = mapDepthTest2;
-  }else{
-    printf("mapdepth not found%d\n",1);
-  }
-  glFlush();
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		 
   glSelectBuffer(BUFSIZE,selectBuf);//glSelectBuffer must be issued before selection mode is enabled, and it must not be issued while the rendering mode is GL_SELECT.
-  glRenderMode(GL_SELECT);
 
   doViewport();
   theCursorIndex = -1;
@@ -2229,8 +2256,8 @@ static void draw(){
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
   glTranslatef(translateX,translateY,translateZ);
+  glRenderMode(GL_SELECT);
   drawBoard();
-
 
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
@@ -2243,6 +2270,15 @@ static void draw(){
 
   hitsCnt = glRenderMode(GL_RENDER);
   processTheHits(hitsCnt,selectBuf);
+
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();
+  glGetIntegerv(GL_VIEWPORT,viewport);
+  gluPerspective(45.0f,(float)viewport[2]/(float)viewport[3],minZoom,maxZoom);
+  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity();
+  calculateTranslation();
+
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		
 
   drawBackground();
@@ -2255,17 +2291,8 @@ static void draw(){
   glMatrixMode(GL_MODELVIEW);
 
   glLoadIdentity();
-  glColor3f(0.0,0.0,0.0);
-  glBegin(GL_QUADS);
-  glTexCoord2f(0.0,0.0); glVertex3f(-1.0,-1.0,-1.01);
-  glTexCoord2f(1.0,0.0); glVertex3f(1.0,-1.0,-1.01);
-  glTexCoord2f(1.0,1.0); glVertex3f(1.0,1.0,-1.01);
-  glTexCoord2f(0.0,1.0); glVertex3f(-1.0,1.0,-1.01);
-  glEnd();
-
-  calculateTranslation();
-  glTranslatef(translateX,translateY,translateZ);
   
+  glTranslatef(translateX,translateY,translateZ);
   glDepthFunc(GL_GEQUAL);
   drawBoard();
   glDepthFunc(GL_ALWAYS);

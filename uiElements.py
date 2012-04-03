@@ -314,8 +314,8 @@ class cancelButton(clickableElement):
 		self.index = index
 	def onClick(self):
 		gameState.getClient().sendCommand("cancelQueuedThing",str(gameState.getGameMode().selectedNode.xPos) + " " + str(gameState.getGameMode().selectedNode.yPos) + " " + str(self.index))
-		if(gameState.getGameMode().nextUnit != None and gameState.getGameMode().nextUnit.isControlled()):
-			gameLogic.selectNode(gameState.getGameMode().nextUnit.node)
+#		if(gameState.getGameMode().nextUnit != None and gameState.getGameMode().nextUnit.isControlled()):
+#			gameLogic.selectNode(gameState.getGameMode().nextUnit.node)
 
 class startGatheringButton(clickableElement):
 	def __init__(self,xPos,yPos):
@@ -325,8 +325,8 @@ class startGatheringButton(clickableElement):
 		gameState.getClient().sendCommand("startMeditating",str(gameState.getGameMode().selectedNode.xPos) + " " + str(gameState.getGameMode().selectedNode.yPos))
 		if(gameState.getGameMode().selectedNode.unit == gameState.getGameMode().nextUnit):
 			gameState.getClient().sendCommand("chooseNextUnit")
-		elif(gameState.getGameMode().nextUnit != None and gameState.getGameMode().nextUnit.isControlled()):
-			gameLogic.selectNode(gameState.getGameMode().nextUnit.node)
+#		elif(gameState.getGameMode().nextUnit != None and gameState.getGameMode().nextUnit.isControlled()):
+#			gameLogic.selectNode(gameState.getGameMode().nextUnit.node)
 
 class cancelMovementButton(clickableElement):
 	def __init__(self,xPos,yPos):
@@ -335,8 +335,8 @@ class cancelMovementButton(clickableElement):
 		for pathNode in gameState.getGameMode().selectedNode.unit.movePath:
 			pathNode.onMovePath = False
 		gameState.getGameMode().selectedNode.unit.movePath = []
-		if(gameState.getGameMode().nextUnit != None and gameState.getGameMode().nextUnit.isControlled()):
-			gameLogic.selectNode(gameState.getGameMode().nextUnit.node)
+#		if(gameState.getGameMode().nextUnit != None and gameState.getGameMode().nextUnit.isControlled()):
+#			gameLogic.selectNode(gameState.getGameMode().nextUnit.node)
 
 class skipButton(clickableElement):
 	def __init__(self,xPos,yPos):
@@ -354,8 +354,8 @@ class startSummoningButton(clickableElement):
 		gameState.getClient().sendCommand("startMeditating",str(gameState.getGameMode().selectedNode.xPos) + " " + str(gameState.getGameMode().selectedNode.yPos))
 		if(gameState.getGameMode().selectedNode.unit == gameState.getGameMode().nextUnit):
 			gameState.getClient().sendCommand("chooseNextUnit")
-		elif(gameState.getGameMode().nextUnit != None and gameState.getGameMode().nextUnit.isControlled()):
-			gameLogic.selectNode(gameState.getGameMode().nextUnit.node)
+#		elif(gameState.getGameMode().nextUnit != None and gameState.getGameMode().nextUnit.isControlled()):
+#			gameLogic.selectNode(gameState.getGameMode().nextUnit.node)
 
 class summonButton(clickableElement):
        	def __init__(self,xPos,yPos,unitType):
@@ -365,8 +365,8 @@ class summonButton(clickableElement):
 		gameState.getClient().sendCommand("startSummoning",str(gameState.getGameMode().selectedNode.xPos) + " " + str(gameState.getGameMode().selectedNode.yPos) + " " + self.unitType.name)
 		if(gameState.getGameMode().selectedNode.unit == gameState.getGameMode().nextUnit):
 			gameState.getClient().sendCommand("chooseNextUnit")
-		elif(gameState.getGameMode().nextUnit != None and gameState.getGameMode().nextUnit.isControlled()):
-			gameLogic.selectNode(gameState.getGameMode().nextUnit.node)
+#		elif(gameState.getGameMode().nextUnit != None and gameState.getGameMode().nextUnit.isControlled()):
+#			gameLogic.selectNode(gameState.getGameMode().nextUnit.node)
 
 class researchButton(clickableElement):
 	def __init__(self,xPos,yPos,unitType):
@@ -376,8 +376,8 @@ class researchButton(clickableElement):
 		gameState.getClient().sendCommand("startResearch",str(gameState.getGameMode().selectedNode.xPos) + " " + str(gameState.getGameMode().selectedNode.yPos) + " " + self.unitType.name)
 		if(gameState.getGameMode().nextUnit == gameState.getGameMode().selectedNode.unit):
 			gameState.getClient().sendCommand("chooseNextUnit")
-		elif(gameState.getGameMode().nextUnit != None and gameState.getGameMode().nextUnit.isControlled()):
-			gameLogic.selectNode(gameState.getGameMode().nextUnit.node)
+#		elif(gameState.getGameMode().nextUnit != None and gameState.getGameMode().nextUnit.isControlled()):
+#			gameLogic.selectNode(gameState.getGameMode().nextUnit.node)
 
 class unitTypeViewer(uiElement):
 	theViewer = None

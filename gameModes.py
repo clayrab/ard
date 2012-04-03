@@ -196,7 +196,7 @@ class gameMode:
 		gameLogic.aStarSearch.parentPipe.send(["kill"])#this causes the thread to quit
 		gameLogic.aStarProcess.terminate()
 		gameLogic.aStarProcess.join()
-	def onDraw(self):
+	def onDraw(self,deltaTicks):
 		if(gameState.getClient() != None):
 			if(hasattr(gameState.getClient(),"checkSocket")):
 				gameState.getClient().checkSocket()
@@ -208,6 +208,7 @@ class tiledGameMode(gameMode):
 	def __init__(self,args=[]):
 		self.mousedOverObject = None
 		self.clickScroll = False
+		self.scrolledDistance = 0.0
 		gameMode.__init__(self)
 		self.focusNextUnit = 0
 		self.focusNextUnitTemp = 0
@@ -220,8 +221,8 @@ class tiledGameMode(gameMode):
 		self.focusNextUnit = 0
 		if(hasattr(self,"nextUnit") and self.nextUnit != None and len(self.nextUnit.movePath) > 0 and self.nextUnit.isControlled()):
 			self.nextUnit.move()
-		elif(hasattr(self,"nextUnit") and self.nextUnit != None and self.nextUnit.isControlled()):
-			gameLogic.selectNode(self.nextUnit.node)
+#		elif(hasattr(self,"nextUnit") and self.nextUnit != None and self.nextUnit.isControlled()):
+#			gameLogic.selectNode(self.nextUnit.node)
 		elif(hasattr(gameState.getGameMode().mousedOverObject,"toggleCursor")):
 			gameState.getGameMode().mousedOverObject.toggleCursor()
 			
@@ -238,22 +239,18 @@ class tiledGameMode(gameMode):
 					self.selectedCityNode = None
 	def handleRightClickUp(self,name):
 		self.clickScroll = False
-	def handleScrollUp(self,name,deltaTicks):
+	def handleScrollUp(self,name):
 		if(self.modal == None):
 			if(name in self.elementsDict and hasattr(self.elementsDict[name],"onScrollUp")):
 				self.elementsDict[name].onScrollUp()
 			else:
-				self.map.translateZ = self.map.translateZ + gameLogic.ZOOM_SPEED*deltaTicks;
-				if(self.map.translateZ > (-10.0-cDefines.defines['minZoom'])):
-					self.map.translateZ = -10.0-cDefines.defines['minZoom']
-	def handleScrollDown(self,name,deltaTicks):
+				self.scrolledDistance = self.scrolledDistance + gameLogic.ZOOM_SPEED
+	def handleScrollDown(self,name):
 		if(self.modal == None):
 			if(name in self.elementsDict and hasattr(self.elementsDict[name],"onScrollDown")):
 				self.elementsDict[name].onScrollDown()
 			else:
-				self.map.translateZ = self.map.translateZ - gameLogic.ZOOM_SPEED*deltaTicks;
-				if(self.map.translateZ < (1.0-cDefines.defines['maxZoom'])):
-					self.map.translateZ = 1.0-cDefines.defines['maxZoom']
+				self.scrolledDistance = self.scrolledDistance - gameLogic.ZOOM_SPEED
 	def handleMouseOver(self,name,isLeftMouseDown):
 		if(self.modal != None):
 			if(self.elementsDict.has_key(name)):
@@ -298,7 +295,7 @@ class playMode(tiledGameMode):
 		self.focusXPos = 0.0
 		self.focusYPos = 0.0
 		self.chooseNextDelayed = False
-		self.backgroundImageIndex = texIndex("CREATE_GAME_BACKGROUND")
+		#self.backgroundImageIndex = texIndex("CREATE_GAME_BACKGROUND")
 		self.ticks = 0#set in main.c
 		self.previousTicks = 0
 		self.timeToMove = 60000
@@ -403,14 +400,15 @@ class playMode(tiledGameMode):
 			self.nextUnit = None
 		else:
 			self.nextUnit = random.choice(eligibleUnits)
-			if(self.nextUnit.isControlled()):
+#			if(self.nextUnit.isControlled()):
 #				gameLogic.selectNode(self.nextUnit.node)
-				self.focusXPos = self.nextUnit.node.xPos
-				self.focusYPos = self.nextUnit.node.yPos
-			elif(self.firstTurn):
+#				self.focusXPos = self.nextUnit.node.xPos
+#				self.focusYPos = self.nextUnit.node.yPos
+#			elif(self.firstTurn):
+			if(self.firstTurn):
 				for unit in self.units:
 					if(unit.unitType.name == "summoner" and unit.isControlled()):
-#						gameLogic.selectNode(unit.node)
+						gameLogic.selectNode(unit.node)
 						self.focusXPos = unit.node.xPos
 						self.focusYPos = unit.node.yPos
 						break
@@ -460,6 +458,8 @@ class playMode(tiledGameMode):
 		if(keycode == "space"):
 			if(self.nextUnit != None):
 				gameLogic.selectNode(self.nextUnit.node)
+				self.focusXPos = self.nextUnit.node.xPos
+				self.focusYPos = self.nextUnit.node.yPos
 				self.focusNextUnit = 1
 		else:
 			if(hasattr(self.mousedOverObject,"onKeyDown")):
@@ -483,10 +483,18 @@ class playMode(tiledGameMode):
 			else:
 				number = 1
 		return number
-	def onDraw(self):
+	def onDraw(self,deltaTicks):
 #		with gameLogic.aStarSearch.searchCompleteLock:
 #		print 'astarseach:' + str(gameLogic.aStarSearch)
 #		print gameLogic.aStarSearch.map
+		if(self.scrolledDistance != 0.0):
+			self.map.translateZ = self.map.translateZ + self.scrolledDistance*deltaTicks
+			if(self.map.translateZ < (1.0-cDefines.defines['maxZoom'])):
+				self.map.translateZ = 1.0-cDefines.defines['maxZoom']
+			if(self.map.translateZ > (-10.0-cDefines.defines['minZoom'])):
+				self.map.translateZ = -10.0-cDefines.defines['minZoom']
+		self.scrolledDistance = 0.0
+		
 		if(gameLogic.aStarSearch.searchComplete):
 			with gameLogic.aStarSearch.aStarLock:
 				gameLogic.playModeNode.movePath = []
@@ -514,7 +522,7 @@ class playMode(tiledGameMode):
 			self.timeToMove = self.timeToMove - (self.ticks - self.previousTicks)
 			self.timeToMoveElem.text = str(self.timeToMove)
 		self.previousTicks = self.ticks		
-		gameMode.onDraw(self)
+		gameMode.onDraw(self,deltaTicks)
 
 	def addUIElements(self):
 		if(gameState.getClient() == None):#single player game
