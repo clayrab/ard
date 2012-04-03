@@ -70,7 +70,7 @@ class Commands:
         gameState.getGameMode().modal.destroy()
     @staticmethod    
     def testConnectFail(args):
-        uiElements.smallModal("host test failed.\n See http://naqala.com/ard/hosting for details")
+        uiElements.smallModal("Host test failed. Try again in 30 seconds or visit http://naqala.com/ard/hosting for details")
     @staticmethod
     def showChat(args):
         gameState.getGameMode().chatDisplay.addText(args)

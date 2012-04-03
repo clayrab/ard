@@ -8,6 +8,7 @@ import cDefines
 import shutil
 import client
 import server
+import socket
 from textureFunctions import texWidth, texHeight, texIndex
 from Queue import Queue
 #print pubKey.decrypt(cipher)
@@ -1041,9 +1042,16 @@ class da4v4Button(gameTypeButton):
 class createRoomButton(clickableElement):
 	def __init__(self,xPos,yPos):
 		clickableElement.__init__(self,xPos,yPos,width=texWidth("CREATE_GAME_BUTTON"),height=texHeight("CREATE_GAME_BUTTON"),textureIndex=texIndex("CREATE_GAME_BUTTON"))
-	def onClick(self):				
-		server.startServer('')
-		client.startClient('127.0.0.1')
+	def onClick(self):
+		try:
+			server.startServer('')
+			client.startClient('127.0.0.1')
+		except socket.error:
+#			gameState.setGameMode(gameModes.gameFindMode,"lobby")
+#			gameState.getGameFindClient().sendCommand("subscribe","lobby")
+			
+			socketErrorModal()
+			return
 		teamSize = 0
 		for button in gameTypeButton.buttons:
 			if(button.selected):
@@ -1350,6 +1358,18 @@ class loseModal(smallModal):
 		smallModal.__init__(self,"You lose",dismissable=False)
 		winLoseModalButton(self)
 
+class socketErrorModalButton(clickableElement,modal):
+	def __init__(self,modal):
+		clickableElement.__init__(self,texWidth("OK_BUTTON")/-2.0,0.0,textXPos=0.08,textYPos=-0.08,textureIndex=texIndex("OK_BUTTON"),width=texWidth("OK_BUTTON"),height=texHeight("OK_BUTTON"))
+		self.modal = modal
+	def onClick(self):
+		gameState.getGameFindClient().sendCommand("subscribe","lobby")
+
+class socketErrorModal(smallModal):
+	def __init__(self):
+		smallModal.__init__(self,"Cannot create server. The socket may be in use. Try again in 30 seconds.",dismissable=False)
+		socketErrorModalButton(self)
+
 class createMapButton(clickableElement):
 	def __init__(self,xPos,yPos,gameMode,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",selected=False):
 		clickableElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=menuButton.normalTextColor,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],mouseOverColor="66 66 66",textSize=0.0013,fontIndex=1)
@@ -1409,8 +1429,12 @@ class createGameButtun(clickableElement):
 	def __init__(self,xPos,yPos):
 		clickableElement.__init__(self,xPos,yPos,textureIndex=texIndex("CREATE_GAME_BUTTON_LARGE"),width=texWidth("CREATE_GAME_BUTTON_LARGE"),height=texHeight("CREATE_GAME_BUTTON_LARGE"))
 	def onClick(self):
-		server.startServer('',6666)
-		client.startClient('127.0.0.1',6666)
+		try:
+			server.startServer('',6666)
+			client.startClient('127.0.0.1',6666)
+		except socket.error:
+			gameState.setGameMode(gameModes.newGameScreenMode)
+			smallModal("Cannot create server. The socket may be in use, try again in 30 seconds.")
 		gameState.setGameMode(gameModes.joinLANGameMode)
 		gameState.getGameMode().setMap(gameState.getMapName())
 

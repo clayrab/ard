@@ -1266,16 +1266,16 @@ void calculateTranslation(){
   //  convertWindowCoordsToViewportCoords(mouseX,mouseY,translateZ,&mouseMapPosXNew,&mouseMapPosYNew,&mouseMapPosZNew);
   mapRightOffset = translateTilesXToPositionX(mapWidth+1,0);
   mapTopOffset = translateTilesYToPositionY(mapHeight);
-  //  printf("screen topright %f,%f\n",convertedTopRightX,convertedTopRightY);
+  //printf("screen topright %f,%f\n",convertedTopRightX,convertedTopRightY);
   //printf("screen bottomleft %f,%f\n",convertedBottomLeftX,convertedBottomLeftY);
-  //  printf("translate %f,%f,%f\n",translateX,translateY,translateZ);
+  //printf("translate %f,%f,%f\n",translateX,translateY,translateZ);
   //printf("offsets: %f %f\n",mapRightOffset,mapTopOffset);
   //printf("%f\n",translateTilesYToPositionY(mapHeight));//setting translateY to this number will focus on it
   //printf("mouse %d:%f\t%d:%f\n",mouseX,mouseMapPosX,mouseY,mouseMapPosY);
   
-   if(clickScroll > 0 && !isFocusing){
-     translateX = translateX + mouseMapPosX - mouseMapPosXPrevious;
-     translateY = translateY + mouseMapPosY - mouseMapPosYPrevious;
+  if(clickScroll > 0 && !isFocusing){
+    translateX = translateX + mouseMapPosX - mouseMapPosXPrevious;
+    translateY = translateY + mouseMapPosY - mouseMapPosYPrevious;
   }else{
 
      if(moveRight > 0){// && translateX > -10.0){
