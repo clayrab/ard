@@ -25,7 +25,7 @@ STARTING_BLUE_WOOD = 0.0
 INITIATIVE_ACTION_DEPLETION = 100.0
 RESOURCE_COLLECTION_RATE = 0.15
 #at RESOURCE_COLLECTION_RATE = 0.15 one gatherer will gather 15 green wood per 100 'ticks'(i.e. the build time of a gatherer)
-ZOOM_SPEED = 0.2 
+ZOOM_SPEED = 0.15 
 #MOUNTAIN_ATTACK_BONUS_MULTIPLIER = 1.0
 FIRE_SPEED = 10
 FIRE_POWER = 3
@@ -787,8 +787,6 @@ class mapp:
 		self.nodeType = nodeType
 		self.translateZ = translateZ
 		self.load()
-	def setTranslateZ(self,transZ):
-		self.translateZ = transZ
 	def getWidth(self):
 		return len(self.nodes[0])
 	def getHeight(self):

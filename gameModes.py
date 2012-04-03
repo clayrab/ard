@@ -120,6 +120,7 @@ class gameMode:
 		self.mouseX = 0
 		self.mouseY = 0
 		self.scrolledDistance = 0.0
+		self.maxTranslateZ = 0.0-cDefines.defines["maxZoom"]
 		uiElements.viewer.theViewer = None
 	def handleMouseMovement(self,name,mouseX,mouseY):
 		self.mouseX = mouseX
@@ -129,7 +130,6 @@ class gameMode:
 				self.elementsDict[name].onMouseMovement()
 			elif(hasattr(self.elementWithFocus,"onMouseMovement")):
 				self.elementWithFocus.onMouseMovement()
-
 	def setFocus(self,elem):
 		if(self.elementWithFocus != None):
 			self.elementWithFocus.focused = False
@@ -197,6 +197,12 @@ class gameMode:
 		gameLogic.aStarSearch.parentPipe.send(["kill"])#this causes the thread to quit
 		gameLogic.aStarProcess.terminate()
 		gameLogic.aStarProcess.join()
+	def setMaxTranslateZ(self,transZ):
+		print 'setmax:'+str(transZ)
+		print 'max:'+str(self.maxTranslateZ)
+		if(transZ > self.maxTranslateZ):
+			self.maxTranslateZ = transZ
+		self.map.translateZ = transZ
 	def onDraw(self,deltaTicks):
 		if(self.scrolledDistance != 0.0):
 			self.map.translateZ = self.map.translateZ + self.scrolledDistance*deltaTicks
@@ -204,8 +210,9 @@ class gameMode:
 				self.map.translateZ = 1.0-cDefines.defines['maxZoom']
 			if(self.map.translateZ > (-10.0-cDefines.defines['minZoom'])):
 				self.map.translateZ = -10.0-cDefines.defines['minZoom']
+			if(self.map.translateZ < self.maxTranslateZ):
+				self.map.translateZ = self.maxTranslateZ
 		self.scrolledDistance = 0.0
-
 		if(gameState.getClient() != None):
 			if(hasattr(gameState.getClient(),"checkSocket")):
 				gameState.getClient().checkSocket()
@@ -838,6 +845,7 @@ class joinGameMode(tiledGameMode):
 			if(elem.text == playerName):
 				previousElem = elem
 	def setMap(self,mapName):
+		self.maxTranslateZ = 0.0-cDefines.defines["maxZoom"]
 		gameState.setMapName(mapName)
 		self.map = gameLogic.mapp(gameLogic.mapViewNode,-50.0)
 		self.mapNameElem.text = mapName
@@ -875,7 +883,11 @@ class createGameMode(tiledGameMode):
 		self.selectedNode = None
 	def setMap(self,mapName):
 		gameState.setMapName(mapName)
-		self.map = gameLogic.mapp(gameLogic.mapViewNode,-50.0)
+		if(self.map != None):
+			self.map = gameLogic.mapp(gameLogic.mapViewNode,self.map.translateZ)
+		else:
+			self.map = gameLogic.mapp(gameLogic.mapViewNode,-50.0)			
+		self.maxTranslateZ = 0.0-cDefines.defines["maxZoom"]
 		if(self.mapSelector != None):
 			self.mapSelector.destroy()
 		self.mapNameField.text = mapName

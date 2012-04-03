@@ -1211,7 +1211,7 @@ void calculateTranslation(){
      && translateY > convertedBottomLeftY+2.0
      && translateZ < translateZPrev){
     translateZ = translateZPrev;
-    pyObj = PyObject_CallMethod(theMap,"setTranslateZ","f",translateZ);//New reference
+    pyObj = PyObject_CallMethod(gameMode,"setMaxTranslateZ","f",translateZ);//New reference
     Py_DECREF(pyObj);
   }
   glTranslatef(translateX,translateY,translateZ);
@@ -1252,7 +1252,7 @@ void calculateTranslation(){
     convertWindowCoordsToViewportCoords(100.0*SCREEN_WIDTH/SCREEN_BASE_WIDTH,SCREEN_HEIGHT,translateZ,&convertedBottomLeftX,&convertedBottomLeftY,&convertedBottomLeftZ);
     convertWindowCoordsToViewportCoords(1535.5*SCREEN_WIDTH/SCREEN_BASE_WIDTH,0.0,translateZ,&convertedTopRightX,&convertedTopRightY,&convertedTopRightZ);
   }else{
-    convertWindowCoordsToViewportCoords(UI_MAP_EDITOR_LEFT_IMAGE_WIDTH,SCREEN_HEIGHT,translateZ,&convertedBottomLeftX,&convertedBottomLeftY,&convertedBottomLeftZ);
+    convertWindowCoordsToViewportCoords(390.0*SCREEN_WIDTH/SCREEN_BASE_WIDTH,SCREEN_HEIGHT,translateZ,&convertedBottomLeftX,&convertedBottomLeftY,&convertedBottomLeftZ);
     convertWindowCoordsToViewportCoords(SCREEN_WIDTH,0.0,translateZ,&convertedTopRightX,&convertedTopRightY,&convertedTopRightZ);
   }
   mouseMapPosXPrevious = mouseMapPosX;
@@ -1277,7 +1277,6 @@ void calculateTranslation(){
     translateX = translateX + mouseMapPosX - mouseMapPosXPrevious;
     translateY = translateY + mouseMapPosY - mouseMapPosYPrevious;
   }else{
-
      if(moveRight > 0){// && translateX > -10.0){
 	translateX -= scrollSpeed*deltaTicks;
       }
