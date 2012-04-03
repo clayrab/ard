@@ -1210,7 +1210,6 @@ void calculateTranslation(){
      && translateY < convertedTopRightY - mapTopOffset
      && translateY > convertedBottomLeftY+2.0
      && translateZ < translateZPrev){
-    //    printf("frame %d\n", frameNumber);
     translateZ = translateZPrev;
     pyObj = PyObject_CallMethod(theMap,"setTranslateZ","f",translateZ);//New reference
     Py_DECREF(pyObj);
@@ -1247,8 +1246,8 @@ void calculateTranslation(){
     printf("mapdepth not found%d\n",1);
   }
   if(PyObject_HasAttrString(gameMode,"joinGameMode")){
-    convertWindowCoordsToViewportCoords(60.0*SCREEN_WIDTH/SCREEN_BASE_WIDTH,SCREEN_HEIGHT-(258.0*SCREEN_HEIGHT/SCREEN_BASE_HEIGHT),translateZ,&convertedBottomLeftX,&convertedBottomLeftY,&convertedBottomLeftZ);
-    convertWindowCoordsToViewportCoords(1051.5*SCREEN_WIDTH/SCREEN_BASE_WIDTH,SCREEN_HEIGHT-(1082.0*SCREEN_HEIGHT/SCREEN_BASE_HEIGHT),translateZ,&convertedTopRightX,&convertedTopRightY,&convertedTopRightZ);
+    convertWindowCoordsToViewportCoords(60.0*SCREEN_WIDTH/SCREEN_BASE_WIDTH,SCREEN_HEIGHT,translateZ,&convertedBottomLeftX,&convertedBottomLeftY,&convertedBottomLeftZ);
+    convertWindowCoordsToViewportCoords(1551.5*SCREEN_WIDTH/SCREEN_BASE_WIDTH,0.0,translateZ,&convertedTopRightX,&convertedTopRightY,&convertedTopRightZ);
   }else if(PyObject_HasAttrString(gameMode,"createGameMode")){
     convertWindowCoordsToViewportCoords(100.0*SCREEN_WIDTH/SCREEN_BASE_WIDTH,SCREEN_HEIGHT,translateZ,&convertedBottomLeftX,&convertedBottomLeftY,&convertedBottomLeftZ);
     convertWindowCoordsToViewportCoords(1535.5*SCREEN_WIDTH/SCREEN_BASE_WIDTH,0.0,translateZ,&convertedTopRightX,&convertedTopRightY,&convertedTopRightZ);
@@ -1256,7 +1255,6 @@ void calculateTranslation(){
     convertWindowCoordsToViewportCoords(UI_MAP_EDITOR_LEFT_IMAGE_WIDTH,SCREEN_HEIGHT,translateZ,&convertedBottomLeftX,&convertedBottomLeftY,&convertedBottomLeftZ);
     convertWindowCoordsToViewportCoords(SCREEN_WIDTH,0.0,translateZ,&convertedTopRightX,&convertedTopRightY,&convertedTopRightZ);
   }
-
   mouseMapPosXPrevious = mouseMapPosX;
   mouseMapPosYPrevious = mouseMapPosY;
   convertWindowCoordsToViewportCoords(mouseX,mouseY,translateZ,&mouseMapPosX,&mouseMapPosY,&mouseMapPosZ);  
@@ -1264,7 +1262,7 @@ void calculateTranslation(){
     translateX = translateX + mouseMapPosX - mouseMapPosXPrevious;
     translateY = translateY + mouseMapPosY - mouseMapPosYPrevious;
   }
-
+  translateZPrev = translateZ;
   //  convertWindowCoordsToViewportCoords(mouseX,mouseY,translateZ,&mouseMapPosXNew,&mouseMapPosYNew,&mouseMapPosZNew);
   mapRightOffset = translateTilesXToPositionX(mapWidth+1,0);
   mapTopOffset = translateTilesYToPositionY(mapHeight);
@@ -1280,7 +1278,7 @@ void calculateTranslation(){
      translateY = translateY + mouseMapPosY - mouseMapPosYPrevious;
   }else{
 
-     /*      if(moveRight > 0){// && translateX > -10.0){
+     if(moveRight > 0){// && translateX > -10.0){
 	translateX -= scrollSpeed*deltaTicks;
       }
       if(moveRight < 0){// && translateX < 10.0){
@@ -1291,7 +1289,7 @@ void calculateTranslation(){
       }
       if(moveUp < 0){// && translateY < 10.0){
 	translateY += scrollSpeed*deltaTicks;
-	}*/
+	}
   }
    if(isFocusing){
     //printf("%f %f %f %f\n",translateXPrev,translateX,translateYPrev,translateY);
@@ -1319,7 +1317,6 @@ void calculateTranslation(){
       //prevents shaking issue that occurs when the map is slightly larger than viewable area
       translateX = (convertedTopRightX + mapRightOffset + convertedBottomLeftX + (2.0*SIN60))/2.0;
     }
-
   }else if(translateX - (2.0*SIN60) > convertedBottomLeftX){
     translateX = convertedBottomLeftX + (2.0*SIN60);
     if(translateX - mapRightOffset < convertedTopRightX){
@@ -1340,25 +1337,10 @@ void calculateTranslation(){
       translateY = (convertedTopRightY-mapTopOffset+convertedBottomLeftY+2.0)/2.0;
     }
    }
-/*else{
-  //    translateZ = translateZPrev;
-    if(abs(100.0*(translateZ - translateZPrev)) > 0){
-    translateZ = translateZPrev + ((translateZ - translateZPrev)/zoomSpeed);
-        translateZPrev = translateZ;
-          if(PyObject_HasAttrString(theMap,"setTranslateZ")){
-	pyObj = PyObject_CallMethod(theMap,"setTranslateZ","f",translateZ);//New reference
-	Py_DECREF(pyObj);
-	}
-      }
-        }
-   */
-  //glTranslatef(translateX,translateY,mouseMapPosZ);
   if(theMap != Py_None && theMap != NULL){
     Py_DECREF(pyMapWidth);
     Py_DECREF(pyMapHeight);
   }
-  translateZPrev = translateZ;
-
 }
 
 drawBoard(){
@@ -1975,18 +1957,18 @@ static void handleInput(){
       }
       printPyStackTrace();
       if(mouseX == 0){
-	//moveRight = -1;
+	moveRight = -1;
       }else if(mouseX >= SCREEN_WIDTH-1){
-	//moveRight = 1;
+	moveRight = 1;
       }else{
-	//moveRight = 0;
+	moveRight = 0;
       }
       if(mouseY == 0){
-	//moveUp = 1;
+	moveUp = 1;
       }else if(mouseY >= SCREEN_HEIGHT-1){
-	//moveUp = -1;
+	moveUp = -1;
       }else{
-	//moveUp = 0;
+	moveUp = 0;
       }
       break;
     case SDL_MOUSEBUTTONDOWN:
