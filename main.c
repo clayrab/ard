@@ -567,6 +567,21 @@ static void printPyStackTrace(){
 #define CONNECT_BUTTON_WIDTH 303
 #define CONNECT_BUTTON_INDEX 112
 
+#define CHECK_MARK "assets/checkMark.png"
+#define CHECK_MARK_HEIGHT 23
+#define CHECK_MARK_WIDTH 26
+#define CHECK_MARK_INDEX 113
+
+#define CHECK_MARK_CHECKED "assets/checkMarkChecked.png"
+#define CHECK_MARK_CHECKED_HEIGHT 23
+#define CHECK_MARK_CHECKED_WIDTH 26
+#define CHECK_MARK_CHECKED_INDEX 114
+
+#define CHECKBOXES_BACKGROUND "assets/checkBoxesBackground.png"
+#define CHECKBOXES_BACKGROUND_HEIGHT 34
+#define CHECKBOXES_BACKGROUND_WIDTH 222
+#define CHECKBOXES_BACKGROUND_INDEX 115
+
 #define DESERT_TILE_INDEX 0
 #define GRASS_TILE_INDEX 1
 #define MOUNTAIN_TILE_INDEX 2
@@ -592,7 +607,7 @@ float screenRatio;
 static SDL_Surface *gScreen;
 
 int clickScroll = 0;
-long focusNextUnit = 0;
+long doFocus = 0;
 double focusXPos, focusYPos;
 PyObject * pyFocusXPos;
 PyObject * pyFocusYPos;
@@ -837,7 +852,6 @@ void convertWindowCoordsToViewportCoords(int x, int y, float z, GLdouble* posX, 
   glGetIntegerv(GL_VIEWPORT,viewport);//returns four values: the x and y window coordinates of the viewport, followed by its width and height.
   winX = (float)x;
   winY = SCREEN_HEIGHT - (float)y;
-  //winY = 0.0-(float)y;
   gluUnProject( winX, winY, mapDepth, modelview, projection, viewport, posX, posY, posZ);
 }
 /**************************** /mouse hover object selection ********************************/
@@ -1111,8 +1125,8 @@ void drawTiles(){
     Py_DECREF(pyFocusXPos);
     Py_DECREF(pyFocusYPos);
   }
-  mapIterator = PyObject_CallMethod(theMap,"getIterator",NULL);//New reference
-  pyPolarity = PyObject_GetAttrString(theMap,"polarity");//New reference
+  mapIterator = PyObject_CallMethod(theMap,"getIterator",NULL);
+  pyPolarity = PyObject_GetAttrString(theMap,"polarity");
   mapPolarity = PyLong_AsLong(pyPolarity);
   rowIterator = PyObject_GetIter(mapIterator);
   while (row = PyIter_Next(rowIterator)) {
@@ -1120,10 +1134,10 @@ void drawTiles(){
     rowNumber = rowNumber + 1;
     nodeIterator = PyObject_GetIter(row);
     while(node = PyIter_Next(nodeIterator)) {
-      nodeName = PyObject_GetAttrString(node,"name");//New reference
-      nodeValue = PyObject_CallMethod(node,"getValue",NULL);//New reference
-      roadValue = PyObject_GetAttrString(node,"roadValue");//New reference
-      pyCity = PyObject_GetAttrString(node,"city");//New reference
+      nodeName = PyObject_GetAttrString(node,"name");
+      nodeValue = PyObject_CallMethod(node,"getValue",NULL);
+      roadValue = PyObject_GetAttrString(node,"roadValue");
+      pyCity = PyObject_GetAttrString(node,"city");
       pyCursorIndex = PyObject_GetAttrString(node,"cursorIndex");//New reference
       pyPlayerStartValue = PyObject_GetAttrString(node,"playerStartValue");//New reference                                 
       pyUnit = PyObject_GetAttrString(node,"unit");
@@ -1276,19 +1290,19 @@ void calculateTranslation(){
   if(clickScroll > 0 && !isFocusing){
     translateX = translateX + mouseMapPosX - mouseMapPosXPrevious;
     translateY = translateY + mouseMapPosY - mouseMapPosYPrevious;
-  }else{
-     if(moveRight > 0){// && translateX > -10.0){
-	translateX -= scrollSpeed*deltaTicks;
-      }
-      if(moveRight < 0){// && translateX < 10.0){
-	translateX += scrollSpeed*deltaTicks;
-      }
-      if(moveUp > 0){// && translateY > -10.0){
-	  translateY -= scrollSpeed*deltaTicks;
-      }
-      if(moveUp < 0){// && translateY < 10.0){
-	translateY += scrollSpeed*deltaTicks;
-	}
+  }else if(!isFocusing){
+    if(moveRight > 0){// && translateX > -10.0){
+      translateX -= scrollSpeed*deltaTicks;
+    }
+    if(moveRight < 0){// && translateX < 10.0){
+      translateX += scrollSpeed*deltaTicks;
+    }
+    if(moveUp > 0){// && translateY > -10.0){
+      translateY -= scrollSpeed*deltaTicks;
+    }
+    if(moveUp < 0){// && translateY < 10.0){
+      translateY += scrollSpeed*deltaTicks;
+    }
   }
    if(isFocusing){
     //printf("%f %f %f %f\n",translateXPrev,translateX,translateYPrev,translateY);
@@ -1804,6 +1818,9 @@ static void initGL (){
   pngLoad(&texturesArray[DRAGON_OVERLAY_INDEX],DRAGON_OVERLAY);
   pngLoad(&texturesArray[GATHERER_OVERLAY_INDEX],GATHERER_OVERLAY);
   pngLoad(&texturesArray[CONNECT_BUTTON_INDEX],CONNECT_BUTTON);
+  pngLoad(&texturesArray[CHECK_MARK_INDEX],CHECK_MARK);
+  pngLoad(&texturesArray[CHECK_MARK_CHECKED_INDEX],CHECK_MARK_CHECKED);
+  pngLoad(&texturesArray[CHECKBOXES_BACKGROUND_INDEX],CHECKBOXES_BACKGROUND);
 
   vertexArrays[DESERT_TILE_INDEX] = *desertVertices;
   vertexArrays[GRASS_TILE_INDEX] = *grassVertices;
@@ -1918,8 +1935,8 @@ static void handleInput(){
   }
   if(PyObject_HasAttrString(gameMode,"getFocusNextUnit")){
     pyFocusNextUnit = PyObject_CallMethod(gameMode,"getFocusNextUnit",NULL);
-    focusNextUnit = PyLong_AsLong(pyFocusNextUnit);
-    if(focusNextUnit){
+    doFocus = PyLong_AsLong(pyFocusNextUnit);
+    if(doFocus){
       isFocusing = 1;
     }
   }

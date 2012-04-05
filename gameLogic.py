@@ -197,7 +197,7 @@ class unit:
 		if(self.movePath[0].unit != None):#ran into unit
 			self.movePath = []
 			selectNode(self.node)
-			gameState.getGameMode().focusNextUnit = 1
+			gameState.getGameMode().doFocus = 1
 		else:
 			gameState.getClient().sendCommand("moveTo",str(self.movePath[0].xPos) + " " + str(self.movePath[0].yPos))
 			self.movePath = self.movePath[1:]
@@ -220,6 +220,8 @@ class unit:
 		if(node.visible):
 			aStarSearch.parentPipe.send(["unitAdd",node.xPos,node.yPos])
 		self.node.unit = None
+		if(gameState.getGameMode().selectedNode == self.node):
+			selectNode(self.node)
 		self.node = node
 		node.unit = self
 		if(node.city != None):
@@ -473,7 +475,7 @@ class playModeNode(node):
 			if(len(self.viewingUnits) <= 0):
 				self.visible = False
 	def onLeftClickDown(self):
-		if(gameState.getGameMode().focusNextUnit == 0):
+		if(gameState.getGameMode().doFocus == 0):
 			if(playModeNode.mode == MODES.ATTACK_MODE):
 				gameState.getGameMode().nextUnit.attack(self)
 			elif(playModeNode.mode == MODES.HEAL_MODE):
@@ -500,7 +502,7 @@ class playModeNode(node):
 			for node in gameState.getGameMode().selectedNode.unit.movePath:
 				node.onMovePath = True
 
-		if(gameState.getGameMode().focusNextUnit == 1 or gameState.getGameMode().selectedNode == None or gameState.getGameMode().selectedNode == self or gameState.getGameMode().selectedNode.unit == None or gameState.getGameMode().selectedNode.unit.isMeditating or not gameState.getGameMode().selectedNode.unit.isControlled()):
+		if(gameState.getGameMode().doFocus == 1 or gameState.getGameMode().selectedNode == None or gameState.getGameMode().selectedNode == self or gameState.getGameMode().selectedNode.unit == None or gameState.getGameMode().selectedNode.unit.isMeditating or not gameState.getGameMode().selectedNode.unit.isControlled()):
 			self.cursorIndex = cDefines.defines['CURSOR_POINTER_INDEX']
 			playModeNode.mode = MODES.SELECT_MODE
 		else:

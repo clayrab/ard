@@ -11,7 +11,6 @@
 #report game state(to look for cheaters/bugs)
 
 #ISSUES
-#max move time(30 secs? 60 secs?)
 #proper quit and options menus
 #create email form/database table
 #teams
@@ -198,8 +197,6 @@ class gameMode:
 		gameLogic.aStarProcess.terminate()
 		gameLogic.aStarProcess.join()
 	def setMaxTranslateZ(self,transZ):
-		print 'setmax:'+str(transZ)
-		print 'max:'+str(self.maxTranslateZ)
 		if(transZ > self.maxTranslateZ):
 			self.maxTranslateZ = transZ
 		self.map.translateZ = transZ
@@ -225,18 +222,18 @@ class tiledGameMode(gameMode):
 		self.mousedOverObject = None
 		self.clickScroll = False
 		gameMode.__init__(self)
-		self.focusNextUnit = 0
-		self.focusNextUnitTemp = 0
+		self.doFocus = 0
+		self.doFocusTemp = 0
 	def getFocusNextUnit(self):
-		return self.focusNextUnit
-#		self.focusNextUnitTemp = self.focusNextUnit
-#		self.focusNextUnit = 0
-#		return self.focusNextUnitTemp
+		return self.doFocus
+#		self.doFocusTemp = self.doFocus
+#		self.doFocus = 0
+#		return self.doFocusTemp
 	def onDoneFocusing(self):
-		self.focusNextUnit = 0
+		self.doFocus = 0
 		if(hasattr(self,"nextUnit") and self.nextUnit != None and len(self.nextUnit.movePath) > 0 and self.nextUnit.isControlled()):
 			self.nextUnit.move()
-#		elif(hasattr(self,"nextUnit") and self.nextUnit != None and self.nextUnit.isControlled()):
+#		elif(hasattr(self,"nextUnit") and hasattr(self,"autoSelect") and self.nextUnit != None and self.nextUnit.isControlled() and self.autoSelect):
 #			gameLogic.selectNode(self.nextUnit.node)
 		elif(hasattr(gameState.getGameMode().mousedOverObject,"toggleCursor")):
 			gameState.getGameMode().mousedOverObject.toggleCursor()
@@ -315,6 +312,7 @@ class playMode(tiledGameMode):
 		self.previousTicks = 0
 		self.timeToMove = 60000
 		self.firstTurn = True
+		self.autoSelect = False
 	def getChooseNextDelayed(self):
 		if(self.chooseNextDelayed):
 			retVal = self.chooseNextDelayed
@@ -415,25 +413,38 @@ class playMode(tiledGameMode):
 			self.nextUnit = None
 		else:
 			self.nextUnit = random.choice(eligibleUnits)
-#			if(self.nextUnit.isControlled()):
-#				gameLogic.selectNode(self.nextUnit.node)
-#				self.focusXPos = self.nextUnit.node.xPos
-#				self.focusYPos = self.nextUnit.node.yPos
-#			elif(self.firstTurn):
 			if(self.firstTurn):
-				for unit in self.units:
-					if(unit.unitType.name == "summoner" and unit.isControlled()):
-						gameLogic.selectNode(unit.node)
-						self.focusXPos = unit.node.xPos
-						self.focusYPos = unit.node.yPos
-						break
+				if(self.nextUnit.isControlled()):
+					gameLogic.selectNode(self.nextUnit.node)
+					self.focusXPos = self.nextUnit.node.xPos
+					self.focusYPos = self.nextUnit.node.yPos
+					self.doFocus = 1
+				else:
+					for unit in self.units:
+						if(unit.unitType.name == "summoner" and unit.isControlled()):
+							gameLogic.selectNode(unit.node)
+							self.focusXPos = unit.node.xPos
+							self.focusYPos = unit.node.yPos
+							self.doFocus = 1
+							break
 				self.firstTurn = False
-			self.focusNextUnit = 1
+			else:
+				if(self.autoSelect and self.nextUnit.isControlled()):
+					gameLogic.selectNode(self.nextUnit.node)
+					self.focusXPos = self.nextUnit.node.xPos
+					self.focusYPos = self.nextUnit.node.yPos
+					self.doFocus = 1
+				elif(len(self.nextUnit.movePath) > 0 and self.nextUnit.isControlled()):
+					self.focusXPos = self.nextUnit.node.xPos
+					self.focusYPos = self.nextUnit.node.yPos
+					self.doFocus = 1				
 			if(hasattr(gameState.getGameMode().mousedOverObject,"toggleCursor")):
 				gameState.getGameMode().mousedOverObject.toggleCursor()
-		if(self.nextUnit != None and self.nextUnit.isOwnUnit()):
+		if(self.nextUnit != None and self.nextUnit.isControlled()):
 			self.waitingElem.hidden = True
 			self.timeToMove = self.timeToMove + 5000
+			if(self.timeToMove > 60000):
+				self.timeToMove = 60000
 		else:
 			self.waitingElem.hidden = False
 		if(gameState.getGameMode().selectedNode != None and uiElements.viewer.theViewer != None):
@@ -475,7 +486,7 @@ class playMode(tiledGameMode):
 				gameLogic.selectNode(self.nextUnit.node)
 				self.focusXPos = self.nextUnit.node.xPos
 				self.focusYPos = self.nextUnit.node.yPos
-				self.focusNextUnit = 1
+				self.doFocus = 1
 		else:
 			if(hasattr(self.mousedOverObject,"onKeyDown")):
 				self.mousedOverObject.onKeyDown(keycode)
@@ -520,15 +531,15 @@ class playMode(tiledGameMode):
 				node = gameState.getGameMode().map.nodes[arr[1]][arr[0]]
 				gameLogic.playModeNode.movePath.append(node)
 				node.onMovePath = True
-		if(self.timeToMove <= 0 and self.nextUnit != None and self.nextUnit.isOwnUnit()):
+		if(self.timeToMove <= 0 and self.nextUnit != None and self.nextUnit.isControlled()):
 			gameState.getClient().sendCommand("skip")
 			gameState.getClient().sendCommand("chooseNextUnit")
 			self.nextUnit = None
 		self.greenWoodUIElem.text = str(int(math.floor(self.players[self.getPlayerNumber()-1].greenWood)))
 		self.blueWoodUIElem.text = str(int(math.floor(self.players[self.getPlayerNumber()-1].blueWood)))
-		if(self.previousTicks != 0 and self.nextUnit != None and self.nextUnit.isOwnUnit()):
+		if(self.previousTicks != 0 and self.nextUnit != None and self.nextUnit.isControlled()):
 			self.timeToMove = self.timeToMove - (self.ticks - self.previousTicks)
-			self.timeToMoveElem.text = str(self.timeToMove)
+		self.timeToMoveElem.text = "{0:.2f}".format(self.timeToMove/1000.0)
 		self.previousTicks = self.ticks		
 		gameMode.onDraw(self,deltaTicks)
 
@@ -542,10 +553,21 @@ class playMode(tiledGameMode):
 			gameState.addPlayer(1).isOwnPlayer = True
 			gameState.addPlayer(2).isOwnPlayer = True
 		self.players = gameState.getPlayers()
-		self.greenWoodUIElem = uiElements.uiElement(0.90,0.90,text=str(self.players[0].greenWood),textSize=0.0005)
-		self.blueWoodUIElem = uiElements.uiElement(0.90,0.87,text=str(self.players[0].blueWood),textSize=0.0005)
-		self.timeToMoveElem = uiElements.uiElement(0.90,0.93,text="",textSize=0.00055)
+
+		uiElements.uiElement(0.635,0.965,textureIndex=texIndex("TIME_ICON"),width=texWidth("TIME_ICON"),height=texHeight("TIME_ICON"))
+		self.timeToMoveElem = uiElements.uiElement(0.659,0.942,text="",textSize=0.00045)
+		uiElements.uiElement(0.755,0.965,textureIndex=texIndex("GREEN_WOOD_ICON"),width=texWidth("GREEN_WOOD_ICON"),height=texHeight("GREEN_WOOD_ICON"))
+		self.greenWoodUIElem = uiElements.uiElement(0.779,0.942,text=str(self.players[0].greenWood),textSize=0.00045)
+		uiElements.uiElement(0.875,0.965,textureIndex=texIndex("BLUE_WOOD_ICON"),width=texWidth("BLUE_WOOD_ICON"),height=texHeight("BLUE_WOOD_ICON"))
+		self.blueWoodUIElem = uiElements.uiElement(0.899,0.942,text=str(self.players[0].blueWood),textSize=0.00045)
+
 		self.waitingElem = uiElements.uiElement(-0.2,0.93,text="waiting for another player",textColor="ee ed 9b",textSize=0.00055,hidden=True)
+
+		uiElements.uiElement(0.718,-0.932,textureIndex=texIndex("CHECKBOXES_BACKGROUND"),width=texWidth("CHECKBOXES_BACKGROUND"),height=texHeight("CHECKBOXES_BACKGROUND"))
+		uiElements.autoSelectCheckBox(0.735,-0.94)
+#		uiElements.watchFriendlyMovesCheckBox(0.455,-0.94)
+#		uiElements.watchEnemyMovesCheckBox(0.675,-0.94)
+
 	def startGame(self):
 		self.loadSummoners()
 		for unit in self.units:
@@ -563,7 +585,7 @@ class mapEditorMode(tiledGameMode):
 		self.map = gameLogic.mapp(gameLogic.mapEditorNode)
 		self.focusXPos = int(len(self.map.nodes[0])/2)
 		self.focusYPos = int(len(self.map.nodes)/2)
-		self.focusNextUnit = 1
+		self.doFocus = 1
 	def keyDown(self,keycode):
 		try:
 			self.elementWithFocus.onKeyDown(keycode)
@@ -816,7 +838,6 @@ class joinGameMode(tiledGameMode):
 		self.backgroundImageIndex = texIndex("JOIN_GAME_BACKGROUND")
 		self.selectedNode = None
 		self.playerElements = []
-		self.isHost = False
 	def addPlayer(self,playerName):
 		for elem in self.playerElements:
 			if(elem.text == "empty"):
@@ -847,14 +868,12 @@ class joinGameMode(tiledGameMode):
 		self.mapNameElem.text = mapName
 		self.focusXPos = int(len(self.map.nodes[0])/2)
 		self.focusYPos = int(len(self.map.nodes)/2)
-		self.focusNextUnit = 1
+		self.doFocus = 1
 	def addUIElements(self):
 #		uiElements.uiElement(0.0,0.9,text=gameState.getMapName())
 		self.mapNameElem = uiElements.uiElement(0.0,0.9,text="")
 		uiElements.backButton(-0.930,0.9)
 		uiElements.uiElement(0.35,0.813,width=texWidth("JOIN_GAME_PLAYERS"),height=texHeight("JOIN_GAME_PLAYERS"),textureIndex=texIndex("JOIN_GAME_PLAYERS"))
-		if(self.isHost):
-			uiElements.startGameButton(0.795,0.504)
 		self.chatDisplay = uiElements.chatDisplay(0.35,0.4,textureName="JOIN_GAME_CHAT")
 		self.chatBox = uiElements.chatBox(0.35,-0.514,gameState.getClient(),textureName="JOIN_GAME_CHAT_BOX")
 		uiElements.sendChatButton(0.842,-0.595)
@@ -865,8 +884,9 @@ class joinGameMode(tiledGameMode):
 				client.startClient(self.hostIP,self.hostPort)
 			except socket.error:
 				uiElements.lanConnectErrorModal()
+				return
 		else:
-			self.isHost = True
+			uiElements.startGameButton(0.795,0.504)
 
 class joinLANGameMode(joinGameMode):
 	def __init__(self,args):
@@ -902,7 +922,7 @@ class createGameMode(tiledGameMode):
 		gameState.getGameMode().mapSelector.redraw()
 		self.focusXPos = int(len(self.map.nodes[0])/2)
 		self.focusYPos = int(len(self.map.nodes)/2)
-		self.focusNextUnit = 1
+		self.doFocus = 1
 	def addUIElements(self):
 		self.mapNameField = uiElements.uiElement(-1.0+texWidth("CREATE_GAME_BACKGROUND_LEFT"),0.85,fontIndex=3,textColor="ee ed 9b")
 		self.roomNameField = uiElements.textInputElement(0.31,-0.616)

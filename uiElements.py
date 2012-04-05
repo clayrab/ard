@@ -1469,3 +1469,48 @@ class startGameButton(clickableElement):
 	def onClick(self):
 		for player in gameState.getNetworkPlayers():
 			player.dispatchCommand("startGame -1")
+
+class autoSelectCheckBox(clickableElement):
+	def __init__(self,xPos,yPos):
+		self.textureName = "CHECK_MARK"
+		if(gameState.getGameMode().autoSelect):
+			self.textureName = "CHECK_MARK_CHECKED"
+		clickableElement.__init__(self,xPos,yPos,textureIndex=texIndex(self.textureName),width=texWidth(self.textureName),height=texHeight(self.textureName))
+		uiElement(self.xPosition+0.03,self.yPosition-0.034,text="auto-select units",textSize=0.00045)
+	def onClick(self):
+		gameState.getGameMode().autoSelect = not gameState.getGameMode().autoSelect
+		if(gameState.getGameMode().autoSelect):
+			self.textureName = "CHECK_MARK_CHECKED"
+		else:
+			self.textureName = "CHECK_MARK"
+		self.textureIndex = texIndex(self.textureName)
+
+#class watchFriendlyMovesCheckBox(clickableElement):
+#	def __init__(self,xPos,yPos):
+#		self.textureName = "CHECK_MARK"
+#		if(gameState.getGameMode().watchFriendlyMoves):
+#			self.textureName = "CHECK_MARK_CHECKED"
+#		clickableElement.__init__(self,xPos,yPos,textureIndex=texIndex(self.textureName),width=texWidth(self.textureName),height=texHeight(self.textureName))
+#		uiElement(self.xPosition+0.03,self.yPosition-0.034,text="show moves",textSize=0.00045)
+#	def onClick(self):
+#		gameState.getGameMode().watchFriendlyMoves = not gameState.getGameMode().watchFriendlyMoves
+#		if(gameState.getGameMode().watchFriendlyMoves):
+#			self.textureName = "CHECK_MARK_CHECKED"
+#		else:
+#			self.textureName = "CHECK_MARK"
+#		self.textureIndex = texIndex(self.textureName)
+
+#class watchEnemyMovesCheckBox(clickableElement):
+#	def __init__(self,xPos,yPos):
+#		self.textureName = "CHECK_MARK"
+#		if(gameState.getGameMode().watchEnemyMoves):
+#			self.textureName = "CHECK_MARK_CHECKED"
+#		clickableElement.__init__(self,xPos,yPos,textureIndex=texIndex(self.textureName),width=texWidth(self.textureName),height=texHeight(self.textureName))
+#		uiElement(self.xPosition+0.03,self.yPosition-0.034,text="show enemy moves",textSize=0.00045)
+#	def onClick(self):
+#		gameState.getGameMode().watchEnemyMoves = not gameState.getGameMode().watchEnemyMoves
+#		if(gameState.getGameMode().watchEnemyMoves):
+#			self.textureName = "CHECK_MARK_CHECKED"
+#		else:
+#			self.textureName = "CHECK_MARK"
+#		self.textureIndex = texIndex(self.textureName)
