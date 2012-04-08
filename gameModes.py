@@ -11,7 +11,6 @@
 #report game state(to look for cheaters/bugs)
 
 #ISSUES
-#show levels
 #proper quit and options menus
 #create email form/database table
 #teams
