@@ -650,6 +650,7 @@ PyObject * pyUnitTextureOverlayIndex;
 PyObject * pyName;
 PyObject * pyHealth;
 PyObject * pyMaxHealth;
+PyObject * pyLevel;
 PyObject * pyPlayerNumber;
 PyObject * pyRecentDamage;
 PyObject * pyRecentDamageIter;
@@ -657,6 +658,7 @@ PyObject * pyDamageTime;
 int damageTime;
 PyObject * pyDamage;
 char * damageStr;
+char lvlStr[3];
 char * unitName;
 long playerNumber;
 long unitTextureIndex;
@@ -897,93 +899,104 @@ void drawFire(){
   
 }
 void drawUnit(){
-      pyUnitType = PyObject_GetAttrString(pyUnit,"unitType");
-      pyUnitTextureIndex = PyObject_GetAttrString(pyUnitType,"textureIndex");
-      pyUnitTextureOverlayIndex = PyObject_GetAttrString(pyUnitType,"overlayTextureIndex");
-      pyName = PyObject_GetAttrString(pyUnitType,"name");
-      unitName = PyString_AsString(pyName);
-      pyHealth = PyObject_GetAttrString(pyUnit,"health");
-      pyMaxHealth = PyObject_CallMethod(pyUnit,"getMaxHealth",NULL);
-      pyPlayerNumber = PyObject_GetAttrString(pyUnit,"player");
-      playerNumber = PyLong_AsLong(pyPlayerNumber);
-      unitTextureIndex = PyLong_AsLong(pyUnitTextureIndex);
-      unitTextureOverlayIndex = PyLong_AsLong(pyUnitTextureOverlayIndex);
-      healthBarLength = 1.5*PyFloat_AsDouble(pyHealth)/PyFloat_AsDouble(pyMaxHealth);
-      pyRecentDamage = PyObject_GetAttrString(pyUnit,"recentDamage");
-      pyRecentDamageIter = PyObject_GetIter(pyRecentDamage);
-      glColor3f(1.0,1.0,1.0);
-      if(isNextUnit == 1 && !isFocusing && isVisible){
-	glBindTexture(GL_TEXTURE_2D, texturesArray[SELECTION_BOX_INDEX]);
-	glCallList(selectionBoxList);
-      }
-      //else{
-	//glBindTexture(GL_TEXTURE_2D, texturesArray[UNIT_CIRCLE_RED_INDEX+playerNumber-1]);
-      //      }
-      glBindTexture(GL_TEXTURE_2D, texturesArray[unitTextureIndex]);
-      glCallList(unitList);
-      if(playerNumber == 1){
-	glColor3f(1.0,0.0,0.0);
-      }else{
-	glColor3f(0.0,0.0,1.0);
-      }
-      glBindTexture(GL_TEXTURE_2D, texturesArray[unitTextureOverlayIndex]);
-      glCallList(unitList);
+  pyUnitType = PyObject_GetAttrString(pyUnit,"unitType");
+  pyUnitTextureIndex = PyObject_GetAttrString(pyUnitType,"textureIndex");
+  pyUnitTextureOverlayIndex = PyObject_GetAttrString(pyUnitType,"overlayTextureIndex");
+  pyName = PyObject_GetAttrString(pyUnitType,"name");
+  unitName = PyString_AsString(pyName);
+  pyHealth = PyObject_GetAttrString(pyUnit,"health");
+  pyMaxHealth = PyObject_CallMethod(pyUnit,"getMaxHealth",NULL);
+  pyLevel = PyObject_GetAttrString(pyUnit,"level");
+  pyPlayerNumber = PyObject_GetAttrString(pyUnit,"player");
+  playerNumber = PyLong_AsLong(pyPlayerNumber);
+  unitTextureIndex = PyLong_AsLong(pyUnitTextureIndex);
+  unitTextureOverlayIndex = PyLong_AsLong(pyUnitTextureOverlayIndex);
+  healthBarLength = 1.5*PyFloat_AsDouble(pyHealth)/PyFloat_AsDouble(pyMaxHealth);
+  pyRecentDamage = PyObject_GetAttrString(pyUnit,"recentDamage");
+  pyRecentDamageIter = PyObject_GetIter(pyRecentDamage);
+  glColor3f(1.0,1.0,1.0);
+  if(isNextUnit == 1 && !isFocusing && isVisible){
+    glBindTexture(GL_TEXTURE_2D, texturesArray[SELECTION_BOX_INDEX]);
+    glCallList(selectionBoxList);
+  }
+  //else{
+  //glBindTexture(GL_TEXTURE_2D, texturesArray[UNIT_CIRCLE_RED_INDEX+playerNumber-1]);
+  //      }
+  glBindTexture(GL_TEXTURE_2D, texturesArray[unitTextureIndex]);
+  glCallList(unitList);
+  if(playerNumber == 1){
+    glColor3f(1.0,0.0,0.0);
+  }else{
+    glColor3f(0.0,0.0,1.0);
+  }
+  glBindTexture(GL_TEXTURE_2D, texturesArray[unitTextureOverlayIndex]);
+  glCallList(unitList);
+  glColor3f(1.0, 1.0, 1.0);
+  glBindTexture(GL_TEXTURE_2D, texturesArray[HEALTH_BAR_INDEX]);
+  glCallList(healthBarList);
+
+  glColor3f(1.0, 0.0, 0.0);
+  glBegin(GL_QUADS);
+  glTexCoord2f(0.0,0.0);
+  glVertex3f(-.75, 1.05, -0.001);
+  glTexCoord2f(1.0,0.0);
+  glVertex3f(-.75+healthBarLength, 1.05, -0.001);
+  glTexCoord2f(1.0,1.0);
+  glVertex3f(-.75+healthBarLength, 0.85, -0.001);
+  glTexCoord2f(0.0,1.0);
+  glVertex3f(-.75, 0.85, -0.001);
+  glEnd();
+  
+  glColor3f(1.0, 1.0, 1.0);
+  //printf("%ld",PyLong_AsLong(pyLevel));
+  glPushMatrix();
+  sprintf(lvlStr,"%ld",PyLong_AsLong(pyLevel));
+  glTranslatef(-0.5,-0.7,-0.0001);
+  glScalef(0.01,0.01,0.0);
+  drawText(lvlStr,0,-1,-9999.9,NULL);
+  glPopMatrix();
+
+  while (pyDamageTime = PyIter_Next(pyRecentDamageIter)) {
+    damageTime = PyLong_AsLong(pyDamageTime);
+    if(currentTick-damageTime<200){
+      glPushMatrix();
+      glBindTexture(GL_TEXTURE_2D, texturesArray[SLASH_ANIMATION_INDEX]);
       glColor3f(1.0, 1.0, 1.0);
-      glBindTexture(GL_TEXTURE_2D, texturesArray[HEALTH_BAR_INDEX]);
-      glCallList(healthBarList);
-
-      glColor3f(1.0, 0.0, 0.0);
-      glBegin(GL_QUADS);
-      glTexCoord2f(0.0,0.0);
-      glVertex3f(-.75, 1.05, -0.001);
-      glTexCoord2f(1.0,0.0);
-      glVertex3f(-.75+healthBarLength, 1.05, -0.001);
-      glTexCoord2f(1.0,1.0);
-      glVertex3f(-.75+healthBarLength, 0.85, -0.001);
-      glTexCoord2f(0.0,1.0);
-      glVertex3f(-.75, 0.85, -0.001);
-      glEnd();
-
-      while (pyDamageTime = PyIter_Next(pyRecentDamageIter)) {
-	damageTime = PyLong_AsLong(pyDamageTime);
-	if(currentTick-damageTime<200){
-	  glPushMatrix();
-	  glBindTexture(GL_TEXTURE_2D, texturesArray[SLASH_ANIMATION_INDEX]);
-	  glColor3f(1.0, 1.0, 1.0);
-	  float frameNumber = (((currentTick-damageTime)*SLASH_ANIMATION_FRAME_COUNT)/200)%SLASH_ANIMATION_FRAME_COUNT;
+      float frameNumber = (((currentTick-damageTime)*SLASH_ANIMATION_FRAME_COUNT)/200)%SLASH_ANIMATION_FRAME_COUNT;
 	  
-	  glBegin(GL_QUADS);	
-	  glTexCoord2f(1.0,(SLASH_ANIMATION_FRAME_COUNT-frameNumber-1)/SLASH_ANIMATION_FRAME_COUNT); glVertex3f(0.5,-0.5,0.0);
-	  glTexCoord2f(0.0,(SLASH_ANIMATION_FRAME_COUNT-frameNumber-1)/SLASH_ANIMATION_FRAME_COUNT); glVertex3f(-0.5,-0.5,0.0);
-	glTexCoord2f(0.0,(SLASH_ANIMATION_FRAME_COUNT-frameNumber)/SLASH_ANIMATION_FRAME_COUNT); glVertex3f(-0.5,0.5,0.0);
-	  glTexCoord2f(1.0,(SLASH_ANIMATION_FRAME_COUNT-frameNumber)/SLASH_ANIMATION_FRAME_COUNT); glVertex3f(0.5,0.5,0.0);
-	  glEnd();
-	  glPopMatrix();
-	}
-	if(currentTick-damageTime<5000){
-	  glPushMatrix();
-	  pyDamage = PyObject_GetItem(pyRecentDamage,pyDamageTime);
-	  damageStr = PyString_AsString(pyDamage);
-	  int c = 0;
-	  while(damageStr[c] != 0){
-	    glTranslatef(-0.18,0.0,0.0);
-	    c++;
-	  }
-	  glColor4f(1.0, 0.0, 0.0, (5000.0-(currentTick-damageTime))/1000);
-	  glTranslatef(0.0,((currentTick-damageTime)*0.0002)-0.7,-0.0001);
-	  glScalef(0.01,0.01,0.0);
-	  drawText(damageStr,0,-1,-9999.9,NULL);
-	  glPopMatrix();
-	}
+      glBegin(GL_QUADS);	
+      glTexCoord2f(1.0,(SLASH_ANIMATION_FRAME_COUNT-frameNumber-1)/SLASH_ANIMATION_FRAME_COUNT); glVertex3f(0.5,-0.5,0.0);
+      glTexCoord2f(0.0,(SLASH_ANIMATION_FRAME_COUNT-frameNumber-1)/SLASH_ANIMATION_FRAME_COUNT); glVertex3f(-0.5,-0.5,0.0);
+      glTexCoord2f(0.0,(SLASH_ANIMATION_FRAME_COUNT-frameNumber)/SLASH_ANIMATION_FRAME_COUNT); glVertex3f(-0.5,0.5,0.0);
+      glTexCoord2f(1.0,(SLASH_ANIMATION_FRAME_COUNT-frameNumber)/SLASH_ANIMATION_FRAME_COUNT); glVertex3f(0.5,0.5,0.0);
+      glEnd();
+      glPopMatrix();
+    }
+    if(currentTick-damageTime<5000){
+      glPushMatrix();
+      pyDamage = PyObject_GetItem(pyRecentDamage,pyDamageTime);
+      damageStr = PyString_AsString(pyDamage);
+      int c = 0;
+      while(damageStr[c] != 0){
+	glTranslatef(-0.18,0.0,0.0);
+	c++;
       }
+      glColor4f(1.0, 0.0, 0.0, (5000.0-(currentTick-damageTime))/1000);
+      glTranslatef(0.0,((currentTick-damageTime)*0.0002)-0.7,-0.0001);
+      glScalef(0.01,0.01,0.0);
+      drawText(damageStr,0,-1,-9999.9,NULL);
+      glPopMatrix();
+    }
+  }
 
-      Py_DECREF(pyUnitType);
-      Py_DECREF(pyUnitTextureIndex);
-      Py_DECREF(pyUnitTextureOverlayIndex);
-      Py_DECREF(pyName);
-      Py_DECREF(pyHealth);
-      Py_DECREF(pyMaxHealth);
-      Py_DECREF(pyPlayerNumber);
+  Py_DECREF(pyUnitType);
+  Py_DECREF(pyUnitTextureIndex);
+  Py_DECREF(pyUnitTextureOverlayIndex);
+  Py_DECREF(pyName);
+  Py_DECREF(pyHealth);
+  Py_DECREF(pyMaxHealth);
+  Py_DECREF(pyLevel);
+  Py_DECREF(pyPlayerNumber);
 }
 double xPosition;
 double yPosition;

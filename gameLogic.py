@@ -241,7 +241,7 @@ class unit:
 		node.unit.health = node.unit.health + self.getAttackPower()
 		self.attackPoints = self.attackPoints + INITIATIVE_ACTION_DEPLETION
 		if(node.unit.health > node.unit.getMaxHealth()):
-			node.unit.health + node.unit.getMaxHealth()
+			node.unit.health = node.unit.getMaxHealth()
 	def attack(self,node):
 		gameState.getClient().sendCommand("attackTo",str(node.xPos) + " " + str(node.yPos))
 		gameState.getClient().sendCommand("chooseNextUnit")

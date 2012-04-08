@@ -11,7 +11,7 @@
 #report game state(to look for cheaters/bugs)
 
 #ISSUES
-#faster build times
+#show levels
 #proper quit and options menus
 #create email form/database table
 #teams
