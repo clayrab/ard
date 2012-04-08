@@ -9,7 +9,7 @@
 "canSwim":0,
 "costGreen":100,
 "costBlue":0,
-"buildTime":150,
+"buildTime":60,
 "movementSpeedBonus":0,
 "researchCostGreen":100,
 "researchCostBlue":0,

@@ -11,7 +11,6 @@
 #report game state(to look for cheaters/bugs)
 
 #ISSUES
-#change selected node to white hex and next unit to a flag
 #faster build times
 #proper quit and options menus
 #create email form/database table
@@ -21,6 +20,7 @@
 #map name clickable to view map
 #testing connection timeout
 #sound effects
+#change selected node to white hex and next unit to a flag
 #mouseover effects
 #racial bonuses
 #red wood/blue wood as resources. green wood for elf racial bonuses.

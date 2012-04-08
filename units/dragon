@@ -9,7 +9,7 @@
 "canSwim":0,
 "costGreen":200,
 "costBlue":100,
-"buildTime":300,
+"buildTime":150,
 "movementSpeedBonus":1,
 "armorBonus":1,
 "attackPowerBonus":2,
