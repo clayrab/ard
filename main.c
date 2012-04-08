@@ -928,6 +928,7 @@ void drawUnit(){
       }
       glBindTexture(GL_TEXTURE_2D, texturesArray[unitTextureOverlayIndex]);
       glCallList(unitList);
+      glColor3f(1.0, 1.0, 1.0);
       glBindTexture(GL_TEXTURE_2D, texturesArray[HEALTH_BAR_INDEX]);
       glCallList(healthBarList);
 

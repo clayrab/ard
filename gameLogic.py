@@ -172,9 +172,9 @@ class unit:
 	def isOwnTeam(self):
 		if(gameState.getPlayerNumber() == -2):
 			if(gameState.getGameMode().nextUnit == None):
-				return 1
+				return True
 			else:
-				return gameState.getGameMode().nextUnit.player
+				return (self.player == gameState.getGameMode().nextUnit.player)
 		else:
 			return (gameState.getPlayerNumber() == self.player)
 	def getMaxHealth(self):
@@ -260,9 +260,12 @@ class unit:
 				for neighb in node.getNeighbors(5):
 					neighb.stopViewing(node.unit)
 				gameState.getGameMode().units.remove(node.unit)
+				gameLogic.aStarSearch.parentPipe.send(["unitRemove",unit.node.xPos,unit.node.yPos])
 				if(node.unit.unitType == "summoner" and node.city != None):
 					node.city.researchProgress = {}
 				node.unit = None
+				if(gameState.getGameMode().selectedNode == node):
+					selectNode(node)
 		if(self.unitType.name == "red mage"):
 			node.addFire(fire(node,self.level*1.0))
 		elif(self.unitType.name == "blue mage"):
@@ -481,17 +484,18 @@ class playModeNode(node):
 			elif(playModeNode.mode == MODES.HEAL_MODE):
 				gameState.getGameMode().nextUnit.heal(self)
 			elif(playModeNode.mode == MODES.MOVE_MODE):
-				if(gameState.getGameMode().selectedNode != None and gameState.getGameMode().selectedNode.unit != None and len(playModeNode.movePath) > 0):
+				if(gameState.getGameMode().selectedNode != None and gameState.getGameMode().selectedNode.unit != None):
 					if(len(gameState.getGameMode().selectedNode.unit.movePath) > 0):
 						for node in gameState.getGameMode().selectedNode.unit.movePath:
 							node.onMovePath = False
 					if(gameState.getGameMode().selectedNode.unit == gameState.getGameMode().nextUnit):
 						gameState.getGameMode().selectedNode.unit.movePath = playModeNode.movePath
-						gameState.getGameMode().selectedNode.unit.move()
+						if(len(gameState.getGameMode().selectedNode.unit.movePath) > 0 ):
+							gameState.getGameMode().selectedNode.unit.move()
 					else:
 						gameState.getGameMode().selectedNode.unit.movePath = playModeNode.movePath
-						if(gameState.getGameMode().nextUnit.isControlled()):
-							selectNode(gameState.getGameMode().nextUnit.node)
+#						if(gameState.getGameMode().nextUnit.isControlled()):
+#							selectNode(gameState.getGameMode().nextUnit.node)
 			else:
 				selectNode(self)
 	def toggleCursor(self):
@@ -502,27 +506,28 @@ class playModeNode(node):
 			for node in gameState.getGameMode().selectedNode.unit.movePath:
 				node.onMovePath = True
 
-		if(gameState.getGameMode().doFocus == 1 or gameState.getGameMode().selectedNode == None or gameState.getGameMode().selectedNode == self or gameState.getGameMode().selectedNode.unit == None or gameState.getGameMode().selectedNode.unit.isMeditating or not gameState.getGameMode().selectedNode.unit.isControlled()):
+		if(gameState.getGameMode().doFocus == 1 or gameState.getGameMode().selectedNode == None or gameState.getGameMode().selectedNode.unit == None or gameState.getGameMode().selectedNode.unit.isMeditating or not gameState.getGameMode().selectedNode.unit.isControlled()):
 			self.cursorIndex = cDefines.defines['CURSOR_POINTER_INDEX']
 			playModeNode.mode = MODES.SELECT_MODE
 		else:
-			state = (self.unit != None,
+			state = (self.unit == None,
 				 gameState.getGameMode().selectedNode.unit == gameState.getGameMode().nextUnit,
 				 self.findDistance(gameState.getGameMode().selectedNode,gameState.getGameMode().map.polarity) <= float(gameState.getGameMode().selectedNode.unit.unitType.range),
-				 self.unit != None and self.unit.isOwnTeam(),
+				 self.unit != None and not self.unit.isOwnTeam(),
 				 gameState.getGameMode().selectedNode.unit.unitType.name == "white mage",
+				 self == gameState.getGameMode().selectedNode and gameState.getGameMode().selectedNode != None,
 				 self.tileValue == cDefines.defines['MOUNTAIN_TILE_INDEX'],
 				 gameState.getGameMode().selectedNode.unit.unitType.canFly,)
 			# playModeNode.isNeighbor
 			# gameState.getGameMode().shiftDown
-			if(state[0] == False and (state[5] == False or state[5:] == (True,True))):
+			if((state[0] == True and (state[6] == False or state[6:] == (True,True))) or (state[0] == False and state[5] == True)):
 				self.cursorIndex = cDefines.defines['CURSOR_MOVE_INDEX']
 				playModeNode.mode = MODES.MOVE_MODE
 				aStarSearch.search(self,gameState.getGameMode().selectedNode,gameState.getGameMode().selectedNode.unit.unitType.canFly,gameState.getGameMode().selectedNode.unit.unitType.canSwim)
-			elif(state[1:4] == (True,True,False)):
+			elif(state[0:4] == (False,True,True,True)):
 				self.cursorIndex = cDefines.defines['CURSOR_ATTACK_INDEX']
 				playModeNode.mode = MODES.ATTACK_MODE
-			elif(state[1:5] == (True,True,True,True)):
+			elif(state[0:5] == (False,True,True,False,True)):
 				self.cursorIndex = cDefines.defines['CURSOR_HEAL_INDEX']
 				playModeNode.mode = MODES.HEAL_MODE
 			else:
@@ -930,7 +935,7 @@ def selectNode(node,theCityViewer = uiElements.cityViewer):
 	if((node.unit == None and node.city !=None) or (node.unit != None and node.unit.unitType.name == "summoner" and node.unit.isMeditating and node.city != None)):
 		uiElements.viewer.theViewer = theCityViewer(node)
 	elif(node.unit != None):
-		uiElements.viewer.theViewer = uiElements.uniitViewer(node)
+		uiElements.viewer.theViewer = uiElements.unitViewer(node)
 	if(hasattr(gameState.getGameMode().mousedOverObject,"toggleCursor")):
 		gameState.getGameMode().mousedOverObject.toggleCursor()
 #	node.toggleCursor()

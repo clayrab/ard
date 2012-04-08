@@ -307,7 +307,7 @@ class unitViewerButton(clickableElement):
 	def onClick(self):
 		node = viewer.theViewer.node
 		viewer.theViewer.destroy()
-		viewer.theViewer = uniitViewer(node)
+		viewer.theViewer = unitViewer(node)
 
 class cancelButton(clickableElement):
 	def __init__(self,xPos,yPos,index):
@@ -444,7 +444,7 @@ class viewer(uiElement):
 		uiElement.destroy(self)
 
 
-class uniitViewer(viewer):
+class unitViewer(viewer):
 	def __init__(self,node):
 		viewer.__init__(self,-0.965,0.965,node,width=texWidth("UI_UNIT_BACKGROUND"),height=texHeight("UI_UNIT_BACKGROUND"),textureIndex=texIndex("UI_UNIT_BACKGROUND"))
 
@@ -457,11 +457,11 @@ class uniitViewer(viewer):
 
 		self.names.append(uiElement(self.xPosition+0.180,self.yPosition-0.185,text="move initiative",textSize=0.0005,textColor="ee ed 9b").name)
 		self.names.append(uiElement(self.xPosition+0.180,self.yPosition-0.190,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE'),textureIndex=texIndex('UNIT_BUILD_BAR')).name)
-		self.names.append(uiElement(self.xPosition+0.180,self.yPosition-0.190,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE')*(float(self.node.unit.health)/self.node.unit.getMaxHealth()),textureIndex=texIndex('UNIT_BUILD_BAR'),color="FF 00 00").name)
+		self.names.append(uiElement(self.xPosition+0.180,self.yPosition-0.190,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE')*(float(gameLogic.INITIATIVE_ACTION_DEPLETION-self.node.unit.movementPoints)/float(gameLogic.INITIATIVE_ACTION_DEPLETION)),textureIndex=texIndex('UNIT_BUILD_BAR'),color="FF 00 00").name)
 
 		self.names.append(uiElement(self.xPosition+0.180,self.yPosition-0.245,text="atk initiative",textSize=0.0005,textColor="ee ed 9b").name)
 		self.names.append(uiElement(self.xPosition+0.180,self.yPosition-0.250,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE'),textureIndex=texIndex('UNIT_BUILD_BAR')).name)
-		self.names.append(uiElement(self.xPosition+0.180,self.yPosition-0.250,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE')*(float(self.node.unit.health)/self.node.unit.getMaxHealth()),textureIndex=texIndex('UNIT_BUILD_BAR'),color="FF 00 00").name)
+		self.names.append(uiElement(self.xPosition+0.180,self.yPosition-0.250,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE')*(float(gameLogic.INITIATIVE_ACTION_DEPLETION-self.node.unit.attackPoints)/float(gameLogic.INITIATIVE_ACTION_DEPLETION)),textureIndex=texIndex('UNIT_BUILD_BAR'),color="FF 00 00").name)
 		
 		self.names.append(uiElement(self.xPosition+0.022,self.yPosition-0.32,text=self.node.unit.unitType.name,textSize=0.00055,textColor="ee ed 9b").name)
 		self.names.append(uiElement(self.xPosition+0.022,self.yPosition-0.36,text="lvl " + str(self.node.unit.level),textSize=0.00055,textColor="ee ed 9b").name)
