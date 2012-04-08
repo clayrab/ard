@@ -11,7 +11,6 @@
 #report game state(to look for cheaters/bugs)
 
 #ISSUES
-#keyboard shortcuts(s skip, a auto-select, g gather, u start summoning)
 #show levels
 #proper quit and options menus
 #create email form/database table
@@ -19,6 +18,7 @@
 #handle disconnections/reconnections gracefully
 #draw roads properly
 #map name clickable to view map
+#keyboard shortcuts(s skip, a auto-select, g gather, u start summoning)
 #testing connection timeout
 #sound effects
 #change selected node to white hex and next unit to a flag
