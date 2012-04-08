@@ -384,7 +384,7 @@ class unitTypeViewer(uiElement):
 	theViewer = None
 	def __init__(self,unitType):
 		if(hasattr(gameState.getGameMode(),"nextUnit")):
-			uiElement.__init__(self,-0.500,0.965,width=texWidth("UI_UNITTYPE_BACKGROUND"),height=texHeight("UI_UNITTYPE_BACKGROUND"),textureIndex=texIndex("UI_UNITTYPE_BACKGROUND"))
+			uiElement.__init__(self,-0.520,0.983,width=texWidth("UI_UNITTYPE_BACKGROUND"),height=texHeight("UI_UNITTYPE_BACKGROUND"),textureIndex=texIndex("UI_UNITTYPE_BACKGROUND"))
 		else:
 			uiElement.__init__(self,viewer.theViewer.xPosition+0.465,0.79,width=texWidth("UI_UNITTYPE_BACKGROUND"),height=0.8,textureIndex=texIndex("UI_UNITTYPE_BACKGROUND"))
 		self.unitType = unitType
@@ -404,9 +404,9 @@ class unitTypeViewer(uiElement):
 		if(self.unitType.canFly):
 			self.names.append(uiElement(self.xPosition+0.022,self.yPosition-0.332,text="flying",textSize=0.0005,textColor="ee ed 9b").name)
 		self.names.append(uiElement(self.xPosition+0.022,self.yPosition-0.412,text="green wood cost",textSize=0.0005,textColor="ee ed 9b").name)
-		self.names.append(uiElement(self.xPosition+0.370,self.yPosition-0.412,text=str(self.city.researchProgress[self.unitType][0]*self.unitType.costGreen),textSize=0.0005,textColor="ee ed 9b").name)
+		self.names.append(uiElement(self.xPosition+0.370,self.yPosition-0.412,text=str(self.unitType.costGreen),textSize=0.0005,textColor="ee ed 9b").name)
 		self.names.append(uiElement(self.xPosition+0.022,self.yPosition-0.452,text="blue wood cost",textSize=0.0005,textColor="ee ed 9b").name)
-		self.names.append(uiElement(self.xPosition+0.370,self.yPosition-0.452,text=str(self.city.researchProgress[self.unitType][0]*self.unitType.costBlue),textSize=0.0005,textColor="ee ed 9b").name)
+		self.names.append(uiElement(self.xPosition+0.370,self.yPosition-0.452,text=str(self.unitType.costBlue),textSize=0.0005,textColor="ee ed 9b").name)
 		self.names.append(uiElement(self.xPosition+0.022,self.yPosition-0.492,text="build time",textSize=0.0005,textColor="ee ed 9b").name)
 		self.names.append(uiElement(self.xPosition+0.370,self.yPosition-0.492,text=str(self.unitType.buildTime),textSize=0.0005,textColor="ee ed 9b").name)
 
@@ -431,22 +431,20 @@ class viewer(uiElement):
 		self.node = node
 		self.names = []
 		if(node.unit != None):
-			self.names.append(unitViewerButton(xPos+0.09,yPos-0.046,text="unit",textSize=0.0007,textColor="ee ed 9b",width=1.0,height=1.0,fontIndex=3).name)
+			self.names.append(unitViewerButton(xPos+0.08,yPos-0.049,text="unit",textSize=0.00068,textColor="ee ed 9b",width=1.0,height=1.0,fontIndex=3).name)
 		else:
-			self.names.append(uiElement(xPos+0.09,yPos-0.046,text="unit",textSize=0.0007,textColor="cc cc cc",width=1.0,height=1.0,fontIndex=3).name)			
+			self.names.append(uiElement(xPos+0.08,yPos-0.049,text="unit",textSize=0.00068,textColor="cc cc cc",width=1.0,height=1.0,fontIndex=3).name)			
 		if(node.city != None):
-			self.names.append(cityViewerButton(xPos+0.31,yPos-0.046,text="city",textSize=0.0007,textColor="ee ed 9b",width=1.0,height=1.0,fontIndex=3).name)
+			self.names.append(cityViewerButton(xPos+0.305,yPos-0.049,text="city",textSize=0.00068,textColor="ee ed 9b",width=1.0,height=1.0,fontIndex=3).name)
 		else:
-			self.names.append(uiElement(xPos+0.31,yPos-0.046,text="city",textSize=0.0007,textColor="cc cc cc",width=1.0,height=1.0,fontIndex=3).name)
+			self.names.append(uiElement(xPos+0.305,yPos-0.049,text="city",textSize=0.00068,textColor="cc cc cc",width=1.0,height=1.0,fontIndex=3).name)
 	def destroy(self):
 		viewer.theViewer = None
 		uiElement.destroy(self)
 
-
 class unitViewer(viewer):
 	def __init__(self,node):
-		viewer.__init__(self,-0.965,0.965,node,width=texWidth("UI_UNIT_BACKGROUND"),height=texHeight("UI_UNIT_BACKGROUND"),textureIndex=texIndex("UI_UNIT_BACKGROUND"))
-
+		viewer.__init__(self,-0.983,0.983,node,width=texWidth("UI_UNIT_BACKGROUND"),height=texHeight("UI_UNIT_BACKGROUND"),textureIndex=texIndex("UI_UNIT_BACKGROUND"))
 		self.names.append(uiElement(self.xPosition+0.022,self.yPosition-0.100,textureIndex=texIndex("GREY_PEDESTAL"),width=2.0*texWidth("GREY_PEDESTAL"),height=2.0*texHeight("GREY_PEDESTAL")).name)
 		self.names.append(unitTypeViewerButton(self.xPosition+0.040,self.yPosition-0.120,self.node.unit.unitType,textureIndex=self.node.unit.unitType.textureIndex,height=0.14,width=0.14*0.75).name)
 
@@ -511,7 +509,7 @@ class cityViewerNoPlay(uiElement):
 
 class cityViewer(viewer):
 	def __init__(self,node):
-		viewer.__init__(self,-0.965,0.965,node,width=texWidth("UI_CITY_BACKGROUND"),height=texHeight("UI_CITY_BACKGROUND"),textureIndex=texIndex("UI_CITY_BACKGROUND"))
+		viewer.__init__(self,-0.983,0.983,node,width=texWidth("UI_CITY_BACKGROUND"),height=texHeight("UI_CITY_BACKGROUND"),textureIndex=texIndex("UI_CITY_BACKGROUND"))
 		self.isCityViewer = True
 		self.names.append(uiElement(self.xPosition+0.022,self.yPosition-0.125,text=self.node.city.name,textSize=0.0008,fontIndex=3,textColor="dd dd dd").name)
 		buildableUnitTypes = []
@@ -625,13 +623,11 @@ class unitTypeBuildViewer(uiElement):
 
 class cityEditor(uiElement):
 	theCityEditor = None
-	def __init__(self,city,xPos=0.0,yPos=0.0,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None):
-		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],color=color,mouseOverColor=mouseOverColor)
-		mapOptionsEditor.destroy()
+	def __init__(self,city):
+		uiElement.__init__(self,-0.983,0.983,textureIndex=texIndex("UI_CITY_EDITOR_BACKGROUND_BACKGROUND"),height=texHeight("UI_CITY_EDITOR_BACKGROUND_BACKGROUND"),width=texWidth("UI_CITY_EDITOR_BACKGROUND_BACKGROUND"))
 		self.names = []
 		self.city = city
-		self.names.append(cityNameInputElement(-0.972,0.746,width=texWidth('UI_TEXT_INPUT_IMAGE'),height=texHeight('UI_TEXT_INPUT_IMAGE'),text=self.city.name,textSize=0.0005,textColor='00 00 00',textureIndex=texIndex('UI_TEXT_INPUT'),textYPos=-0.035,textXPos=0.01).name)
-		self.names.append(cityCostField(-0.972,0.66,width=texWidth('UI_TEXT_INPUT_IMAGE'),height=texHeight('UI_TEXT_INPUT_IMAGE'),text=str(self.city.costOfOwnership),textSize=0.0005,textColor='00 00 00',mouseOverColor='00 00 00',textureIndex=texIndex('UI_TEXT_INPUT'),textYPos=-0.035,textXPos=0.01).name)
+		self.names.append(cityNameInputElement(-0.972,0.746,width=texWidth('UI_TEXT_INPUT_IMAGE'),height=texHeight('UI_TEXT_INPUT_IMAGE'),text=self.city.name,textSize=0.0005,textColor='FF FF FF',textureIndex=texIndex('UI_TEXT_INPUT'),textYPos=-0.035,textXPos=0.01).name)
 		height = 0.56
 		for unitType in self.city.unitTypes:
 			self.names.append(uiElement(-0.95,height,text=unitType.name,textSize=0.0005).name)
@@ -683,32 +679,6 @@ class mapEditorTileSelectUIElement(uiElement):
 		self.toolTipElement.hidden = False
 	def onMouseOut(self):
 		self.toolTipElement.hidden = True
-
-class mapEditorMapOptionsButton(uiElement):
-	def onClick(self):
-		mapOptionsEditor.theMapOptionsEditor = mapOptionsEditor(0.0,0.0)
-
-class mapOptionsEditor(uiElement):
-	theMapOptionsEditor = None
-	def __init__(self,xPos,yPos,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None):
-		mapOptionsEditor.destroy()
-		cityEditor.destroy()
-		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cursorIndex,color=color,mouseOverColor=mouseOverColor,hidden=True)
-		self.names = []
-		self.names.append(uiElement(-0.96,0.73,text="map options",textSize=0.0008).name)
-		self.names.append(uiElement(-0.96,0.63,text="starting mana",textSize=0.0005).name)
-		self.names.append(startingManaField(-0.96,0.53,text="10",textSize=0.0005).name)
-	@staticmethod
-	def destroy():
-		if(mapOptionsEditor.theMapOptionsEditor != None):
-			mapOptionsEditor.theMapOptionsEditor._destroy()
-	def _destroy(self):
-		mapOptionsEditor.theMapOptionsEditor = None
-		for name in self.names:
-			del gameState.getGameMode().elementsDict[name]
-		self.names = []
-		del gameState.getGameMode().elementsDict[self.name]
-		gameState.getGameMode().resortElems = True
 
 class scrollPadElement(uiElement):
 	def __init__(self,xPos,yPos,scrollableElement,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,topOffset=0.016,bottomOffset=0.020,rightOffset=0.012):
@@ -995,15 +965,6 @@ class unitTypeSelector(scrollableTextFieldsElement):
 				cityEditor.theCityEditor.addUnitType(unitType)
 		self.destroy()
 
-class cityCostSelector(scrollableTextFieldsElement):
-	def __init__(self,xPos,yPos,textFields,cityCostField,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,yPositionOffset=0.04,lineHeight=0.041,numFields=25,scrollSpeed=1):
-		scrollableTextFieldsElement.__init__(self,xPos,yPos,textFields,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,color=color,mouseOverColor=mouseOverColor)
-		self.cityCostField = cityCostField
-	def handleClick(self,textFieldElem):
-		self.cityCostField.text = textFieldElem.text
-		cityEditor.theCityEditor.city.costOfOwnership = int(textFieldElem.text)
-		self.destroy()
-
 class gameTypeButton(clickableElement):
 	buttons = []
 	def __init__(self,xPos,yPos,textureStr,teamSize,selected,offColor="88 88 88"):
@@ -1132,9 +1093,6 @@ class removeUnitTypeButton(clickableElement):
 		cityEditor.theCityEditor.city.unitTypes.remove(self.unitType)
 		cityEditor.reset()
 
-class cityCostField(clickableElement):
-	def onClick(self):
-		cityCostSelector(self.xPosition,self.yPosition-0.06,cityCosts,self,text="select cost",textSize=0.0005,textureIndex=cDefines.defines['UI_SCROLLABLE_INDEX'],width=(2.0*cDefines.defines['UI_SCROLLABLE_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_SCROLLABLE_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']))
 
 class unitCostField(clickableElement):
        	def __init__(self,xPos,yPos,unitType,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,textXPos=0.0,textYPos=0.0):
