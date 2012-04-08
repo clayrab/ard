@@ -186,8 +186,10 @@ class unit:
 	def getArmor(self):
 		return self.unitType.armor*self.level
 	def getCostGreen(self):
+		print 'DEPRECATED'
 		return self.unitType.costGreen*self.level
 	def getCostBlue(self):
+		print 'DEPRECATED'
 		return self.unitType.costBlue*self.level
 #	def gather(self,node):
 #		gameState.getClient().sendCommand("gatherTo",str(self.node.xPos) + " " + str(self.node.yPos) + " " + str(node.xPos) + " " + str(node.yPos))
@@ -293,7 +295,7 @@ class city:
 		self.unitTypes.extend(unitTypes)
 		self.researchProgress = {}
 		for unitType in unitTypes:
-			self.researchProgress[unitType] = [0,0]
+			self.researchProgress[unitType] = [1,0]
 		self.researchProgress[gameState.theUnitTypes["summoner"]] = [1,0]
 		self.researchProgress[gameState.theUnitTypes["gatherer"]] = [1,0]
 		self.researching = False

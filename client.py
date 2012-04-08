@@ -123,8 +123,8 @@ class Commands:
         tokens = args.split(" ")
         node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
         unitType = gameState.theUnitTypes[tokens[2]]
-        gameState.getGameMode().players[node.unit.player-1].greenWood = gameState.getGameMode().players[node.unit.player-1].greenWood - unitType.costGreen
-        gameState.getGameMode().players[node.unit.player-1].blueWood = gameState.getGameMode().players[node.unit.player-1].blueWood - unitType.costBlue
+        gameState.getGameMode().players[node.unit.player-1].greenWood = gameState.getGameMode().players[node.unit.player-1].greenWood - (node.city.researchProgress[unitType][0]*unitType.costGreen)
+        gameState.getGameMode().players[node.unit.player-1].blueWood = gameState.getGameMode().players[node.unit.player-1].blueWood - (node.city.researchProgress[unitType][0]*unitType.costBlue)
         node.city.queueUnit(gameLogic.unit(unitType,node.city.player,node.xPos,node.yPos,node))
         if(gameState.getGameMode().selectedNode == node and hasattr(uiElements.viewer.theViewer,"isCityViewer")):
             uiElements.viewer.theViewer.destroy()

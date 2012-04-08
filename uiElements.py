@@ -387,7 +387,6 @@ class unitTypeViewer(uiElement):
 			uiElement.__init__(self,-0.500,0.965,width=texWidth("UI_UNITTYPE_BACKGROUND"),height=texHeight("UI_UNITTYPE_BACKGROUND"),textureIndex=texIndex("UI_UNITTYPE_BACKGROUND"))
 		else:
 			uiElement.__init__(self,viewer.theViewer.xPosition+0.465,0.79,width=texWidth("UI_UNITTYPE_BACKGROUND"),height=0.8,textureIndex=texIndex("UI_UNITTYPE_BACKGROUND"))
-			
 		self.unitType = unitType
 		self.names.append(uiElement(self.xPosition+0.022,self.yPosition-0.052,text=self.unitType.name,textSize=0.0006,textColor="ee ed 9b").name)
 		self.names.append(uiElement(self.xPosition+0.022,self.yPosition-0.092,text="health",textSize=0.0005,textColor="ee ed 9b").name)
@@ -405,9 +404,9 @@ class unitTypeViewer(uiElement):
 		if(self.unitType.canFly):
 			self.names.append(uiElement(self.xPosition+0.022,self.yPosition-0.332,text="flying",textSize=0.0005,textColor="ee ed 9b").name)
 		self.names.append(uiElement(self.xPosition+0.022,self.yPosition-0.412,text="green wood cost",textSize=0.0005,textColor="ee ed 9b").name)
-		self.names.append(uiElement(self.xPosition+0.370,self.yPosition-0.412,text=str(self.unitType.costGreen),textSize=0.0005,textColor="ee ed 9b").name)
+		self.names.append(uiElement(self.xPosition+0.370,self.yPosition-0.412,text=str(self.city.researchProgress[self.unitType][0]*self.unitType.costGreen),textSize=0.0005,textColor="ee ed 9b").name)
 		self.names.append(uiElement(self.xPosition+0.022,self.yPosition-0.452,text="blue wood cost",textSize=0.0005,textColor="ee ed 9b").name)
-		self.names.append(uiElement(self.xPosition+0.370,self.yPosition-0.452,text=str(self.unitType.costBlue),textSize=0.0005,textColor="ee ed 9b").name)
+		self.names.append(uiElement(self.xPosition+0.370,self.yPosition-0.452,text=str(self.city.researchProgress[self.unitType][0]*self.unitType.costBlue),textSize=0.0005,textColor="ee ed 9b").name)
 		self.names.append(uiElement(self.xPosition+0.022,self.yPosition-0.492,text="build time",textSize=0.0005,textColor="ee ed 9b").name)
 		self.names.append(uiElement(self.xPosition+0.370,self.yPosition-0.492,text=str(self.unitType.buildTime),textSize=0.0005,textColor="ee ed 9b").name)
 
@@ -519,13 +518,13 @@ class cityViewer(viewer):
 		for unitType in self.node.city.researchProgress:
 			if(self.node.city.researchProgress[unitType][0] > 0):
 				buildableUnitTypes.append(unitType)
-		self.names.append(cityUnitDisplay(self.xPosition+0.012,self.yPosition-0.174,buildableUnitTypes,buildUnitElem,"BUILD_BORDER").name)
+		self.names.append(cityUnitDisplay(self.xPosition+0.012,self.yPosition-0.174,buildableUnitTypes,self.node.city,buildUnitElem,"BUILD_BORDER").name)
 		
 		researchableUnitTypes = []
 		for unitType in self.node.city.unitTypes:
 			if(unitType.name != "summoner" and unitType.name != "gatherer"): 
 				researchableUnitTypes.append(unitType)
-		self.names.append(cityUnitDisplay(self.xPosition+0.012,self.yPosition-0.766,researchableUnitTypes,researchUnitElem,"RESEARCH_BORDER").name)
+		self.names.append(cityUnitDisplay(self.xPosition+0.012,self.yPosition-0.766,researchableUnitTypes,self.node.city,researchUnitElem,"RESEARCH_BORDER").name)
 		queuedThings = []
 		if(self.node.city.researching):
 			queuedThings.append(self.node.city.researchUnitType)
@@ -534,7 +533,7 @@ class cityViewer(viewer):
 		for thing in self.node.city.unitBuildQueue:
 			queuedThings.append(thing)
 		queuedThingElem.firstThing = True
-		self.names.append(cityUnitDisplay(self.xPosition+0.012,self.yPosition-1.358,queuedThings,queuedThingElem,"QUEUE_BORDER").name)
+		self.names.append(cityUnitDisplay(self.xPosition+0.012,self.yPosition-1.358,queuedThings,self.node.city,queuedThingElem,"QUEUE_BORDER").name)
 		
 class unitTypeResearchViewer(uiElement):
 	theUnitTypeResearchViewer = None
@@ -750,32 +749,34 @@ class scrollableElement(uiElement):
 		self.yPosition = yPos
 
 class buildUnitElem(scrollableElement):
-	def __init__(self,xPos,yPos,unitType,index):
+	def __init__(self,xPos,yPos,unitType,city,index):
 		scrollableElement.__init__(self,xPos,yPos)
 		self.unitType = unitType
+		self.city = city
 		self.names.append(uiElement(self.xPosition,self.yPosition,textureIndex=texIndex("UNIT_UI_BACK"),height=texHeight("UNIT_UI_BACK"),width=texWidth("UNIT_UI_BACK")).name)
 		self.names.append(unitTypeViewerButton(self.xPosition+0.009,self.yPosition-0.026,self.unitType,textureIndex=self.unitType.textureIndex,height=0.07,width=0.07).name)
-		self.names.append(uiElement(self.xPosition+0.085,self.yPosition-0.05,text=self.unitType.name,textSize=0.0005,textColor="ee ee ee",fontIndex=2).name)
+		self.names.append(uiElement(self.xPosition+0.085,self.yPosition-0.05,text=self.unitType.name+"("+str(self.city.researchProgress[self.unitType][0])+")",textSize=0.0005,textColor="ee ee ee",fontIndex=2).name)
 		self.names.append(uiElement(self.xPosition+0.085,self.yPosition-0.071,textureIndex=texIndex("GREEN_WOOD_ICON"),width=texWidth("GREEN_WOOD_ICON"),height=texHeight("GREEN_WOOD_ICON")).name)
-		self.names.append(uiElement(self.xPosition+0.108,self.yPosition-0.094,text=str(self.unitType.costGreen),textSize=0.00034,textColor="ee ee ee",fontIndex=0).name)
+		self.names.append(uiElement(self.xPosition+0.108,self.yPosition-0.094,text=str(self.city.researchProgress[self.unitType][0]*self.unitType.costGreen),textSize=0.00034,textColor="ee ee ee",fontIndex=0).name)
 		self.names.append(uiElement(self.xPosition+0.151,self.yPosition-0.071,textureIndex=texIndex("BLUE_WOOD_ICON"),width=texWidth("BLUE_WOOD_ICON"),height=texHeight("BLUE_WOOD_ICON")).name)
-		self.names.append(uiElement(self.xPosition+0.174,self.yPosition-0.094,text=str(self.unitType.costBlue),textSize=0.00034,textColor="ee ee ee",fontIndex=0).name)
+		self.names.append(uiElement(self.xPosition+0.174,self.yPosition-0.094,text=str(self.city.researchProgress[self.unitType][0]*self.unitType.costBlue),textSize=0.00034,textColor="ee ee ee",fontIndex=0).name)
 		self.names.append(uiElement(self.xPosition+0.221,self.yPosition-0.071,textureIndex=texIndex("TIME_ICON"),width=texWidth("TIME_ICON"),height=texHeight("TIME_ICON")).name)
 		self.names.append(uiElement(self.xPosition+0.244,self.yPosition-0.094,text=str(self.unitType.buildTime),textSize=0.00034,textColor="ee ee ee",fontIndex=0).name)
-		if(gameState.getGameMode().selectedNode.unit != None and gameState.getGameMode().selectedNode.unit.isMeditating and gameState.getGameMode().selectedNode.unit.isControlled() and gameState.getGameMode().players[gameState.getGameMode().getPlayerNumber()-1].greenWood >= self.unitType.costGreen and gameState.getGameMode().players[gameState.getGameMode().getPlayerNumber()-1].blueWood >= self.unitType.costBlue):
+		if(gameState.getGameMode().selectedNode.unit != None and gameState.getGameMode().selectedNode.unit.isMeditating and gameState.getGameMode().selectedNode.unit.isControlled() and gameState.getGameMode().players[gameState.getGameMode().getPlayerNumber()-1].greenWood >= (self.city.researchProgress[self.unitType][0]*self.unitType.costGreen) and gameState.getGameMode().players[gameState.getGameMode().getPlayerNumber()-1].blueWood >= (self.city.researchProgress[unitType][0]*self.unitType.costBlue)):
 			self.names.append(summonButton(self.xPosition+0.293,self.yPosition-0.068,self.unitType).name)
 
 class researchUnitElem(scrollableElement):
-	def __init__(self,xPos,yPos,unitType,index):
+	def __init__(self,xPos,yPos,unitType,city,index):
 		scrollableElement.__init__(self,xPos,yPos)
 		self.unitType = unitType
+		self.city = city
 		self.names.append(uiElement(self.xPosition,self.yPosition,textureIndex=texIndex("UNIT_UI_BACK"),height=texHeight("UNIT_UI_BACK"),width=texWidth("UNIT_UI_BACK")).name)
 		self.names.append(unitTypeViewerButton(self.xPosition+23.0/cDefines.defines["SCREEN_WIDTH"],self.yPosition-23.0/cDefines.defines["SCREEN_HEIGHT"],self.unitType,textureIndex=self.unitType.textureIndex,height=70.0/cDefines.defines["SCREEN_HEIGHT"],width=70.0/cDefines.defines["SCREEN_WIDTH"]).name)
-		self.names.append(uiElement(self.xPosition+0.085,self.yPosition-0.05,text=self.unitType.name,textSize=0.0005,textColor="ee ee ee",fontIndex=2).name)
+		self.names.append(uiElement(self.xPosition+0.085,self.yPosition-0.05,text=self.unitType.name+" lv "+ str(self.city.researchProgress[self.unitType][0]+1),textSize=0.0005,textColor="ee ee ee",fontIndex=2).name)
 		self.names.append(uiElement(self.xPosition+0.085,self.yPosition-0.071,textureIndex=texIndex("GREEN_WOOD_ICON"),width=texWidth("GREEN_WOOD_ICON"),height=texHeight("GREEN_WOOD_ICON")).name)
-		self.names.append(uiElement(self.xPosition+0.108,self.yPosition-0.094,text=str(self.unitType.costGreen),textSize=0.00034,textColor="ee ee ee",fontIndex=0).name)
+		self.names.append(uiElement(self.xPosition+0.108,self.yPosition-0.094,text=str(self.unitType.researchCostGreen),textSize=0.00034,textColor="ee ee ee",fontIndex=0).name)
 		self.names.append(uiElement(self.xPosition+0.151,self.yPosition-0.071,textureIndex=texIndex("BLUE_WOOD_ICON"),width=texWidth("BLUE_WOOD_ICON"),height=texHeight("BLUE_WOOD_ICON")).name)
-		self.names.append(uiElement(self.xPosition+0.174,self.yPosition-0.094,text=str(self.unitType.costBlue),textSize=0.00034,textColor="ee ee ee",fontIndex=0).name)
+		self.names.append(uiElement(self.xPosition+0.174,self.yPosition-0.094,text=str(self.unitType.researchCostBlue),textSize=0.00034,textColor="ee ee ee",fontIndex=0).name)
 		self.names.append(uiElement(self.xPosition+0.221,self.yPosition-0.071,textureIndex=texIndex("TIME_ICON"),width=texWidth("TIME_ICON"),height=texHeight("TIME_ICON")).name)
 		self.names.append(uiElement(self.xPosition+0.244,self.yPosition-0.094,text=str(self.unitType.buildTime),textSize=0.00034,textColor="ee ee ee",fontIndex=0).name)
 		if(gameState.getGameMode().selectedNode.unit != None and gameState.getGameMode().selectedNode.unit.isMeditating and gameState.getGameMode().selectedNode.unit.isControlled() and gameState.getGameMode().players[gameState.getGameMode().selectedNode.unit.player-1].greenWood >= self.unitType.researchCostGreen and gameState.getGameMode().players[gameState.getGameMode().selectedNode.unit.player-1].blueWood >= self.unitType.researchCostBlue):
@@ -783,10 +784,11 @@ class researchUnitElem(scrollableElement):
 
 class queuedThingElem(scrollableElement):
 	firstThing = True
-	def __init__(self,xPos,yPos,unitThing,index):
+	def __init__(self,xPos,yPos,unitThing,city,index):
 		scrollableElement.__init__(self,xPos,yPos)
 		self.unit = None
 		self.unitType = None
+		self.city = city
 		if(hasattr(unitThing,"unitType")):#unit
 			self.unit = unitThing
 			self.unitType = self.unit.unitType
@@ -796,20 +798,21 @@ class queuedThingElem(scrollableElement):
 		self.names.append(unitTypeViewerButton(self.xPosition+23.0/cDefines.defines["SCREEN_WIDTH"],self.yPosition-23.0/cDefines.defines["SCREEN_HEIGHT"],self.unitType,textureIndex=self.unitType.textureIndex,height=70.0/cDefines.defines["SCREEN_HEIGHT"],width=70.0/cDefines.defines["SCREEN_WIDTH"]).name)
 		if(queuedThingElem.firstThing):
 			queuedThingElem.firstThing = False
-			self.names.append(uiElement(self.xPosition+0.085,self.yPosition-0.05,text=self.unitType.name,textSize=0.0005,textColor="ee ee ee",fontIndex=2).name)
 			if(self.unit != None):
+				self.names.append(uiElement(self.xPosition+0.085,self.yPosition-0.05,text=self.unitType.name+"("+str(self.unit.level)+")",textSize=0.0005,textColor="ee ee ee",fontIndex=2).name)
 				self.names.append(uiElement(self.xPosition+0.085,self.yPosition-0.08,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE'),textureIndex=texIndex('UNIT_BUILD_BAR')).name)
 				self.names.append(uiElement(self.xPosition+0.085,self.yPosition-0.08,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE')*(gameState.getGameMode().selectedNode.city.unitBeingBuilt.unitType.buildTime-gameState.getGameMode().selectedNode.city.unitBeingBuilt.buildPoints)/gameState.getGameMode().selectedNode.city.unitBeingBuilt.unitType.buildTime,textureIndex=texIndex('UNIT_BUILD_BAR'),color="FF 00 00").name)
 			else:
+				self.names.append(uiElement(self.xPosition+0.085,self.yPosition-0.05,text=self.unitType.name+" lv "+str(self.city.researchProgress[self.unitType][0]+1),textSize=0.0005,textColor="ee ee ee",fontIndex=2).name)
 				self.names.append(uiElement(self.xPosition+0.085,self.yPosition-0.08,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE'),textureIndex=texIndex('UNIT_BUILD_BAR')).name)
 				self.names.append(uiElement(self.xPosition+0.085,self.yPosition-0.08,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE')*(float(gameState.getGameMode().selectedNode.city.researchProgress[gameState.getGameMode().selectedNode.city.researchUnitType][1])/gameState.getGameMode().selectedNode.city.researchUnitType.researchTime),textureIndex=texIndex('UNIT_BUILD_BAR'),color="FF 00 00").name)
-
 		else:
 			if(self.unit != None):
-				self.names.append(uiElement(self.xPosition+0.085,self.yPosition-0.05,text="summon",textSize=0.0005,textColor="ee ee ee",fontIndex=2).name)
+#				self.names.append(uiElement(self.xPosition+0.085,self.yPosition-0.05,text="summon",textSize=0.0005,textColor="ee ee ee",fontIndex=2).name)
+				self.names.append(uiElement(self.xPosition+0.085,self.yPosition-0.05,text=self.unitType.name+"("+str(self.unit.level)+")",textSize=0.0005,textColor="ee ee ee",fontIndex=2).name)
 			else:
-				self.names.append(uiElement(self.xPosition+0.085,self.yPosition-0.05,text="research",textSize=0.0005,textColor="ee ee ee",fontIndex=2).name)
-			self.names.append(uiElement(self.xPosition+0.085,self.yPosition-0.095,text=self.unitType.name,textSize=0.0005,textColor="ee ee ee",fontIndex=2).name)
+#				self.names.append(uiElement(self.xPosition+0.085,self.yPosition-0.05,text="research",textSize=0.0005,textColor="ee ee ee",fontIndex=2).name)
+				self.names.append(uiElement(self.xPosition+0.085,self.yPosition-0.05,text=self.unitType.name+" lv "+str(self.city.researchProgress[self.unitType][0]+1),textSize=0.0005,textColor="ee ee ee",fontIndex=2).name)
 			self.names.append(cancelButton(self.xPosition+0.293,self.yPosition-0.068,index).name)
 
 class scrollingTextElement(scrollableElement):
@@ -922,12 +925,13 @@ class scrollableTextFieldsElement(uiElement):
 		self.textFieldElements = []
 
 class cityUnitDisplay(scrollableTextFieldsElement):
-	def __init__(self,xPos,yPos,unitTypes,unitElemClass,textureName):
+	def __init__(self,xPos,yPos,unitTypes,city,unitElemClass,textureName):
 		scrollableTextFieldsElement.__init__(self,xPos,yPos,[],textureIndex=texIndex(textureName),width=texWidth(textureName),height=texHeight(textureName),xPositionOffset=0.01,yPositionOffset=0.035,lineHeight=0.127,numFields=4,scrollPadTex="SCROLL_BAR")
 		self.unitTypes = unitTypes
+		self.city = city
 		index = 0
 		for unitType in self.unitTypes:
-			elem = unitElemClass(self.xPosition+self.xPositionOffset,0.0,unitType,index)
+			elem = unitElemClass(self.xPosition+self.xPositionOffset,0.0,unitType,self.city,index)
 			self.textFields.append(elem)
 			self.names.append(elem.name)
 			index = index + 1
