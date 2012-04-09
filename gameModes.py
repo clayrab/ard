@@ -606,20 +606,21 @@ class mapEditorMode(tiledGameMode):
 				return
 	def addUIElements(self):
 
-		uiElements.mapEditorTileSelectUIElement(-0.93,0.92,tileType=cDefines.defines['DESERT_TILE_INDEX'])
-		uiElements.mapEditorTileSelectUIElement(-0.85,0.92,tileType=cDefines.defines['GRASS_TILE_INDEX'])
-		uiElements.mapEditorTileSelectUIElement(-0.77,0.92,tileType=cDefines.defines['MOUNTAIN_TILE_INDEX'])
-		uiElements.mapEditorTileSelectUIElement(-0.69,0.92,tileType=cDefines.defines['FOREST_TILE_INDEX'])
-		uiElements.mapEditorTileSelectUIElement(-0.61,0.92,tileType=cDefines.defines['BLUE_FOREST_TILE_INDEX'])
-		uiElements.mapEditorTileSelectUIElement(-0.53,0.92,tileType=cDefines.defines['WATER_TILE_INDEX'])
-		uiElements.mapEditorTileSelectUIElement(-0.45,0.92,tileType=cDefines.defines['ROAD_TILE_INDEX'])
-		uiElements.mapEditorTileSelectUIElement(-0.37,0.92,tileType=cDefines.defines['CITY_TILE_INDEX'])
+		uiElements.uiElement(-0.50,0.98,textureIndex=texIndex("UI_CITY_EDITOR_BACKGROUND_BACKGROUND"),height=0.12,width=0.7)
+		uiElements.mapEditorTileSelectUIElement(-0.45,0.92,tileType=cDefines.defines['DESERT_TILE_INDEX'])
+		uiElements.mapEditorTileSelectUIElement(-0.37,0.92,tileType=cDefines.defines['GRASS_TILE_INDEX'])
+		uiElements.mapEditorTileSelectUIElement(-0.29,0.92,tileType=cDefines.defines['MOUNTAIN_TILE_INDEX'])
+		uiElements.mapEditorTileSelectUIElement(-0.21,0.92,tileType=cDefines.defines['FOREST_TILE_INDEX'])
+		uiElements.mapEditorTileSelectUIElement(-0.13,0.92,tileType=cDefines.defines['BLUE_FOREST_TILE_INDEX'])
+		uiElements.mapEditorTileSelectUIElement(-0.05,0.92,tileType=cDefines.defines['WATER_TILE_INDEX'])
+		uiElements.mapEditorTileSelectUIElement(0.03,0.92,tileType=cDefines.defines['ROAD_TILE_INDEX'])
+		uiElements.mapEditorTileSelectUIElement(0.11,0.92,tileType=cDefines.defines['CITY_TILE_INDEX'])
 		for col in range(0,2):
 			for row in range(0,4):
 				if((4*(col))+(row+1) <= self.map.numPlayers):
 
-					uiElements.playerStartLocationButton(-0.31+(0.05*col),0.972-(0.038*row),playerNumber=col*4+row+1,width=2.0*cDefines.defines['PLAYER_START_BUTTON_WIDTH']/cDefines.defines['SCREEN_WIDTH'],height=2.0*cDefines.defines['PLAYER_START_BUTTON_HEIGHT']/cDefines.defines['SCREEN_HEIGHT'],textureIndex=cDefines.defines['PLAYER_START_BUTTON_INDEX'])
-					uiElements.uiElement(-0.29+(0.05*col),0.948-(0.04*row),text=str((col*4)+row+1),textSize=0.0004)
+					uiElements.playerStartLocationButton(0.17+(0.05*col),0.972-(0.038*row),playerNumber=col*4+row+1,width=2.0*cDefines.defines['PLAYER_START_BUTTON_WIDTH']/cDefines.defines['SCREEN_WIDTH'],height=2.0*cDefines.defines['PLAYER_START_BUTTON_HEIGHT']/cDefines.defines['SCREEN_HEIGHT'],textureIndex=cDefines.defines['PLAYER_START_BUTTON_INDEX'])
+					uiElements.uiElement(0.19+(0.05*col),0.948-(0.04*row),text=str((col*4)+row+1),textSize=0.0004)
 				
 		uiElements.addColumnButton(0.96,0.03,text="+",textureIndex=cDefines.defines['ADD_BUTTON_INDEX'])
 		uiElements.removeColumnButton(0.96,-0.03,text="-",textureIndex=-1)
