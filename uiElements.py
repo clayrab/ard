@@ -1360,10 +1360,9 @@ class createMapButton(clickableElement):
 			if(len(mapName) < 1):
 				smallModal("you must enter a map name")
 			else:
-				shutil.copyfile("maps/defaultMap","maps/" + mapName + ".map")
+				shutil.copyfile("maps/defaultMap"+str(numPlayers),"maps/" + mapName + ".map")
 				gameState.setMapName(mapName)
 				gameState.setGameMode(self.gameMode)
-				gameState.getGameMode().map.numPlayers = numPlayers
 				for playerNum in range(0,numPlayers+1):
 					gameState.getGameMode().map.nodes[0][playerNum-1].playerStartValue = playerNum
 

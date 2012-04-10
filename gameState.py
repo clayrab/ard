@@ -14,7 +14,7 @@ mapDatas.append([])
 mapDatas.append([])
 dirList=os.listdir("maps")
 for fileName in dirList:
-	if((not fileName.startswith(".")) and fileName != "defaultMap" and (not fileName.endswith("~"))):
+	if((not fileName.startswith(".")) and not fileName.startswith("defaultMap") and (not fileName.endswith("~"))):
 		file = open("maps/"+fileName)
 		mapData = gameLogic.mapData(fileName,file.read())
 		mapDatas[mapData.teamSize-1].append(mapData)

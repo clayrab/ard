@@ -615,7 +615,6 @@ class mapEditorMode(tiledGameMode):
 		uiElements.mapEditorTileSelectUIElement(-0.05,0.92,tileType=cDefines.defines['WATER_TILE_INDEX'])
 		uiElements.mapEditorTileSelectUIElement(0.03,0.92,tileType=cDefines.defines['ROAD_TILE_INDEX'])
 		uiElements.mapEditorTileSelectUIElement(0.11,0.92,tileType=cDefines.defines['CITY_TILE_INDEX'])
-		print 'num;'+str(self.map.numPlayers)
 		for col in range(0,2):
 			for row in range(0,4):
 				if((4*(col))+(row+1) <= self.map.numPlayers):
