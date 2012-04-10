@@ -1345,8 +1345,8 @@ class lanConnectErrorModal(smallModal):
 		lanConnectErrorModalButton(self)
 
 class createMapButton(clickableElement):
-	def __init__(self,xPos,yPos,gameMode,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",selected=False):
-		clickableElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=menuButton.normalTextColor,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],mouseOverColor="66 66 66",textSize=0.0013,fontIndex=1)
+	def __init__(self,xPos,yPos,gameMode,text=""):
+		clickableElement.__init__(self,xPos,yPos,width=1.0,height=1.0,text=text,textColor=menuButton.normalTextColor,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],mouseOverColor="66 66 66",textSize=0.0013,fontIndex=1)
 		self.gameMode = gameMode
 	def onClick(self):
 		mapName = gameState.getGameMode().mapNameInputElement.text

@@ -615,10 +615,11 @@ class mapEditorMode(tiledGameMode):
 		uiElements.mapEditorTileSelectUIElement(-0.05,0.92,tileType=cDefines.defines['WATER_TILE_INDEX'])
 		uiElements.mapEditorTileSelectUIElement(0.03,0.92,tileType=cDefines.defines['ROAD_TILE_INDEX'])
 		uiElements.mapEditorTileSelectUIElement(0.11,0.92,tileType=cDefines.defines['CITY_TILE_INDEX'])
+		print 'num;'+str(self.map.numPlayers)
 		for col in range(0,2):
 			for row in range(0,4):
 				if((4*(col))+(row+1) <= self.map.numPlayers):
-
+					
 					uiElements.playerStartLocationButton(0.17+(0.05*col),0.972-(0.038*row),playerNumber=col*4+row+1,width=2.0*cDefines.defines['PLAYER_START_BUTTON_WIDTH']/cDefines.defines['SCREEN_WIDTH'],height=2.0*cDefines.defines['PLAYER_START_BUTTON_HEIGHT']/cDefines.defines['SCREEN_HEIGHT'],textureIndex=cDefines.defines['PLAYER_START_BUTTON_INDEX'])
 					uiElements.uiElement(0.19+(0.05*col),0.948-(0.04*row),text=str((col*4)+row+1),textSize=0.0004)
 				
@@ -634,7 +635,6 @@ class mapEditorMode(tiledGameMode):
 		uiElements.addFirstRowButton(0.18,0.77,text="+",textureIndex=-1)
 		uiElements.removeFirstRowButton(0.21,0.77,text="-",textureIndex=-1)
 
-		uiElements.uiElement(0.8,0.925,text="asdf",textSize=0.0005)
 		uiElements.saveButton(0.9,0.925,text="save",textSize=0.0005)
 
 class textBasedMenuMode(gameMode):
@@ -706,14 +706,12 @@ class newMapMode(gameMode):
 		gameMode.__init__(self)
 	def addUIElements(self):
 		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])
-		uiElements.uiElement(-0.15,0.2,text="map name")
-		self.mapNameInputElement = uiElements.newMapNameInputElement(-0.15,0.15,mapEditorMode,width=(2.0*cDefines.defines['UI_TEXT_INPUT_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_TEXT_INPUT_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),text="",textSize=0.0005,textColor='00 00 00',textureIndex=cDefines.defines['UI_TEXT_INPUT_INDEX'],textYPos=-0.035,textXPos=0.01)
-		uiElements.uiElement(-0.15,0.0,text="number of players")
-		self.mapPlayerCountInputElement = uiElements.newMapPlayerCountInputElement(-0.15,-0.05,mapEditorMode,width=(2.0*cDefines.defines['UI_TEXT_INPUT_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_TEXT_INPUT_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),text="",textSize=0.0005,textColor='00 00 00',textureIndex=cDefines.defines['UI_TEXT_INPUT_INDEX'],textYPos=-0.035,textXPos=0.01)
-
-
+		uiElements.uiElement(-0.15,0.17,text="map name")
+		self.mapNameInputElement = uiElements.newMapNameInputElement(-0.15,0.15,mapEditorMode,width=(2.0*cDefines.defines['UI_TEXT_INPUT_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_TEXT_INPUT_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),text="",textSize=0.0007,textColor='FF FF FF',textureIndex=cDefines.defines['UI_TEXT_INPUT_INDEX'],textYPos=-0.055,textXPos=0.02)
+		uiElements.uiElement(-0.15,-0.03,text="number of players")
+		self.mapPlayerCountInputElement = uiElements.newMapPlayerCountInputElement(-0.15,-0.05,mapEditorMode,width=(2.0*cDefines.defines['UI_TEXT_INPUT_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_TEXT_INPUT_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),text="",textSize=0.0007,textColor='FF FF FF',textureIndex=cDefines.defines['UI_TEXT_INPUT_INDEX'],textYPos=-0.055,textXPos=0.02)
 		self.setFocus(self.mapNameInputElement)
-		uiElements.createMapButton(0.0,-0.3,mapEditorMode,text="create map")
+		uiElements.createMapButton(-0.15,-0.3,mapEditorMode,text="create map")
 
 class joinLANGameScreenMode(gameMode):
 	def __init__(self,args):
