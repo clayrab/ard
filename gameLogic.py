@@ -570,6 +570,10 @@ class mapEditorNode(node):
 					gameState.getGameMode().selectedCityNode = self
 	def onLeftClickDown(self):
 		self.clicked = True
+		if(gameState.getGameMode().selectedCityNode != None):
+			gameState.getGameMode().selectedCityNode.selected = False
+		self.selected = True
+		uiElements.cityEditor.destroy()
 		if(gameState.getGameMode().selectedButton != None):
 			if(hasattr(gameState.getGameMode().selectedButton,"tileType")):
 				if(gameState.getGameMode().selectedButton.tileType == cDefines.defines['ROAD_TILE_INDEX']):#new road
@@ -577,11 +581,7 @@ class mapEditorNode(node):
 				elif(gameState.getGameMode().selectedButton.tileType == cDefines.defines['CITY_TILE_INDEX']):#new city
 					if(self.city == None):
 						self.city = city(random.choice(cityNames),self)
-					uiElements.cityEditor.destroy()
 					uiElements.cityEditor.theCityEditor = uiElements.cityEditor(self.city)
-					if(gameState.getGameMode().selectedCityNode != None):
-						gameState.getGameMode().selectedCityNode.selected = False
-					self.selected = True
 					gameState.getGameMode().selectedCityNode = self
 				else:
 					self.tileValue = gameState.getGameMode().selectedButton.tileType

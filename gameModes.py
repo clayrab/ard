@@ -16,7 +16,6 @@
 #create email form/database table
 #teams
 #handle disconnections/reconnections gracefully
-#draw roads properly
 #map name clickable to view map
 #keyboard shortcuts(s skip, a auto-select, g gather, u start summoning)
 #testing connection timeout
@@ -28,6 +27,7 @@
 #show move speed and attack speed
 #icons for green and blue wood
 #healing animation
+#roads? Draw them properly or remove them...
 
 #BUGS
 #replace open() on map files with mapdatas data
@@ -556,18 +556,16 @@ class playMode(tiledGameMode):
 			gameState.addPlayer(1).isOwnPlayer = True
 			gameState.addPlayer(2).isOwnPlayer = True
 		self.players = gameState.getPlayers()
-
-		uiElements.uiElement(0.635,0.965,textureIndex=texIndex("TIME_ICON"),width=texWidth("TIME_ICON"),height=texHeight("TIME_ICON"))
-		self.timeToMoveElem = uiElements.uiElement(0.659,0.942,text="",textSize=0.00045)
-		uiElements.uiElement(0.755,0.965,textureIndex=texIndex("GREEN_WOOD_ICON"),width=texWidth("GREEN_WOOD_ICON"),height=texHeight("GREEN_WOOD_ICON"))
-		self.greenWoodUIElem = uiElements.uiElement(0.779,0.942,text=str(self.players[0].greenWood),textSize=0.00045)
-		uiElements.uiElement(0.875,0.965,textureIndex=texIndex("BLUE_WOOD_ICON"),width=texWidth("BLUE_WOOD_ICON"),height=texHeight("BLUE_WOOD_ICON"))
-		self.blueWoodUIElem = uiElements.uiElement(0.899,0.942,text=str(self.players[0].blueWood),textSize=0.00045)
-
-		self.waitingElem = uiElements.uiElement(-0.2,0.93,text="waiting for another player",textColor="ee ed 9b",textSize=0.00055,hidden=True)
-
 		uiElements.uiElement(0.718,-0.932,textureIndex=texIndex("CHECKBOXES_BACKGROUND"),width=texWidth("CHECKBOXES_BACKGROUND"),height=texHeight("CHECKBOXES_BACKGROUND"))
 		uiElements.autoSelectCheckBox(0.735,-0.94)
+		uiElements.uiElement(0.535,0.980,textureIndex=texIndex("TIME_ICON"),width=texWidth("TIME_ICON"),height=texHeight("TIME_ICON"))
+		self.timeToMoveElem = uiElements.uiElement(0.559,0.957,text="",textSize=0.00045)
+		uiElements.uiElement(0.655,0.980,textureIndex=texIndex("GREEN_WOOD_ICON"),width=texWidth("GREEN_WOOD_ICON"),height=texHeight("GREEN_WOOD_ICON"))
+		self.greenWoodUIElem = uiElements.uiElement(0.679,0.957,text=str(self.players[0].greenWood),textSize=0.00045)
+		uiElements.uiElement(0.775,0.980,textureIndex=texIndex("BLUE_WOOD_ICON"),width=texWidth("BLUE_WOOD_ICON"),height=texHeight("BLUE_WOOD_ICON"))
+		self.blueWoodUIElem = uiElements.uiElement(0.799,0.957,text=str(self.players[0].blueWood),textSize=0.00045)
+		self.waitingElem = uiElements.uiElement(-0.2,0.93,text="waiting for another player",textColor="ee ed 9b",textSize=0.00055,hidden=True)
+		uiElements.uiElement(0.99-texWidth("MENU_BUTTON"),0.99,textureIndex=texIndex("MENU_BUTTON"),height=texHeight("MENU_BUTTON"),width=texWidth("MENU_BUTTON"))
 #		uiElements.watchFriendlyMovesCheckBox(0.455,-0.94)
 #		uiElements.watchEnemyMovesCheckBox(0.675,-0.94)
 

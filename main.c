@@ -531,8 +531,8 @@ static void printPyStackTrace(){
 #define TITLE_INDEX 101
 
 #define MENU_BUTTON "assets/menuButton.png"
-#define MENU_BUTTON_HEIGHT 35
-#define MENU_BUTTON_WIDTH 150
+#define MENU_BUTTON_HEIGHT 33
+#define MENU_BUTTON_WIDTH 33
 #define MENU_BUTTON_INDEX 102
 
 #define SWORDSMAN_OVERLAY "assets/swordsmanOverlay.png"
@@ -586,6 +586,11 @@ static void printPyStackTrace(){
 #define UI_CITY_EDITOR_BACKGROUND_BACKGROUND_HEIGHT 1180
 #define UI_CITY_EDITOR_BACKGROUND_BACKGROUND_WIDTH 358
 #define UI_CITY_EDITOR_BACKGROUND_BACKGROUND_INDEX 116
+
+#define MENU_MODAL "assets/menuModal.png"
+#define MENU_MODAL_HEIGHT 1600
+#define MENU_MODAL_WIDTH 1200
+#define MENU_MODAL_INDEX 117
 
 #define DESERT_TILE_INDEX 0
 #define GRASS_TILE_INDEX 1
@@ -1841,6 +1846,7 @@ static void initGL (){
   pngLoad(&texturesArray[CHECK_MARK_CHECKED_INDEX],CHECK_MARK_CHECKED);
   pngLoad(&texturesArray[CHECKBOXES_BACKGROUND_INDEX],CHECKBOXES_BACKGROUND);
   pngLoad(&texturesArray[UI_CITY_EDITOR_BACKGROUND_BACKGROUND_INDEX],UI_CITY_EDITOR_BACKGROUND_BACKGROUND);
+  pngLoad(&texturesArray[MENU_MODAL_INDEX],MENU_MODAL);
 
   vertexArrays[DESERT_TILE_INDEX] = *desertVertices;
   vertexArrays[GRASS_TILE_INDEX] = *grassVertices;
