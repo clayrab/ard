@@ -1115,6 +1115,13 @@ class startingManaField(clickableElement):
 #	def onClick(self):
 #		unitBuildTimeSelector(self.xPosition,self.yPosition-0.06,unitBuildTimes,self,text="select build timeGET RID OF THIS",textSize=0.0005,textureIndex=cDefines.defines['UI_SCROLLABLE_INDEX'],width=(2.0*cDefines.defines['UI_SCROLLABLE_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_SCROLLABLE_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']))
 
+	
+
+class openMenuButton(clickableElement):
+	def __init__(self,xPos,yPos):
+		clickableElement.__init__(self,xPos,yPos,textureIndex=texIndex("MENU_BUTTON"),height=texHeight("MENU_BUTTON"),width=texWidth("MENU_BUTTON"))
+	def onClick(self):
+		menuModal()
 
 class menuButton(clickableElement):
 	index = 0
@@ -1122,25 +1129,31 @@ class menuButton(clickableElement):
 	selectedIndex = 0
 	selectedTextColor = "aa aa aa"
 	normalTextColor = "1f 10 10"
-	gameMode = None
-	def __init__(self,xPos,yPos,gameMode,width=1.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",selected=False):
-		clickableElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=menuButton.normalTextColor,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],mouseOverColor="88 88 88",textSize=0.0013,fontIndex=1)
-		if(menuButton.gameMode != gameState.getGameMode()):
+	currentGameMode = None
+	def __init__(self,xPos,yPos,text="",selected=False):
+		clickableElement.__init__(self,xPos,yPos,width=2.0,text=text,textColor=menuButton.normalTextColor,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],mouseOverColor="88 88 88",textSize=0.0013,fontIndex=1)
+		if(menuButton.currentGameMode != gameState.getGameMode()):
 			menuButton.index = 0
 			menuButton.buttonsList = []
 			menuButton.selectedIndex = 0
-		self.gameMode = gameMode
 		self.selected = selected
 		self.index = menuButton.index
-		menuButton.gameMode = gameState.getGameMode()
+		menuButton.currentGameMode = gameState.getGameMode()
 		menuButton.buttonsList.append(self)
 		menuButton.index = menuButton.index + 1
 		if(self.index == menuButton.selectedIndex):
 			self.textColor = menuButton.selectedTextColor
 	def onClick(self):
+		print 'override me'
+
+class menuButtonGameModeSelector(menuButton):
+	def __init__(self,xPos,yPos,gameMode,text=""):
+		menuButton.__init__(self,xPos,yPos,text=text)
+		self.gameMode = gameMode
+	def onClick(self):
 		gameState.setGameMode(self.gameMode)
 
-class mapEditSelectButton(menuButton):
+class mapEditSelectButton(menuButtonGameModeSelector):
 	def onClick(self):
 		if(self.text == "create new map"):#TODO: someone naming a map "create new map" would fuck this up, break this into separate classes
 			gameState.setGameMode(self.gameMode)
@@ -1148,11 +1161,16 @@ class mapEditSelectButton(menuButton):
 			gameState.setMapName(self.text)
 			gameState.setGameMode(self.gameMode)
 
-class mapPlaySelectButton(menuButton):
+class mapPlaySelectButton(menuButtonGameModeSelector):
 	def onClick(self):
-		
 		gameState.setMapName(self.text)
 		gameState.setGameMode(self.gameMode)
+
+class exitButton(menuButton):
+	def __init__(self,xPos,yPos,text="Exit"):
+		menuButton.__init__(self,xPos,yPos,text=text)
+	def onClick(self):
+		gameState.getGameMode().exit = True
 
 class mapSelector(scrollableTextFieldsElement):
 	def __init__(self,xPos,yPos,textFields,mapField):
@@ -1226,7 +1244,7 @@ class roomTitleInputElement(textInputElement):
 		else:
 			textInputElement.onKeyDown(self,keycode)
 
-class startButton(menuButton):
+class startButton(menuButtonGameModeSelector):
 	def onClick(self):
 		if(gameState.getMapName() != None):
 			server.stopAcceptingConnections()
@@ -1277,21 +1295,54 @@ class loginButton(clickableElement):
 		loginInputElement.doLogin()
 		
 class modalButton(clickableElement):
-	def __init__(self,modal,yPos=-0.05,text="",textureIndex=cDefines.defines["OK_BUTTON_INDEX"]):
+	def __init__(self,modal,xPos,yPos,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,textXPos=0.0,textYPos=0.0,fontIndex=0):
 		self.modal = modal
-		clickableElement.__init__(self,texWidth("OK_BUTTON")/-2.0,yPos,text=text,width=texWidth("OK_BUTTON"),height=texHeight("OK_BUTTON"),textureIndex=textureIndex,textXPos=0.1,textYPos=-0.1)
+		clickableElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],color=color,mouseOverColor=mouseOverColor,textXPos=textXPos,textYPos=textYPos,fontIndex=fontIndex)
+
+class modalOkButton(modalButton):
+	def __init__(self,modal,yPos=-0.05,text="",textureIndex=cDefines.defines["OK_BUTTON_INDEX"]):
+		modalButton.__init__(self,modal,texWidth("OK_BUTTON")/-2.0,yPos,text=text,width=texWidth("OK_BUTTON"),height=texHeight("OK_BUTTON"),textureIndex=textureIndex,textXPos=0.1,textYPos=-0.1)
 	def onClick(self):
 		self.modal.destroy()
+
+class inGameMenuButton(modalButton):
+	def __init__(self,modal,xPos,yPos,text=""):
+		modalButton.__init__(self,modal,xPos,yPos,width=2.0,text=text,textColor="bb bb bb",cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],mouseOverColor="88 88 88",textSize=0.0013,fontIndex=1)
+
+class resumeButton(inGameMenuButton):
+	def __init__(self,modal,xPos,yPos,text="Resume"):
+		inGameMenuButton.__init__(self,modal,xPos,yPos,text=text)
+	def onClick(self):
+		self.modal.destroy()
+
+class exiitButton(inGameMenuButton):
+	def __init__(self,modal,xPos,yPos,text="Exit"):
+		inGameMenuButton.__init__(self,modal,xPos,yPos,text=text)
+	def onClick(self):
+		gameState.setGameMode(gameModes.newGameScreenMode)
 
 class modal(uiElement):
 	def destroy(self):
 		del gameState.getGameMode().elementsDict[self.name]
-		del gameState.getGameMode().elementsDict[self.textElem.name]
-		del gameState.getGameMode().elementsDict[self.backgroundElem.name]
-		if(self.dismissable):
+		for name in self.names:
+			del gameState.getGameMode().elementsDict[name]
+		if(hasattr(self,"textElem")):
+			   del gameState.getGameMode().elementsDict[self.textElem.name]
+		if(hasattr(self,"backgroundElem")):
+			del gameState.getGameMode().elementsDict[self.backgroundElem.name]
+		if(hasattr(self,"buttonElem")):
 			del gameState.getGameMode().elementsDict[self.buttonElem.name]
 		gameState.getGameMode().resortElems = True
 		gameState.getGameMode().modal = None
+
+class menuModal(modal):
+	def __init__(self,dismissable=True):
+		uiElement.__init__(self,-1.0,1.0,width=texWidth("MENU_MODAL"),height=texHeight("MENU_MODAL"),textureIndex=texIndex("MENU_MODAL"))
+		self.names = []
+		self.dismissable = dismissable
+		self.names.append(resumeButton(self,-0.12,0.2).name)
+		self.names.append(exiitButton(self,-0.06,-0.2).name)
+		gameState.getGameMode().modal = self
 
 class smallModal(modal):
 	def __init__(self,text,dismissable=True):
@@ -1300,7 +1351,7 @@ class smallModal(modal):
 		self.backgroundElem = uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines["MODAL_BACKGROUND_INDEX"])
 		self.textElem = uiElement((texWidth("MODAL_SMALL")/-2.0)+0.03,0.1,width=texWidth("MODAL_SMALL")-0.06,text=text,textSize=0.0007,textColor="ee ed 9b")
 		if(self.dismissable):
-			self.buttonElem = modalButton(self,self.yPosition-0.4)
+			self.buttonElem = modalOkButton(self,self.yPosition-0.4)
 		gameState.getGameMode().modal = self
 
 class winLoseModalButton(clickableElement):
@@ -1475,3 +1526,4 @@ class autoSelectCheckBox(clickableElement):
 #		else:
 #			self.textureName = "CHECK_MARK"
 #		self.textureIndex = texIndex(self.textureName)
+

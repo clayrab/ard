@@ -123,6 +123,7 @@ class gameMode:
 		self.mouseY = 0
 		self.scrolledDistance = 0.0
 		self.maxTranslateZ = 0.0-cDefines.defines["maxZoom"]
+		self.exit = False
 		uiElements.viewer.theViewer = None
 	def handleMouseMovement(self,name,mouseX,mouseY):
 		self.mouseX = mouseX
@@ -169,8 +170,6 @@ class gameMode:
 				elif(hasattr(self.elementWithFocus,"onLeftClickUp")):
 					self.elementWithFocus.onLeftClickUp()
 	def handleKeyDown(self,keycode):
-		if(keycode == "t"):
-			pass
 		if(self.modal == None):
 			if(hasattr(self,"keyDown")):
 				self.keyDown(keycode)
@@ -179,6 +178,8 @@ class gameMode:
 					self.mousedOverObject.onKeyDown(keycode)
 				elif(hasattr(self.elementWithFocus,"onKeyDown")):
 					self.elementWithFocus.onKeyDown(keycode)
+		elif(self.modal.dismissable and (keycode == "escape" or keycode == "return" or keycode == "space")):
+			self.modal.destroy()
 	def handleKeyUp(self,keycode):
 		if(keycode == "`"):
 			if(hasattr(self,"clickScroll")):
@@ -286,7 +287,7 @@ class tiledGameMode(gameMode):
 					self.mousedOverObject = None
 			if(self.elementsDict.has_key(name)):
 				if(self.mousedOverObject != None):
-					if(self.mouseOverObject.name != name):
+					if(self.mousedOverObject.name != name):
 						self.mousedOverObject = self.elementsDict[name]
 						if(hasattr(self.elementsDict[name],"onMouseOver")):
 							self.elementsDict[name].onMouseOver()
@@ -565,9 +566,7 @@ class playMode(tiledGameMode):
 		uiElements.uiElement(0.775,0.980,textureIndex=texIndex("BLUE_WOOD_ICON"),width=texWidth("BLUE_WOOD_ICON"),height=texHeight("BLUE_WOOD_ICON"))
 		self.blueWoodUIElem = uiElements.uiElement(0.799,0.957,text=str(self.players[0].blueWood),textSize=0.00045)
 		self.waitingElem = uiElements.uiElement(-0.2,0.93,text="waiting for another player",textColor="ee ed 9b",textSize=0.00055,hidden=True)
-		uiElements.uiElement(0.99-texWidth("MENU_BUTTON"),0.99,textureIndex=texIndex("MENU_BUTTON"),height=texHeight("MENU_BUTTON"),width=texWidth("MENU_BUTTON"))
-#		uiElements.watchFriendlyMovesCheckBox(0.455,-0.94)
-#		uiElements.watchEnemyMovesCheckBox(0.675,-0.94)
+		uiElements.openMenuButton(0.99-texWidth("MENU_BUTTON"),0.99)
 
 	def startGame(self):
 		self.loadSummoners()
@@ -665,17 +664,18 @@ class textBasedMenuMode(gameMode):
 class newGameScreenMode(textBasedMenuMode):
 	def addUIElements(self):
 		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])
-		uiElements.uiElement(-0.5*texWidth("TITLE"),0.35,textureIndex=texIndex("TITLE"),width=texWidth("TITLE"),height=texHeight("TITLE"))
-		uiElements.menuButton(-0.18,-0.48,quickPlayMapSelectMode,text="Quick Play")
-		uiElements.menuButton(-0.28,-0.58,joinLANGameScreenMode,text="Join LAN Game")
-		uiElements.menuButton(-0.30,-0.70,hostGameMode,text="Host LAN Game")
-		uiElements.menuButton(-0.19,-0.82,loginMode,text="Play Online")
-		uiElements.menuButton(-0.19,-0.94,mapEditorSelectMode,text="Map Editor")
+		uiElements.uiElement(-0.5*texWidth("TITLE"),0.45,textureIndex=texIndex("TITLE"),width=texWidth("TITLE"),height=texHeight("TITLE"))
+		uiElements.menuButtonGameModeSelector(-0.18,-0.34,quickPlayMapSelectMode,text="Quick Play")
+		uiElements.menuButtonGameModeSelector(-0.28,-0.46,joinLANGameScreenMode,text="Join LAN Game")
+		uiElements.menuButtonGameModeSelector(-0.30,-0.58,hostGameMode,text="Host LAN Game")
+		uiElements.menuButtonGameModeSelector(-0.19,-0.70,loginMode,text="Play Online")
+		uiElements.menuButtonGameModeSelector(-0.19,-0.82,mapEditorSelectMode,text="Map Editor")
+		uiElements.exitButton(-0.05,-0.94)
 
 class comingSoonMode(textBasedMenuMode):
 	def addUIElements(self):
 		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])
-		uiElements.menuButton(-0.45,0.0,newGameScreenMode,text="campaign mode coming soon!")
+		uiElements.menuButtonGameModeSelector(-0.45,0.0,newGameScreenMode,text="campaign mode coming soon!")
 		
 class quickPlayMapSelectMode(textBasedMenuMode):
 	def addUIElements(self):
@@ -715,10 +715,11 @@ class joinLANGameScreenMode(gameMode):
 		gameMode.__init__(self)
 	def addUIElements(self):
 		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])
-		uiElements.uiElement(-0.15,0.165,text="Host IP Address",textSize=0.0007,textColor="ee ed 9b")
-		self.hostIPInputElem = uiElements.hostIPInputElement(-0.15,0.15)
+		uiElements.uiElement(-0.06,0.165,text="Host IP",textSize=0.0007,textColor="1f 10 10")
+		self.hostIPInputElem = uiElements.hostIPInputElement(-0.18,0.15)
+		uiElements.hostIPConnectButton(-0.18,0.07)
 		self.setFocus(self.hostIPInputElem)
-		uiElements.hostIPConnectButton(-0.15,0.07)
+		uiElements.menuButtonGameModeSelector(-0.07,-0.2,newGameScreenMode,text="Back")
 
 class joiningLANGameScreenMode(gameMode):
 	def __init__(self,args):
@@ -743,7 +744,7 @@ class joiningLANGameScreenMode(gameMode):
 		uiElements.uiElement(-0.15,0.9,text="lan game")
 		uiElements.uiElement(-0.85,0.8,text="players")
 		self.mapNameElement = uiElements.uiElement(-0.85,-0.1,text="map")
-		#uiElements.menuButton(-0.45,0.0,newGameScreenMode,text="back")
+		#uiElements.menuButtonGameModeSelector(-0.45,0.0,newGameScreenMode,text="back")
 
 class hostLANGameScreenMode(gameMode):
 	def __init__(self,args):

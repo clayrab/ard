@@ -588,8 +588,8 @@ static void printPyStackTrace(){
 #define UI_CITY_EDITOR_BACKGROUND_BACKGROUND_INDEX 116
 
 #define MENU_MODAL "assets/menuModal.png"
-#define MENU_MODAL_HEIGHT 1600
-#define MENU_MODAL_WIDTH 1200
+#define MENU_MODAL_HEIGHT 1200
+#define MENU_MODAL_WIDTH 1600
 #define MENU_MODAL_INDEX 117
 
 #define DESERT_TILE_INDEX 0
@@ -2064,13 +2064,15 @@ static void handleInput(){
       }
       break;
     case SDL_KEYDOWN:
-      if(event.key.keysym.sym == SDLK_ESCAPE){
+      /*      if(event.key.keysym.sym == SDLK_ESCAPE){
 	done = 1;	
-	/*      }else if(event.key.keysym.sym == SDLK_BACKQUOTE){
+	
+      }else if(event.key.keysym.sym == SDLK_BACKQUOTE){
 	clickScroll = 1;
 	avgDeltaTicks = 0;
-	totalDeltaTicksDataPoints = 0;*/
-      }else if(event.key.keysym.sym == SDLK_NUMLOCK
+	totalDeltaTicksDataPoints = 0;
+      }else */
+      if(event.key.keysym.sym == SDLK_NUMLOCK
 	       || event.key.keysym.sym ==SDLK_CAPSLOCK
 	       || event.key.keysym.sym ==SDLK_SCROLLOCK
 	       //	       || event.key.keysym.sym ==SDLK_RSHIFT
@@ -2241,7 +2243,6 @@ PyObject * pyChooseNextDelayed;
 int chooseNextDelayed;
 Uint32 chooseNextTimeStart;
 static void draw(){
-		
   if(PyObject_HasAttrString(gameMode,"chooseNextDelayed")){
     pyChooseNextDelayed = PyObject_CallMethod(gameMode,"getChooseNextDelayed",NULL);//New reference
     printPyStackTrace();
@@ -2263,7 +2264,6 @@ static void draw(){
     printPyStackTrace();
     Py_DECREF(pyObj);
   }
-
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		 
   glSelectBuffer(BUFSIZE,selectBuf);//glSelectBuffer must be issued before selection mode is enabled, and it must not be issued while the rendering mode is GL_SELECT.
@@ -2336,12 +2336,15 @@ static void draw(){
   glFlush();
   SDL_GL_SwapBuffers ();	
 }
+PyObject * pyExit;
 static void mainLoop (){
   while ( !done ) {
     gameMode = PyObject_CallMethod(gameState,"getGameMode",NULL);
     if(PyObject_HasAttrString(gameMode,"map")){
       theMap = PyObject_GetAttrString(gameMode, "map");//New reference
     }
+    pyExit = PyObject_GetAttrString(gameMode,"exit");
+    done = (pyExit == Py_True);
     deltaTicks = SDL_GetTicks()-currentTick;
     currentTick = SDL_GetTicks();
     handleInput();
