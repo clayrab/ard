@@ -11,8 +11,6 @@
 #report game state(to look for cheaters/bugs)
 
 #ISSUES
-#proper quit and options menus
-#menu: resume, quit, help
 #create email form/database table
 #teams
 #handle disconnections/reconnections gracefully
