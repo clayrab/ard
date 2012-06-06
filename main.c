@@ -596,17 +596,41 @@ static void printPyStackTrace(){
 #define TILE_WIDTH 433
 #define TILE_INDEX_START 118
 
+#define DESERT0 "assets/grass0.png"
+#define DESERT_INDEX0 118
+#define DESERT1 "assets/grass1.png"
+#define DESERT_INDEX1 119
+#define DESERT2 "assets/grass2.png"
+#define DESERT_INDEX2 120
+#define DESERT3 "assets/grass3.png"
+#define DESERT_INDEX3 121
+
 #define GRASS0 "assets/grass0.png"
-#define GRASS_INDEX0 118
-
+#define GRASS_INDEX0 122
 #define GRASS1 "assets/grass1.png"
-#define GRASS_INDEX1 119
-
+#define GRASS_INDEX1 123
 #define GRASS2 "assets/grass2.png"
-#define GRASS_INDEX2 120
-
+#define GRASS_INDEX2 124
 #define GRASS3 "assets/grass3.png"
-#define GRASS_INDEX3 121
+#define GRASS_INDEX3 125
+
+#define MOUNTAIN0 "assets/mountain0.png"
+#define MOUNTAIN_INDEX0 126
+#define MOUNTAIN1 "assets/mountain1.png"
+#define MOUNTAIN_INDEX1 127
+#define MOUNTAIN2 "assets/mountain2.png"
+#define MOUNTAIN_INDEX2 128
+#define MOUNTAIN3 "assets/mountain3.png"
+#define MOUNTAIN_INDEX3 129
+
+#define FOREST0 "assets/forest0.png"
+#define FOREST_INDEX0 130
+#define FOREST1 "assets/forest1.png"
+#define FOREST_INDEX1 131
+#define FOREST2 "assets/forest2.png"
+#define FOREST_INDEX2 132
+#define FOREST3 "assets/forest3.png"
+#define FOREST_INDEX3 133
 
 #define DESERT_TILE_INDEX 0
 #define GRASS_TILE_INDEX 1
@@ -1069,7 +1093,6 @@ void drawTile(uint tilesXIndex, uint tilesYIndex, long name, long tileValue, lon
   uint tileHash=0;
   tileHash += (((4294967296*(2654435761)*tilesXIndex)+81)%43261);
   tileHash += (((4294967296*(2654435761)*tilesYIndex)+30)%131071);
-  //tileHash += (((15*tilesYIndex)+30)%89);
   tileHash = tileHash%4;
   glCallList(tilesLists+(4*tileValue)+tileHash);
   glPopName();
@@ -1885,10 +1908,22 @@ static void initGL (){
   pngLoad(&texturesArray[CHECKBOXES_BACKGROUND_INDEX],CHECKBOXES_BACKGROUND);
   pngLoad(&texturesArray[UI_CITY_EDITOR_BACKGROUND_BACKGROUND_INDEX],UI_CITY_EDITOR_BACKGROUND_BACKGROUND);
   pngLoad(&texturesArray[MENU_MODAL_INDEX],MENU_MODAL);
+  pngLoad(&texturesArray[DESERT_INDEX0],DESERT0);
+  pngLoad(&texturesArray[DESERT_INDEX1],DESERT1);
+  pngLoad(&texturesArray[DESERT_INDEX2],DESERT2);
+  pngLoad(&texturesArray[DESERT_INDEX3],DESERT3);
   pngLoad(&texturesArray[GRASS_INDEX0],GRASS0);
   pngLoad(&texturesArray[GRASS_INDEX1],GRASS1);
   pngLoad(&texturesArray[GRASS_INDEX2],GRASS2);
   pngLoad(&texturesArray[GRASS_INDEX3],GRASS3);
+  pngLoad(&texturesArray[MOUNTAIN_INDEX0],MOUNTAIN0);
+  pngLoad(&texturesArray[MOUNTAIN_INDEX1],MOUNTAIN1);
+  pngLoad(&texturesArray[MOUNTAIN_INDEX2],MOUNTAIN2);
+  pngLoad(&texturesArray[MOUNTAIN_INDEX3],MOUNTAIN3);
+  pngLoad(&texturesArray[FOREST_INDEX0],FOREST0);
+  pngLoad(&texturesArray[FOREST_INDEX1],FOREST1);
+  pngLoad(&texturesArray[FOREST_INDEX2],FOREST2);
+  pngLoad(&texturesArray[FOREST_INDEX3],FOREST3);
 
   vertexArrays[DESERT_TILE_INDEX] = *desertVertices;
   vertexArrays[GRASS_TILE_INDEX] = *grassVertices;
@@ -1907,8 +1942,8 @@ static void initGL (){
   for(c=0;c<9;c++){
     for(d=0;d<4;d++){
       glNewList(tilesLists+(c*4)+d,GL_COMPILE);
-      if(c == 1){
-	glBindTexture(GL_TEXTURE_2D, texturesArray[GRASS_INDEX0+d]);
+      if(c <= 3){
+	glBindTexture(GL_TEXTURE_2D, texturesArray[TILE_INDEX_START+(4*c)+d]);
 	glBegin(GL_POLYGON);
 	glTexCoord2f(textureHexVertices[0][0],textureHexVertices[0][1]); glVertex3f(hexagonVertices[0][0], hexagonVertices[0][1], 0.0);
 	glTexCoord2f(textureHexVertices[1][0],textureHexVertices[1][1]); glVertex3f(hexagonVertices[1][0], hexagonVertices[1][1], 0.0);
