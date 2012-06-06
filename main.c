@@ -632,6 +632,24 @@ static void printPyStackTrace(){
 #define FOREST3 "assets/forest3.png"
 #define FOREST_INDEX3 133
 
+#define BLUEFOREST0 "assets/blueforest0.png"
+#define BLUEFOREST_INDEX0 134
+#define BLUEFOREST1 "assets/blueforest1.png"
+#define BLUEFOREST_INDEX1 135
+#define BLUEFOREST2 "assets/blueforest2.png"
+#define BLUEFOREST_INDEX2 136
+#define BLUEFOREST3 "assets/blueforest3.png"
+#define BLUEFOREST_INDEX3 137
+
+#define WATER0 "assets/water0.png"
+#define WATER_INDEX0 138
+#define WATER1 "assets/water1.png"
+#define WATER_INDEX1 139
+#define WATER2 "assets/water2.png"
+#define WATER_INDEX2 140
+#define WATER3 "assets/water3.png"
+#define WATER_INDEX3 141
+
 #define DESERT_TILE_INDEX 0
 #define GRASS_TILE_INDEX 1
 #define MOUNTAIN_TILE_INDEX 2
@@ -1924,6 +1942,14 @@ static void initGL (){
   pngLoad(&texturesArray[FOREST_INDEX1],FOREST1);
   pngLoad(&texturesArray[FOREST_INDEX2],FOREST2);
   pngLoad(&texturesArray[FOREST_INDEX3],FOREST3);
+  pngLoad(&texturesArray[BLUEFOREST_INDEX0],BLUEFOREST0);
+  pngLoad(&texturesArray[BLUEFOREST_INDEX1],BLUEFOREST1);
+  pngLoad(&texturesArray[BLUEFOREST_INDEX2],BLUEFOREST2);
+  pngLoad(&texturesArray[BLUEFOREST_INDEX3],BLUEFOREST3);
+  pngLoad(&texturesArray[WATER_INDEX0],WATER0);
+  pngLoad(&texturesArray[WATER_INDEX1],WATER1);
+  pngLoad(&texturesArray[WATER_INDEX2],WATER2);
+  pngLoad(&texturesArray[WATER_INDEX3],WATER3);
 
   vertexArrays[DESERT_TILE_INDEX] = *desertVertices;
   vertexArrays[GRASS_TILE_INDEX] = *grassVertices;
@@ -1942,7 +1968,7 @@ static void initGL (){
   for(c=0;c<9;c++){
     for(d=0;d<4;d++){
       glNewList(tilesLists+(c*4)+d,GL_COMPILE);
-      if(c <= 3){
+      if(c <= 5){
 	glBindTexture(GL_TEXTURE_2D, texturesArray[TILE_INDEX_START+(4*c)+d]);
 	glBegin(GL_POLYGON);
 	glTexCoord2f(textureHexVertices[0][0],textureHexVertices[0][1]); glVertex3f(hexagonVertices[0][0], hexagonVertices[0][1], 0.0);
