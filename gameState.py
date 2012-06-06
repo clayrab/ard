@@ -65,6 +65,8 @@ def setMapName(mapName):
 theGameMode = None
 def setGameMode(gameModeType,args=[]):
     global theGameMode
+    if(theGameMode != None and theGameMode.modal != None):
+	    theGameMode.modal.destroy()
     theGameMode = gameModeType(args)
     if(hasattr(theGameMode,"loadMap")):
         theGameMode.loadMap()

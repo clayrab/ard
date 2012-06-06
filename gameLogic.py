@@ -545,7 +545,7 @@ class playModeNode(node):
 							neighbs.append(gameState.getGameMode().map.nodes[self.yPos + yDelta][self.xPos + xDelta])
 		return neighbs
 	def onMouseOver(self):
-		if(gameState.getGameMode().selectedNode != None and gameState.getGameMode().selectedNode.unit != None):
+		if(hasattr(gameState.getGameMode(),"selectedNode") and gameState.getGameMode().selectedNode != None and gameState.getGameMode().selectedNode.unit != None):
 			if(gameState.getGameMode().selectedNode.unit.node.neighbors.count(self) > 0):
 				playModeNode.isNeighbor = True
 			else:

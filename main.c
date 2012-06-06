@@ -592,6 +592,22 @@ static void printPyStackTrace(){
 #define MENU_MODAL_WIDTH 1600
 #define MENU_MODAL_INDEX 117
 
+#define TILE_HEIGHT 500
+#define TILE_WIDTH 433
+#define TILE_INDEX_START 118
+
+#define GRASS0 "assets/grass0.png"
+#define GRASS_INDEX0 118
+
+#define GRASS1 "assets/grass1.png"
+#define GRASS_INDEX1 119
+
+#define GRASS2 "assets/grass2.png"
+#define GRASS_INDEX2 120
+
+#define GRASS3 "assets/grass3.png"
+#define GRASS_INDEX3 121
+
 #define DESERT_TILE_INDEX 0
 #define GRASS_TILE_INDEX 1
 #define MOUNTAIN_TILE_INDEX 2
@@ -799,7 +815,7 @@ float playerStartVertices[6][2] = {
   {(610.0/1280),1.0-(572.0/1280)}
 };
 
-float hexagonVertices[6][2] = {
+/*float hexagonVertices[6][2] = {
   //cheated these all out by 0.01 so the black background doesn't bleed through
   {-SIN60-0.01, -COS60-0.01},
   {-SIN60-0.01, COS60+0.01},
@@ -807,6 +823,23 @@ float hexagonVertices[6][2] = {
   {SIN60+0.01, COS60+0.01},
   {SIN60+0.01, -COS60-0.01},
   {0.01, -1.01}
+  };*/
+float hexagonVertices[6][2] = {
+  //cheated these all out by 0.03 so the black background doesn't bleed through
+  {-SIN60-0.02, -COS60-0.00},
+  {-SIN60-0.02, COS60+0.00},
+  {0.00, 1.00},
+  {SIN60+0.02, COS60+0.00},
+  {SIN60+0.02, -COS60-0.00},
+  {0.00, -1.00}
+};
+float textureHexVertices[6][2] = {
+  {0.0,0.25},
+  {0.0,0.75},
+  {0.5,1.0},
+  {1.0,0.75},
+  {1.0,0.25},
+  {0.5,0.0}
 };
 /**************************** mouse hover object selection ********************************/
 GLuint *bufferPtr,*ptrNames, numberOfNames;
@@ -1012,7 +1045,7 @@ double xPosition;
 double yPosition;
 float shading;
 char playerStartVal[2];
-void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long roadValue,char * cityName,long isSelected, long isOnMovePath,long playerStartValue, long cursorIndex){
+void drawTile(uint tilesXIndex, uint tilesYIndex, long name, long tileValue, long roadValue,char * cityName,long isSelected, long isOnMovePath,long playerStartValue, long cursorIndex){
   xPosition = translateTilesXToPositionX(tilesXIndex,tilesYIndex);
   yPosition = translateTilesYToPositionY(tilesYIndex);
   textureVertices = vertexArrays[tileValue];
@@ -1033,16 +1066,21 @@ void drawTile(int tilesXIndex, int tilesYIndex, long name, long tileValue, long 
   glTranslatef(xPosition,yPosition,0.0);
 
   glPushName(name);
-  glCallList(tilesLists+tileValue);
+  uint tileHash=0;
+  tileHash += (((4294967296*(2654435761)*tilesXIndex)+81)%43261);
+  tileHash += (((4294967296*(2654435761)*tilesYIndex)+30)%131071);
+  //tileHash += (((15*tilesYIndex)+30)%89);
+  tileHash = tileHash%4;
+  glCallList(tilesLists+(4*tileValue)+tileHash);
   glPopName();
 
   if(roadValue == 1){
-    glCallList(tilesLists+ROAD_TILE_INDEX);
+    glCallList(tilesLists+(4*ROAD_TILE_INDEX));
   }
 
   if(playerStartValue >= 1 && !PyObject_HasAttrString(gameMode,"units")){
     textureVertices = vertexArrays[PLAYER_START_TILE_INDEX];
-    glCallList(tilesLists+PLAYER_START_TILE_INDEX);
+    glCallList(tilesLists+(4*PLAYER_START_TILE_INDEX));
     sprintf(playerStartVal,"%ld",playerStartValue);
 
     glColor3f(1.0,1.0,1.0);
@@ -1847,6 +1885,10 @@ static void initGL (){
   pngLoad(&texturesArray[CHECKBOXES_BACKGROUND_INDEX],CHECKBOXES_BACKGROUND);
   pngLoad(&texturesArray[UI_CITY_EDITOR_BACKGROUND_BACKGROUND_INDEX],UI_CITY_EDITOR_BACKGROUND_BACKGROUND);
   pngLoad(&texturesArray[MENU_MODAL_INDEX],MENU_MODAL);
+  pngLoad(&texturesArray[GRASS_INDEX0],GRASS0);
+  pngLoad(&texturesArray[GRASS_INDEX1],GRASS1);
+  pngLoad(&texturesArray[GRASS_INDEX2],GRASS2);
+  pngLoad(&texturesArray[GRASS_INDEX3],GRASS3);
 
   vertexArrays[DESERT_TILE_INDEX] = *desertVertices;
   vertexArrays[GRASS_TILE_INDEX] = *grassVertices;
@@ -1858,38 +1900,51 @@ static void initGL (){
   vertexArrays[CITY_TILE_INDEX] = *cityVertices;
   vertexArrays[PLAYER_START_TILE_INDEX] = *playerStartVertices;
   
-  tilesLists = glGenLists(30);
+  tilesLists = glGenLists(100);
 
-  int c = 0;
-  for(;c<9;c++){
-
-    glNewList(tilesLists+c,GL_COMPILE);    
-    glBindTexture(GL_TEXTURE_2D, tilesTexture);
-    glBegin(GL_POLYGON);
-    glTexCoord2f(*(vertexArrays[c]+0),*(vertexArrays[c]+1)); glVertex3f(hexagonVertices[0][0], hexagonVertices[0][1], 0.0);
-    glTexCoord2f(*(vertexArrays[c]+2),*(vertexArrays[c]+3)); glVertex3f(hexagonVertices[1][0], hexagonVertices[1][1], 0.0);
-    glTexCoord2f(*(vertexArrays[c]+4),*(vertexArrays[c]+5)); glVertex3f(hexagonVertices[2][0], hexagonVertices[2][1], 0.0);
-    glTexCoord2f(*(vertexArrays[c]+6),*(vertexArrays[c]+7)); glVertex3f(hexagonVertices[3][0], hexagonVertices[3][1], 0.0);
-    glTexCoord2f(*(vertexArrays[c]+8),*(vertexArrays[c]+9)); glVertex3f(hexagonVertices[4][0], hexagonVertices[4][1], 0.0);
-    glTexCoord2f(*(vertexArrays[c]+10),*(vertexArrays[c]+11)); glVertex3f(hexagonVertices[5][0], hexagonVertices[5][1], 0.0);
-    glEnd();
-    glEndList();
+  int c;
+  int d;
+  for(c=0;c<9;c++){
+    for(d=0;d<4;d++){
+      glNewList(tilesLists+(c*4)+d,GL_COMPILE);
+      if(c == 1){
+	glBindTexture(GL_TEXTURE_2D, texturesArray[GRASS_INDEX0+d]);
+	glBegin(GL_POLYGON);
+	glTexCoord2f(textureHexVertices[0][0],textureHexVertices[0][1]); glVertex3f(hexagonVertices[0][0], hexagonVertices[0][1], 0.0);
+	glTexCoord2f(textureHexVertices[1][0],textureHexVertices[1][1]); glVertex3f(hexagonVertices[1][0], hexagonVertices[1][1], 0.0);
+	glTexCoord2f(textureHexVertices[2][0],textureHexVertices[2][1]); glVertex3f(hexagonVertices[2][0], hexagonVertices[2][1], 0.0);
+	glTexCoord2f(textureHexVertices[3][0],textureHexVertices[3][1]); glVertex3f(hexagonVertices[3][0], hexagonVertices[3][1], 0.0);
+	glTexCoord2f(textureHexVertices[4][0],textureHexVertices[4][1]); glVertex3f(hexagonVertices[4][0], hexagonVertices[4][1], 0.0);
+	glTexCoord2f(textureHexVertices[5][0],textureHexVertices[5][1]); glVertex3f(hexagonVertices[5][0], hexagonVertices[5][1], 0.0);
+	glEnd();
+      }else{
+	glBindTexture(GL_TEXTURE_2D, tilesTexture);
+	glBegin(GL_POLYGON);
+	glTexCoord2f(*(vertexArrays[c]+0),*(vertexArrays[c]+1)); glVertex3f(hexagonVertices[0][0], hexagonVertices[0][1], 0.0);
+	glTexCoord2f(*(vertexArrays[c]+2),*(vertexArrays[c]+3)); glVertex3f(hexagonVertices[1][0], hexagonVertices[1][1], 0.0);
+	glTexCoord2f(*(vertexArrays[c]+4),*(vertexArrays[c]+5)); glVertex3f(hexagonVertices[2][0], hexagonVertices[2][1], 0.0);
+	glTexCoord2f(*(vertexArrays[c]+6),*(vertexArrays[c]+7)); glVertex3f(hexagonVertices[3][0], hexagonVertices[3][1], 0.0);
+	glTexCoord2f(*(vertexArrays[c]+8),*(vertexArrays[c]+9)); glVertex3f(hexagonVertices[4][0], hexagonVertices[4][1], 0.0);
+	glTexCoord2f(*(vertexArrays[c]+10),*(vertexArrays[c]+11)); glVertex3f(hexagonVertices[5][0], hexagonVertices[5][1], 0.0);
+	glEnd();
+      }
+      glEndList();
+    }
   }
-
-  selectionBoxList = tilesLists+c+1;
+  selectionBoxList = tilesLists+(c*d)+1;
   unitList = selectionBoxList+1;
   healthBarList = unitList+1;
 
   glNewList(selectionBoxList,GL_COMPILE);    
   glBegin(GL_QUADS);
   glTexCoord2f(0.0,0.0);
-  glVertex3f(-0.9,-1.0,0.0);
+  glVertex3f(-0.88,-1.0,0.0);
   glTexCoord2f(1.0,0.0);
-  glVertex3f(0.78,-1.0,0.0);
+  glVertex3f(0.84,-1.0,0.0);
   glTexCoord2f(1.0,1.0);
-  glVertex3f(0.78,1.0, 0.0);
+  glVertex3f(0.84,1.0, 0.0);
   glTexCoord2f(0.0,1.0);
-  glVertex3f(-0.9,1.0, 0.0);
+  glVertex3f(-0.88,1.0, 0.0);
   glEnd();
   glEndList();
 

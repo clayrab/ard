@@ -179,7 +179,10 @@ class gameMode:
 				elif(hasattr(self.elementWithFocus,"onKeyDown")):
 					self.elementWithFocus.onKeyDown(keycode)
 		elif(self.modal.dismissable and (keycode == "escape" or keycode == "return" or keycode == "space")):
-			self.modal.destroy()
+			if(self.modal.textureIndex==texIndex("MENU_MODAL")):
+				self.modal.exitButton.onClick()
+			else:
+				self.modal.destroy()
 	def handleKeyUp(self,keycode):
 		if(keycode == "`"):
 			if(hasattr(self,"clickScroll")):
@@ -469,8 +472,8 @@ class playMode(tiledGameMode):
 				if(node.playerStartValue != 0):
 					node.addUnit(gameLogic.unit(gameState.theUnitTypes["summoner"],node.playerStartValue,rowCount,columnCount,node,1))
 #					node.addUnit(gameLogic.unit(gameState.theUnitTypes["dragon"],node.playerStartValue,rowCount,columnCount,node,1))
-					node.addUnit(gameLogic.unit(gameState.theUnitTypes["gatherer"],node.playerStartValue,rowCount,columnCount,node,1))
-					node.addUnit(gameLogic.unit(gameState.theUnitTypes["gatherer"],node.playerStartValue,rowCount,columnCount,node,1))
+#					node.addUnit(gameLogic.unit(gameState.theUnitTypes["gatherer"],node.playerStartValue,rowCount,columnCount,node,1))
+#					node.addUnit(gameLogic.unit(gameState.theUnitTypes["gatherer"],node.playerStartValue,rowCount,columnCount,node,1))
 #					node.addUnit(gameLogic.unit(gameState.theUnitTypes["gatherer"],node.playerStartValue,rowCount,columnCount,node,1))
 #					node.addUnit(gameLogic.unit(gameState.theUnitTypes["gatherer"],node.playerStartValue,rowCount,columnCount,node,1))
 #					node.addUnit(gameLogic.unit(gameState.theUnitTypes["swordsman"],node.playerStartValue,rowCount,columnCount,node,1))
@@ -491,6 +494,8 @@ class playMode(tiledGameMode):
 				self.focusXPos = self.nextUnit.node.xPos
 				self.focusYPos = self.nextUnit.node.yPos
 				self.doFocus = 1
+		elif(keycode == "escape"):
+			uiElements.menuModal()
 		else:
 			if(hasattr(self.mousedOverObject,"onKeyDown")):
 				self.mousedOverObject.onKeyDown(keycode)
@@ -655,6 +660,12 @@ class textBasedMenuMode(gameMode):
 				uiElements.menuButton.buttonsList[uiElements.menuButton.selectedIndex].textColor  = uiElements.menuButton.normalTextColor
 				uiElements.menuButton.selectedIndex = uiElements.menuButton.selectedIndex + 1
 				uiElements.menuButton.buttonsList[uiElements.menuButton.selectedIndex].textColor  =uiElements.menuButton.selectedTextColor
+		elif(keycode == "escape"):
+			for button in uiElements.menuButton.buttonsList:
+				if(button.text.lower() == "exit"):
+					button.onClick()
+					break
+			
 		elif(keycode == "return"):
 			uiElements.menuButton.buttonsList[uiElements.menuButton.selectedIndex].onClick()
 #		else:
@@ -671,6 +682,8 @@ class newGameScreenMode(textBasedMenuMode):
 		uiElements.menuButtonGameModeSelector(-0.19,-0.70,loginMode,text="Play Online")
 		uiElements.menuButtonGameModeSelector(-0.19,-0.82,mapEditorSelectMode,text="Map Editor")
 		uiElements.exitButton(-0.05,-0.94)
+
+
 
 class comingSoonMode(textBasedMenuMode):
 	def addUIElements(self):

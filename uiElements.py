@@ -1340,8 +1340,9 @@ class menuModal(modal):
 		uiElement.__init__(self,-1.0,1.0,width=texWidth("MENU_MODAL"),height=texHeight("MENU_MODAL"),textureIndex=texIndex("MENU_MODAL"))
 		self.names = []
 		self.dismissable = dismissable
+		self.exitButton = exiitButton(self,-0.06,-0.2)
 		self.names.append(resumeButton(self,-0.12,0.2).name)
-		self.names.append(exiitButton(self,-0.06,-0.2).name)
+		self.names.append(self.exitButton.name)
 		gameState.getGameMode().modal = self
 
 class smallModal(modal):
