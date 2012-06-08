@@ -1111,17 +1111,17 @@ void drawTile(uint tilesXIndex, uint tilesYIndex, long name, long tileValue, lon
   uint tileHash=0;
   tileHash += (((4294967296*(2654435761)*tilesXIndex)+81)%43261);
   tileHash += (((4294967296*(2654435761)*tilesYIndex)+30)%131071);
-  tileHash = tileHash%4;
-  glCallList(tilesLists+(4*tileValue)+tileHash);
+  tileHash = tileHash%8;
+  glCallList(tilesLists+(8*tileValue)+tileHash);
   glPopName();
 
   if(roadValue == 1){
-    glCallList(tilesLists+(4*ROAD_TILE_INDEX));
+    glCallList(tilesLists+(8*ROAD_TILE_INDEX));
   }
 
   if(playerStartValue >= 1 && !PyObject_HasAttrString(gameMode,"units")){
     textureVertices = vertexArrays[PLAYER_START_TILE_INDEX];
-    glCallList(tilesLists+(4*PLAYER_START_TILE_INDEX));
+    glCallList(tilesLists+(8*PLAYER_START_TILE_INDEX));
     sprintf(playerStartVal,"%ld",playerStartValue);
 
     glColor3f(1.0,1.0,1.0);
@@ -1965,34 +1965,46 @@ static void initGL (){
 
   int c;
   int d;
+  int e;
   for(c=0;c<9;c++){
     for(d=0;d<4;d++){
-      glNewList(tilesLists+(c*4)+d,GL_COMPILE);
-      if(c <= 5){
-	glBindTexture(GL_TEXTURE_2D, texturesArray[TILE_INDEX_START+(4*c)+d]);
-	glBegin(GL_POLYGON);
-	glTexCoord2f(textureHexVertices[0][0],textureHexVertices[0][1]); glVertex3f(hexagonVertices[0][0], hexagonVertices[0][1], 0.0);
-	glTexCoord2f(textureHexVertices[1][0],textureHexVertices[1][1]); glVertex3f(hexagonVertices[1][0], hexagonVertices[1][1], 0.0);
-	glTexCoord2f(textureHexVertices[2][0],textureHexVertices[2][1]); glVertex3f(hexagonVertices[2][0], hexagonVertices[2][1], 0.0);
-	glTexCoord2f(textureHexVertices[3][0],textureHexVertices[3][1]); glVertex3f(hexagonVertices[3][0], hexagonVertices[3][1], 0.0);
-	glTexCoord2f(textureHexVertices[4][0],textureHexVertices[4][1]); glVertex3f(hexagonVertices[4][0], hexagonVertices[4][1], 0.0);
-	glTexCoord2f(textureHexVertices[5][0],textureHexVertices[5][1]); glVertex3f(hexagonVertices[5][0], hexagonVertices[5][1], 0.0);
-	glEnd();
-      }else{
-	glBindTexture(GL_TEXTURE_2D, tilesTexture);
-	glBegin(GL_POLYGON);
-	glTexCoord2f(*(vertexArrays[c]+0),*(vertexArrays[c]+1)); glVertex3f(hexagonVertices[0][0], hexagonVertices[0][1], 0.0);
-	glTexCoord2f(*(vertexArrays[c]+2),*(vertexArrays[c]+3)); glVertex3f(hexagonVertices[1][0], hexagonVertices[1][1], 0.0);
-	glTexCoord2f(*(vertexArrays[c]+4),*(vertexArrays[c]+5)); glVertex3f(hexagonVertices[2][0], hexagonVertices[2][1], 0.0);
-	glTexCoord2f(*(vertexArrays[c]+6),*(vertexArrays[c]+7)); glVertex3f(hexagonVertices[3][0], hexagonVertices[3][1], 0.0);
-	glTexCoord2f(*(vertexArrays[c]+8),*(vertexArrays[c]+9)); glVertex3f(hexagonVertices[4][0], hexagonVertices[4][1], 0.0);
-	glTexCoord2f(*(vertexArrays[c]+10),*(vertexArrays[c]+11)); glVertex3f(hexagonVertices[5][0], hexagonVertices[5][1], 0.0);
-	glEnd();
+      for(e=0;e<2;e++){
+	glNewList(tilesLists+(c*8)+(d*2)+e,GL_COMPILE);
+	if(c <= 5){
+	  glBindTexture(GL_TEXTURE_2D, texturesArray[TILE_INDEX_START+(4*c)+d]);
+	  glBegin(GL_POLYGON);
+	  if(e%2==0 && c != 2/*mountains can't be flipped because of shadows*/){
+	    glTexCoord2f(textureHexVertices[4][0],textureHexVertices[4][1]); glVertex3f(hexagonVertices[0][0], hexagonVertices[0][1], 0.0);
+	    glTexCoord2f(textureHexVertices[3][0],textureHexVertices[3][1]); glVertex3f(hexagonVertices[1][0], hexagonVertices[1][1], 0.0);
+	    glTexCoord2f(textureHexVertices[2][0],textureHexVertices[2][1]); glVertex3f(hexagonVertices[2][0], hexagonVertices[2][1], 0.0);
+	    glTexCoord2f(textureHexVertices[1][0],textureHexVertices[1][1]); glVertex3f(hexagonVertices[3][0], hexagonVertices[3][1], 0.0);
+	    glTexCoord2f(textureHexVertices[0][0],textureHexVertices[0][1]); glVertex3f(hexagonVertices[4][0], hexagonVertices[4][1], 0.0);
+	    glTexCoord2f(textureHexVertices[5][0],textureHexVertices[5][1]); glVertex3f(hexagonVertices[5][0], hexagonVertices[5][1], 0.0);
+	  }else{
+	    glTexCoord2f(textureHexVertices[0][0],textureHexVertices[0][1]); glVertex3f(hexagonVertices[0][0], hexagonVertices[0][1], 0.0);
+	    glTexCoord2f(textureHexVertices[1][0],textureHexVertices[1][1]); glVertex3f(hexagonVertices[1][0], hexagonVertices[1][1], 0.0);
+	    glTexCoord2f(textureHexVertices[2][0],textureHexVertices[2][1]); glVertex3f(hexagonVertices[2][0], hexagonVertices[2][1], 0.0);
+	    glTexCoord2f(textureHexVertices[3][0],textureHexVertices[3][1]); glVertex3f(hexagonVertices[3][0], hexagonVertices[3][1], 0.0);
+	    glTexCoord2f(textureHexVertices[4][0],textureHexVertices[4][1]); glVertex3f(hexagonVertices[4][0], hexagonVertices[4][1], 0.0);
+	    glTexCoord2f(textureHexVertices[5][0],textureHexVertices[5][1]); glVertex3f(hexagonVertices[5][0], hexagonVertices[5][1], 0.0);
+	  }
+	  glEnd();
+	}else{
+	  glBindTexture(GL_TEXTURE_2D, tilesTexture);
+	  glBegin(GL_POLYGON);
+	  glTexCoord2f(*(vertexArrays[c]+0),*(vertexArrays[c]+1)); glVertex3f(hexagonVertices[0][0], hexagonVertices[0][1], 0.0);
+	  glTexCoord2f(*(vertexArrays[c]+2),*(vertexArrays[c]+3)); glVertex3f(hexagonVertices[1][0], hexagonVertices[1][1], 0.0);
+	  glTexCoord2f(*(vertexArrays[c]+4),*(vertexArrays[c]+5)); glVertex3f(hexagonVertices[2][0], hexagonVertices[2][1], 0.0);
+	  glTexCoord2f(*(vertexArrays[c]+6),*(vertexArrays[c]+7)); glVertex3f(hexagonVertices[3][0], hexagonVertices[3][1], 0.0);
+	  glTexCoord2f(*(vertexArrays[c]+8),*(vertexArrays[c]+9)); glVertex3f(hexagonVertices[4][0], hexagonVertices[4][1], 0.0);
+	  glTexCoord2f(*(vertexArrays[c]+10),*(vertexArrays[c]+11)); glVertex3f(hexagonVertices[5][0], hexagonVertices[5][1], 0.0);
+	  glEnd();
+	}
+	glEndList();
       }
-      glEndList();
     }
   }
-  selectionBoxList = tilesLists+(c*d)+1;
+  selectionBoxList = tilesLists+(c*d*e)+1;
   unitList = selectionBoxList+1;
   healthBarList = unitList+1;
 
