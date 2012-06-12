@@ -140,10 +140,10 @@ static void printPyStackTrace(){
 #define UNIT_BUILD_BAR_IMAGE_WIDTH 180
 #define UNIT_BUILD_BAR_INDEX 16
 
-#define MAP_ICON_IMAGE "assets/mapIcon.png"
-#define MAP_ICON_HEIGHT 35
-#define MAP_ICON_WIDTH 56
-#define MAP_ICON_INDEX 17
+#define CITY_SANS_TREE_IMAGE "assets/citySansTree.png"
+#define CITY_SANS_TREE_HEIGHT 96
+#define CITY_SANS_TREE_WIDTH 98
+#define CITY_SANS_TREE_INDEX 17
 
 #define WALK_ICON_IMAGE "assets/walkIcon.png"
 #define WALK_ICON_HEIGHT 36
@@ -1125,11 +1125,24 @@ void drawTile(uint tilesXIndex, uint tilesYIndex, long name, long tileValue, lon
 
   if(pyUnit != NULL && pyUnit != Py_None && isVisible){
     drawUnit();
+    glBindTexture(GL_TEXTURE_2D, texturesArray[CITY_SANS_TREE_INDEX]);
+  }else{
+    glBindTexture(GL_TEXTURE_2D, texturesArray[CITY_INDEX]);
   }
+  
   if(cityName[0]!=0){
     glColor3f(1.0f, 1.0f, 1.0f);
-    glBindTexture(GL_TEXTURE_2D, texturesArray[CITY_INDEX]);
-    glCallList(unitList);
+    glBegin(GL_QUADS);
+    glTexCoord2f(0.0,0.0);
+    glVertex3f(-0.3, -0.3, 0.0);
+    glTexCoord2f(1.0,0.0);
+    glVertex3f(0.3, -0.3, 0.0);
+    glTexCoord2f(1.0,1.0);
+    glVertex3f(0.3, 0.3, 0.0);
+    glTexCoord2f(0.0,1.0);
+    glVertex3f(-0.3, 0.3, 0.0);
+    glEnd();
+    glEndList();
   }
   if(pyFire != NULL && pyFire != Py_None && isVisible){
     drawFire();
@@ -1788,7 +1801,7 @@ static void initGL (){
   //glClearColor(1.0, 1.0, 1.0, 1.0); //sets screen clear color
   //glClearColor(123.0/255.0,126.0/255.0,125.0/255.0,1.0);//grey that matches the UI...
   glClearDepth(0.0);
-  glAlphaFunc(GL_GREATER,0.5);//clear area around the fonts will not write to the z-buffer
+  //glAlphaFunc(GL_GREATER,0.5);//clear area around the fonts will not write to the z-buffer
   glEnable(GL_ALPHA_TEST);
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_TEXTURE_2D);
@@ -1815,7 +1828,7 @@ static void initGL (){
   pngLoad(&texturesArray[MEEPLE_INDEX],MEEPLE_IMAGE);
   pngLoad(&texturesArray[HEALTH_BAR_INDEX],HEALTH_BAR_IMAGE);
   pngLoad(&texturesArray[UNIT_BUILD_BAR_INDEX],UNIT_BUILD_BAR_IMAGE);
-  pngLoad(&texturesArray[MAP_ICON_INDEX],MAP_ICON_IMAGE);
+  pngLoad(&texturesArray[CITY_SANS_TREE_INDEX],CITY_SANS_TREE_IMAGE);
   pngLoad(&texturesArray[WALK_ICON_INDEX],WALK_ICON_IMAGE);
   pngLoad(&texturesArray[ADD_BUTTON_INDEX],ADD_BUTTON_IMAGE);
   pngLoad(&texturesArray[REMOVE_BUTTON_INDEX],REMOVE_BUTTON_IMAGE);
@@ -2003,13 +2016,13 @@ static void initGL (){
   glNewList(unitList,GL_COMPILE);    
   glBegin(GL_QUADS);
   glTexCoord2f(0.0,0.0);
-  glVertex3f(-0.8, -0.75, 0.0);
+  glVertex3f(-0.75, -0.75, 0.0);
   glTexCoord2f(1.0,0.0);
-  glVertex3f(0.7, -0.75, 0.0);
+  glVertex3f(0.75, -0.75, 0.0);
   glTexCoord2f(1.0,1.0);
-  glVertex3f(0.7, 0.75, 0.0);
+  glVertex3f(0.75, 0.75, 0.0);
   glTexCoord2f(0.0,1.0);
-  glVertex3f(-0.8, 0.75, 0.0);
+  glVertex3f(-0.75, 0.75, 0.0);
   glEnd();
   glEndList();
 
