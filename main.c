@@ -596,14 +596,14 @@ static void printPyStackTrace(){
 #define TILE_WIDTH 433
 #define TILE_INDEX_START 118
 
-#define DESERT0 "assets/grass0.png"
-#define DESERT_INDEX0 118
-#define DESERT1 "assets/grass1.png"
-#define DESERT_INDEX1 119
-#define DESERT2 "assets/grass2.png"
-#define DESERT_INDEX2 120
-#define DESERT3 "assets/grass3.png"
-#define DESERT_INDEX3 121
+#define FOREST0 "assets/forest0.png"
+#define FOREST_INDEX0 118
+#define FOREST1 "assets/forest1.png"
+#define FOREST_INDEX1 119
+#define FOREST2 "assets/forest2.png"
+#define FOREST_INDEX2 120
+#define FOREST3 "assets/forest3.png"
+#define FOREST_INDEX3 121
 
 #define GRASS0 "assets/grass0.png"
 #define GRASS_INDEX0 122
@@ -623,14 +623,14 @@ static void printPyStackTrace(){
 #define MOUNTAIN3 "assets/mountain3.png"
 #define MOUNTAIN_INDEX3 129
 
-#define FOREST0 "assets/forest0.png"
-#define FOREST_INDEX0 130
-#define FOREST1 "assets/forest1.png"
-#define FOREST_INDEX1 131
-#define FOREST2 "assets/forest2.png"
-#define FOREST_INDEX2 132
-#define FOREST3 "assets/forest3.png"
-#define FOREST_INDEX3 133
+#define REDFOREST0 "assets/redforest0.png"
+#define REDFOREST_INDEX0 130
+#define REDFOREST1 "assets/redforest1.png"
+#define REDFOREST_INDEX1 131
+#define REDFOREST2 "assets/redforest2.png"
+#define REDFOREST_INDEX2 132
+#define REDFOREST3 "assets/redforest3.png"
+#define REDFOREST_INDEX3 133
 
 #define BLUEFOREST0 "assets/blueforest0.png"
 #define BLUEFOREST_INDEX0 134
@@ -650,21 +650,20 @@ static void printPyStackTrace(){
 #define WATER3 "assets/water3.png"
 #define WATER_INDEX3 141
 
-#define DESERT_TILE_INDEX 0
+#define FOREST_TILE_INDEX 0
 #define GRASS_TILE_INDEX 1
 #define MOUNTAIN_TILE_INDEX 2
-#define FOREST_TILE_INDEX 3
+#define RED_FOREST_TILE_INDEX 3
 #define BLUE_FOREST_TILE_INDEX 4
 #define WATER_TILE_INDEX 5
 #define ROAD_TILE_INDEX 6
 #define CITY_TILE_INDEX 7
 #define PLAYER_START_TILE_INDEX 8
 
-#define DESERT_MOVE_COST 2.0
+#define FOREST_MOVE_COST 2.0
 #define GRASS_MOVE_COST 1.0
-#define MOUNTAIN_MOVE_COST 99999999.0
-#define FOREST_MOVE_COST 1.0
-#define WATER_MOVE_COST 6.0
+#define MOUNTAIN_MOVE_COST 999999.0
+#define WATER_MOVE_COST 4.0
 
 #define SIN60 0.8660
 #define COS60 0.5
@@ -784,14 +783,6 @@ int previousMousedoverName = -2;
 int theCursorIndex = -1;
 float * vertexArrays[9];
 
-float desertVertices[6][2] = {
-  {(699.0/1280),1.0-(66.0/1280)},
-  {(699.0/1280),1.0-(34.0/1280)},
-  {(726.0/1280),1.0-(18.0/1280)},
-  {(754.0/1280),1.0-(34.0/1280)},
-  {(754.0/1280),1.0-(66.0/1280)},
-  {(726.0/1280),1.0-(82.0/1280)}
-};
 float forestVertices[6][2] = {
   {(643.0/1280),1.0-(360.0/1280)},
   {(643.0/1280),1.0-(328.0/1280)},
@@ -1111,17 +1102,17 @@ void drawTile(uint tilesXIndex, uint tilesYIndex, long name, long tileValue, lon
   uint tileHash=0;
   tileHash += (((4294967296*(2654435761)*tilesXIndex)+81)%43261);
   tileHash += (((4294967296*(2654435761)*tilesYIndex)+30)%131071);
-  tileHash = tileHash%8;
-  glCallList(tilesLists+(8*tileValue)+tileHash);
+  tileHash = tileHash%4;
+  glCallList(tilesLists+(4*tileValue)+tileHash);
   glPopName();
 
   if(roadValue == 1){
-    glCallList(tilesLists+(8*ROAD_TILE_INDEX));
+    glCallList(tilesLists+(4*ROAD_TILE_INDEX));
   }
 
   if(playerStartValue >= 1 && !PyObject_HasAttrString(gameMode,"units")){
     textureVertices = vertexArrays[PLAYER_START_TILE_INDEX];
-    glCallList(tilesLists+(8*PLAYER_START_TILE_INDEX));
+    glCallList(tilesLists+(4*PLAYER_START_TILE_INDEX));
     sprintf(playerStartVal,"%ld",playerStartValue);
 
     glColor3f(1.0,1.0,1.0);
@@ -1926,10 +1917,10 @@ static void initGL (){
   pngLoad(&texturesArray[CHECKBOXES_BACKGROUND_INDEX],CHECKBOXES_BACKGROUND);
   pngLoad(&texturesArray[UI_CITY_EDITOR_BACKGROUND_BACKGROUND_INDEX],UI_CITY_EDITOR_BACKGROUND_BACKGROUND);
   pngLoad(&texturesArray[MENU_MODAL_INDEX],MENU_MODAL);
-  pngLoad(&texturesArray[DESERT_INDEX0],DESERT0);
-  pngLoad(&texturesArray[DESERT_INDEX1],DESERT1);
-  pngLoad(&texturesArray[DESERT_INDEX2],DESERT2);
-  pngLoad(&texturesArray[DESERT_INDEX3],DESERT3);
+  pngLoad(&texturesArray[FOREST_INDEX0],FOREST0);
+  pngLoad(&texturesArray[FOREST_INDEX1],FOREST1);
+  pngLoad(&texturesArray[FOREST_INDEX2],FOREST2);
+  pngLoad(&texturesArray[FOREST_INDEX3],FOREST3);
   pngLoad(&texturesArray[GRASS_INDEX0],GRASS0);
   pngLoad(&texturesArray[GRASS_INDEX1],GRASS1);
   pngLoad(&texturesArray[GRASS_INDEX2],GRASS2);
@@ -1938,10 +1929,10 @@ static void initGL (){
   pngLoad(&texturesArray[MOUNTAIN_INDEX1],MOUNTAIN1);
   pngLoad(&texturesArray[MOUNTAIN_INDEX2],MOUNTAIN2);
   pngLoad(&texturesArray[MOUNTAIN_INDEX3],MOUNTAIN3);
-  pngLoad(&texturesArray[FOREST_INDEX0],FOREST0);
-  pngLoad(&texturesArray[FOREST_INDEX1],FOREST1);
-  pngLoad(&texturesArray[FOREST_INDEX2],FOREST2);
-  pngLoad(&texturesArray[FOREST_INDEX3],FOREST3);
+  pngLoad(&texturesArray[REDFOREST_INDEX0],REDFOREST0);
+  pngLoad(&texturesArray[REDFOREST_INDEX1],REDFOREST1);
+  pngLoad(&texturesArray[REDFOREST_INDEX2],REDFOREST2);
+  pngLoad(&texturesArray[REDFOREST_INDEX3],REDFOREST3);
   pngLoad(&texturesArray[BLUEFOREST_INDEX0],BLUEFOREST0);
   pngLoad(&texturesArray[BLUEFOREST_INDEX1],BLUEFOREST1);
   pngLoad(&texturesArray[BLUEFOREST_INDEX2],BLUEFOREST2);
@@ -1951,10 +1942,10 @@ static void initGL (){
   pngLoad(&texturesArray[WATER_INDEX2],WATER2);
   pngLoad(&texturesArray[WATER_INDEX3],WATER3);
 
-  vertexArrays[DESERT_TILE_INDEX] = *desertVertices;
+  vertexArrays[FOREST_TILE_INDEX] = *forestVertices;
   vertexArrays[GRASS_TILE_INDEX] = *grassVertices;
   vertexArrays[MOUNTAIN_TILE_INDEX] = *mountainVertices;
-  vertexArrays[FOREST_TILE_INDEX] = *forestVertices;
+  vertexArrays[RED_FOREST_TILE_INDEX] = *forestVertices;
   vertexArrays[BLUE_FOREST_TILE_INDEX] = *blueForestVertices;
   vertexArrays[WATER_TILE_INDEX] = *waterVertices;
   vertexArrays[ROAD_TILE_INDEX] = *roadVertices;
@@ -1965,46 +1956,34 @@ static void initGL (){
 
   int c;
   int d;
-  int e;
   for(c=0;c<9;c++){
     for(d=0;d<4;d++){
-      for(e=0;e<2;e++){
-	glNewList(tilesLists+(c*8)+(d*2)+e,GL_COMPILE);
-	if(c <= 5){
-	  glBindTexture(GL_TEXTURE_2D, texturesArray[TILE_INDEX_START+(4*c)+d]);
-	  glBegin(GL_POLYGON);
-	  if(e%2==0 && c != 2/*mountains can't be flipped because of shadows*/){
-	    glTexCoord2f(textureHexVertices[4][0],textureHexVertices[4][1]); glVertex3f(hexagonVertices[0][0], hexagonVertices[0][1], 0.0);
-	    glTexCoord2f(textureHexVertices[3][0],textureHexVertices[3][1]); glVertex3f(hexagonVertices[1][0], hexagonVertices[1][1], 0.0);
-	    glTexCoord2f(textureHexVertices[2][0],textureHexVertices[2][1]); glVertex3f(hexagonVertices[2][0], hexagonVertices[2][1], 0.0);
-	    glTexCoord2f(textureHexVertices[1][0],textureHexVertices[1][1]); glVertex3f(hexagonVertices[3][0], hexagonVertices[3][1], 0.0);
-	    glTexCoord2f(textureHexVertices[0][0],textureHexVertices[0][1]); glVertex3f(hexagonVertices[4][0], hexagonVertices[4][1], 0.0);
-	    glTexCoord2f(textureHexVertices[5][0],textureHexVertices[5][1]); glVertex3f(hexagonVertices[5][0], hexagonVertices[5][1], 0.0);
-	  }else{
-	    glTexCoord2f(textureHexVertices[0][0],textureHexVertices[0][1]); glVertex3f(hexagonVertices[0][0], hexagonVertices[0][1], 0.0);
-	    glTexCoord2f(textureHexVertices[1][0],textureHexVertices[1][1]); glVertex3f(hexagonVertices[1][0], hexagonVertices[1][1], 0.0);
-	    glTexCoord2f(textureHexVertices[2][0],textureHexVertices[2][1]); glVertex3f(hexagonVertices[2][0], hexagonVertices[2][1], 0.0);
-	    glTexCoord2f(textureHexVertices[3][0],textureHexVertices[3][1]); glVertex3f(hexagonVertices[3][0], hexagonVertices[3][1], 0.0);
-	    glTexCoord2f(textureHexVertices[4][0],textureHexVertices[4][1]); glVertex3f(hexagonVertices[4][0], hexagonVertices[4][1], 0.0);
-	    glTexCoord2f(textureHexVertices[5][0],textureHexVertices[5][1]); glVertex3f(hexagonVertices[5][0], hexagonVertices[5][1], 0.0);
-	  }
-	  glEnd();
-	}else{
-	  glBindTexture(GL_TEXTURE_2D, tilesTexture);
-	  glBegin(GL_POLYGON);
-	  glTexCoord2f(*(vertexArrays[c]+0),*(vertexArrays[c]+1)); glVertex3f(hexagonVertices[0][0], hexagonVertices[0][1], 0.0);
-	  glTexCoord2f(*(vertexArrays[c]+2),*(vertexArrays[c]+3)); glVertex3f(hexagonVertices[1][0], hexagonVertices[1][1], 0.0);
-	  glTexCoord2f(*(vertexArrays[c]+4),*(vertexArrays[c]+5)); glVertex3f(hexagonVertices[2][0], hexagonVertices[2][1], 0.0);
-	  glTexCoord2f(*(vertexArrays[c]+6),*(vertexArrays[c]+7)); glVertex3f(hexagonVertices[3][0], hexagonVertices[3][1], 0.0);
-	  glTexCoord2f(*(vertexArrays[c]+8),*(vertexArrays[c]+9)); glVertex3f(hexagonVertices[4][0], hexagonVertices[4][1], 0.0);
-	  glTexCoord2f(*(vertexArrays[c]+10),*(vertexArrays[c]+11)); glVertex3f(hexagonVertices[5][0], hexagonVertices[5][1], 0.0);
-	  glEnd();
-	}
-	glEndList();
+      glNewList(tilesLists+(c*4)+d,GL_COMPILE);
+      if(c <= 5){
+	glBindTexture(GL_TEXTURE_2D, texturesArray[TILE_INDEX_START+(4*c)+d]);
+	glBegin(GL_POLYGON);
+	glTexCoord2f(textureHexVertices[0][0],textureHexVertices[0][1]); glVertex3f(hexagonVertices[0][0], hexagonVertices[0][1], 0.0);
+	glTexCoord2f(textureHexVertices[1][0],textureHexVertices[1][1]); glVertex3f(hexagonVertices[1][0], hexagonVertices[1][1], 0.0);
+	glTexCoord2f(textureHexVertices[2][0],textureHexVertices[2][1]); glVertex3f(hexagonVertices[2][0], hexagonVertices[2][1], 0.0);
+	glTexCoord2f(textureHexVertices[3][0],textureHexVertices[3][1]); glVertex3f(hexagonVertices[3][0], hexagonVertices[3][1], 0.0);
+	glTexCoord2f(textureHexVertices[4][0],textureHexVertices[4][1]); glVertex3f(hexagonVertices[4][0], hexagonVertices[4][1], 0.0);
+	glTexCoord2f(textureHexVertices[5][0],textureHexVertices[5][1]); glVertex3f(hexagonVertices[5][0], hexagonVertices[5][1], 0.0);
+	glEnd();
+      }else{
+	glBindTexture(GL_TEXTURE_2D, tilesTexture);
+	glBegin(GL_POLYGON);
+	glTexCoord2f(*(vertexArrays[c]+0),*(vertexArrays[c]+1)); glVertex3f(hexagonVertices[0][0], hexagonVertices[0][1], 0.0);
+	glTexCoord2f(*(vertexArrays[c]+2),*(vertexArrays[c]+3)); glVertex3f(hexagonVertices[1][0], hexagonVertices[1][1], 0.0);
+	glTexCoord2f(*(vertexArrays[c]+4),*(vertexArrays[c]+5)); glVertex3f(hexagonVertices[2][0], hexagonVertices[2][1], 0.0);
+	glTexCoord2f(*(vertexArrays[c]+6),*(vertexArrays[c]+7)); glVertex3f(hexagonVertices[3][0], hexagonVertices[3][1], 0.0);
+	glTexCoord2f(*(vertexArrays[c]+8),*(vertexArrays[c]+9)); glVertex3f(hexagonVertices[4][0], hexagonVertices[4][1], 0.0);
+	glTexCoord2f(*(vertexArrays[c]+10),*(vertexArrays[c]+11)); glVertex3f(hexagonVertices[5][0], hexagonVertices[5][1], 0.0);
+	glEnd();
       }
+      glEndList();
     }
   }
-  selectionBoxList = tilesLists+(c*d*e)+1;
+  selectionBoxList = tilesLists+(c*d)+1;
   unitList = selectionBoxList+1;
   healthBarList = unitList+1;
 

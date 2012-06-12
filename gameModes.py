@@ -369,8 +369,8 @@ class playMode(tiledGameMode):
 				elementalEffect.movePoints = elementalEffect.movePoints - elementalEffect.speed
 #				print fire
 			for unit in self.units:
-				if(unit.unitType.name == "gatherer" and unit.isMeditating and (unit.node.tileValue == cDefines.defines['FOREST_TILE_INDEX'] or unit.node.tileValue == cDefines.defines['BLUE_FOREST_TILE_INDEX'])):
-					if(unit.node.tileValue == cDefines.defines['FOREST_TILE_INDEX']):
+				if(unit.unitType.name == "gatherer" and unit.isMeditating and (unit.node.tileValue == cDefines.defines['RED_FOREST_TILE_INDEX'] or unit.node.tileValue == cDefines.defines['BLUE_FOREST_TILE_INDEX'])):
+					if(unit.node.tileValue == cDefines.defines['RED_FOREST_TILE_INDEX']):
 						self.players[unit.player-1].greenWood = self.players[unit.player-1].greenWood + gameLogic.RESOURCE_COLLECTION_RATE
 					elif(unit.node.tileValue == cDefines.defines['BLUE_FOREST_TILE_INDEX']):
 						self.players[unit.player-1].blueWood = self.players[unit.player-1].blueWood + gameLogic.RESOURCE_COLLECTION_RATE
@@ -383,8 +383,8 @@ class playMode(tiledGameMode):
 						unit.movementPoints = unit.movementPoints - ((float(unit.getMovementSpeed())+float(unit.node.roadValue))/cDefines.defines['MOUNTAIN_MOVE_COST'])
 					elif(unit.node.tileValue == cDefines.defines['WATER_TILE_INDEX'] and not unit.unitType.canFly and not unit.unitType.canSwim):
 						unit.movementPoints = unit.movementPoints - ((float(unit.getMovementSpeed())+float(unit.node.roadValue))/cDefines.defines['WATER_MOVE_COST'])
-					elif(unit.node.tileValue == cDefines.defines['DESERT_TILE_INDEX'] and not unit.unitType.canFly):
-						unit.movementPoints = unit.movementPoints - ((float(unit.getMovementSpeed())+float(unit.node.roadValue))/cDefines.defines['DESERT_MOVE_COST'])
+					elif(unit.node.tileValue == cDefines.defines['FOREST_TILE_INDEX'] and not unit.unitType.canFly):
+						unit.movementPoints = unit.movementPoints - ((float(unit.getMovementSpeed())+float(unit.node.roadValue))/cDefines.defines['FOREST_MOVE_COST'])
 					else:
 						unit.movementPoints = unit.movementPoints - ((float(unit.getMovementSpeed())+float(unit.node.roadValue))/cDefines.defines['GRASS_MOVE_COST'])
 					if(unit.movementPoints < 0.0):
@@ -609,10 +609,10 @@ class mapEditorMode(tiledGameMode):
 	def addUIElements(self):
 
 		uiElements.uiElement(-0.50,0.98,textureIndex=texIndex("UI_CITY_EDITOR_BACKGROUND_BACKGROUND"),height=0.12,width=0.7)
-		uiElements.mapEditorTileSelectUIElement(-0.45,0.92,tileType=cDefines.defines['DESERT_TILE_INDEX'])
+		uiElements.mapEditorTileSelectUIElement(-0.45,0.92,tileType=cDefines.defines['FOREST_TILE_INDEX'])
 		uiElements.mapEditorTileSelectUIElement(-0.37,0.92,tileType=cDefines.defines['GRASS_TILE_INDEX'])
 		uiElements.mapEditorTileSelectUIElement(-0.29,0.92,tileType=cDefines.defines['MOUNTAIN_TILE_INDEX'])
-		uiElements.mapEditorTileSelectUIElement(-0.21,0.92,tileType=cDefines.defines['FOREST_TILE_INDEX'])
+		uiElements.mapEditorTileSelectUIElement(-0.21,0.92,tileType=cDefines.defines['RED_FOREST_TILE_INDEX'])
 		uiElements.mapEditorTileSelectUIElement(-0.13,0.92,tileType=cDefines.defines['BLUE_FOREST_TILE_INDEX'])
 		uiElements.mapEditorTileSelectUIElement(-0.05,0.92,tileType=cDefines.defines['WATER_TILE_INDEX'])
 		uiElements.mapEditorTileSelectUIElement(0.03,0.92,tileType=cDefines.defines['ROAD_TILE_INDEX'])

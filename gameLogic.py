@@ -122,7 +122,7 @@ class fire:
 			for node in self.node.neighbors:
 				if(node.tileValue == cDefines.defines['WATER_TILE_INDEX']):
 					return
-				if(node.tileValue == cDefines.defines['FOREST_TILE_INDEX'] or node.tileValue == cDefines.defines['BLUE_FOREST_TILE_INDEX']):
+				if(node.tileValue == cDefines.defines['RED_FOREST_TILE_INDEX'] or node.tileValue == cDefines.defines['BLUE_FOREST_TILE_INDEX']):
 					eligibleNodes.append(node)
 					eligibleNodes.append(node)
 					eligibleNodes.append(node)
@@ -730,8 +730,8 @@ class aStarThread():
 						neighbor.aStarKnownCost = node.aStarKnownCost + (cDefines.defines['MOUNTAIN_MOVE_COST']/(1.0+float(neighbor.roadValue)))
 					elif(neighbor.tileValue == cDefines.defines['WATER_TILE_INDEX'] and not aStarSearch.canFly and not aStarSearch.canFly):
 						neighbor.aStarKnownCost = node.aStarKnownCost + (cDefines.defines['WATER_MOVE_COST']/(1.0+float(neighbor.roadValue)))
-					elif(neighbor.tileValue == cDefines.defines['DESERT_TILE_INDEX'] and not aStarSearch.canFly):
-						neighbor.aStarKnownCost = node.aStarKnownCost + (cDefines.defines['DESERT_MOVE_COST']/(1.0+float(neighbor.roadValue)))
+					elif(neighbor.tileValue == cDefines.defines['FOREST_TILE_INDEX'] and not aStarSearch.canFly):
+						neighbor.aStarKnownCost = node.aStarKnownCost + (cDefines.defines['FOREST_MOVE_COST']/(1.0+float(neighbor.roadValue)))
 					else:
 						neighbor.aStarKnownCost = node.aStarKnownCost + (cDefines.defines['GRASS_MOVE_COST']/(1.0+float(neighbor.roadValue)))
 				else:#calculate whether new known path is shorter than old known path
@@ -744,9 +744,9 @@ class aStarThread():
 					elif(neighbor.tileValue == cDefines.defines['WATER_TILE_INDEX'] and aStarSearch.canSwim == False):
 						if(neighbor.aStarKnownCost > node.aStarKnownCost + (cDefines.defines['WATER_MOVE_COST']/(1.0+float(neighbor.roadValue)))):
 							neighbor.aStarKnownCost = node.aStarKnownCost + (cDefines.defines['WATER_MOVE_COST']/(1.0+float(neighbor.roadValue)))
-					elif(neighbor.tileValue == cDefines.defines['DESERT_TILE_INDEX']):
-						if(neighbor.aStarKnownCost > node.aStarKnownCost + (cDefines.defines['DESERT_MOVE_COST']/(1.0+float(neighbor.roadValue)))):
-							neighbor.aStarKnownCost = node.aStarKnownCost + (cDefines.defines['DESERT_MOVE_COST']/(1.0+float(neighbor.roadValue)))
+					elif(neighbor.tileValue == cDefines.defines['FOREST_TILE_INDEX']):
+						if(neighbor.aStarKnownCost > node.aStarKnownCost + (cDefines.defines['FOREST_MOVE_COST']/(1.0+float(neighbor.roadValue)))):
+							neighbor.aStarKnownCost = node.aStarKnownCost + (cDefines.defines['FOREST_MOVE_COST']/(1.0+float(neighbor.roadValue)))
 					else:
 						if(neighbor.aStarKnownCost > node.aStarKnownCost + (cDefines.defines['GRASS_MOVE_COST']/(1.0+float(neighbor.roadValue)))):
 							neighbor.aStarKnownCost = node.aStarKnownCost + (cDefines.defines['GRASS_MOVE_COST']/(1.0+float(neighbor.roadValue)))
