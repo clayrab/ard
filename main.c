@@ -1009,17 +1009,38 @@ void drawUnit(){
   }else{
     glColor3f(0.0,0.0,1.0);
   }
-  /*  glBindTexture(GL_TEXTURE_2D, texturesArray[FLAG_INDEX0]);
+
+  glBindTexture(GL_TEXTURE_2D, texturesArray[FLAG_INDEX0]);
   glBegin(GL_QUADS);
-  glTexCoord2f(0.0,0.0);
-  glVertex3f(-2.0, 0.0, -0.1);
-  glTexCoord2f(1.0,0.0);
-  glVertex3f(1.0, 0.0, -0.1);
-  glTexCoord2f(1.0,1.0);
-  glVertex3f(1.0, 0.8, -0.1);
-  glTexCoord2f(0.0,1.0);
-  glVertex3f(-2.0, 0.8, -0.1);
-  glEnd();*/
+  glTexCoord2f(0.0,0.0); glVertex3f(0.55, -0.1, -0.1);
+  glTexCoord2f(1.0,0.0); glVertex3f(1.0, -0.1, -0.1);
+  glTexCoord2f(1.0,1.0); glVertex3f(1.0, 0.1, -0.1);
+  glTexCoord2f(0.0,1.0); glVertex3f(0.55, 0.1, -0.1);
+  glEnd();
+
+  glBindTexture(GL_TEXTURE_2D, texturesArray[FLAG_INDEX1]);
+  glBegin(GL_QUADS);
+  glTexCoord2f(0.0,0.0); glVertex3f(0.55, 0.1, -0.1);
+  glTexCoord2f(1.0,0.0); glVertex3f(1.0, 0.1, -0.1);
+  glTexCoord2f(1.0,1.0); glVertex3f(1.0, 0.3, -0.1);
+  glTexCoord2f(0.0,1.0); glVertex3f(0.55, 0.3, -0.1);
+  glEnd();
+
+  glBindTexture(GL_TEXTURE_2D, texturesArray[FLAG_INDEX2]);
+  glBegin(GL_QUADS);
+  glTexCoord2f(0.0,0.0); glVertex3f(0.55, 0.3, -0.1);
+  glTexCoord2f(1.0,0.0); glVertex3f(1.0, 0.3, -0.1);
+  glTexCoord2f(1.0,1.0); glVertex3f(1.0, 0.5, -0.1);
+  glTexCoord2f(0.0,1.0); glVertex3f(0.55, 0.5, -0.1);
+  glEnd();
+
+  glBindTexture(GL_TEXTURE_2D, texturesArray[FLAG_INDEX3]);
+  glBegin(GL_QUADS);
+  glTexCoord2f(0.0,0.0); glVertex3f(0.55, 0.5, -0.1);
+  glTexCoord2f(1.0,0.0); glVertex3f(1.0, 0.5, -0.1);
+  glTexCoord2f(1.0,1.0); glVertex3f(1.0, 0.7, -0.1);
+  glTexCoord2f(0.0,1.0); glVertex3f(0.55, 0.7, -0.1);
+  glEnd();
   //  glBindTexture(GL_TEXTURE_2D, texturesArray[unitTextureOverlayIndex]);
   //  glCallList(unitList);
   glColor3f(1.0, 1.0, 1.0);
@@ -1035,17 +1056,17 @@ void drawUnit(){
 
   glBindTexture(GL_TEXTURE_2D, texturesArray[HEALTH_BAR_INDEX]);
   glCallList(healthBarList);
-  healthBarLength = 0.5*PyFloat_AsDouble(pyHealth)/PyFloat_AsDouble(pyMaxHealth);
+  healthBarLength = 0.35*PyFloat_AsDouble(pyHealth)/PyFloat_AsDouble(pyMaxHealth);
   glColor3f(1.0, 0.0, 0.0);
   glBegin(GL_QUADS);
   glTexCoord2f(0.0,0.0);
-  glVertex3f(-.5, 0.9, -0.001);
+  glVertex3f(-.35, 0.9, -0.001);
   glTexCoord2f(1.0,0.0);
-  glVertex3f(-.5+healthBarLength, 0.9, -0.001);
+  glVertex3f(-.35+healthBarLength, 0.9, -0.001);
   glTexCoord2f(1.0,1.0);
-  glVertex3f(-.5+healthBarLength, 0.85, -0.001);
+  glVertex3f(-.35+healthBarLength, 0.8, -0.001);
   glTexCoord2f(0.0,1.0);
-  glVertex3f(-.5, 0.85, -0.001);
+  glVertex3f(-.35, 0.8, -0.001);
   glEnd();
   
   while (pyDamageTime = PyIter_Next(pyRecentDamageIter)) {
@@ -2094,13 +2115,13 @@ static void initGL (){
   glNewList(healthBarList,GL_COMPILE);    
   glBegin(GL_QUADS);
   glTexCoord2f(0.0,0.0);
-  glVertex3f(-.5, 0.9, -0.001);
+  glVertex3f(-.35, 0.9, -0.001);
   glTexCoord2f(1.0,0.0);
-  glVertex3f(.5, 0.9, -0.001);
+  glVertex3f(.35, 0.9, -0.001);
   glTexCoord2f(1.0,1.0);
-  glVertex3f(.5, 0.85, -0.001);
+  glVertex3f(.35, 0.8, -0.001);
   glTexCoord2f(0.0,1.0);
-  glVertex3f(-.5, 0.85, -0.001);
+  glVertex3f(-.35, 0.8, -0.001);
   glEnd();
   glEndList();
 
