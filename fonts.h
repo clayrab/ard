@@ -101,7 +101,7 @@ void make_dlist ( FT_Face face, char charIndex, GLuint list_base, GLuint * tex_b
   // We Need To Move Over A Little So That
   // The Character Has The Right Amount Of Space
   // Between It And The One Before It.
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+  //  glBlendFunc(GL_SRC_ALPHA, GL_ONE);
   glBegin(GL_QUADS);
   glVertex2f(-4,glyphHeight);
   glVertex2f(-4,0);
@@ -111,7 +111,7 @@ void make_dlist ( FT_Face face, char charIndex, GLuint list_base, GLuint * tex_b
   glVertex2f(bitmap_glyph->left,glyphHeight);
 
   glEnd();
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  //  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   glTranslatef(bitmap_glyph->left,bitmap_glyph->top-glyphHeight,0);
 
   // Here We Draw The Texturemapped Quads.

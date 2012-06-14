@@ -650,6 +650,15 @@ static void printPyStackTrace(){
 #define WATER3 "assets/water3.png"
 #define WATER_INDEX3 141
 
+#define FLAG0 "assets/flag0.png"
+#define FLAG_INDEX0 142
+#define FLAG1 "assets/flag1.png"
+#define FLAG_INDEX1 143
+#define FLAG2 "assets/flag2.png"
+#define FLAG_INDEX2 144
+#define FLAG3 "assets/flag3.png"
+#define FLAG_INDEX3 145
+
 #define FOREST_TILE_INDEX 0
 #define GRASS_TILE_INDEX 1
 #define MOUNTAIN_TILE_INDEX 2
@@ -987,14 +996,9 @@ void drawUnit(){
   playerNumber = PyLong_AsLong(pyPlayerNumber);
   unitTextureIndex = PyLong_AsLong(pyUnitTextureIndex);
   unitTextureOverlayIndex = PyLong_AsLong(pyUnitTextureOverlayIndex);
-  healthBarLength = 1.5*PyFloat_AsDouble(pyHealth)/PyFloat_AsDouble(pyMaxHealth);
   pyRecentDamage = PyObject_GetAttrString(pyUnit,"recentDamage");
   pyRecentDamageIter = PyObject_GetIter(pyRecentDamage);
   glColor3f(1.0,1.0,1.0);
-  if(isNextUnit == 1 && !isFocusing && isVisible){
-    glBindTexture(GL_TEXTURE_2D, texturesArray[SELECTION_BOX_INDEX]);
-    glCallList(selectionBoxList);
-  }
   //else{
   //glBindTexture(GL_TEXTURE_2D, texturesArray[UNIT_CIRCLE_RED_INDEX+playerNumber-1]);
   //      }
@@ -1005,33 +1009,45 @@ void drawUnit(){
   }else{
     glColor3f(0.0,0.0,1.0);
   }
-  glBindTexture(GL_TEXTURE_2D, texturesArray[unitTextureOverlayIndex]);
-  glCallList(unitList);
-  glColor3f(1.0, 1.0, 1.0);
-  glBindTexture(GL_TEXTURE_2D, texturesArray[HEALTH_BAR_INDEX]);
-  glCallList(healthBarList);
-
-  glColor3f(1.0, 0.0, 0.0);
+  /*  glBindTexture(GL_TEXTURE_2D, texturesArray[FLAG_INDEX0]);
   glBegin(GL_QUADS);
   glTexCoord2f(0.0,0.0);
-  glVertex3f(-.75, 1.05, -0.001);
+  glVertex3f(-2.0, 0.0, -0.1);
   glTexCoord2f(1.0,0.0);
-  glVertex3f(-.75+healthBarLength, 1.05, -0.001);
+  glVertex3f(1.0, 0.0, -0.1);
   glTexCoord2f(1.0,1.0);
-  glVertex3f(-.75+healthBarLength, 0.85, -0.001);
+  glVertex3f(1.0, 0.8, -0.1);
   glTexCoord2f(0.0,1.0);
-  glVertex3f(-.75, 0.85, -0.001);
-  glEnd();
-  
+  glVertex3f(-2.0, 0.8, -0.1);
+  glEnd();*/
+  //  glBindTexture(GL_TEXTURE_2D, texturesArray[unitTextureOverlayIndex]);
+  //  glCallList(unitList);
   glColor3f(1.0, 1.0, 1.0);
+
   //printf("%ld",PyLong_AsLong(pyLevel));
-  glPushMatrix();
+  /*  glPushMatrix();
   sprintf(lvlStr,"%ld",PyLong_AsLong(pyLevel));
   glTranslatef(-0.5,-0.7,-0.0001);
   glScalef(0.01,0.01,0.0);
   drawText(lvlStr,0,-1,-9999.9,NULL);
   glPopMatrix();
+  */
 
+  glBindTexture(GL_TEXTURE_2D, texturesArray[HEALTH_BAR_INDEX]);
+  glCallList(healthBarList);
+  healthBarLength = 0.5*PyFloat_AsDouble(pyHealth)/PyFloat_AsDouble(pyMaxHealth);
+  glColor3f(1.0, 0.0, 0.0);
+  glBegin(GL_QUADS);
+  glTexCoord2f(0.0,0.0);
+  glVertex3f(-.5, 0.9, -0.001);
+  glTexCoord2f(1.0,0.0);
+  glVertex3f(-.5+healthBarLength, 0.9, -0.001);
+  glTexCoord2f(1.0,1.0);
+  glVertex3f(-.5+healthBarLength, 0.85, -0.001);
+  glTexCoord2f(0.0,1.0);
+  glVertex3f(-.5, 0.85, -0.001);
+  glEnd();
+  
   while (pyDamageTime = PyIter_Next(pyRecentDamageIter)) {
     damageTime = PyLong_AsLong(pyDamageTime);
     if(currentTick-damageTime<200){
@@ -1079,8 +1095,6 @@ double yPosition;
 float shading;
 char playerStartVal[2];
 void drawTile(uint tilesXIndex, uint tilesYIndex, long name, long tileValue, long roadValue,char * cityName,long isSelected, long isOnMovePath,long playerStartValue, long cursorIndex){
-  xPosition = translateTilesXToPositionX(tilesXIndex,tilesYIndex);
-  yPosition = translateTilesYToPositionY(tilesYIndex);
   textureVertices = vertexArrays[tileValue];
   shading = 1.0;
   if(!isVisible){
@@ -1094,10 +1108,7 @@ void drawTile(uint tilesXIndex, uint tilesYIndex, long name, long tileValue, lon
   }else if(isSelected == 1){
     shading = shading - 0.4;
   }
-  glPushMatrix();
   glColor3f(shading,shading,shading);
-  glTranslatef(xPosition,yPosition,0.0);
-
   glPushName(name);
   uint tileHash=0;
   tileHash += (((4294967296*(2654435761)*tilesXIndex)+81)%43261);
@@ -1105,6 +1116,7 @@ void drawTile(uint tilesXIndex, uint tilesYIndex, long name, long tileValue, lon
   tileHash = tileHash%4;
   glCallList(tilesLists+(4*tileValue)+tileHash);
   glPopName();
+
 
   if(roadValue == 1){
     glCallList(tilesLists+(4*ROAD_TILE_INDEX));
@@ -1123,30 +1135,6 @@ void drawTile(uint tilesXIndex, uint tilesYIndex, long name, long tileValue, lon
     glPopMatrix();
   }
 
-  if(pyUnit != NULL && pyUnit != Py_None && isVisible){
-    drawUnit();
-    glBindTexture(GL_TEXTURE_2D, texturesArray[CITY_SANS_TREE_INDEX]);
-  }else{
-    glBindTexture(GL_TEXTURE_2D, texturesArray[CITY_INDEX]);
-  }
-  
-  if(cityName[0]!=0){
-    glColor3f(1.0f, 1.0f, 1.0f);
-    glBegin(GL_QUADS);
-    glTexCoord2f(0.0,0.0);
-    glVertex3f(-0.3, -0.3, 0.0);
-    glTexCoord2f(1.0,0.0);
-    glVertex3f(0.3, -0.3, 0.0);
-    glTexCoord2f(1.0,1.0);
-    glVertex3f(0.3, 0.3, 0.0);
-    glTexCoord2f(0.0,1.0);
-    glVertex3f(-0.3, 0.3, 0.0);
-    glEnd();
-    glEndList();
-  }
-  if(pyFire != NULL && pyFire != Py_None && isVisible){
-    drawFire();
-  }  
   if(isOnMovePath){
     glBindTexture(GL_TEXTURE_2D, texturesArray[WALK_ICON_INDEX]);
     glColor3f(1.0f, 0.0f, 0.0f);
@@ -1158,7 +1146,6 @@ void drawTile(uint tilesXIndex, uint tilesYIndex, long name, long tileValue, lon
     glEnd();
     glBindTexture(GL_TEXTURE_2D, tilesTexture);
   }
-  glPopMatrix();
 }
 void drawTilesText(){
   /*  int i,j,cityNameLength,unitNameLength = 0;
@@ -1220,6 +1207,77 @@ long unitPlayer;
 long playerStartValue;
 long isSelected;
 long isOnMovePath;
+void drawUnits(){
+  rowNumber = -1;
+  mapIterator = PyObject_CallMethod(theMap,"getIterator",NULL);
+  pyPolarity = PyObject_GetAttrString(theMap,"polarity");
+  mapPolarity = PyLong_AsLong(pyPolarity);
+  rowIterator = PyObject_GetIter(mapIterator);
+  while (row = PyIter_Next(rowIterator)) {
+    colNumber = 0;
+    rowNumber = rowNumber + 1;
+    nodeIterator = PyObject_GetIter(row);
+    while(node = PyIter_Next(nodeIterator)) {
+      pyUnit = PyObject_GetAttrString(node,"unit");
+      pyFire = PyObject_GetAttrString(node,"fire");
+      pyIce = PyObject_GetAttrString(node,"ice");
+      pyIsVisible = PyObject_GetAttrString(node,"visible");//New reference
+      isVisible = PyLong_AsLong(pyIsVisible);
+      xPosition = translateTilesXToPositionX(colNumber,rowNumber);
+      yPosition = translateTilesYToPositionY(rowNumber);
+      colNumber = colNumber - 1;
+      glPushMatrix();
+      glTranslatef(xPosition,yPosition,0.0);
+
+
+      if(pyUnit != NULL && pyUnit != Py_None && isVisible){
+	glPushMatrix();
+	drawUnit();
+	glPopMatrix();
+	glBindTexture(GL_TEXTURE_2D, texturesArray[CITY_SANS_TREE_INDEX]);
+      }else{
+	glBindTexture(GL_TEXTURE_2D, texturesArray[CITY_INDEX]);
+      }
+
+      cityName = "";//TODO: REMOVE ME
+      pyCity = PyObject_GetAttrString(node,"city");
+      if(pyCity != Py_None){
+	pyCityName = PyObject_GetAttrString(pyCity,"name");
+	cityName = PyString_AsString(pyCityName);
+	Py_DECREF(pyCityName);
+      }
+      Py_DECREF(pyCity);
+
+      if(cityName[0]!=0){
+	glColor3f(1.0f, 1.0f, 1.0f);
+	glBegin(GL_QUADS);
+	glTexCoord2f(0.0,0.0);
+	glVertex3f(-0.3, -0.3, 0.0);
+	glTexCoord2f(1.0,0.0);
+	glVertex3f(0.3, -0.3, 0.0);
+	glTexCoord2f(1.0,1.0);
+	glVertex3f(0.3, 0.3, 0.0);
+	glTexCoord2f(0.0,1.0);
+	glVertex3f(-0.3, 0.3, 0.0);
+	glEnd();
+	glEndList();
+      }
+      if(pyFire != NULL && pyFire != Py_None && isVisible){
+	drawFire();
+      }  
+
+
+      if(pyIsVisible != NULL){
+	Py_DECREF(pyIsVisible);
+      }
+      if(pyUnit != NULL){
+	Py_DECREF(pyUnit);
+      }
+      glPopMatrix();
+    }
+  }
+  
+}						
 void drawTiles(){
   rowNumber = -1;
   if(PyObject_HasAttrString(gameMode,"focusXPos")){
@@ -1244,24 +1302,13 @@ void drawTiles(){
       nodeName = PyObject_GetAttrString(node,"name");
       nodeValue = PyObject_CallMethod(node,"getValue",NULL);
       roadValue = PyObject_GetAttrString(node,"roadValue");
-      pyCity = PyObject_GetAttrString(node,"city");
       pyCursorIndex = PyObject_GetAttrString(node,"cursorIndex");//New reference
       pyPlayerStartValue = PyObject_GetAttrString(node,"playerStartValue");//New reference                                 
       pyUnit = PyObject_GetAttrString(node,"unit");
-      pyFire = PyObject_GetAttrString(node,"fire");
-      pyIce = PyObject_GetAttrString(node,"ice");
       pyIsSelected = PyObject_GetAttrString(node,"selected");//New reference
       pyIsOnMovePath = PyObject_GetAttrString(node,"onMovePath");//New reference
       pyIsVisible = PyObject_GetAttrString(node,"visible");//New reference
-      longName = PyLong_AsLong(nodeName);
-      longValue = PyLong_AsLong(nodeValue);
-      longRoadValue = PyLong_AsLong(roadValue);
-      cursorIndex = PyLong_AsLong(pyCursorIndex);
-      cityName = "";//TODO: REMOVE ME
-      if(pyCity != Py_None){
-	pyCityName = PyObject_GetAttrString(pyCity,"name");
-	cityName = PyString_AsString(pyCityName);
-      }
+      isVisible = PyLong_AsLong(pyIsVisible);
       isNextUnit = 0;
       nextUnit = PyObject_GetAttrString(gameMode,"nextUnit");
       if(pyUnit != NULL){
@@ -1269,14 +1316,16 @@ void drawTiles(){
 	  isNextUnit = 1;
 	}
       }
+      longName = PyLong_AsLong(nodeName);
+      longValue = PyLong_AsLong(nodeValue);
+      longRoadValue = PyLong_AsLong(roadValue);
+      cursorIndex = PyLong_AsLong(pyCursorIndex);
       playerStartValue = PyLong_AsLong(pyPlayerStartValue);
       isSelected = PyLong_AsLong(pyIsSelected);
       isOnMovePath = PyLong_AsLong(pyIsOnMovePath);
-      isVisible = PyLong_AsLong(pyIsVisible);
       Py_DECREF(nodeName);
       Py_DECREF(nodeValue);
       Py_DECREF(roadValue);
-      Py_DECREF(pyCity);
       Py_DECREF(pyCursorIndex);
       Py_DECREF(pyPlayerStartValue);
       Py_DECREF(pyIsSelected);
@@ -1284,15 +1333,26 @@ void drawTiles(){
       if(pyIsVisible != NULL){
 	Py_DECREF(pyIsVisible);
       }
-      Py_DECREF(node);
-      if(nextUnit != NULL){
-      	Py_DECREF(nextUnit);
-      }
-      drawTile(colNumber,rowNumber,longName,longValue,longRoadValue,cityName,isSelected,isOnMovePath,playerStartValue,cursorIndex);
-      colNumber = colNumber - 1;
       if(pyUnit != NULL){
 	Py_DECREF(pyUnit);
       }
+      if(nextUnit != NULL){
+      	Py_DECREF(nextUnit);
+      }
+      Py_DECREF(node);
+
+      xPosition = translateTilesXToPositionX(colNumber,rowNumber);
+      yPosition = translateTilesYToPositionY(rowNumber);
+      glPushMatrix();
+      glTranslatef(xPosition,yPosition,0.0);
+      drawTile(colNumber,rowNumber,longName,longValue,longRoadValue,cityName,isSelected,isOnMovePath,playerStartValue,cursorIndex);
+      glColor3f(1.0,1.0,1.0);
+      if(isNextUnit == 1 && !isFocusing && isVisible){
+	glBindTexture(GL_TEXTURE_2D, texturesArray[SELECTION_BOX_INDEX]);
+	glCallList(selectionBoxList);
+      }
+      glPopMatrix();
+      colNumber = colNumber - 1;
     }
     Py_DECREF(row);
     Py_DECREF(nodeIterator);
@@ -1466,7 +1526,7 @@ void calculateTranslation(){
 drawBoard(){
   if(theMap != Py_None && theMap != NULL){
     drawTiles();
-    //    drawTilesText();
+    drawUnits();
   }
 }
 
@@ -1794,19 +1854,20 @@ static void initGL (){
   /** needs to be called on screen resize **/
   //unneeded with sdl?
 
-  glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);//default values anyway, so not needed but w/e
+  glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);//default values anyway, put it here anyway
   glInitNames(); //init names stack	
   glClearColor(0.0, 0.0, 0.0, 0.0); //sets screen clear color
 
   //glClearColor(1.0, 1.0, 1.0, 1.0); //sets screen clear color
   //glClearColor(123.0/255.0,126.0/255.0,125.0/255.0,1.0);//grey that matches the UI...
   glClearDepth(0.0);
-  //glAlphaFunc(GL_GREATER,0.5);//clear area around the fonts will not write to the z-buffer
   glEnable(GL_ALPHA_TEST);
   glEnable(GL_DEPTH_TEST);
+  //  glAlphaFunc(GL_GREATER,0.1);//clear area around the fonts will not write to the z-buffer
   glEnable(GL_TEXTURE_2D);
   glEnable(GL_BLEND);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);     
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  //  glBlendFunc(GL_SRC_ALPHA, GL_ZERO);
   //  glDepthFunc(GL_ALWAYS);    
   //  glDepthFunc(GL_LEQUAL);
   screenRatio = (GLfloat)SCREEN_WIDTH/(GLfloat)SCREEN_HEIGHT;
@@ -1954,6 +2015,10 @@ static void initGL (){
   pngLoad(&texturesArray[WATER_INDEX1],WATER1);
   pngLoad(&texturesArray[WATER_INDEX2],WATER2);
   pngLoad(&texturesArray[WATER_INDEX3],WATER3);
+  pngLoad(&texturesArray[FLAG_INDEX0],FLAG0);
+  pngLoad(&texturesArray[FLAG_INDEX1],FLAG1);
+  pngLoad(&texturesArray[FLAG_INDEX2],FLAG2);
+  pngLoad(&texturesArray[FLAG_INDEX3],FLAG3);
 
   vertexArrays[FOREST_TILE_INDEX] = *forestVertices;
   vertexArrays[GRASS_TILE_INDEX] = *grassVertices;
@@ -2016,26 +2081,26 @@ static void initGL (){
   glNewList(unitList,GL_COMPILE);    
   glBegin(GL_QUADS);
   glTexCoord2f(0.0,0.0);
-  glVertex3f(-0.75, -0.75, 0.0);
+  glVertex3f(-0.75, -0.75, -0.1);
   glTexCoord2f(1.0,0.0);
-  glVertex3f(0.75, -0.75, 0.0);
+  glVertex3f(0.75, -0.75, -0.1);
   glTexCoord2f(1.0,1.0);
-  glVertex3f(0.75, 0.75, 0.0);
+  glVertex3f(0.75, 0.75, -0.1);
   glTexCoord2f(0.0,1.0);
-  glVertex3f(-0.75, 0.75, 0.0);
+  glVertex3f(-0.75, 0.75, -0.1);
   glEnd();
   glEndList();
 
   glNewList(healthBarList,GL_COMPILE);    
   glBegin(GL_QUADS);
   glTexCoord2f(0.0,0.0);
-  glVertex3f(-.75, 1.05, -0.001);
+  glVertex3f(-.5, 0.9, -0.001);
   glTexCoord2f(1.0,0.0);
-  glVertex3f(.75, 1.05, -0.001);
+  glVertex3f(.5, 0.9, -0.001);
   glTexCoord2f(1.0,1.0);
-  glVertex3f(.75, 0.85, -0.001);
+  glVertex3f(.5, 0.85, -0.001);
   glTexCoord2f(0.0,1.0);
-  glVertex3f(-.75, 0.85, -0.001);
+  glVertex3f(-.5, 0.85, -0.001);
   glEnd();
   glEndList();
 
