@@ -535,11 +535,11 @@ static void printPyStackTrace(){
 #define MENU_BUTTON_WIDTH 33
 #define MENU_BUTTON_INDEX 102
 
-#define SWORDSMAN_OVERLAY "assets/swordsmanOverlay.png"
-#define SWORDSMAN_OVERLAY_INDEX 103
+#define FLAG_POLE "assets/flagPole.png"
+#define FLAG_POLE_INDEX 103
 
-#define SUMMONER_OVERLAY "assets/summonerOverlay.png"
-#define SUMMONER_OVERLAY_INDEX 104
+#define FLAG_TOP "assets/flagTop.png"
+#define FLAG_TOP_INDEX 104
 
 #define ARCHER_OVERLAY "assets/archerOverlay.png"
 #define ARCHER_OVERLAY_INDEX 105
@@ -722,7 +722,6 @@ GLdouble convertedCenterX,convertedCenterY,convertedCenterZ;
 
 PyObject * pyUnitType;
 PyObject * pyUnitTextureIndex;
-PyObject * pyUnitTextureOverlayIndex;
 PyObject * pyName;
 PyObject * pyHealth;
 PyObject * pyMaxHealth;
@@ -738,7 +737,8 @@ char lvlStr[3];
 char * unitName;
 long playerNumber;
 long unitTextureIndex;
-long unitTextureOverlayIndex;
+int level;
+int flagBits;
 double healthBarLength;
 PyObject * uiElement;
 //PyObject * gameModule;
@@ -781,6 +781,7 @@ GLuint tilesLists;
 GLuint selectionBoxList;
 GLuint unitList;
 GLuint healthBarList;
+GLuint flagList;
 
 int mouseX = 0;
 int mouseY = 0;
@@ -986,16 +987,15 @@ void drawFire(){
 void drawUnit(){
   pyUnitType = PyObject_GetAttrString(pyUnit,"unitType");
   pyUnitTextureIndex = PyObject_GetAttrString(pyUnitType,"textureIndex");
-  pyUnitTextureOverlayIndex = PyObject_GetAttrString(pyUnitType,"overlayTextureIndex");
   pyName = PyObject_GetAttrString(pyUnitType,"name");
   unitName = PyString_AsString(pyName);
   pyHealth = PyObject_GetAttrString(pyUnit,"health");
   pyMaxHealth = PyObject_CallMethod(pyUnit,"getMaxHealth",NULL);
   pyLevel = PyObject_GetAttrString(pyUnit,"level");
+  level = PyLong_AsLong(pyLevel);  
   pyPlayerNumber = PyObject_GetAttrString(pyUnit,"player");
   playerNumber = PyLong_AsLong(pyPlayerNumber);
   unitTextureIndex = PyLong_AsLong(pyUnitTextureIndex);
-  unitTextureOverlayIndex = PyLong_AsLong(pyUnitTextureOverlayIndex);
   pyRecentDamage = PyObject_GetAttrString(pyUnit,"recentDamage");
   pyRecentDamageIter = PyObject_GetIter(pyRecentDamage);
   glColor3f(1.0,1.0,1.0);
@@ -1004,55 +1004,46 @@ void drawUnit(){
   //      }
   glBindTexture(GL_TEXTURE_2D, texturesArray[unitTextureIndex]);
   glCallList(unitList);
+
+  
+  glPushMatrix();
+
+  //  glPushMatrix();
+  //  glTranslatef(-0.1,-0.78,0.0);
+  glBindTexture(GL_TEXTURE_2D, texturesArray[FLAG_POLE_INDEX]);
+  glBegin(GL_QUADS);
+  glTexCoord2f(0.0,0.0); glVertex3f(0.5, -0.75, -0.1);
+  glTexCoord2f(1.0,0.0); glVertex3f(0.95, -0.75, -0.1);
+  glTexCoord2f(1.0,1.0); glVertex3f(0.95, .25, -0.1);
+  glTexCoord2f(0.0,1.0); glVertex3f(0.5, .25, -0.1);
+  glEnd();
+
+  //  level = 16;
+  flagBits = level;
+  glPushMatrix();
+  glBindTexture(GL_TEXTURE_2D, texturesArray[FLAG_TOP_INDEX]);
+  while(flagBits != 0){
+    flagBits = flagBits >> 2;
+    glTranslatef(0.0,0.16,0.0);
+    glCallList(flagList);
+  }
+  glPopMatrix();
+
   if(playerNumber == 1){
     glColor3f(1.0,0.0,0.0);
   }else{
     glColor3f(0.0,0.0,1.0);
   }
-
-  glBindTexture(GL_TEXTURE_2D, texturesArray[FLAG_INDEX0]);
-  glBegin(GL_QUADS);
-  glTexCoord2f(0.0,0.0); glVertex3f(0.55, -0.1, -0.1);
-  glTexCoord2f(1.0,0.0); glVertex3f(1.0, -0.1, -0.1);
-  glTexCoord2f(1.0,1.0); glVertex3f(1.0, 0.1, -0.1);
-  glTexCoord2f(0.0,1.0); glVertex3f(0.55, 0.1, -0.1);
-  glEnd();
-
-  glBindTexture(GL_TEXTURE_2D, texturesArray[FLAG_INDEX1]);
-  glBegin(GL_QUADS);
-  glTexCoord2f(0.0,0.0); glVertex3f(0.55, 0.1, -0.1);
-  glTexCoord2f(1.0,0.0); glVertex3f(1.0, 0.1, -0.1);
-  glTexCoord2f(1.0,1.0); glVertex3f(1.0, 0.3, -0.1);
-  glTexCoord2f(0.0,1.0); glVertex3f(0.55, 0.3, -0.1);
-  glEnd();
-
-  glBindTexture(GL_TEXTURE_2D, texturesArray[FLAG_INDEX2]);
-  glBegin(GL_QUADS);
-  glTexCoord2f(0.0,0.0); glVertex3f(0.55, 0.3, -0.1);
-  glTexCoord2f(1.0,0.0); glVertex3f(1.0, 0.3, -0.1);
-  glTexCoord2f(1.0,1.0); glVertex3f(1.0, 0.5, -0.1);
-  glTexCoord2f(0.0,1.0); glVertex3f(0.55, 0.5, -0.1);
-  glEnd();
-
-  glBindTexture(GL_TEXTURE_2D, texturesArray[FLAG_INDEX3]);
-  glBegin(GL_QUADS);
-  glTexCoord2f(0.0,0.0); glVertex3f(0.55, 0.5, -0.1);
-  glTexCoord2f(1.0,0.0); glVertex3f(1.0, 0.5, -0.1);
-  glTexCoord2f(1.0,1.0); glVertex3f(1.0, 0.7, -0.1);
-  glTexCoord2f(0.0,1.0); glVertex3f(0.55, 0.7, -0.1);
-  glEnd();
-  //  glBindTexture(GL_TEXTURE_2D, texturesArray[unitTextureOverlayIndex]);
-  //  glCallList(unitList);
+  //  level = 255;
+  flagBits = level;
+  while(flagBits != 0){
+    glBindTexture(GL_TEXTURE_2D, texturesArray[FLAG_INDEX0+(flagBits&3)]);
+    flagBits = flagBits >> 2;
+    glTranslatef(0.0,0.16,0.0);
+    glCallList(flagList);
+  }
   glColor3f(1.0, 1.0, 1.0);
-
-  //printf("%ld",PyLong_AsLong(pyLevel));
-  /*  glPushMatrix();
-  sprintf(lvlStr,"%ld",PyLong_AsLong(pyLevel));
-  glTranslatef(-0.5,-0.7,-0.0001);
-  glScalef(0.01,0.01,0.0);
-  drawText(lvlStr,0,-1,-9999.9,NULL);
   glPopMatrix();
-  */
 
   glBindTexture(GL_TEXTURE_2D, texturesArray[HEALTH_BAR_INDEX]);
   glCallList(healthBarList);
@@ -1104,11 +1095,10 @@ void drawUnit(){
 
   Py_DECREF(pyUnitType);
   Py_DECREF(pyUnitTextureIndex);
-  Py_DECREF(pyUnitTextureOverlayIndex);
   Py_DECREF(pyName);
+  Py_DECREF(pyLevel);
   Py_DECREF(pyHealth);
   Py_DECREF(pyMaxHealth);
-  Py_DECREF(pyLevel);
   Py_DECREF(pyPlayerNumber);
 }
 double xPosition;
@@ -1997,8 +1987,8 @@ static void initGL (){
   pngLoad(&texturesArray[SLASH_ANIMATION_INDEX],SLASH_ANIMATION);
   pngLoad(&texturesArray[TITLE_INDEX],TITLE);
   pngLoad(&texturesArray[MENU_BUTTON_INDEX],MENU_BUTTON);
-  pngLoad(&texturesArray[SWORDSMAN_OVERLAY_INDEX],SWORDSMAN_OVERLAY);
-  pngLoad(&texturesArray[SUMMONER_OVERLAY_INDEX],SUMMONER_OVERLAY);
+  pngLoad(&texturesArray[FLAG_POLE_INDEX],FLAG_POLE);
+  pngLoad(&texturesArray[FLAG_TOP_INDEX],FLAG_TOP);
   pngLoad(&texturesArray[ARCHER_OVERLAY_INDEX],ARCHER_OVERLAY);
   pngLoad(&texturesArray[WHITE_MAGE_OVERLAY_INDEX],WHITE_MAGE_OVERLAY);
   pngLoad(&texturesArray[RED_MAGE_OVERLAY_INDEX],RED_MAGE_OVERLAY);
@@ -2085,6 +2075,7 @@ static void initGL (){
   selectionBoxList = tilesLists+(c*d)+1;
   unitList = selectionBoxList+1;
   healthBarList = unitList+1;
+  flagList = healthBarList+1;
 
   glNewList(selectionBoxList,GL_COMPILE);    
   glBegin(GL_QUADS);
@@ -2122,6 +2113,15 @@ static void initGL (){
   glVertex3f(.35, 0.8, -0.001);
   glTexCoord2f(0.0,1.0);
   glVertex3f(-.35, 0.8, -0.001);
+  glEnd();
+  glEndList();
+
+  glNewList(flagList,GL_COMPILE);
+  glBegin(GL_QUADS);
+  glTexCoord2f(0.0,0.0); glVertex3f(0.5, -0.1, -0.1);
+  glTexCoord2f(1.0,0.0); glVertex3f(0.95, -0.1, -0.1);
+  glTexCoord2f(1.0,1.0); glVertex3f(0.95, 0.1, -0.1);
+  glTexCoord2f(0.0,1.0); glVertex3f(0.5, 0.1, -0.1);
   glEnd();
   glEndList();
 

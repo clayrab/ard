@@ -56,10 +56,9 @@ class Player:
 		self.blueWood = STARTING_BLUE_WOOD
 		self.hasSummoners = True
 class unitType:
-	def __init__(self,name,textureIndex,overlayTextureIndex,movementSpeed,attackSpeed,attackPower,armor,range,health,canFly,canSwim,costGreen,costBlue,buildTime,movementSpeedBonus,researchCostGreen,researchCostBlue,researchTime,canAttackGround=False):
+	def __init__(self,name,textureIndex,movementSpeed,attackSpeed,attackPower,armor,range,health,canFly,canSwim,costGreen,costBlue,buildTime,movementSpeedBonus,researchCostGreen,researchCostBlue,researchTime,canAttackGround=False):
 		self.name = name
 		self.textureIndex = textureIndex
-		self.overlayTextureIndex = overlayTextureIndex
 		self.movementSpeed = movementSpeed
 		self.attackSpeed = attackSpeed
 		self.attackPower = attackPower

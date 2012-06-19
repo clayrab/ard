@@ -1,6 +1,3 @@
-#just testing git
-
-#webpage
 #SSL
 #registration
 #distribution
@@ -13,7 +10,6 @@
 #report game state(to look for cheaters/bugs)
 
 #ISSUES
-#create email form/database table
 #teams
 #handle disconnections/reconnections gracefully
 #map name clickable to view map
