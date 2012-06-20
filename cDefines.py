@@ -13,7 +13,7 @@ def isInt(str):
     except ValueError:
         return False
 defines = {}
-cFile =  open('main.c','r')
+cFile =  open('defines.c','r')
 for line in cFile:
     if(line.strip().startswith("#define")):
         tokens = line.split()

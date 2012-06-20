@@ -1,15 +1,16 @@
+#website:
 #SSL
 #registration
 #distribution
-#general instructions page
-#how to host instructions page
+#instructions page
+#"how to host" page
 
 #server:
 #*,|, and - cannot be allowed in roomnames
 #record wins/losses
 #report game state(to look for cheaters/bugs)
 
-#ISSUES
+#client:
 #teams
 #handle disconnections/reconnections gracefully
 #map name clickable to view map
@@ -18,11 +19,10 @@
 #sound effects
 #change selected node to white hex and next unit to a flag
 #mouseover effects
-#racial bonuses
-#red wood/blue wood as resources. green wood for elf racial bonuses.
 #show move speed and attack speed
 #icons for green and blue wood
 #healing animation
+#blunt/explosion animation?
 #roads? Draw them properly or remove them...
 
 #BUGS
@@ -40,6 +40,7 @@
 #giant eagle. gains bonus vision, has decent HP and attack.
 #unit which 'becomes' a defensive structure and can't move like gatherer and summoner and auto-attacks
 #unit could also drop mines and then become normal unit(like SC vulture)
+#racial bonuses(i.e. elf/dwarf/human/etc. classes of units)
 
 #BONUS FEATURES
 #sort room columns

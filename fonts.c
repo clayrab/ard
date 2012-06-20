@@ -54,7 +54,7 @@ int i;
 int j;
 int glyphHeight;
 int glyphWidth;
-void make_dlist ( FT_Face face, char charIndex, GLuint list_base, GLuint * tex_base ) {
+void make_dlist(FT_Face face, char charIndex, GLuint list_base, GLuint * tex_base ) {
 
   if(FT_Load_Glyph(face, FT_Get_Char_Index(face,charIndex), FT_LOAD_DEFAULT)){
     printf("FT_Load_Glyph failed");
@@ -83,47 +83,23 @@ void make_dlist ( FT_Face face, char charIndex, GLuint list_base, GLuint * tex_b
 	0 : bitmap.buffer[i + glyphWidth*j];
     }
   }
+  glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
   glBindTexture(GL_TEXTURE_2D, tex_base[charIndex]);
-  glNewList(list_base+(2*charIndex),GL_COMPILE);
-  glPushMatrix();
-  // We Need To Account For The Fact That Many Of
-  // Our Textures Are Filled With Empty Padding Space.
-  // We Figure What Portion Of The Texture Is Used By 
-  // The Actual Character And Store That Information In
-  // The x And y Variables, Then When We Draw The
-  // Quad, We Will Only Reference The Parts Of The Texture
-  // That Contains The Character Itself.
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, dataWidth, dataHeight, 0, GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE, expanded_data);
   x=(float)glyphWidth / (float)dataWidth;
   y=(float)glyphHeight / (float)dataHeight;
-  // Move Down A Little In The Case That The
-  // Bitmap Extends Past The Bottom Of The Line 
-  // This Is Only True For Characters Like 'g' Or 'y'.
-  // We Need To Move Over A Little So That
-  // The Character Has The Right Amount Of Space
-  // Between It And The One Before It.
-  //  glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+
+  glNewList(list_base+(2*charIndex),GL_COMPILE);
+  glPushMatrix();
   glBegin(GL_QUADS);
   glVertex2f(-4,glyphHeight);
   glVertex2f(-4,0);
-  //  glVertex2f(bitmap_glyph->left,0);
-  //  glVertex2f(bitmap_glyph->left,glyphHeight);
   glVertex2f(face->glyph->advance.x>>6,0);
   glVertex2f(bitmap_glyph->left,glyphHeight);
-
   glEnd();
-  //  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   glTranslatef(bitmap_glyph->left,bitmap_glyph->top-glyphHeight,0);
-
-  // Here We Draw The Texturemapped Quads.
-  // The Bitmap That We Got From FreeType Was Not 
-  // Oriented Quite Like We Would Like It To Be,
-  // But We Link The Texture To The Quad
-  // In Such A Way That The Result Will Be Properly Aligned.
-  //  printf("%c %d %d %d %f %f %d\n",charIndex,charIndex,glyphHeight,glyphWidth,x,y,face->glyph->advance.x>>6);
   glBindTexture(GL_TEXTURE_2D,tex_base[charIndex]);
-  glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, dataWidth, dataHeight, 0, GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE, expanded_data);
   glBegin(GL_QUADS);
   glTexCoord2d(0,0); glVertex2f(0,glyphHeight);
   glTexCoord2d(0,y); glVertex2f(0,0);
@@ -244,7 +220,7 @@ int checkRightMargin(int fontIndex, char* str, int strPosition, float rightMargi
       return 1;
     }
     strPosition++;
-  }
+    }
   glPopMatrix();
   return 0;
 }
@@ -315,15 +291,15 @@ void findTextWidth(PyObject * uiElement, int fontIndex, char* realStr, float rig
   //  Py_DECREF(pyObj);  
 }
 void drawChar(int fontIndex,char* str, int strPosition,int cursorPosition){
-  if(strPosition == cursorPosition){
+  /*  if(strPosition == cursorPosition){
     drawCursor();
-  }
+    }*/
   glPushName(strPosition);
   //  glGetDoublev(GL_MODELVIEW_MATRIX,projMatrix);
-  glCallList(list_base+(fontIndex*256)+(2*str[strPosition]));
+  glCallList(list_base+(fontIndex<<8)+(str[strPosition]<<1));
   glPopName();
 }
-float modelview_matrix[16];
+//float modelview_matrix[16];
 int drawText(char* str,int fontIndex,int cursorPosition,float rightMargin,GLdouble* initTranslation){
   numLines = 1;
   glPushMatrix();
@@ -332,22 +308,24 @@ int drawText(char* str,int fontIndex,int cursorPosition,float rightMargin,GLdoub
   //glPushAttrib(GL_LIST_BIT | GL_CURRENT_BIT | GL_ENABLE_BIT | GL_TRANSFORM_BIT); 
   //glDisable(GL_LIGHTING);
   //glEnable(GL_TEXTURE_2D);
-  glGetFloatv(GL_MODELVIEW_MATRIX, modelview_matrix);
+  //  glGetFloatv(GL_MODELVIEW_MATRIX, modelview_matrix);
   while(str[strPosition] != 0){
     drawChar(fontIndex, str, strPosition, cursorPosition);
     strPosition++;
-    if(str[strPosition-1] == 32 && str[strPosition] != 32 && str[strPosition] != 0 && checkRightMargin(fontIndex, str, strPosition+1,rightMargin)){
+        if(str[strPosition-1] == 32 && str[strPosition] != 32 && str[strPosition] != 0 && checkRightMargin(fontIndex, str, strPosition+1,rightMargin)){
       glPopMatrix();
       glTranslatef(0.0,-80.0,0.0);
       glPushMatrix();
-    }
+      }
   }
+  /*
   if(strPosition == cursorPosition){
     drawCursor();
   }
   glPushName(strPosition);
   glCallList(list_base+(2*32));//draw a space at the end for cursor position
   glPopName();
+  */
   glPopMatrix();
   return numLines;
 }
