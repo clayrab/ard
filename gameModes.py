@@ -6,11 +6,13 @@
 #"how to host" page
 
 #server:
+#client version requirement
 #*,|, and - cannot be allowed in roomnames
 #record wins/losses
 #report game state(to look for cheaters/bugs)
 
 #client:
+#back/exit buttons on every screen
 #teams
 #handle disconnections/reconnections gracefully
 #map name clickable to view map
