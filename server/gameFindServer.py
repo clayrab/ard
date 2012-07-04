@@ -10,6 +10,7 @@ import time
 import sys
 import socket
 
+gameFindPort = 26303 
 privKey = rsa.PrivateKey(7294827300696961467825209649910612955544688273739654133132828909790861956391138768640249164939907033611860365075051236361359042803639003856587767504588353, 65537, 6977264057202623443995841153775681866813605135283831723778907294830864861810642621995438195929805731219864983148755866749414123928269010901281896813845553, 6795004418806002701275892780554702381414286837297772798037030472995866173266951571, 1073557403510678821257076760372205704035248017469579525573290803741034843)
 
 rooms = {}
@@ -29,7 +30,7 @@ class Room:
         if(self.parent != None):
             self.parent.childRooms.append(self)
 class Connection(basic.LineReceiver):
-    databaseConnection = MySQLdb.connect(host = "localhost",user = "clay",passwd = "maskboat",db = "ard")
+    databaseConnection = MySQLdb.connect(host = "localhost",user = "clayrab_ard",passwd = "96c91f98",db = "clayrab_ard")
     databaseCursor = databaseConnection.cursor()
     def connectionMade(self):
         self.userName = None
@@ -124,7 +125,9 @@ class Connection(basic.LineReceiver):
         tokens = strArgs.split(" ",1)
         hashFunc = hashlib.sha256()
         hashFunc.update(tokens[1])
-        Connection.databaseCursor.execute("SELECT * from users WHERE username = '" + tokens[0] + "' and passhash = '" + hashFunc.digest() + "'")
+        print tokens[1]
+        print hashFunc.hexdigest()
+        Connection.databaseCursor.execute("SELECT * from users WHERE username = '" + tokens[0] + "' and passhash = '" + hashFunc.hexdigest() + "'")
         if(Connection.databaseCursor.rowcount > 0 and not users.has_key(tokens[0])):
             users[tokens[0]] = self
             self.loggedIn = True
@@ -162,4 +165,4 @@ lobby = Room("lobby",None)
 #Room("3v3",lobby)
 
 application = service.Application("gameFindServer")
-internet.TCPServer(2222, factory).setServiceParent(application)
+internet.TCPServer(gameFindPort, factory).setServiceParent(application)
