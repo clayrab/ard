@@ -118,6 +118,10 @@ class Connection(basic.LineReceiver):
         self.subscribe(self.ownedRoom.name)
         for subscriber in self.ownedRoom.parent.subscribers:
             subscriber.sendCommand("addRoom",self.ownedRoom.name + "-" + str(len(self.ownedRoom.subscribers)))
+    def verifyVersion(self,args):
+        print args
+        self.sendCommand("versionFailed","")
+        #self.sendCommand("versionPassed","")
     def login(self,args):
 #        strArgs = " ".join(args)
 #        strArgs = str(rsaKey.decrypt(args))
@@ -139,8 +143,9 @@ class Connection(basic.LineReceiver):
             print "TODO: Send failed login message to client!"
     #END COMMANDS
     def doCommand(self,commandName,arguments=None):
+        print commandName
 #        if((self.loggedIn or commandName == "login") and commandName != "seedRNG" and commandName != "setPlayerNumber" and commandName != "setMap"):#when testing the host, these commands will come back
-        if((self.loggedIn or commandName == "login")):
+        if((self.loggedIn or commandName == "login" or commandName == "verifyVersion")):
             commandFunc = getattr(self,commandName)
             if(commandFunc != None):
                 commandFunc(arguments)
