@@ -248,10 +248,9 @@ class hostIPConnectButton(clickableElement):
 	def __init__(self,xPos,yPos):
 		clickableElement.__init__(self,xPos,yPos,textureIndex=texIndex("CONNECT_BUTTON"),width=texWidth("CONNECT_BUTTON"),height=texHeight("CONNECT_BUTTON"))
 	def onClick(self):
-		if(len(gameState.hostIPInputElem.text) > 0):
-			gameState.setGameMode(gameModes.joinLANGameMode,[gameState.hostIPInputElem.text])
-			gameState.setHostIP(gameState.hostIPInputElem.text)
-		
+		if(len(gameState.getGameMode().hostIPInputElem.text) > 0):
+			gameState.setHostIP(gameState.getGameMode().hostIPInputElem.text)
+			gameState.setGameMode(gameModes.joinLANGameMode,[gameState.getGameMode().hostIPInputElem.text])
 
 class hostIPInputElement(textInputElement):
 	def __init__(self,xPos,yPos):
@@ -270,8 +269,6 @@ class hostIPInputElement(textInputElement):
 				textInputElement.onKeyDown(self,str(keycode))
 			except:
 				return
-
-
 
 class viewUnitTypeButton(clickableElement):
        	def __init__(self,xPos,yPos,unitType,width=0.3,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,textXPos=0.0,textYPos=0.0):
@@ -1176,10 +1173,10 @@ class mapSelector(scrollableTextFieldsElement):
 	def __init__(self,xPos,yPos,textFields,mapField):
 		scrollableTextFieldsElement.__init__(self,xPos,yPos,textFields,width=texWidth("MAP_SELECTOR"),height=texHeight("MAP_SELECTOR"),textureIndex=texIndex("MAP_SELECTOR"),numFields=4,lineHeight=0.036,xPositionOffset=0.02,yPositionOffset=0.05)
 		self.mapField = mapField
-#	def handleClick(self,textFieldElem):
-#		server.setMap(textFieldElem.text)
-#		self.mapField.text = textFieldElem.text
-#		self.destroy()
+	def handleClick(self,textFieldElem):
+		server.setMap(textFieldElem.text)
+		self.mapField.text = textFieldElem.text
+		self.destroy()
 
 class mapSelect(scrollingTextElement):
 	def __init__(self,xPos,yPos,scrollableElement,text):
@@ -1461,15 +1458,15 @@ class createGameButtun(clickableElement):
 			gameState.setGameMode(gameModes.newGameScreenMode)
 			smallModal("Cannot create server. The socket may be in use, try again in 30 seconds.")
 		gameState.setGameMode(gameModes.joinLANGameMode)
-		gameState.getGameMode().setMap(gameState.getMapName())
+#		gameState.getGameMode().setMap(gameState.getMapName())
 
-class backButton(clickableElement):
+class onlineBackButton(clickableElement):
 	def __init__(self,xPos,yPos):
 		clickableElement.__init__(self,xPos,yPos,textureIndex=texIndex("BACK_BUTTON"),width=texWidth("BACK_BUTTON"),height=texHeight("BACK_BUTTON"))
 	def onClick(self):
 		gameState.getGameFindClient().sendCommand("subscribe","lobby")
 
-class backButtun(clickableElement):
+class backButton(clickableElement):
 	def __init__(self,xPos,yPos,gameMode):
 		clickableElement.__init__(self,xPos,yPos,textureIndex=texIndex("BACK_BUTTON"),width=texWidth("BACK_BUTTON"),height=texHeight("BACK_BUTTON"))
 		self.gameMode = gameMode

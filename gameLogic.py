@@ -793,7 +793,7 @@ class mapp:
 		self.ignoreCities = ignoreCities
 		self.polarity = 0
 		self.nodeType = nodeType
-		self.translateZ = translateZ
+		self.translateZ = 0.0-cDefines.defines['initZoom']#translateZ
 		self.load()
 	def getWidth(self):
 		return len(self.nodes[0])
