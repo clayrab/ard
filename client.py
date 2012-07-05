@@ -14,9 +14,14 @@ class Commands:
         random.seed(seed)
     @staticmethod
     def setMap(mapName):
-        gameState.setMapName(mapName)
+        print 'setmap command'
+        print gameState.getGameMode()
+#        gameState.setMapName(mapName)
         if(hasattr(gameState.getGameMode(),"setMap")):
             gameState.getGameMode().setMap(mapName)
+        else:
+            gameState.setMapName(mapName)
+
     @staticmethod
     def setPlayerNumber(playerNumber):
         if(gameState.getPlayerNumber() != SINGLE_PLAYER):
@@ -258,6 +263,7 @@ class Client:
         if(port < 0):
             port = int(gameState.getConfig()["serverPort"])
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        print 'connecting...'
         self.socket.connect((hostIP,port))
         self.socket.setblocking(0)
         self.commandLog = []

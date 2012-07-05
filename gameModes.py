@@ -22,6 +22,7 @@
 #change selected node to white hex and next unit to a flag
 #mouseover effects
 #show move speed and attack speed
+#change the way a-star works so that there is no delay when waiting for it
 #icons for green and blue wood
 #healing animation
 #blunt/explosion animation?
@@ -97,7 +98,9 @@ import client
 import gameFindClient
 from textureFunctions import texWidth, texHeight, texIndex
 
-print random.__file__
+version = 0.1
+
+#print random.__file__
 
 sys.setrecursionlimit(10000)
 #sys.setrecursionlimit(800)
@@ -169,19 +172,27 @@ class gameMode:
 				elif(hasattr(self.elementWithFocus,"onLeftClickUp")):
 					self.elementWithFocus.onLeftClickUp()
 	def handleKeyDown(self,keycode):
-		if(self.modal == None):
-			if(hasattr(self,"keyDown")):
-				self.keyDown(keycode)
-			else:
-				if(hasattr(self,"mousedOverObject") and hasattr(self.mousedOverObject,"onKeyDown")):
-					self.mousedOverObject.onKeyDown(keycode)
-				elif(hasattr(self.elementWithFocus,"onKeyDown")):
-					self.elementWithFocus.onKeyDown(keycode)
-		elif(self.modal.dismissable and (keycode == "escape" or keycode == "return" or keycode == "space")):
-			if(self.modal.textureIndex==texIndex("MENU_MODAL")):
-				self.modal.exitButton.onClick()
-			else:
-				self.modal.destroy()
+		if(keycode == "escape"):
+			if(self.modal == None):
+				for name,elem in self.elementsDict.iteritems():
+					if(hasattr(elem,"text")):
+						if(elem.text.lower() == "exit" or elem.textureIndex == texIndex("BACK_BUTTON")):
+							elem.onClick()
+							break
+			elif(self.modal.dismissable):
+				if(self.modal.textureIndex==texIndex("MENU_MODAL")):
+					self.modal.exitButton.onClick()
+				else:
+					self.modal.destroy()
+		else:	
+			if(self.modal == None):
+				if(hasattr(self,"keyDown")):
+					self.keyDown(keycode)
+				else:
+					if(hasattr(self,"mousedOverObject") and hasattr(self.mousedOverObject,"onKeyDown")):
+						self.mousedOverObject.onKeyDown(keycode)
+					elif(hasattr(self.elementWithFocus,"onKeyDown")):
+						self.elementWithFocus.onKeyDown(keycode)
 	def handleKeyUp(self,keycode):
 		if(keycode == "`"):
 			if(hasattr(self,"clickScroll")):
@@ -203,6 +214,7 @@ class gameMode:
 		gameLogic.aStarProcess.terminate()
 		gameLogic.aStarProcess.join()
 	def setMaxTranslateZ(self,transZ):
+		print 'setmax' + str(transZ)
 		if(transZ > self.maxTranslateZ):
 			self.maxTranslateZ = transZ
 		self.map.translateZ = transZ
@@ -258,6 +270,7 @@ class tiledGameMode(gameMode):
 	def handleRightClickUp(self,name):
 		self.clickScroll = False
 	def handleScrollUp(self,name):
+		print "max:" + str(self.maxTranslateZ)
 		if(self.modal == None):
 			if(name in self.elementsDict and hasattr(self.elementsDict[name],"onScrollUp")):
 				self.elementsDict[name].onScrollUp()
@@ -659,11 +672,11 @@ class textBasedMenuMode(gameMode):
 				uiElements.menuButton.buttonsList[uiElements.menuButton.selectedIndex].textColor  = uiElements.menuButton.normalTextColor
 				uiElements.menuButton.selectedIndex = uiElements.menuButton.selectedIndex + 1
 				uiElements.menuButton.buttonsList[uiElements.menuButton.selectedIndex].textColor  =uiElements.menuButton.selectedTextColor
-		elif(keycode == "escape"):
-			for button in uiElements.menuButton.buttonsList:
-				if(button.text.lower() == "exit"):
-					button.onClick()
-					break
+#		elif(keycode == "escape"):
+#			for button in uiElements.menuButton.buttonsList:
+#				if(button.text.lower() == "exit"):
+#					button.onClick()
+#					break
 			
 		elif(keycode == "return"):
 			uiElements.menuButton.buttonsList[uiElements.menuButton.selectedIndex].onClick()
@@ -681,8 +694,7 @@ class newGameScreenMode(textBasedMenuMode):
 		uiElements.menuButtonGameModeSelector(-0.19,-0.70,loginMode,text="Play Online")
 		uiElements.menuButtonGameModeSelector(-0.19,-0.82,mapEditorSelectMode,text="Map Editor")
 		uiElements.exitButton(-0.05,-0.94)
-
-
+		uiElements.uiElement(0.83,-0.985,text="version " + str(version),textSize=0.0005)
 
 class comingSoonMode(textBasedMenuMode):
 	def addUIElements(self):
@@ -698,6 +710,7 @@ class quickPlayMapSelectMode(textBasedMenuMode):
 			if(fileName.endswith(".map")):
 				heightDelta = heightDelta - 0.1
 				uiElements.mapPlaySelectButton(-0.16,0.3+heightDelta,playMode,text=fileName[0:len(fileName)-4])
+		uiElements.backButton(-0.930,0.9,newGameScreenMode)
 
 class mapEditorSelectMode(textBasedMenuMode):
 	def addUIElements(self):
@@ -727,11 +740,13 @@ class joinLANGameScreenMode(gameMode):
 		gameMode.__init__(self)
 	def addUIElements(self):
 		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])
-		uiElements.uiElement(-0.06,0.165,text="Host IP",textSize=0.0007,textColor="1f 10 10")
-		self.hostIPInputElem = uiElements.hostIPInputElement(-0.18,0.15)
-		uiElements.hostIPConnectButton(-0.18,0.07)
+		uiElements.uiElement(-0.06,0.065,text="Host IP",textSize=0.0007,textColor="1f 10 10")
+		self.hostIPInputElem = uiElements.hostIPInputElement(-0.18,0.05)
+		uiElements.hostIPConnectButton(-0.18,-0.03)
 		self.setFocus(self.hostIPInputElem)
-		uiElements.menuButtonGameModeSelector(-0.07,-0.2,newGameScreenMode,text="Back")
+		
+		uiElements.backButton(-0.930,0.9,newGameScreenMode)
+#		uiElements.menuButtonGameModeSelector(-0.07,-0.2,newGameScreenMode,text="Back")
 
 class joiningLANGameScreenMode(gameMode):
 	def __init__(self,args):
@@ -836,10 +851,10 @@ class joinGameMode(tiledGameMode):
 	def __init__(self,args):
 		tiledGameMode.__init__(self)
 		self.roomName = args[0]
-		self.mapName = args[1]
-		self.hostIP = args[2]
-		self.hostPort = int(args[3])
-		self.teamSize = int(args[4])
+#		self.mapName = args[1]
+		self.hostIP = args[1]
+		self.hostPort = int(args[2])
+		self.teamSize = int(args[3])
 		self.joinGameMode = True
 		self.backgroundImageIndex = texIndex("JOIN_GAME_BACKGROUND")
 		self.selectedNode = None
@@ -870,7 +885,7 @@ class joinGameMode(tiledGameMode):
 	def setMap(self,mapName):
 		self.maxTranslateZ = 0.0-cDefines.defines["maxZoom"]
 		gameState.setMapName(mapName)
-		self.map = gameLogic.mapp(gameLogic.mapViewNode,-50.0)
+		self.map = gameLogic.mapp(gameLogic.mapViewNode)
 		self.mapNameElem.text = mapName
 		self.focusXPos = int(len(self.map.nodes[0])/2)
 		self.focusYPos = int(len(self.map.nodes)/2)
@@ -878,7 +893,7 @@ class joinGameMode(tiledGameMode):
 	def addUIElements(self):
 #		uiElements.uiElement(0.0,0.9,text=gameState.getMapName())
 		self.mapNameElem = uiElements.uiElement(0.0,0.9,text="")
-		uiElements.backButton(-0.930,0.9)
+		uiElements.onlineBackButton(-0.930,0.9)
 		uiElements.uiElement(0.35,0.813,width=texWidth("JOIN_GAME_PLAYERS"),height=texHeight("JOIN_GAME_PLAYERS"),textureIndex=texIndex("JOIN_GAME_PLAYERS"))
 		self.chatDisplay = uiElements.chatDisplay(0.35,0.4,textureName="JOIN_GAME_CHAT")
 		self.chatBox = uiElements.chatBox(0.35,-0.514,gameState.getClient(),textureName="JOIN_GAME_CHAT_BOX")
@@ -888,6 +903,7 @@ class joinGameMode(tiledGameMode):
 		if(gameState.getClient() == None):#host connects to itself early at 127.0.0.1
 			try:
 				client.startClient(self.hostIP,self.hostPort)
+				print 'client started...'
 			except socket.error:
 				uiElements.lanConnectErrorModal()
 				return
@@ -896,12 +912,22 @@ class joinGameMode(tiledGameMode):
 
 class joinLANGameMode(joinGameMode):
 	def __init__(self,args):
+		gameState.setMapName(gameState.getMapDatas()[0][0].name)
 		if(len(args) == 0):
-			joinGameMode.__init__(self,["LAN game","map name","127.0.0.1","6666","1"])
+			joinGameMode.__init__(self,["LAN game","127.0.0.1","6666","1"])
 		else:
-			joinGameMode.__init__(self,["LAN game","map name",args[0],"6666","1"])
+			joinGameMode.__init__(self,["LAN game",args[0],"6666","1"])
+		print 'init done...'
+	def addUIElements(self):
+		joinGameMode.addUIElements(self)
+		for name in self.elementsDict.keys():
+			if(self.elementsDict[name].textureIndex == texIndex("BACK_BUTTON")):
+				del self.elementsDict[name]
+				break
+		uiElements.backButton(-0.930,0.9,newGameScreenMode)
+	def keyDown(self,keycode):
+		self.setMap(gameState.getMapName())
 
-	
 class createGameMode(tiledGameMode):
 	def __init__(self,args):
 		tiledGameMode.__init__(self)
@@ -933,7 +959,7 @@ class createGameMode(tiledGameMode):
 		self.mapNameField = uiElements.uiElement(-1.0+texWidth("CREATE_GAME_BACKGROUND_LEFT"),0.85,fontIndex=3,textColor="ee ed 9b")
 		self.roomNameField = uiElements.textInputElement(0.31,-0.616)
 		uiElements.createGameButton(0.717,-0.616)		
-		uiElements.backButton(-0.930,0.9)
+		uiElements.onlineBackButton(-0.930,0.9)
 
 class hostGameMode(createGameMode):
 	def __init__(self,args):
@@ -942,7 +968,7 @@ class hostGameMode(createGameMode):
 		self.createGameMode = True
 	def addUIElements(self):
 		self.mapNameField = uiElements.uiElement(-1.0+texWidth("CREATE_GAME_BACKGROUND_LEFT"),0.85,fontIndex=3,textColor="ee ed 9b")
-		uiElements.backButtun(-0.930,0.9,newGameScreenMode)
+		uiElements.backButton(-0.930,0.9,newGameScreenMode)
 		uiElements.createGameButtun(0.717,-0.616)		
 		uiElements.da1v1Button(-0.710,0.9,offColor="AA AA AA")
 		uiElements.da2v2Button(-0.620,0.9,offColor="AA AA AA")

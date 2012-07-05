@@ -724,18 +724,19 @@ void calculateTranslation(){
   mapHeight = PyLong_AsLong(pyMapHeight);
   frameNumber++;
   glPushMatrix();
-  if(theMap != NULL){
+  if(theMap != Py_None && theMap != NULL){
     pyTranslateZ = PyObject_GetAttrString(theMap,"translateZ");
     translateZ = PyFloat_AsDouble(pyTranslateZ);
-  }
-  if(translateX - mapRightOffset < convertedTopRightX
-     && translateX - (2.0*SIN60) > convertedBottomLeftX
-     && translateY < convertedTopRightY - mapTopOffset
-     && translateY > convertedBottomLeftY+2.0
-     && translateZ < translateZPrev){
-    translateZ = translateZPrev;
-    pyObj = PyObject_CallMethod(gameMode,"setMaxTranslateZ","f",translateZ);//New reference
-    Py_DECREF(pyObj);
+    if(translateX - mapRightOffset < convertedTopRightX
+       && translateX - (2.0*SIN60) > convertedBottomLeftX
+       && translateY < convertedTopRightY - mapTopOffset
+       && translateY > convertedBottomLeftY+2.0
+       && (translateZ < translateZPrev)){
+      translateZ = translateZPrev;
+
+      pyObj = PyObject_CallMethod(gameMode,"setMaxTranslateZ","f",translateZ);//New reference
+      Py_DECREF(pyObj);
+    }
   }
   glTranslatef(translateX,translateY,translateZ);
   //glTranslatef(0.0,0.0,translateZ);
@@ -1882,7 +1883,6 @@ static void draw(){
   glTexCoord2f(1.0,1.0); glVertex3f(1.0,1.0,-1.01);
   glTexCoord2f(0.0,1.0); glVertex3f(-1.0,1.0,-1.01);
   glEnd();
-  
   glTranslatef(translateX,translateY,translateZ);
   glDepthFunc(GL_GEQUAL);
   //timeTest = SDL_GetTicks()-timeTest; printf("3: %f\n",timeTest);

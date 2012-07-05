@@ -69,10 +69,13 @@ def setGameMode(gameModeType,args=[]):
 	    theGameMode.modal.destroy()
     theGameMode = gameModeType(args)
     if(hasattr(theGameMode,"loadMap")):
-        theGameMode.loadMap()
+	    print 'loadmap'
+	    theGameMode.loadMap()
     theGameMode.addUIElements()
     if(hasattr(theGameMode,"startGame")):
-        theGameMode.startGame()
+	    print 'startgame'
+	    theGameMode.startGame()
+
 def getGameMode():
 	global theGameMode
 	return theGameMode

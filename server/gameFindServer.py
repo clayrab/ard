@@ -83,7 +83,7 @@ class Connection(basic.LineReceiver):
             for subscriber in daRoom.parent.subscribers:
                 subscriber.sendCommand("roomCount",roomName + "*" + str(len(daRoom.subscribers)) + "*" + str(daRoom.teamSize))
         if(daRoom.mapName != None):
-            response = roomName + "*" + daRoom.mapName + "*" + daRoom.hostIP + "*" + daRoom.hostPort + "*" + daRoom.teamSize
+            response = roomName + "*" + daRoom.hostIP + "*" + daRoom.hostPort + "*" + daRoom.teamSize
             self.sendCommand("showGameRoom",response)
             for subscriber in self.currentRoom.subscribers:
                 self.sendCommand("addPlayer",subscriber.userName)

@@ -53,6 +53,13 @@ class Commands:
     def startGame(args):
         gameState.setGameMode(gameModes.playMode)
     @staticmethod
+    def versionPassed(args):
+#        uiElements.smallModal("Login failed.")
+        return
+    @staticmethod
+    def versionFailed(args):
+        uiElements.smallModal("There is a new version of Ard available. You must get the update to play online.")
+    @staticmethod
     def showLoginFailed(args):
         uiElements.smallModal("Login failed.")
     @staticmethod
@@ -92,6 +99,8 @@ class Client:
         self.socket.setblocking(0)
         self.commandLog = []
         self.delayedCommands = []
+        print 'verifying...'
+        self.sendCommand("verifyVersion",str(gameModes.version))
         self.sendCommand("subscribe","lobby")
 
     def checkSocket(self):
