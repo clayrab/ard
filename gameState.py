@@ -69,11 +69,9 @@ def setGameMode(gameModeType,args=[]):
 	    theGameMode.modal.destroy()
     theGameMode = gameModeType(args)
     if(hasattr(theGameMode,"loadMap")):
-	    print 'loadmap'
 	    theGameMode.loadMap()
     theGameMode.addUIElements()
     if(hasattr(theGameMode,"startGame")):
-	    print 'startgame'
 	    theGameMode.startGame()
 
 def getGameMode():
@@ -143,11 +141,13 @@ theNetworkPlayers = []
 def addNetworkPlayer(requestHandler):
        	player = server.NetworkPlayer(requestHandler)
 	with networkPlayersLock:
+		global theNetworkPlayers
 		theNetworkPlayers.append(player)
 	return player
 def removeNetworkPlayer(player):
 	server.NetworkPlayer.nextPlayerNumber = server.NetworkPlayer.nextPlayerNumber - 1
 	with networkPlayersLock:
+		global theNetworkPlayers
 		for aPlayer in theNetworkPlayers:
 			if(aPlayer.playerNumber > player.playerNumber):
 				aPlayer.playerNumber = aPlayer.playerNumber - 1
@@ -155,10 +155,12 @@ def removeNetworkPlayer(player):
 def getNetworkPlayers():
 	playersCopy = []
 	with networkPlayersLock:
+		global theNetworkPlayers
 		playersCopy = copy.copy(theNetworkPlayers)
 	return playersCopy
 
 def resetNetworkPlayers():
 	with networkPlayersLock:
+		global theNetworkPlayers
 		theNetworkPlayers = []
 		server.NetworkPlayer.nextPlayerNumber = 1

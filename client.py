@@ -14,14 +14,11 @@ class Commands:
         random.seed(seed)
     @staticmethod
     def setMap(mapName):
-        print 'setmap command'
-        print gameState.getGameMode()
 #        gameState.setMapName(mapName)
         if(hasattr(gameState.getGameMode(),"setMap")):
             gameState.getGameMode().setMap(mapName)
         else:
             gameState.setMapName(mapName)
-
     @staticmethod
     def setPlayerNumber(playerNumber):
         if(gameState.getPlayerNumber() != SINGLE_PLAYER):
@@ -112,7 +109,7 @@ class Commands:
             if(gameState.getGameMode().selectedNode.city != None):
                 uiElements.viewer.theViewer = uiElements.cityViewer(node)
             else:
-                uiElements.viewer.theViewer = uiElements.uniitViewer(node)
+                uiElements.viewer.theViewer = uiElements.unitViewer(node)
     @staticmethod
     def startMeditatingUndo(args):
         tokens = args.split(" ")
@@ -156,7 +153,6 @@ class Commands:
         index = int(tokens[2])
         if(len(node.city.unitBuildQueue) > 0):
             cancelledQueuedThing = node.city.unitBuildQueue.pop(index-1)
-            print cancelledQueuedThing
             node.city.cancelledUnits.append((cancelledQueuedThing,index,))
             if(hasattr(cancelledQueuedThing,"unitType")):#unit
                 gameState.getGameMode().players[node.unit.player-1].greenWood = gameState.getGameMode().players[node.unit.player-1].greenWood + cancelledQueuedThing.unitType.costGreen
@@ -246,7 +242,6 @@ class Commands:
 
 
 def doCommand(commandName,args=None):
-#    print commandName + " " + str(args)
     commandFunc = getattr(Commands,commandName)
     if(commandFunc != None):
         if(args != None and args != ''):
@@ -256,14 +251,11 @@ def doCommand(commandName,args=None):
     else:
         print "ERROR: COMMAND " + commandName + " does not exist"
 
-
-
 class Client:
     def __init__(self,hostIP,port=-1):
         if(port < 0):
             port = int(gameState.getConfig()["serverPort"])
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        print 'connecting...'
         self.socket.connect((hostIP,port))
         self.socket.setblocking(0)
         self.commandLog = []
@@ -313,6 +305,9 @@ class Client:
 
 def startClient(hostIP,hostPort=-1):
     gameState.setClient(Client(hostIP,hostPort))
+def stopClient():
+    gameState.getClient().socket.close()
+    gameState.setClient(None)
 #    clientThread = ClientThread(hostIP)
 #    clientThread.daemon = True
 #    clientThread.start()

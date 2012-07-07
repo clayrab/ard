@@ -81,12 +81,15 @@ def stopAcceptingConnections():
 
 serverStarted = False        
 def shutdownServer():
-    global server
-    if(server != None):
-        server.shutdown()
+#    with serverLock:
+#        global server
+#        if(server != None):
+#            server.shutdown()
+    return
 def startServer(serverIP,port=0):
     with serverLock:
         global server
+        gameState.resetNetworkPlayers()
         if(server == None):
             if(port == 0):
                 port = int(gameState.getConfig()["serverPort"])
@@ -96,3 +99,4 @@ def startServer(serverIP,port=0):
             serverThread.daemon = True
             serverThread.start()
             serverStarted = True
+            print 'server started...'

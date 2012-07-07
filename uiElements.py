@@ -3,6 +3,7 @@ import copy
 import gameState
 import gameLogic
 import gameModes
+import gameFindClient
 import nameGenerator
 import cDefines
 import shutil
@@ -1316,6 +1317,8 @@ class exiitButton(inGameMenuButton):
 	def __init__(self,modal,xPos,yPos,text="Exit"):
 		inGameMenuButton.__init__(self,modal,xPos,yPos,text=text)
 	def onClick(self):
+		client.stopClient()
+		server.shutdownServer()
 		gameState.setGameMode(gameModes.newGameScreenMode)
 
 class modal(uiElement):
@@ -1390,7 +1393,7 @@ class lanConnectErrorModalButton(clickableElement,modal):
 
 class lanConnectErrorModal(smallModal):
 	def __init__(self):
-		smallModal.__init__(self,"Cannot connect.",dismissable=False)
+		smallModal.__init__(self,"Cannot connect. Socket may be in use, try again in a minute.",dismissable=False)
 		lanConnectErrorModalButton(self)
 
 class createMapButton(clickableElement):
@@ -1472,6 +1475,16 @@ class backButton(clickableElement):
 		self.gameMode = gameMode
 	def onClick(self):
 		gameState.setGameMode(self.gameMode)
+
+class logoutButton(clickableElement):
+	def __init__(self,xPos,yPos,gameMode):
+		clickableElement.__init__(self,xPos,yPos,textureIndex=texIndex("BACK_BUTTON"),width=texWidth("BACK_BUTTON"),height=texHeight("BACK_BUTTON"))
+		self.gameMode = gameMode
+	def onClick(self):
+		gameFindClient.stopClient()
+#		gameState.getGameFindClient().sendCommand("logout","")
+		gameState.setGameMode(self.gameMode)
+	
 
 class startGameButton(clickableElement):
 	def __init__(self,xPos,yPos):

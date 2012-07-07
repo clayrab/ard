@@ -12,7 +12,8 @@
 #report game state(to look for cheaters/bugs)
 
 #client:
-#back/exit buttons on every screen
+#require version doens't work
+#back/exit buttons on every screen(online screens are not done)
 #teams
 #handle disconnections/reconnections gracefully
 #map name clickable to view map
@@ -178,21 +179,21 @@ class gameMode:
 					if(hasattr(elem,"text")):
 						if(elem.text.lower() == "exit" or elem.textureIndex == texIndex("BACK_BUTTON")):
 							elem.onClick()
-							break
+							return
 			elif(self.modal.dismissable):
 				if(self.modal.textureIndex==texIndex("MENU_MODAL")):
 					self.modal.exitButton.onClick()
 				else:
 					self.modal.destroy()
-		else:	
-			if(self.modal == None):
-				if(hasattr(self,"keyDown")):
-					self.keyDown(keycode)
-				else:
-					if(hasattr(self,"mousedOverObject") and hasattr(self.mousedOverObject,"onKeyDown")):
-						self.mousedOverObject.onKeyDown(keycode)
-					elif(hasattr(self.elementWithFocus,"onKeyDown")):
-						self.elementWithFocus.onKeyDown(keycode)
+				return
+		if(self.modal == None):
+			if(hasattr(self,"keyDown")):
+				self.keyDown(keycode)
+			else:
+				if(hasattr(self,"mousedOverObject") and hasattr(self.mousedOverObject,"onKeyDown")):
+					self.mousedOverObject.onKeyDown(keycode)
+				elif(hasattr(self.elementWithFocus,"onKeyDown")):
+					self.elementWithFocus.onKeyDown(keycode)
 	def handleKeyUp(self,keycode):
 		if(keycode == "`"):
 			if(hasattr(self,"clickScroll")):
@@ -214,7 +215,6 @@ class gameMode:
 		gameLogic.aStarProcess.terminate()
 		gameLogic.aStarProcess.join()
 	def setMaxTranslateZ(self,transZ):
-		print 'setmax' + str(transZ)
 		if(transZ > self.maxTranslateZ):
 			self.maxTranslateZ = transZ
 		self.map.translateZ = transZ
@@ -419,7 +419,7 @@ class playMode(tiledGameMode):
 				if((unit.movementPoints == eligibleUnits[0].movementPoints) and (not unit.waiting) and (not unit.isMeditating) and (unit.attackPoints <= 0.0)):
 					eligibleUnits.append(unit)
 			else:
-				if(unit.movementPoints <= 0.0 and unit.attackPoints <= 0.0 and not unit.waiting and not unit.isMeditating):
+				if(unit.movementPoints <= 0.0 and unit.attackPoints <= 0.0 and (not unit.waiting) and (not unit.isMeditating)):
 					eligibleUnits.append(unit)
 
 		if(len(eligibleUnits) == 0):#all units are waiting/meditating!!!
@@ -483,9 +483,6 @@ class playMode(tiledGameMode):
 				if(node.playerStartValue != 0):
 					node.addUnit(gameLogic.unit(gameState.theUnitTypes["summoner"],node.playerStartValue,rowCount,columnCount,node,1))
 #					node.addUnit(gameLogic.unit(gameState.theUnitTypes["dragon"],node.playerStartValue,rowCount,columnCount,node,1))
-					node.addUnit(gameLogic.unit(gameState.theUnitTypes["gatherer"],node.playerStartValue,rowCount,columnCount,node,1))
-#					node.addUnit(gameLogic.unit(gameState.theUnitTypes["gatherer"],node.playerStartValue,rowCount,columnCount,node,1))
-#					node.addUnit(gameLogic.unit(gameState.theUnitTypes["gatherer"],node.playerStartValue,rowCount,columnCount,node,1))
 #					node.addUnit(gameLogic.unit(gameState.theUnitTypes["gatherer"],node.playerStartValue,rowCount,columnCount,node,1))
 #					node.addUnit(gameLogic.unit(gameState.theUnitTypes["swordsman"],node.playerStartValue,rowCount,columnCount,node,1))
 #					node.addUnit(gameLogic.unit(gameState.theUnitTypes["wolf"],node.playerStartValue,rowCount,columnCount,node,1))
@@ -772,7 +769,7 @@ class joiningLANGameScreenMode(gameMode):
 		self.mapNameElement = uiElements.uiElement(-0.85,-0.1,text="map")
 		#uiElements.menuButtonGameModeSelector(-0.45,0.0,newGameScreenMode,text="back")
 
-class hostLANGameScreenMode(gameMode):
+class asdfhostLANGameScreenMode(gameMode):
 	def __init__(self,args):
 		gameMode.__init__(self)
 		self.playerElementNames = []
@@ -808,6 +805,7 @@ class loginMode(gameMode):
 		self.setFocus(uiElements.loginUserName(-0.12,0.02))
 		uiElements.loginPassword(-0.12,-0.06)
 		uiElements.loginButton(-0.12,-0.14)
+		uiElements.backButton(-0.930,0.9,newGameScreenMode)
 		try:
 			gameFindClient.startClient()
 		except socket.error:
@@ -816,10 +814,13 @@ class loginMode(gameMode):
 
 class gameFindMode(gameMode):
 	def __init__(self,args):
+		
 		self.roomName = args[0]
 		self.rooms = []
 		if(len(args) > 1):
 			tokens = args[1].split('|')
+			print 'tokens'
+			print tokens
 			for token in tokens:
 				self.rooms.append(tuple(token.split("-")))
 		gameMode.__init__(self)
@@ -845,15 +846,19 @@ class gameFindMode(gameMode):
 		uiElements.da3v3Button(-0.750,-0.82)
 		uiElements.da4v4Button(-0.660,-0.82)
 		uiElements.createRoomButton(-0.930,-0.885)
+		uiElements.logoutButton(-0.930,0.9,newGameScreenMode)
+
 		
 class joinGameMode(tiledGameMode):
 	def __init__(self,args):
 		tiledGameMode.__init__(self)
+		print args
 		self.roomName = args[0]
-#		self.mapName = args[1]
-		self.hostIP = args[1]
-		self.hostPort = int(args[2])
-		self.teamSize = int(args[3])
+		self.mapName = args[1]
+		self.hostIP = args[2]
+		self.hostPort = int(args[3])
+		print args[4]
+		self.teamSize = int(args[4])
 		self.joinGameMode = True
 		self.backgroundImageIndex = texIndex("JOIN_GAME_BACKGROUND")
 		self.selectedNode = None
@@ -899,10 +904,9 @@ class joinGameMode(tiledGameMode):
 		uiElements.sendChatButton(0.842,-0.595)
 		for i in range(0,2*self.teamSize):
 			self.playerElements.append(uiElements.uiElement(0.36,0.775-(0.033*i),text="empty",textSize=0.0005,textColor="55 55 55",mouseOverColor="55 55 55"))
-		if(gameState.getClient() == None):#host connects to itself early at 127.0.0.1
+		if(gameState.getClient() == None):#host connects to itself on createButtun.onClick
 			try:
 				client.startClient(self.hostIP,self.hostPort)
-				print 'client started...'
 			except socket.error:
 				uiElements.lanConnectErrorModal()
 				return
@@ -911,12 +915,12 @@ class joinGameMode(tiledGameMode):
 
 class joinLANGameMode(joinGameMode):
 	def __init__(self,args):
-		gameState.setMapName(gameState.getMapDatas()[0][0].name)
+		mapName = gameState.getMapDatas()[0][0].name
+		gameState.setMapName(mapName)
 		if(len(args) == 0):
-			joinGameMode.__init__(self,["LAN game","127.0.0.1","6666","1"])
+			joinGameMode.__init__(self,["LAN game",mapName,"127.0.0.1","6666","1"])
 		else:
-			joinGameMode.__init__(self,["LAN game",args[0],"6666","1"])
-		print 'init done...'
+			joinGameMode.__init__(self,["LAN game",mapName,args[0],"6666","1"])
 	def addUIElements(self):
 		joinGameMode.addUIElements(self)
 		for name in self.elementsDict.keys():
@@ -968,11 +972,11 @@ class hostGameMode(createGameMode):
 	def addUIElements(self):
 		self.mapNameField = uiElements.uiElement(-1.0+texWidth("CREATE_GAME_BACKGROUND_LEFT"),0.85,fontIndex=3,textColor="ee ed 9b")
 		uiElements.backButton(-0.930,0.9,newGameScreenMode)
-		uiElements.createGameButtun(0.717,-0.616)		
 		uiElements.da1v1Button(-0.710,0.9,offColor="AA AA AA")
 		uiElements.da2v2Button(-0.620,0.9,offColor="AA AA AA")
 		uiElements.da3v3Button(-0.530,0.9,offColor="AA AA AA")
 		uiElements.da4v4Button(-0.440,0.9,offColor="AA AA AA")
+		uiElements.createGameButtun(0.717,-0.616)		
 		gameState.getGameMode().setMap(gameState.getMapDatas()[0][0].name)
 
 gameState.setGameMode(newGameScreenMode)

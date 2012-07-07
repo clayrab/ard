@@ -7,6 +7,7 @@ import gameLogic
 import uiElements
 import rsa
 (pubKey, privKey) = rsa.newkeys(512)
+
 #pubKey = "PublicKey(7294827300696961467825209649910612955544688273739654133132828909790861956391138768640249164939907033611860365075051236361359042803639003856587767504588353, 65537)"
 
 #privKey = "PrivateKey(7294827300696961467825209649910612955544688273739654133132828909790861956391138768640249164939907033611860365075051236361359042803639003856587767504588353, 65537, 6977264057202623443995841153775681866813605135283831723778907294830864861810642621995438195929805731219864983148755866749414123928269010901281896813845553, 6795004418806002701275892780554702381414286837297772798037030472995866173266951571, 1073557403510678821257076760372205704035248017469579525573290803741034843)"
@@ -37,6 +38,7 @@ class Commands:
                gameState.getGameMode().roomCountUpdate(tokens[0],tokens[1],tokens[2])
     @staticmethod
     def showRoom(args):
+        print 'showroom' + args
         tokens = args.split("|",1)
         gameState.setGameMode(gameModes.gameFindMode,tokens)
     @staticmethod
@@ -99,10 +101,7 @@ class Client:
         self.socket.setblocking(0)
         self.commandLog = []
         self.delayedCommands = []
-        print 'verifying...'
         self.sendCommand("verifyVersion",str(gameModes.version))
-        self.sendCommand("subscribe","lobby")
-
     def checkSocket(self):
         try:
             receivedData = self.socket.recv(1024)
@@ -115,13 +114,15 @@ class Client:
                     doCommand(tokens[0],args=tokens[1])
                 else:
                     doCommand(tokens[0])
-
     def sendCommand(self,command,argsString=""):
         if(command == "login"):
             argsString = rsa.encrypt(argsString, pubKey)
         self.socket.send(command + " " + str(argsString) + "\r\n")
 def startClient():
     gameState.setGameFindClient(Client())
+def stopClient():
+    gameState.getGameFindClient().socket.close()
+    gameState.setGameFindClient(None)
 #    clientThread = ClientThread(hostIP)
 #    clientThread.daemon = True
 #    clientThread.start()

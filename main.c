@@ -379,7 +379,7 @@ void drawUnit(){
 
   glBindTexture(GL_TEXTURE_2D, texturesArray[HEALTH_BAR_INDEX]);
   glCallList(healthBarList);
-  healthBarLength = 0.35*PyFloat_AsDouble(pyHealth)/PyFloat_AsDouble(pyMaxHealth);
+  healthBarLength = 0.7*PyFloat_AsDouble(pyHealth)/PyFloat_AsDouble(pyMaxHealth);
   glColor3f(1.0, 0.0, 0.0);
   glBegin(GL_QUADS);
   glTexCoord2f(0.0,0.0);
