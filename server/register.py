@@ -18,9 +18,11 @@ else:
     print hashFunc.hexdigest()
     print hashFunc.digest_size
     execu = "INSERT INTO users (username, passhash) VALUES ('" + sys.argv[1] + "', '" + hashFunc.hexdigest()  + "')"
+#    execu = "INSERT INTO users (username, passhash) VALUES ('%s', '%s')"
     print execu
     cursor.execute(execu)
     cursor.close()
+    conn.commit()
     conn.close()
 print 'done'
 

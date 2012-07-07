@@ -10,7 +10,8 @@ import time
 import sys
 import socket
 
-gameFindPort = 26303 
+gameFindPort = 26303
+requiredVersion = "0.1"
 privKey = rsa.PrivateKey(7294827300696961467825209649910612955544688273739654133132828909790861956391138768640249164939907033611860365075051236361359042803639003856587767504588353, 65537, 6977264057202623443995841153775681866813605135283831723778907294830864861810642621995438195929805731219864983148755866749414123928269010901281896813845553, 6795004418806002701275892780554702381414286837297772798037030472995866173266951571, 1073557403510678821257076760372205704035248017469579525573290803741034843)
 
 rooms = {}
@@ -42,14 +43,15 @@ class Connection(basic.LineReceiver):
         self.factory.clients.append(self)
         self.authenticated = False
     def connectionLost(self, reason):
-        print "Lost a client!"
-        if(self.currentRoom != None):
-            rooms[self.currentRoom.name].subscribers.remove(self)
-        if(self.ownedRoom != None):
-            self.destroyRoom(self.ownedRoom)
-        if(self.userName != None):
-            del users[self.userName]
-        self.factory.clients.remove(self)
+        self.logout()
+#        print "Lost a client!"
+#        if(self.currentRoom != None):
+#            rooms[self.currentRoom.name].subscribers.remove(self)
+#        if(self.ownedRoom != None):
+#            self.destroyRoom(self.ownedRoom)
+#        if(self.userName != None):
+#            del users[self.userName]
+#        self.factory.clients.remove(self)
     def destroyRoom(self,room):
         room.parent.childRooms.remove(room)
         for subscriber in room.subscribers:
@@ -108,6 +110,8 @@ class Connection(basic.LineReceiver):
             self.subscribe("lobby")
             self.sendCommand("testConnectFail","")
     def createGameRoom(self,args):
+        print 'craate game room'
+        print args
         tokens = args.split("|")
         if tokens[0] in rooms:
             self.sendCommand("showMessage","This game name is already taken.")
@@ -118,10 +122,19 @@ class Connection(basic.LineReceiver):
         self.subscribe(self.ownedRoom.name)
         for subscriber in self.ownedRoom.parent.subscribers:
             subscriber.sendCommand("addRoom",self.ownedRoom.name + "-" + str(len(self.ownedRoom.subscribers)))
-    def verifyVersion(self,args):
-        print args
-        self.sendCommand("versionFailed","")
-        #self.sendCommand("versionPassed","")
+    def verifyVersion(self,versionStr):
+        if(versionStr == requiredVersion):
+            self.sendCommand("versionPassed","")
+        else:
+            self.sendCommand("versionFailed","")
+    def logout(self,args=""):
+        if(self.currentRoom != None):
+            rooms[self.currentRoom.name].subscribers.remove(self)
+        if(self.ownedRoom != None):
+            self.destroyRoom(self.ownedRoom)
+        if(self.userName != None):
+            del users[self.userName]
+        self.factory.clients.remove(self)
     def login(self,args):
 #        strArgs = " ".join(args)
 #        strArgs = str(rsaKey.decrypt(args))
@@ -129,8 +142,6 @@ class Connection(basic.LineReceiver):
         tokens = strArgs.split(" ",1)
         hashFunc = hashlib.sha256()
         hashFunc.update(tokens[1])
-        print tokens[1]
-        print hashFunc.hexdigest()
         Connection.databaseCursor.execute("SELECT * from users WHERE username = '" + tokens[0] + "' and passhash = '" + hashFunc.hexdigest() + "'")
         if(Connection.databaseCursor.rowcount > 0 and not users.has_key(tokens[0])):
             users[tokens[0]] = self
@@ -139,9 +150,6 @@ class Connection(basic.LineReceiver):
             self.subscribe("lobby")
         else:
             self.sendCommand("showLoginFailed","")
-                
-            print "TODO: Send failed login message to client!"
-    #END COMMANDS
     def doCommand(self,commandName,arguments=None):
         print commandName
 #        if((self.loggedIn or commandName == "login") and commandName != "seedRNG" and commandName != "setPlayerNumber" and commandName != "setMap"):#when testing the host, these commands will come back
