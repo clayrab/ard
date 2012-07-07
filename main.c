@@ -119,6 +119,7 @@ int mouseY = 0;
 GLuint selectBuf[BUFSIZE];
 
 int selectedName = -1;//the mousedover object's 'name'
+int selectedNodeName = -1;//the mousedover object's 'name'
 int previousClickedName = -2;
 int previousMousedoverName = -2;
 int theCursorIndex = -1;
@@ -223,10 +224,10 @@ int namesCount;
 int mouseTextPositionSet;
 void processTheHits(GLint hitsCount, GLuint buffer[]){
   glFlush();
+  selectedName = -1;
   count = 0;
   nameValue = 0;
   bufferPtr = (GLuint *) buffer;
-  selectedName = -1;
   mouseTextPositionSet = 0;
   while(count < hitsCount){
     namesCount = 0;
@@ -253,7 +254,7 @@ void processTheHits(GLint hitsCount, GLuint buffer[]){
   if(!mouseTextPositionSet){
 	pyObj = PyObject_CallMethod(gameMode,"setMouseTextPosition","i",-1);
 	if(pyObj != NULL){
-    Py_DECREF(pyObj);
+	  Py_DECREF(pyObj);
 	}
   }
 }
@@ -1025,14 +1026,6 @@ void drawUIElement(PyObject * uiElement){
     Py_DECREF(pyFrameCount);
     Py_DECREF(pyIsFocused);
 
-    if(previousMousedoverName != selectedName){
-      if(PyObject_HasAttrString(gameMode,"handleMouseOver")){
-	pyObj = PyObject_CallMethod(gameMode,"handleMouseOver","(ii)",selectedName,leftButtonDown);//New reference
-	printPyStackTrace();
-	Py_DECREF(pyObj);
-      }
-      previousMousedoverName = selectedName;
-    }
     if(!hidden){
       if(PyObject_HasAttrString(uiElement,"tileType")){//gameModeTileSelectButton
 	drawTileSelect(xPosition,yPosition,name,PyLong_AsLong(PyObject_GetAttrString(uiElement,"tileType")),PyLong_AsLong(PyObject_GetAttrString(uiElement,"selected")));
@@ -1518,6 +1511,15 @@ static void handleInput(){
       isFocusing = 1;
     }
   }
+    if(previousMousedoverName != selectedName){
+      if(PyObject_HasAttrString(gameMode,"handleMouseOver")){
+	pyObj = PyObject_CallMethod(gameMode,"handleMouseOver","(ii)",selectedName,leftButtonDown);//New reference
+	printPyStackTrace();
+	Py_DECREF(pyObj);
+      }
+      previousMousedoverName = selectedName;
+    }
+
   //SDL_Delay(20);//for framerate testing...
 
   if(keyHeld){
@@ -1845,16 +1847,23 @@ static void draw(){
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
   //timeTest = SDL_GetTicks();
-  drawUI();
-  //timeTest = SDL_GetTicks()-timeTest; printf("drawUI: %f\n",timeTest);
 
-  //timeTest = SDL_GetTicks();
   hitsCnt = glRenderMode(GL_RENDER);
-  //timeTest = SDL_GetTicks()-timeTest; printf("2: %f\n",timeTest);
-  //timeTest = SDL_GetTicks();
   processTheHits(hitsCnt,selectBuf);
-  //timeTest = SDL_GetTicks()-timeTest; printf("processHits: %f\n",timeTest);
-  //timeTest = SDL_GetTicks();
+  selectedNodeName = selectedName;
+
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		 
+  glSelectBuffer(BUFSIZE,selectBuf);//glSelectBuffer must be issued before selection mode is enabled, and it must not be issued while the rendering mode is GL_SELECT.
+  glRenderMode(GL_SELECT);
+
+  drawUI();
+  hitsCnt = glRenderMode(GL_RENDER);
+  processTheHits(hitsCnt,selectBuf);
+  if(selectedName == -1){
+    selectedName = selectedNodeName;
+  }
+
+
 
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();

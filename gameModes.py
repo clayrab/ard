@@ -270,7 +270,6 @@ class tiledGameMode(gameMode):
 	def handleRightClickUp(self,name):
 		self.clickScroll = False
 	def handleScrollUp(self,name):
-		print "max:" + str(self.maxTranslateZ)
 		if(self.modal == None):
 			if(name in self.elementsDict and hasattr(self.elementsDict[name],"onScrollUp")):
 				self.elementsDict[name].onScrollUp()
@@ -925,8 +924,8 @@ class joinLANGameMode(joinGameMode):
 				del self.elementsDict[name]
 				break
 		uiElements.backButton(-0.930,0.9,newGameScreenMode)
-	def keyDown(self,keycode):
-		self.setMap(gameState.getMapName())
+#	def keyDown(self,keycode):
+#		self.setMap(gameState.getMapName())
 
 class createGameMode(tiledGameMode):
 	def __init__(self,args):
