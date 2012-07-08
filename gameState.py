@@ -121,9 +121,10 @@ def getPlayerNumber():
 #thePlayersLock = threading.Lock()
 thePlayers = []
 def addPlayer(playerNumber):
+	print 'gameState.addplayer'
        	player = gameLogic.Player(playerNumber)
 #	with thePlayersLock:
-       	thePlayers.append(player)		
+       	thePlayers.append(player)	
 	return player
 def removePlayer(playerNumber):
 #	with thePlayersLock:
@@ -139,6 +140,7 @@ def getPlayers():
 networkPlayersLock = threading.Lock()
 theNetworkPlayers = []
 def addNetworkPlayer(requestHandler):
+	print 'gameState.addNetworkPlayer'
        	player = server.NetworkPlayer(requestHandler)
 	with networkPlayersLock:
 		global theNetworkPlayers

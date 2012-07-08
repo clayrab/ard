@@ -1019,6 +1019,7 @@ class createRoomButton(clickableElement):
 		for button in gameTypeButton.buttons:
 			if(button.selected):
 				teamSize = button.teamSize
+				break
 		gameState.getGameFindClient().sendCommand("testServer",gameState.getConfig()["serverPort"])
 		gameState.setGameMode(gameModes.createGameMode)
 		smallModal("testing connection...",dismissable=False)
@@ -1490,6 +1491,8 @@ class startGameButton(clickableElement):
 	def __init__(self,xPos,yPos):
 		clickableElement.__init__(self,xPos,yPos,textureIndex=texIndex("START_BUTTON"),width=texWidth("START_BUTTON"),height=texHeight("START_BUTTON"))
 	def onClick(self):
+		print 'start'
+		server.stopAcceptingConnections()
 		for player in gameState.getNetworkPlayers():
 			player.dispatchCommand("startGame -1")
 

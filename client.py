@@ -27,6 +27,7 @@ class Commands:
             gameState.setUserName("Player " + playerNumber)
     @staticmethod
     def addPlayer(playerNumber):
+        print 'add player command. playernumber: ' + str(playerNumber)
         player = gameState.addPlayer(int(playerNumber))
         if(gameState.getPlayerNumber() == player.playerNumber or gameState.getPlayerNumber() == SINGLE_PLAYER):
             player.isOwnPlayer = True
@@ -304,6 +305,7 @@ class Client:
         self.socket.send(command + " " + str(gameState.getPlayerNumber()) + " " + argsString + "|")
 
 def startClient(hostIP,hostPort=-1):
+    print 'start client...'
     gameState.setClient(Client(hostIP,hostPort))
 def stopClient():
     gameState.getClient().socket.close()

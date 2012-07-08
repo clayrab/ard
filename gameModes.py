@@ -852,7 +852,6 @@ class gameFindMode(gameMode):
 class joinGameMode(tiledGameMode):
 	def __init__(self,args):
 		tiledGameMode.__init__(self)
-		print args
 		self.roomName = args[0]
 		self.mapName = args[1]
 		self.hostIP = args[2]

@@ -6,8 +6,11 @@ import gameModes
 import gameLogic
 import uiElements
 import rsa
-(pubKey, privKey) = rsa.newkeys(512)
 
+gameFindHost = "94.75.231.214"
+#gameFindHost = "94.75.235.221"
+
+(pubKey, privKey) = rsa.newkeys(512)
 #pubKey = "PublicKey(7294827300696961467825209649910612955544688273739654133132828909790861956391138768640249164939907033611860365075051236361359042803639003856587767504588353, 65537)"
 
 #privKey = "PrivateKey(7294827300696961467825209649910612955544688273739654133132828909790861956391138768640249164939907033611860365075051236361359042803639003856587767504588353, 65537, 6977264057202623443995841153775681866813605135283831723778907294830864861810642621995438195929805731219864983148755866749414123928269010901281896813845553, 6795004418806002701275892780554702381414286837297772798037030472995866173266951571, 1073557403510678821257076760372205704035248017469579525573290803741034843)"
@@ -75,7 +78,7 @@ class Commands:
         uiElements.smallModal(args)
     @staticmethod    
     def testConnectSuccess(args):
-        gameState.resetNetworkPlayers()
+#        gameState.resetNetworkPlayers()
         gameState.getGameMode().modal.destroy()
     @staticmethod    
     def testConnectFail(args):
@@ -95,7 +98,7 @@ class Client:
     def __init__(self):        
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 #        host = socket.gethostbyname("cynicsymposium.com")
-        host = "94.75.231.214"
+        host = gameFindHost
         port = 26303
         self.socket.connect((host,port))
         self.socket.setblocking(0)

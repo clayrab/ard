@@ -5,6 +5,7 @@ import time
 import gameState
 import client
 import uiElements
+import gameFindClient
 
 serverLock = threading.Lock()
 server = None
@@ -37,25 +38,33 @@ class RequestHandler(SocketServer.StreamRequestHandler):
         with server.acceptingConnectionsLock:
             if(server.acceptingConnections):
                 print 'setup new player: ' + str(self.client_address)
-                SocketServer.StreamRequestHandler.setup(self)
-                self.player = gameState.addNetworkPlayer(self)
-                self.player.dispatchCommand("setPlayerNumber -1 " + str(self.player.playerNumber))
-                if(gameState.getMapName() != None):
-                    self.player.dispatchCommand("setMap -1 " + gameState.getMapName())
-                seed = time.time() * 256
-                for player in gameState.getNetworkPlayers():
-                    player.dispatchCommand("seedRNG -1 " + str(seed))
-                    self.player.dispatchCommand("addPlayer -1 " + str(player.playerNumber))
-                    if(player.playerNumber != self.player.playerNumber):
-                        player.dispatchCommand("addPlayer -1 " + str(self.player.playerNumber))
-                print str(self.client_address) + " setup done."
+                if(self.client_address[0] == "94.75.235.221"):
+                    print 'just testing'
+                    #TODO: send a confirmation back to the server
+                else:                    
+                    SocketServer.StreamRequestHandler.setup(self)
+                    self.player = gameState.addNetworkPlayer(self)
+                    self.player.dispatchCommand("setPlayerNumber -1 " + str(self.player.playerNumber))
+                    if(gameState.getMapName() != None):
+                        self.player.dispatchCommand("setMap -1 " + gameState.getMapName())
+                    seed = time.time() * 256
+                    print gameState.getNetworkPlayers()
+                    for player in gameState.getNetworkPlayers():
+                        player.dispatchCommand("seedRNG -1 " + str(seed))
+                        self.player.dispatchCommand("addPlayer -1 " + str(player.playerNumber))
+                        if(player.playerNumber != self.player.playerNumber):
+                            player.dispatchCommand("addPlayer -1 " + str(self.player.playerNumber))
+                    print str(self.client_address) + " setup done."
             else:
             #TODO: send command to client indicating game has started or host is no longer accepting connections...
                 print 'host is not accepting connections'
     def finish(self):
 #        SocketServer.StreamRequestHandler.finish(self)
-        gameState.removeNetworkPlayer(self.player)
-        print str(self.client_address) + " disconnected."
+        if(self.client_address[0] == "94.75.235.221"):
+            return#just testing
+        else:
+            gameState.removeNetworkPlayer(self.player)
+            print str(self.client_address) + " disconnected."
 
 class Server(SocketServer.ThreadingMixIn,SocketServer.TCPServer):
     def __init__(self,serverAddress):
@@ -87,6 +96,7 @@ def shutdownServer():
 #            server.shutdown()
     return
 def startServer(serverIP,port=0):
+    print 'startServer'
     with serverLock:
         global server
         gameState.resetNetworkPlayers()
