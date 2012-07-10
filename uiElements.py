@@ -219,6 +219,8 @@ class textInputElement(uiElement):
 				self.recalculateText = -1
 		elif(keycode == "up" or keycode == "down" or keycode == "left shift" or keycode == "right shift"):
 			self.realText = self.realText
+		elif(keycode == "*" or keycode == "|" or keycode == "-"):
+			return
 		else:
 			if(keycode == "space"):
 				keycode = " "
@@ -316,16 +318,17 @@ class cancelButton(clickableElement):
 #		if(gameState.getGameMode().nextUnit != None and gameState.getGameMode().nextUnit.isControlled()):
 #			gameLogic.selectNode(gameState.getGameMode().nextUnit.node)
 
+def startGathering():
+	viewer.theViewer.destroy()
+	gameState.getClient().sendCommand("startMeditating",str(gameState.getGameMode().selectedNode.xPos) + " " + str(gameState.getGameMode().selectedNode.yPos))
+	if(gameState.getGameMode().selectedNode.unit == gameState.getGameMode().nextUnit):
+		gameState.getClient().sendCommand("chooseNextUnit")
+	
 class startGatheringButton(clickableElement):
 	def __init__(self,xPos,yPos):
 		clickableElement.__init__(self,xPos,yPos,height=texHeight('START_GATHERING_BUTTON'),width=texWidth('START_GATHERING_BUTTON'),textureIndex=texIndex('START_GATHERING_BUTTON'))
 	def onClick(self):
-		viewer.theViewer.destroy()
-		gameState.getClient().sendCommand("startMeditating",str(gameState.getGameMode().selectedNode.xPos) + " " + str(gameState.getGameMode().selectedNode.yPos))
-		if(gameState.getGameMode().selectedNode.unit == gameState.getGameMode().nextUnit):
-			gameState.getClient().sendCommand("chooseNextUnit")
-#		elif(gameState.getGameMode().nextUnit != None and gameState.getGameMode().nextUnit.isControlled()):
-#			gameLogic.selectNode(gameState.getGameMode().nextUnit.node)
+		startGathering()
 
 class cancelMovementButton(clickableElement):
 	def __init__(self,xPos,yPos):
@@ -337,24 +340,27 @@ class cancelMovementButton(clickableElement):
 #		if(gameState.getGameMode().nextUnit != None and gameState.getGameMode().nextUnit.isControlled()):
 #			gameLogic.selectNode(gameState.getGameMode().nextUnit.node)
 
+def skip():
+	gameState.getClient().sendCommand("skip")
+	gameState.getClient().sendCommand("chooseNextUnit")
+
 class skipButton(clickableElement):
 	def __init__(self,xPos,yPos):
 		clickableElement.__init__(self,xPos,yPos,height=texHeight('SKIP_BUTTON'),width=texWidth('SKIP_BUTTON'),textureIndex=texIndex('SKIP_BUTTON'))
 	def onClick(self):
-		gameState.getClient().sendCommand("skip")
-#,str(gameState.getGameMode().nextUnit.node.xPos) + " " + str(gameState.getGameMode().nextUnit.node.yPos))
-		gameState.getClient().sendCommand("chooseNextUnit")
+		skip()	
 
+def startSummoning():
+	viewer.theViewer.destroy()
+	gameState.getClient().sendCommand("startMeditating",str(gameState.getGameMode().selectedNode.xPos) + " " + str(gameState.getGameMode().selectedNode.yPos))
+	if(gameState.getGameMode().selectedNode.unit == gameState.getGameMode().nextUnit):
+		gameState.getClient().sendCommand("chooseNextUnit")
+	
 class startSummoningButton(clickableElement):
 	def __init__(self,xPos,yPos):
 		clickableElement.__init__(self,xPos,yPos,height=texHeight('START_SUMMONING_BUTTON'),width=texWidth('START_SUMMONING_BUTTON'),textureIndex=texIndex('START_SUMMONING_BUTTON'))
 	def onClick(self):
-		viewer.theViewer.destroy()
-		gameState.getClient().sendCommand("startMeditating",str(gameState.getGameMode().selectedNode.xPos) + " " + str(gameState.getGameMode().selectedNode.yPos))
-		if(gameState.getGameMode().selectedNode.unit == gameState.getGameMode().nextUnit):
-			gameState.getClient().sendCommand("chooseNextUnit")
-#		elif(gameState.getGameMode().nextUnit != None and gameState.getGameMode().nextUnit.isControlled()):
-#			gameLogic.selectNode(gameState.getGameMode().nextUnit.node)
+		startSummoning()
 
 class summonButton(clickableElement):
        	def __init__(self,xPos,yPos,unitType):

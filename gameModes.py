@@ -1,26 +1,3 @@
-"""<class 'socket.error'>
-(48, 'Address already in use')
-  File "gameModes.py", line 191, in handleKeyDown
-    self.keyDown(keycode)
-  File "gameModes.py", line 679, in keyDown
-    uiElements.menuButton.buttonsList[uiElements.menuButton.selectedIndex].onClick()
-  File "uiElements.py", line 1166, in onClick
-    gameState.setGameMode(self.gameMode)
-  File "/Users/clay/projects/ard/gameState.py", line 73, in setGameMode
-    theGameMode.addUIElements()
-  File "gameModes.py", line 566, in addUIElements
-    server.startServer('')
-  File "server.py", line 106, in startServer
-    server = Server((serverIP,port))
-  File "server.py", line 72, in __init__
-    SocketServer.TCPServer.__init__(self,serverAddress,RequestHandler)
-  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/SocketServer.py", line 402, in __init__
-    self.server_bind()
-  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/SocketServer.py", line 413, in server_bind
-    self.socket.bind(self.server_address)
-  File "<string>", line 1, in bind
-"""
-
 #website:
 #SSL
 #registration
@@ -29,18 +6,14 @@
 #"how to host" page
 
 #server:
-#client version requirement
-#*,|, and - cannot be allowed in roomnames
 #record wins/losses
 #report game state(to look for cheaters/bugs)
 
 #client:
-#require version doens't work
-#back/exit buttons on every screen(online screens are not done)
+#keyboard shortcuts(k skip, a auto-select, g gather, s start summoning)
 #teams
 #handle disconnections/reconnections gracefully
 #map name clickable to view map
-#keyboard shortcuts(s skip, a auto-select, g gather, u start summoning)
 #testing connection timeout
 #sound effects
 #change selected node to white hex and next unit to a flag
@@ -504,10 +477,10 @@ class playMode(tiledGameMode):
 			for node in row:
 				columnCount = columnCount + 1
 				if(node.playerStartValue != 0):
-#					node.addUnit(gameLogic.unit(gameState.theUnitTypes["summoner"],node.playerStartValue,rowCount,columnCount,node,1))
+					node.addUnit(gameLogic.unit(gameState.theUnitTypes["summoner"],node.playerStartValue,rowCount,columnCount,node,1))
 #					node.addUnit(gameLogic.unit(gameState.theUnitTypes["dragon"],node.playerStartValue,rowCount,columnCount,node,1))
 #					node.addUnit(gameLogic.unit(gameState.theUnitTypes["gatherer"],node.playerStartValue,rowCount,columnCount,node,1))
-					node.addUnit(gameLogic.unit(gameState.theUnitTypes["swordsman"],node.playerStartValue,rowCount,columnCount,node,1))
+#					node.addUnit(gameLogic.unit(gameState.theUnitTypes["swordsman"],node.playerStartValue,rowCount,columnCount,node,1))
 #					node.addUnit(gameLogic.unit(gameState.theUnitTypes["wolf"],node.playerStartValue,rowCount,columnCount,node,1))
 #					node.addUnit(gameLogic.unit(gameState.theUnitTypes["blue mage"],node.playerStartValue,rowCount,columnCount,node,1))
 #					node.addUnit(gameLogic.unit(gameState.theUnitTypes["white mage"],node.playerStartValue,rowCount,columnCount,node,1))
@@ -528,14 +501,29 @@ class playMode(tiledGameMode):
 		elif(keycode == "escape"):
 			uiElements.menuModal()
 		else:
+			if(hasattr(self.mousedOverObject,"toggleCursor")):
+				self.mousedOverObject.toggleCursor()
 			if(hasattr(self.mousedOverObject,"onKeyDown")):
 				self.mousedOverObject.onKeyDown(keycode)
 			elif(hasattr(self.elementWithFocus,"onKeyDown")):
 				self.elementWithFocus.onKeyDown(keycode)
-
+			if(keycode == "`"):
+				self.clickScroll = True
+			elif(keycode == "a"):
+				self.autoSelectCheckBox.onClick()
+			elif(keycode == "k"):
+				if(self.nextUnit == self.selectedNode.unit):
+					uiElements.skip()
+			elif(keycode == "g"):
+				if(self.nextUnit == self.selectedNode.unit and self.nextUnit.unitType.name == "gatherer" and (self.selectedNode.tileValue == cDefines.defines["RED_FOREST_TILE_INDEX"] or self.selectedNode.tileValue == cDefines.defines["BLUE_FOREST_TILE_INDEX"])):
+					uiElements.startGathering()
+			elif(keycode == "s"):
+				print 's'
 	def keyUp(self,keycode):
 		if(keycode == "left shift" or keycode == "right shift"):
 			self.shiftDown = False
+		elif(keycode == "`"):
+			self.clickScroll = False		
 		if(hasattr(self.mousedOverObject,"onKeyUp")):
 			self.mousedOverObject.onKeyUp(keycode)
 	def getPlayerNumber(self):#TODO: GET RID OF THIS ONCE AI IS DONE AND REPLACE WITH GAMESTATE VERSION
@@ -595,7 +583,7 @@ class playMode(tiledGameMode):
 			gameState.addPlayer(2).isOwnPlayer = True
 		self.players = gameState.getPlayers()
 		uiElements.uiElement(0.718,-0.932,textureIndex=texIndex("CHECKBOXES_BACKGROUND"),width=texWidth("CHECKBOXES_BACKGROUND"),height=texHeight("CHECKBOXES_BACKGROUND"))
-		uiElements.autoSelectCheckBox(0.735,-0.94)
+		self.autoSelectCheckBox = uiElements.autoSelectCheckBox(0.735,-0.94)
 		uiElements.uiElement(0.535,0.980,textureIndex=texIndex("TIME_ICON"),width=texWidth("TIME_ICON"),height=texHeight("TIME_ICON"))
 		self.timeToMoveElem = uiElements.uiElement(0.559,0.957,text="",textSize=0.00045)
 		uiElements.uiElement(0.655,0.980,textureIndex=texIndex("GREEN_WOOD_ICON"),width=texWidth("GREEN_WOOD_ICON"),height=texHeight("GREEN_WOOD_ICON"))

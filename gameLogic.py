@@ -417,14 +417,6 @@ class node:
 		gameState.getGameMode().elementsDict[self.name] = self
 		self.neighbors = []
 		self.unit = None
-	def onKeyDown(self,keycode):
-		if(keycode == "`"):
-			gameState.getGameMode().clickScroll = True
- 		if(hasattr(self,"toggleCursor")):
-			self.toggleCursor()
-	def onKeyUp(self,keycode):
-		if(keycode == "`"):
-			gameState.getGameMode().clickScroll = False		
 	def getValue(self):
 		return self.tileValue
 	def findDistance(self,target,polarity):
@@ -561,10 +553,13 @@ class playModeNode(node):
 				 gameState.getGameMode().selectedNode.unit.unitType.name == "white mage",
 				 self == gameState.getGameMode().selectedNode and gameState.getGameMode().selectedNode != None,
 				 self.tileValue == cDefines.defines['MOUNTAIN_TILE_INDEX'],
-				 gameState.getGameMode().selectedNode.unit.unitType.canFly,)
-			# playModeNode.isNeighbor
-			# gameState.getGameMode().shiftDown
-			if((state[0] == True and (state[6] == False or state[6:] == (True,True))) or (state[0] == False and state[5] == True)):
+				 gameState.getGameMode().selectedNode.unit.unitType.canFly,
+				 gameState.getGameMode().shiftDown,)
+#				 playModeNode.isNeighbor,
+			if(state[8] == True):
+				self.cursorIndex = cDefines.defines['CURSOR_POINTER_INDEX']
+				playModeNode.mode = MODES.SELECT_MODE
+			elif((state[0] == True and (state[6] == False or state[6:8] == (True,True))) or (state[0] == False and state[5] == True)):
 				self.cursorIndex = cDefines.defines['CURSOR_MOVE_INDEX']
 				playModeNode.mode = MODES.MOVE_MODE
 				aStarSearch.search(self,gameState.getGameMode().selectedNode,gameState.getGameMode().selectedNode.unit.unitType.canFly,gameState.getGameMode().selectedNode.unit.unitType.canSwim)
@@ -574,9 +569,6 @@ class playModeNode(node):
 			elif(state[0:5] == (False,True,True,False,True)):
 				self.cursorIndex = cDefines.defines['CURSOR_HEAL_INDEX']
 				playModeNode.mode = MODES.HEAL_MODE
-			else:
-				self.cursorIndex = cDefines.defines['CURSOR_POINTER_INDEX']
-				playModeNode.mode = MODES.SELECT_MODE
 	def getNeighbors(self,distance):
 		neighbs = []
 		for xDelta in range(0-distance,distance):

@@ -68,12 +68,12 @@ class RequestHandler(SocketServer.StreamRequestHandler):
 
 class Server(SocketServer.ThreadingMixIn,SocketServer.TCPServer):
     def __init__(self,serverAddress):
-#        try:
-        SocketServer.TCPServer.__init__(self,serverAddress,RequestHandler)
+        try:
+            SocketServer.TCPServer.__init__(self,serverAddress,RequestHandler)
+        except:
+            uiElements.smallModal("There was an error hosting the game.")
         self.acceptingConnections = True
         self.acceptingConnectionsLock = threading.Lock()
-#        except:
-#            uiElements.smallModal("There was an error hosting the game.")
 
 def setMap(mapName):
     with server.acceptingConnectionsLock:    
