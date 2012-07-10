@@ -1173,7 +1173,7 @@ class exitButton(menuButton):
 
 class mapSelector(scrollableTextFieldsElement):
 	def __init__(self,xPos,yPos,textFields,mapField):
-		scrollableTextFieldsElement.__init__(self,xPos,yPos,textFields,width=texWidth("MAP_SELECTOR"),height=texHeight("MAP_SELECTOR"),textureIndex=texIndex("MAP_SELECTOR"),numFields=4,lineHeight=0.036,xPositionOffset=0.02,yPositionOffset=0.05)
+		scrollableTextFieldsElement.__init__(self,xPos,yPos,textFields,width=texWidth("MAP_SELECTOR"),height=texHeight("MAP_SELECTOR"),textureIndex=texIndex("MAP_SELECTOR"),numFields=38,lineHeight=0.036,xPositionOffset=0.015,yPositionOffset=0.045,scrollSpeed=10)
 		self.mapField = mapField
 	def handleClick(self,textFieldElem):
 		server.setMap(textFieldElem.text)

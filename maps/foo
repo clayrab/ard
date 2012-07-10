@@ -1,0 +1,7 @@
+for file in ./foo*.map
+do
+	cp $file foo6$((i++)).map
+	cp $file foo7$((i++)).map
+	cp $file foo8$((i++)).map
+	cp $file foo9$((i++)).map
+done

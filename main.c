@@ -25,6 +25,8 @@ float timeTest3;
 float timeTest4;
 float timeTestTotal;
 
+float focusSpeed = 0.0;
+
 float screenRatio;
 static SDL_Surface *gScreen;
 
@@ -316,8 +318,26 @@ void drawFire(){
   glPopMatrix();
   
 }
+double xPosition;
+double yPosition;
+PyObject * pyXPositionUnit;
+PyObject * pyYPositionUnit;
+double xPositionUnit;
+double yPositionUnit;
 void drawUnit(){
   pyUnitType = PyObject_GetAttrString(pyUnit,"unitType");
+  Py_DECREF(pyObj);
+  pyXPositionUnit = PyObject_GetAttrString(pyUnit,"xPosDraw");
+  pyYPositionUnit = PyObject_GetAttrString(pyUnit,"yPosDraw");
+
+  xPositionUnit = PyFloat_AsDouble(pyXPositionUnit);
+  yPositionUnit = PyFloat_AsDouble(pyYPositionUnit);
+  glTranslatef(xPositionUnit,yPositionUnit,0.0);
+  if(xPositionUnit != xPosition){
+    pyObj = PyObject_CallMethod(pyUnit,"setPosition","(ff)",xPosition,yPosition);
+  }
+  //  printf("%lf %lf %lf %lf\n",xPosition,yPosition,xPositionUnit,yPositionUnit);
+
   pyUnitTextureIndex = PyObject_GetAttrString(pyUnitType,"textureIndex");
   pyName = PyObject_GetAttrString(pyUnitType,"name");
   unitName = PyString_AsString(pyName);
@@ -330,13 +350,11 @@ void drawUnit(){
   unitTextureIndex = PyLong_AsLong(pyUnitTextureIndex);
   pyRecentDamage = PyObject_GetAttrString(pyUnit,"recentDamage");
   pyRecentDamageIter = PyObject_GetIter(pyRecentDamage);
+
   glColor3f(1.0,1.0,1.0);
-  //else{
-  //glBindTexture(GL_TEXTURE_2D, texturesArray[UNIT_CIRCLE_RED_INDEX+playerNumber-1]);
-  //      }
+
   glBindTexture(GL_TEXTURE_2D, texturesArray[unitTextureIndex]);
   glCallList(unitList);
-
   
   glPushMatrix();
 
@@ -432,9 +450,9 @@ void drawUnit(){
   Py_DECREF(pyHealth);
   Py_DECREF(pyMaxHealth);
   Py_DECREF(pyPlayerNumber);
+  Py_DECREF(pyXPositionUnit);
+  Py_DECREF(pyYPositionUnit);
 }
-double xPosition;
-double yPosition;
 float shading;
 char playerStartVal[2];
 void drawTile(uint tilesXIndex, uint tilesYIndex, long name, long tileValue, long roadValue,char * cityName,long isSelected, long isOnMovePath,long playerStartValue, long cursorIndex){
@@ -571,8 +589,7 @@ void drawUnits(){
       colNumber = colNumber - 1;
       glPushMatrix();
       glTranslatef(xPosition,yPosition,0.0);
-
-
+      glPopMatrix();
       if(pyUnit != NULL && pyUnit != Py_None && isVisible){
 	glPushMatrix();
 	drawUnit();
@@ -581,6 +598,8 @@ void drawUnits(){
       }else{
 	glBindTexture(GL_TEXTURE_2D, texturesArray[CITY_INDEX]);
       }
+      glPushMatrix();
+      glTranslatef(xPosition,yPosition,0.0);
 
       cityName = "";//TODO: REMOVE ME
       pyCity = PyObject_GetAttrString(node,"city");
@@ -654,7 +673,7 @@ void drawTiles(){
       isVisible = PyLong_AsLong(pyIsVisible);
       isNextUnit = 0;
       nextUnit = PyObject_GetAttrString(gameMode,"nextUnit");
-      if(pyUnit != NULL){
+      if(pyUnit != NULL && pyUnit != Py_None){
 	if(pyUnit == nextUnit){
 	  isNextUnit = 1;
 	}
@@ -827,11 +846,30 @@ void calculateTranslation(){
       }
     }else if(abs(50.0*(translateXPrev - translateX)) == 0 && abs(50.0*(translateYPrev - translateY)) == 0){//this indicates the auto-scrolling code is not allowing us to move any more
       considerDoneFocusing = 1;
+      focusSpeed = 0.0;
     }
     translateXPrev = translateX;
     translateYPrev = translateY;
-    translateX = translateX-((translateX+focusXPos)/focusSpeed);
-    translateY = translateY-((translateY+focusYPos)/focusSpeed);
+    //old autofocus lines(slows down exponentially)
+    //    translateX = translateX-((translateX+focusXPos)/focusSpeedMax);
+    //    translateY = translateY-((translateY+focusYPos)/focusSpeedMax);
+    if(focusSpeed < focusSpeedMax){
+      focusSpeed = focusSpeed + 0.0001*deltaTicks;
+    }
+    if(translateX < -focusXPos){
+      translateX = translateX + focusSpeed*deltaTicks;
+      if(translateX > -focusXPos){translateX = -focusXPos;}
+    }else{
+      translateX = translateX - focusSpeed*deltaTicks;
+      if(translateX < -focusXPos){translateX = -focusXPos;}
+    }
+    if(translateY < -focusYPos){
+      translateY = translateY + focusSpeed*deltaTicks;
+      if(translateY > -focusYPos){translateY = -focusYPos;}
+    }else{
+      translateY = translateY - focusSpeed*deltaTicks;
+      if(translateY < -focusYPos){translateY = -focusYPos;}
+    }
    }
   //The following code will adjust translateX/Y so that no off-map area is shown
    //printf("%f\t%f\t%f\n",translateX,mapRightOffset,convertedBottomLeftX);

@@ -1,3 +1,26 @@
+"""<class 'socket.error'>
+(48, 'Address already in use')
+  File "gameModes.py", line 191, in handleKeyDown
+    self.keyDown(keycode)
+  File "gameModes.py", line 679, in keyDown
+    uiElements.menuButton.buttonsList[uiElements.menuButton.selectedIndex].onClick()
+  File "uiElements.py", line 1166, in onClick
+    gameState.setGameMode(self.gameMode)
+  File "/Users/clay/projects/ard/gameState.py", line 73, in setGameMode
+    theGameMode.addUIElements()
+  File "gameModes.py", line 566, in addUIElements
+    server.startServer('')
+  File "server.py", line 106, in startServer
+    server = Server((serverIP,port))
+  File "server.py", line 72, in __init__
+    SocketServer.TCPServer.__init__(self,serverAddress,RequestHandler)
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/SocketServer.py", line 402, in __init__
+    self.server_bind()
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/SocketServer.py", line 413, in server_bind
+    self.socket.bind(self.server_address)
+  File "<string>", line 1, in bind
+"""
+
 #website:
 #SSL
 #registration
@@ -481,10 +504,10 @@ class playMode(tiledGameMode):
 			for node in row:
 				columnCount = columnCount + 1
 				if(node.playerStartValue != 0):
-					node.addUnit(gameLogic.unit(gameState.theUnitTypes["summoner"],node.playerStartValue,rowCount,columnCount,node,1))
+#					node.addUnit(gameLogic.unit(gameState.theUnitTypes["summoner"],node.playerStartValue,rowCount,columnCount,node,1))
 #					node.addUnit(gameLogic.unit(gameState.theUnitTypes["dragon"],node.playerStartValue,rowCount,columnCount,node,1))
 #					node.addUnit(gameLogic.unit(gameState.theUnitTypes["gatherer"],node.playerStartValue,rowCount,columnCount,node,1))
-#					node.addUnit(gameLogic.unit(gameState.theUnitTypes["swordsman"],node.playerStartValue,rowCount,columnCount,node,1))
+					node.addUnit(gameLogic.unit(gameState.theUnitTypes["swordsman"],node.playerStartValue,rowCount,columnCount,node,1))
 #					node.addUnit(gameLogic.unit(gameState.theUnitTypes["wolf"],node.playerStartValue,rowCount,columnCount,node,1))
 #					node.addUnit(gameLogic.unit(gameState.theUnitTypes["blue mage"],node.playerStartValue,rowCount,columnCount,node,1))
 #					node.addUnit(gameLogic.unit(gameState.theUnitTypes["white mage"],node.playerStartValue,rowCount,columnCount,node,1))
@@ -530,7 +553,8 @@ class playMode(tiledGameMode):
 #		with gameLogic.aStarSearch.searchCompleteLock:
 #		print 'astarseach:' + str(gameLogic.aStarSearch)
 #		print gameLogic.aStarSearch.map
-		
+		for unit in gameLogic.slidingUnits:
+			unit.slide(deltaTicks)
 		if(gameLogic.aStarSearch.searchComplete):
 			with gameLogic.aStarSearch.aStarLock:
 				gameLogic.playModeNode.movePath = []

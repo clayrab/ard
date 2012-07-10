@@ -2,8 +2,8 @@
 #define minZoom 1.0
 #define initZoom 20.0
 
-#define zoomSpeed 5.0//lower is faster
-#define focusSpeed 5.0//lower is faster
+#define zoomSpeed 10.0//lower is faster
+#define focusSpeedMax 0.10//lower is faster
 
 #define FULL_SCREEN 0
 

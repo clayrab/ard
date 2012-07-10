@@ -35,7 +35,7 @@ FIRE_VITALITIY_SPREAD_EFFECT = 0.9
 FIRE_VITALITIY_LIVE_EFFECT = 0.01
 FIRE_ATTACK_POWER = 3.0
 ICE_SPEED = 10
-
+UNIT_SLIDE_SPEED = 3.0
 class MODES:
 	MOVE_MODE = 0
 	ATTACK_MODE = 1
@@ -144,12 +144,16 @@ class fire:
 					dieToNode.fire.vitality = dieToNode.fire.vitality + (self.vitality/2.0)
 			gameState.getGameMode().elementalEffects.remove(self)
 			self.node.fire = None
-		
+slidingUnits = []	
 class unit:
 	def __init__(self,unitType,player,xPos,yPos,node,level=None):
 		self.unitType = unitType
 		self.player = player
 		self.node = node
+		self.xPos = 0.0
+		self.yPos = 0.0
+		self.xPosDraw = -100000.0
+		self.yPosDraw = -100000.0
 		self.movementPoints = 0
 		self.attackPoints = 0
 		self.buildPoints = self.unitType.buildTime	
@@ -164,6 +168,45 @@ class unit:
 #		self.gatheringNode = None
 		self.isMeditating = False
 		self.recentDamage = {}
+	def setPosition(self,xPos,yPos):
+		if(self.xPosDraw == -100000.0):
+			self.xPosDraw = xPos
+			self.yPosDraw = yPos
+		else:
+			if(not self in slidingUnits):
+				slidingUnits.append(self)
+			self.xPos = xPos
+			self.yPos = yPos
+	def slide(self,deltaTicks):
+		
+		if(self.yPosDraw == self.yPos):
+			if(self.xPosDraw > self.xPos):
+				self.xPosDraw = self.xPosDraw - (0.010*UNIT_SLIDE_SPEED*deltaTicks)
+				if(self.xPosDraw < self.xPos):
+					self.xPosDraw = self.xPos
+			elif(self.xPosDraw < self.xPos):
+				self.xPosDraw = self.xPosDraw + (0.010*UNIT_SLIDE_SPEED*deltaTicks)
+				if(self.xPosDraw > self.xPos):
+					self.xPosDraw = self.xPos
+		else:
+			if(self.xPosDraw > self.xPos):
+				self.xPosDraw = self.xPosDraw - (0.005*UNIT_SLIDE_SPEED*deltaTicks)
+				if(self.xPosDraw < self.xPos):
+					self.xPosDraw = self.xPos
+			elif(self.xPosDraw < self.xPos):
+				self.xPosDraw = self.xPosDraw + (0.005*UNIT_SLIDE_SPEED*deltaTicks)
+				if(self.xPosDraw > self.xPos):
+					self.xPosDraw = self.xPos
+			if(self.yPosDraw > self.yPos):
+				self.yPosDraw = self.yPosDraw - (0.00806*UNIT_SLIDE_SPEED*deltaTicks)
+				if(self.yPosDraw < self.yPos):
+					self.yPosDraw = self.yPos
+			elif(self.yPosDraw < self.yPos):
+				self.yPosDraw = self.yPosDraw + (0.00806*UNIT_SLIDE_SPEED*deltaTicks)
+				if(self.yPosDraw > self.yPos):
+					self.yPosDraw = self.yPos
+		if(self.xPosDraw == self.xPos and self.yPosDraw == self.yPos):
+			slidingUnits.remove(self)
 	def isControlled(self):
 		return gameState.getPlayers()[self.player-1].isOwnPlayer		
 	def isOwnUnit(self):
@@ -261,7 +304,7 @@ class unit:
 				for neighb in node.getNeighbors(5):
 					neighb.stopViewing(node.unit)
 				gameState.getGameMode().units.remove(node.unit)
-				gameLogic.aStarSearch.parentPipe.send(["unitRemove",unit.node.xPos,unit.node.yPos])
+				aStarSearch.parentPipe.send(["unitRemove",unit.node.xPos,unit.node.yPos])
 				if(node.unit.unitType == "summoner" and node.city != None):
 					node.city.researchProgress = {}
 				node.unit = None
