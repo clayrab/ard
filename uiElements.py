@@ -78,6 +78,10 @@ class clickableElement(uiElement):
 	def __init__(self,xPos,yPos,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,textXPos=0.0,textYPos=0.0,fontIndex=0):
 		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],color=color,mouseOverColor=mouseOverColor,textXPos=textXPos,textYPos=textYPos,fontIndex=fontIndex)
 
+class playerElement(clickableElement):
+	def onClick(self):
+		gameState.getClient().sendCommand("changePlayerNumber",str(1))
+
 class saveButton(clickableElement):	
 	def onClick(self):
 		gameState.getGameMode().map.save()
@@ -988,8 +992,8 @@ class gameTypeButton(clickableElement):
 			button.selected = False
 		self.color = self.onColor
 		self.selected = True
+		gameState.setTeamSize(self.teamSize)
 		if(hasattr(gameState.getGameMode(),"hostGameMode")):
-			gameState.getGameMode().teamSize = self.teamSize
 			gameState.getGameMode().setMap(gameState.getMapDatas()[self.teamSize-1][0].name)
 
 class da1v1Button(gameTypeButton):
@@ -1029,7 +1033,7 @@ class createRoomButton(clickableElement):
 		gameState.getGameFindClient().sendCommand("testServer",gameState.getConfig()["serverPort"])
 		gameState.setGameMode(gameModes.createGameMode)
 		smallModal("testing connection...",dismissable=False)
-		gameState.getGameMode().teamSize = teamSize
+		gameState.setTeamSize(teamSize)
 		gameState.getGameMode().setMap(gameState.getMapDatas()[teamSize-1][0].name)
 
 class chatBox(textInputElement):
@@ -1169,6 +1173,7 @@ class mapEditSelectButton(menuButtonGameModeSelector):
 class mapPlaySelectButton(menuButtonGameModeSelector):
 	def onClick(self):
 		gameState.setMapName(self.text)
+		gameState.setTeamSize(1)
 		gameState.setGameMode(self.gameMode)
 
 class exitButton(menuButton):
@@ -1455,7 +1460,7 @@ class createGameButton(clickableElement):
 	def __init__(self,xPos,yPos):
 		clickableElement.__init__(self,xPos,yPos,textureIndex=texIndex("CREATE_GAME_BUTTON_LARGE"),width=texWidth("CREATE_GAME_BUTTON_LARGE"),height=texHeight("CREATE_GAME_BUTTON_LARGE"))
 	def onClick(self):
-		gameState.getGameFindClient().sendCommand("createGameRoom",gameState.getGameMode().roomNameField.realText + "|" + str(gameState.getGameMode().teamSize) + "|" + gameState.getGameMode().mapNameField.text)
+		gameState.getGameFindClient().sendCommand("createGameRoom",gameState.getGameMode().roomNameField.realText + "|" + str(gameState.getTeamSize()) + "|" + gameState.getGameMode().mapNameField.text)
 
 class createGameButtun(clickableElement):
 	def __init__(self,xPos,yPos):
@@ -1463,12 +1468,18 @@ class createGameButtun(clickableElement):
 	def onClick(self):
 		try:
 			server.startServer('',6666)
-			client.startClient('127.0.0.1',6666)
 		except socket.error:
 			gameState.setGameMode(gameModes.newGameScreenMode)
 			smallModal("Cannot create server. The socket may be in use, try again in 30 seconds.")
-		gameState.setGameMode(gameModes.joinLANGameMode)
-#		gameState.getGameMode().setMap(gameState.getMapName())
+			print "socket.error:"
+			print socket.error
+		gameState.setGameMode(gameModes.joinLANGameMode,["127.0.0.1"])
+#		try:
+#			client.startClient('127.0.0.1',6666)
+#		except socket.error:
+#			gameState.setGameMode(gameModes.newGameScreenMode)
+#			smallModal("Cannot connect to server... Try again in 30 seconds.")
+
 
 class onlineBackButton(clickableElement):
 	def __init__(self,xPos,yPos):
@@ -1497,7 +1508,6 @@ class startGameButton(clickableElement):
 	def __init__(self,xPos,yPos):
 		clickableElement.__init__(self,xPos,yPos,textureIndex=texIndex("START_BUTTON"),width=texWidth("START_BUTTON"),height=texHeight("START_BUTTON"))
 	def onClick(self):
-		print 'start'
 		server.stopAcceptingConnections()
 		for player in gameState.getNetworkPlayers():
 			player.dispatchCommand("startGame -1")

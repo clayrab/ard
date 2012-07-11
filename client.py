@@ -20,6 +20,14 @@ class Commands:
         else:
             gameState.setMapName(mapName)
     @staticmethod
+    def setTeamSize(teamSize):
+        print 'client setteamsize: ' + teamSize
+        print gameState.getGameMode()
+        gameState.setTeamSize(int(teamSize))
+        if(hasattr(gameState.getGameMode(),"drawTeams")):
+            print 'drawteams...'
+            gameState.getGameMode().drawTeams()
+    @staticmethod
     def setPlayerNumber(playerNumber):
         if(gameState.getPlayerNumber() != SINGLE_PLAYER):
             gameState.setPlayerNumber(int(playerNumber))
@@ -32,6 +40,10 @@ class Commands:
             player.isOwnPlayer = True
         if(hasattr(gameState.getGameMode(),"addPlayer")):
             gameState.getGameMode().addPlayer(player.userName)
+    @staticmethod
+    def changePlayerNumber(newNumber):
+        
+        print 'newNumber: ' + str(newNumber)
     @staticmethod
     def startGame():
         gameState.setGameMode(gameModes.playMode)
@@ -282,7 +294,7 @@ class Client:
                             doCommand(command[0]+"Redo",command[1])
                     self.commandLog = []
                 else:
-                    if(gameState.getPlayerNumber() == SERVER or int(tokens[1]) != gameState.getPlayerNumber()):#skip our own commands, they were executed immediately
+                    if(gameState.getPlayerNumber() == SERVER or int(tokens[1]) != gameState.getPlayerNumber() or tokens[0] == "changePlayerNumber"):#skip our own commands, they were executed immediately
                         if(len(tokens) > 2):
                             doCommand(tokens[0],args=tokens[2])
                         else:
@@ -292,7 +304,7 @@ class Client:
                         #print "commandLog: " + str(self.commandLog)
 
     def sendCommand(self,command,argsString=""):
-        if(command != "chooseNextUnit"):
+        if(command != "chooseNextUnit" and command != "changePlayerNumber"):
             self.commandLog.append((command,argsString))
             if(argsString != ""):
                 doCommand(command,argsString)

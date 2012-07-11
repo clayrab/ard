@@ -41,7 +41,6 @@ class Commands:
                gameState.getGameMode().roomCountUpdate(tokens[0],tokens[1],tokens[2])
     @staticmethod
     def showRoom(args):
-        print 'showroom' + args
         tokens = args.split("|",1)
         gameState.setGameMode(gameModes.gameFindMode,tokens)
     @staticmethod

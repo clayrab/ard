@@ -44,11 +44,12 @@ class RequestHandler(SocketServer.StreamRequestHandler):
                 else:                    
                     SocketServer.StreamRequestHandler.setup(self)
                     self.player = gameState.addNetworkPlayer(self)
+                    print 'server setteamsize: ' + str(gameState.getTeamSize())
+                    self.player.dispatchCommand("setTeamSize -1 " + str(gameState.getTeamSize()))
                     self.player.dispatchCommand("setPlayerNumber -1 " + str(self.player.playerNumber))
                     if(gameState.getMapName() != None):
                         self.player.dispatchCommand("setMap -1 " + gameState.getMapName())
                     seed = time.time() * 256
-                    print gameState.getNetworkPlayers()
                     for player in gameState.getNetworkPlayers():
                         player.dispatchCommand("seedRNG -1 " + str(seed))
                         self.player.dispatchCommand("addPlayer -1 " + str(player.playerNumber))
@@ -96,7 +97,6 @@ def shutdownServer():
 #            server.shutdown()
     return
 def startServer(serverIP,port=0):
-    print 'startServer'
     with serverLock:
         global server
         gameState.resetNetworkPlayers()
@@ -109,4 +109,3 @@ def startServer(serverIP,port=0):
             serverThread.daemon = True
             serverThread.start()
             serverStarted = True
-            print 'server started...'

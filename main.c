@@ -380,9 +380,23 @@ void drawUnit(){
   glPopMatrix();
 
   if(playerNumber == 1){
-    glColor3f(1.0,0.0,0.0);
-  }else{
-    glColor3f(0.0,0.0,1.0);
+    glColor3f(1.0,0.0,0.0);//red
+    glColor3f(0.23,0.133,0.055);//brown
+  }else if(playerNumber == 2){
+    glColor3f(0.0,0.0,1.0);//blue
+    glColor3f(0.0,1.0,1.0);//teal
+  }else if(playerNumber == 3){
+    glColor3f(1.0,1.0,0.0);//yellow
+  }else if(playerNumber == 4){
+    glColor3f(0.0,1.0,0.0);//green
+  }else if(playerNumber == 5){
+    glColor3f(1.0,0.5,0.0);//orange
+  }else if(playerNumber == 6){
+    glColor3f(0.5,0.0,1.0);//purple/pink
+  }else if(playerNumber == 7){
+    glColor3f(0.0,1.0,1.0);//teal
+  }else if(playerNumber == 8){
+    glColor3f(0.23,0.133,0.055);//brown
   }
   //  level = 255;
   flagBits = level;

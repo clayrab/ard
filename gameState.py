@@ -118,12 +118,20 @@ def getPlayerNumber():
 #	else:
 	return thePlayerNumber
 
+theTeamSize = 1
+def setTeamSize(teamSize):
+	global theTeamSize
+	theTeamSize = teamSize
+def getTeamSize():
+	global theTeamSize
+	return theTeamSize
+
 #thePlayersLock = threading.Lock()
-thePlayers = []
+thePlayers = [None]*8
 def addPlayer(playerNumber):
        	player = gameLogic.Player(playerNumber)
 #	with thePlayersLock:
-       	thePlayers.append(player)	
+       	thePlayers[playerNumber-1] = player
 	return player
 def removePlayer(playerNumber):
 #	with thePlayersLock:
@@ -164,3 +172,4 @@ def resetNetworkPlayers():
 		global theNetworkPlayers
 		theNetworkPlayers = []
 		server.NetworkPlayer.nextPlayerNumber = 1
+
