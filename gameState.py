@@ -103,9 +103,13 @@ def getGameFindClient():
 	return theGameFindClient
 
 thePlayerNumber = 0
+theTeamNumber = 0
 def setPlayerNumber(playerNumber):
 	global thePlayerNumber
+	global theTeamNumber
 	thePlayerNumber = playerNumber
+	theTeamNumber = (playerNumber-1)/theTeamSize
+	print 'teamnumber:' + str(theTeamNumber)
 def getPlayerNumber():
 	global thePlayerNumber
 #	if(thePlayerNumber == -2):
@@ -117,6 +121,9 @@ def getPlayerNumber():
 #			return 1
 #	else:
 	return thePlayerNumber
+def getTeamNumber():
+	global theTeamNumber
+	return theTeamNumber
 
 theTeamSize = 1
 def setTeamSize(teamSize):

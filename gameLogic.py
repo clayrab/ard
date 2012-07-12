@@ -150,9 +150,6 @@ class unit:
 	def __init__(self,unitType,player,xPos,yPos,node,level=None):
 		self.unitType = unitType
 		self.player = player
-		self.team = 0
-		print 'player: ' + str(self.player)
-		print 'team?' + str(self.player/gameState.getTeamSize())
 		self.team = (self.player-1)/gameState.getTeamSize()
 		self.node = node
 		self.xPos = 0.0
@@ -217,14 +214,10 @@ class unit:
 	def isOwnUnit(self):
 		return (gameState.getPlayerNumber() == self.player)
 	def isOwnTeam(self):
-		return self.team == gameState.getGameMode().nextUnit.team
 		if(gameState.getPlayerNumber() == -2):
-			if(gameState.getGameMode().nextUnit == None):
-				return True
-			else:
-				return (self.player == gameState.getGameMode().nextUnit.player)
+			return False
 		else:
-			return (gameState.getPlayerNumber() == self.player)
+			return self.team == gameState.getTeamNumber()
 	def getMaxHealth(self):
 		return self.unitType.health*self.level
 	def getAttackPower(self):
@@ -277,6 +270,8 @@ class unit:
 #			if(node.unit.gatheringNode == node):
 #				self.waiting = True
 		self.movementPoints = self.movementPoints + INITIATIVE_ACTION_DEPLETION
+		gameState.getGameMode().gotoMode = False
+		selectNode(None)
 	def heal(self,node):
 		gameState.getClient().sendCommand("healTo",str(node.xPos) + " " + str(node.yPos))
 		gameState.getClient().sendCommand("chooseNextUnit")
@@ -286,6 +281,8 @@ class unit:
 		self.attackPoints = self.attackPoints + INITIATIVE_ACTION_DEPLETION
 		if(node.unit.health > node.unit.getMaxHealth()):
 			node.unit.health = node.unit.getMaxHealth()
+		gameState.getGameMode().gotoMode = False
+		selectNode(None)
 	def attack(self,node):
 		gameState.getClient().sendCommand("attackTo",str(node.xPos) + " " + str(node.yPos))
 		gameState.getClient().sendCommand("chooseNextUnit")
@@ -321,8 +318,13 @@ class unit:
 					gameState.getGameMode().elementalEffects.remove(neighb.fire)
 					neighb.fire = None
 		self.attackPoints = self.attackPoints + INITIATIVE_ACTION_DEPLETION
+		gameState.getGameMode().gotoMode = False
+		selectNode(None)
 	def skip(self):
 		self.movementPoints = self.movementPoints + INITIATIVE_ACTION_DEPLETION
+		gameState.getGameMode().gotoMode = False
+		selectNode(None)
+
 			
 class city:
 	def __init__(self,name,node,unitTypes=None,costOfOwnership=10):
@@ -499,7 +501,7 @@ class playModeNode(node):
 		
 #(self.fire)
 	def startViewing(self,unit):
-		if(unit.isControlled()):
+		if(unit.isOwnTeam() or gameState.getPlayerNumber() == -2):
 			self.viewingUnits.append(unit)
 #this doesn't work because the algorithm is simply to stop viewing all nodes in range before move and start viewing all nodes in range after move
 #			if(not self.visible and self.unit != None and not self.unit.isOwnTeam() and len(unit.movePath) > 0):
@@ -508,16 +510,14 @@ class playModeNode(node):
 #				unit.movePath = []
 			self.visible = True
 	def stopViewing(self,unit):
-		if(gameState.getPlayerNumber() == unit.player or gameState.getPlayerNumber() == -2):
-			if(unit in self.viewingUnits):
-				self.viewingUnits.remove(unit)
-			if(len(self.viewingUnits) <= 0):
-				self.visible = False
+		if(unit in self.viewingUnits):
+			self.viewingUnits.remove(unit)
+		if(len(self.viewingUnits) <= 0):
+			self.visible = False
 	def onLeftClickDown(self):
 		if(gameState.getGameMode().doFocus == 0):
 			if(playModeNode.mode == MODES.ATTACK_MODE):
 				gameState.getGameMode().nextUnit.attack(self)
-				selectNode(None)
 			elif(playModeNode.mode == MODES.HEAL_MODE):
 				gameState.getGameMode().nextUnit.heal(self)
 			elif(playModeNode.mode == MODES.MOVE_MODE):
@@ -569,7 +569,7 @@ class playModeNode(node):
 			elif(state[1:7] == (True,True,True,True,False,True)):
 				self.cursorIndex = cDefines.defines['CURSOR_HEAL_INDEX']
 				playModeNode.mode = MODES.HEAL_MODE
-			elif(( (state[2] and state[12]) or (state[1] and state[2] and state[10] and (not state[11])) ) and ( (not state[8]) or (state[6:8] == (True,True)) ) ):
+			elif(((not state[4]) and ( (state[2] and state[12]) or (state[1] and state[2] and state[10] and (not state[11])) ) and ( (not state[8]) or (state[6:8] == (True,True)) ) )):
 				#is neighbor or gotoMode and not a mountain or is mountain and canFly
 				self.cursorIndex = cDefines.defines['CURSOR_MOVE_INDEX']
 				playModeNode.mode = MODES.MOVE_MODE

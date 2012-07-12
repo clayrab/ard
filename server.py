@@ -44,7 +44,6 @@ class RequestHandler(SocketServer.StreamRequestHandler):
                 else:                    
                     SocketServer.StreamRequestHandler.setup(self)
                     self.player = gameState.addNetworkPlayer(self)
-                    print 'server setteamsize: ' + str(gameState.getTeamSize())
                     self.player.dispatchCommand("setTeamSize -1 " + str(gameState.getTeamSize()))
                     self.player.dispatchCommand("setPlayerNumber -1 " + str(self.player.playerNumber))
                     if(gameState.getMapName() != None):

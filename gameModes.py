@@ -10,14 +10,15 @@
 #report game state(to look for cheaters/bugs)
 
 #client:
-#teams
+#bug where unit transports across map
+#ownteam units should be selected mode, not move mode
 #handle disconnections/reconnections gracefully
 #map name clickable to view map
 #testing connection timeout
 #sound effects
-#change selected node to white hex and next unit to a flag
 #mouseover effects
 #show move speed and attack speed
+#select box shouldn't be green for uncontrolled nextunit
 #change the way a-star works so that there is no delay when waiting for it
 #icons for green and blue wood
 #healing animation
@@ -326,7 +327,7 @@ class playMode(tiledGameMode):
 		self.previousTicks = 0
 		self.timeToMove = 60000
 		self.firstTurn = True
-		self.autoSelect = False
+		self.autoSelect = True
 		self.gotoMode = False
 	def getChooseNextDelayed(self):
 		if(self.chooseNextDelayed):
@@ -480,13 +481,16 @@ class playMode(tiledGameMode):
 			for node in row:
 				columnCount = columnCount + 1
 				if(node.playerStartValue != 0):
-#					node.addUnit(gameLogic.unit(gameState.theUnitTypes["summoner"],node.playerStartValue,rowCount,columnCount,node,1))
+					node.addUnit(gameLogic.unit(gameState.theUnitTypes["summoner"],node.playerStartValue,rowCount,columnCount,node,1))
 #					node.addUnit(gameLogic.unit(gameState.theUnitTypes["dragon"],node.playerStartValue,rowCount,columnCount,node,1))
 #					node.addUnit(gameLogic.unit(gameState.theUnitTypes["gatherer"],node.playerStartValue,rowCount,columnCount,node,1))
 					node.addUnit(gameLogic.unit(gameState.theUnitTypes["swordsman"],node.playerStartValue,rowCount,columnCount,node,1))
+					node.addUnit(gameLogic.unit(gameState.theUnitTypes["swordsman"],node.playerStartValue,rowCount,columnCount,node,1))
+					node.addUnit(gameLogic.unit(gameState.theUnitTypes["swordsman"],node.playerStartValue,rowCount,columnCount,node,1))
+					node.addUnit(gameLogic.unit(gameState.theUnitTypes["swordsman"],node.playerStartValue,rowCount,columnCount,node,1))
 #					node.addUnit(gameLogic.unit(gameState.theUnitTypes["wolf"],node.playerStartValue,rowCount,columnCount,node,1))
 #					node.addUnit(gameLogic.unit(gameState.theUnitTypes["blue mage"],node.playerStartValue,rowCount,columnCount,node,1))
-					node.addUnit(gameLogic.unit(gameState.theUnitTypes["white mage"],node.playerStartValue,rowCount,columnCount,node,1))
+#					node.addUnit(gameLogic.unit(gameState.theUnitTypes["white mage"],node.playerStartValue,rowCount,columnCount,node,1))
 #					node.addUnit(gameLogic.unit(gameState.theUnitTypes["red mage"],node.playerStartValue,rowCount,columnCount,node,1))
 #					node.addUnit(gameLogic.unit(gameState.theUnitTypes["archer"],node.playerStartValue,rowCount,columnCount,node,1))
 #					node.addFire(gameLogic.fire(node))
@@ -496,7 +500,7 @@ class playMode(tiledGameMode):
 		if(keycode == "left shift" or keycode == "right shift"):
 			self.shiftDown = True
 		if(keycode == "space"):
-			if(self.nextUnit != None):
+			if(self.nextUnit != None and self.nextUnit.isControlled()):
 				gameLogic.selectNode(self.nextUnit.node)
 				self.focusXPos = self.nextUnit.node.xPos
 				self.focusYPos = self.nextUnit.node.yPos

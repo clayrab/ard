@@ -473,15 +473,13 @@ void drawTile(uint tilesXIndex, uint tilesYIndex, long name, long tileValue, lon
   textureVertices = vertexArrays[tileValue];
   shading = 1.0;
   if(!isVisible){
-    shading = shading - 0.5;
+    shading = shading - 0.3;
   }
-  if(name == selectedName && !clickScroll){
-    shading = shading - 0.4;
+  if(name == selectedName){// && !clickScroll){
+    shading = shading - 0.3;
     if(cursorIndex >= 0){
       theCursorIndex = (int)cursorIndex;
     }
-  }else if(isSelected == 1){
-    shading = shading - 0.4;
   }
   glColor3f(shading,shading,shading);
   glPushName(name);
@@ -491,6 +489,19 @@ void drawTile(uint tilesXIndex, uint tilesYIndex, long name, long tileValue, lon
   tileHash = tileHash%4;
   glCallList(tilesLists+(4*tileValue)+tileHash);
   glPopName();
+
+  //  glColor3f(0.0,1.0,0.0);
+  if(isSelected == 1 || (isNextUnit == 1 && isVisible)){
+    if(isSelected == 1 && (isNextUnit == 1 && isVisible)){
+      glColor3f(0.0,1.0,0.0);
+    }else if(isSelected == 1){
+      glColor3f(0.0,0.65,0.0);
+    }else{//(isNextUnit == 1 && isVisible)
+      glColor3f(1.0,1.0,10);
+    }
+    glBindTexture(GL_TEXTURE_2D, texturesArray[SELECTION_BOX_INDEX]);
+    glCallList(selectionBoxList);
+  }
 
 
   if(roadValue == 1){
@@ -521,6 +532,7 @@ void drawTile(uint tilesXIndex, uint tilesYIndex, long name, long tileValue, lon
     glEnd();
     glBindTexture(GL_TEXTURE_2D, tilesTexture);
   }
+
 }
 void drawTilesText(){
   /*  int i,j,cityNameLength,unitNameLength = 0;
@@ -722,11 +734,6 @@ void drawTiles(){
       glPushMatrix();
       glTranslatef(xPosition,yPosition,0.0);
       drawTile(colNumber,rowNumber,longName,longValue,longRoadValue,cityName,isSelected,isOnMovePath,playerStartValue,cursorIndex);
-      glColor3f(1.0,1.0,1.0);
-      if(isNextUnit == 1 && !isFocusing && isVisible){
-	glBindTexture(GL_TEXTURE_2D, texturesArray[SELECTION_BOX_INDEX]);
-	glCallList(selectionBoxList);
-      }
       glPopMatrix();
       colNumber = colNumber - 1;
     }
