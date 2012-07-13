@@ -26,7 +26,7 @@ class Commands:
         tokens = args.split("*")
 #        gameState.setMapName(tokens[1])
         gameState.setGameMode(gameModes.joinGameMode,tokens)
-        gameState.getGameMode().setMap(tokens[1])
+#        gameState.getGameMode().setMap(tokens[1])
     @staticmethod
     def addPlayer(args):	    
         gameState.getGameMode().addPlayer(args)

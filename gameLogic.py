@@ -3,11 +3,13 @@ import nameGenerator
 import cDefines
 import copy
 import uiElements
+import ai
 import random
 import threading
 import thread
 import time
 import sys
+
 from multiprocessing import Process, Queue, Pipe
 #import aStar
 
@@ -151,6 +153,12 @@ class unit:
 		self.unitType = unitType
 		self.player = player
 		self.team = (self.player-1)/gameState.getTeamSize()
+		self.ai = None
+		if(self.player in ai.theAIs):
+			self.ai = ai.theAIs[self.player]
+		print 'unit constructor'
+		print self.ai
+		print self.player
 		self.node = node
 		self.xPos = 0.0
 		self.yPos = 0.0
@@ -270,8 +278,9 @@ class unit:
 #			if(node.unit.gatheringNode == node):
 #				self.waiting = True
 		self.movementPoints = self.movementPoints + INITIATIVE_ACTION_DEPLETION
-		gameState.getGameMode().gotoMode = False
-		selectNode(None)
+		if(gameState.getGameMode().nextUnit.ai == None):
+			gameState.getGameMode().gotoMode = False
+			selectNode(None)
 	def heal(self,node):
 		gameState.getClient().sendCommand("healTo",str(node.xPos) + " " + str(node.yPos))
 		gameState.getClient().sendCommand("chooseNextUnit")
@@ -322,8 +331,9 @@ class unit:
 		selectNode(None)
 	def skip(self):
 		self.movementPoints = self.movementPoints + INITIATIVE_ACTION_DEPLETION
-		gameState.getGameMode().gotoMode = False
-		selectNode(None)
+		if(gameState.getGameMode().nextUnit.ai == None):
+			gameState.getGameMode().gotoMode = False
+			selectNode(None)
 
 			
 class city:

@@ -6,20 +6,28 @@
 #"how to host" page
 
 #server:
+#keep track of games.
+#help users reconnect to games.
 #record wins/losses
 #report game state(to look for cheaters/bugs)
 
 #client:
-#bug where unit transports across map
-#ownteam units should be selected mode, not move mode
-#handle disconnections/reconnections gracefully
-#map name clickable to view map
+#spacebar needs to trigger toggleCursor
+#back button in online play is still massively fucked
+#finish code to change player number
+#add rudimentary AI
+#save game
+#handle disconnect gracefully
+#handle reconnect... requires ability to save/share game state
+#map name clickable to view map from findgamemode
 #testing connection timeout
 #sound effects
+#in-game chat
 #mouseover effects
+#bug where unit transports across map?? can't reproduce :( :( :(
 #show move speed and attack speed
 #select box shouldn't be green for uncontrolled nextunit
-#change the way a-star works so that there is no delay when waiting for it
+#change the way a-star works so that there is no delay when waiting for it(this is now partially solved with gotomode)
 #icons for green and blue wood
 #healing animation
 #blunt/explosion animation?
@@ -91,6 +99,7 @@ import nameGenerator
 import cDefines
 import gameLogic
 import uiElements
+import ai
 import server
 import client
 import gameFindClient
@@ -431,6 +440,8 @@ class playMode(tiledGameMode):
 			self.nextUnit = None
 		else:
 			self.nextUnit = random.choice(eligibleUnits)
+			if(self.nextUnit.ai != None):
+				self.nextUnit.ai.takeTurn()				
 			if(self.firstTurn):
 				if(self.nextUnit.isControlled()):
 					gameLogic.selectNode(self.nextUnit.node)
@@ -481,12 +492,9 @@ class playMode(tiledGameMode):
 			for node in row:
 				columnCount = columnCount + 1
 				if(node.playerStartValue != 0):
-					node.addUnit(gameLogic.unit(gameState.theUnitTypes["summoner"],node.playerStartValue,rowCount,columnCount,node,1))
+#					node.addUnit(gameLogic.unit(gameState.theUnitTypes["summoner"],node.playerStartValue,rowCount,columnCount,node,1))
 #					node.addUnit(gameLogic.unit(gameState.theUnitTypes["dragon"],node.playerStartValue,rowCount,columnCount,node,1))
 #					node.addUnit(gameLogic.unit(gameState.theUnitTypes["gatherer"],node.playerStartValue,rowCount,columnCount,node,1))
-					node.addUnit(gameLogic.unit(gameState.theUnitTypes["swordsman"],node.playerStartValue,rowCount,columnCount,node,1))
-					node.addUnit(gameLogic.unit(gameState.theUnitTypes["swordsman"],node.playerStartValue,rowCount,columnCount,node,1))
-					node.addUnit(gameLogic.unit(gameState.theUnitTypes["swordsman"],node.playerStartValue,rowCount,columnCount,node,1))
 					node.addUnit(gameLogic.unit(gameState.theUnitTypes["swordsman"],node.playerStartValue,rowCount,columnCount,node,1))
 #					node.addUnit(gameLogic.unit(gameState.theUnitTypes["wolf"],node.playerStartValue,rowCount,columnCount,node,1))
 #					node.addUnit(gameLogic.unit(gameState.theUnitTypes["blue mage"],node.playerStartValue,rowCount,columnCount,node,1))
@@ -933,7 +941,10 @@ class joinGameMode(tiledGameMode):
 			uiElements.lanConnectErrorModal()
 			return
 		#if(TODO DO THIS)else:
-		if(len(gameState.getNetworkPlayers()) == 1):
+		print gameState.getClient().hostIP
+		if(gameState.getClient().hostIP == "127.0.0.1"):
+#		if(len(gameState.getNetworkPlayers()) == 1):
+			uiElements.addAIButton(0.35,0.504)
 			uiElements.startGameButton(0.795,0.504)
 	def drawTeams(self):
 		uiElements.uiElement(0.36,0.775,text="team 1:",textSize=0.0005)

@@ -1428,6 +1428,7 @@ static void initGL (){
   pngLoad(&texturesArray[FLAG_INDEX1],FLAG1);
   pngLoad(&texturesArray[FLAG_INDEX2],FLAG2);
   pngLoad(&texturesArray[FLAG_INDEX3],FLAG3);
+  pngLoad(&texturesArray[ADD_AI_BUTTON_INDEX],ADD_AI_BUTTON);
 
   vertexArrays[FOREST_TILE_INDEX] = *forestVertices;
   vertexArrays[GRASS_TILE_INDEX] = *grassVertices;

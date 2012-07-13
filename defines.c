@@ -628,6 +628,11 @@
 #define FLAG3 "assets/flag3.png"
 #define FLAG_INDEX3 145
 
+#define ADD_AI_BUTTON "assets/addAIButton.png"
+#define ADD_AI_BUTTON_INDEX 146
+#define ADD_AI_BUTTON_HEIGHT 40
+#define ADD_AI_BUTTON_WIDTH 97
+
 #define FOREST_TILE_INDEX 0
 #define GRASS_TILE_INDEX 1
 #define MOUNTAIN_TILE_INDEX 2

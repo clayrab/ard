@@ -5,6 +5,7 @@ import gameLogic
 import gameModes
 import gameFindClient
 import nameGenerator
+import ai
 import cDefines
 import shutil
 import client
@@ -1256,12 +1257,8 @@ class roomTitleInputElement(textInputElement):
 
 class startButton(menuButtonGameModeSelector):
 	def onClick(self):
-		if(gameState.getMapName() != None):
-			server.stopAcceptingConnections()
-			for player in gameState.getNetworkPlayers():
-				player.dispatchCommand("startGame -1")
-		else:
-			uiElements.smallModal("Choose a map.")
+		server.startGame()
+
 
 class loginInputElement(textInputElement):
 	usernameElem = None
@@ -1405,7 +1402,7 @@ class lanConnectErrorModalButton(clickableElement,modal):
 
 class lanConnectErrorModal(smallModal):
 	def __init__(self):
-		smallModal.__init__(self,"Cannot connect. Socket may be in use, try again in a minute.",dismissable=False)
+		smallModal.__init__(self,"Cannot connect.",dismissable=False)
 		lanConnectErrorModalButton(self)
 
 class createMapButton(clickableElement):
@@ -1508,9 +1505,14 @@ class startGameButton(clickableElement):
 	def __init__(self,xPos,yPos):
 		clickableElement.__init__(self,xPos,yPos,textureIndex=texIndex("START_BUTTON"),width=texWidth("START_BUTTON"),height=texHeight("START_BUTTON"))
 	def onClick(self):
-		server.stopAcceptingConnections()
-		for player in gameState.getNetworkPlayers():
-			player.dispatchCommand("startGame -1")
+		server.startGame()
+
+class addAIButton(clickableElement):
+	def __init__(self,xPos,yPos):
+		clickableElement.__init__(self,xPos,yPos,textureIndex=texIndex("ADD_AI_BUTTON"),width=texWidth("ADD_AI_BUTTON"),height=texHeight("ADD_AI_BUTTON"))
+	def onClick(self):
+		ai.addAIPlayer()
+		print 'click'
 
 class autoSelectCheckBox(clickableElement):
 	def __init__(self,xPos,yPos):
