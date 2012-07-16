@@ -29,7 +29,9 @@ class Commands:
 #        gameState.getGameMode().setMap(tokens[1])
     @staticmethod
     def addPlayer(args):	    
-        gameState.getGameMode().addPlayer(args)
+        print 'this needs to be reimplemented!!'
+        print 'just addplayer to gameState and call redrawTeams on gameMode... in theory'
+#        gameState.getGameMode().addPlayer(args)
     @staticmethod
     def removePlayer(args):	    
         if(hasattr(gameState.getGameMode(),"removePlayer")):
@@ -43,20 +45,20 @@ class Commands:
     def showRoom(args):
         tokens = args.split("|",1)
         gameState.setGameMode(gameModes.gameFindMode,tokens)
-    @staticmethod
-    def seedRNG(seed):
-        random.seed(seed)
-    @staticmethod
-    def setMap(mapName):
-        gameState.setMapName(mapName)
-    @staticmethod
-    def setPlayerNumber(playerNumber):
-        if(gameState.getPlayerNumber() != SINGLE_PLAYER):
-            gameState.setPlayerNumber(int(playerNumber))
-    @staticmethod
-    def startGame(args):
-        gameState.setGameMode(gameModes.playMode)
-    @staticmethod
+#    @staticmethod
+#    def seedRNG(seed):
+#        random.seed(seed)
+#    @staticmethod
+#    def setMap(mapName):
+#        gameState.setMapName(mapName)
+#    @staticmethod
+#    def setPlayerNumber(playerNumber):
+#        if(gameState.getPlayerNumber() != SINGLE_PLAYER):
+#            gameState.setPlayerNumber(int(playerNumber))
+#    @staticmethod
+#    def startGame(args):
+#        gameState.setGameMode(gameModes.playMode)
+#    @staticmethod
     def versionPassed(args):
 #        uiElements.smallModal("Login failed.")
         return

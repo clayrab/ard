@@ -1709,7 +1709,7 @@ static void handleInput(){
 	       || event.key.keysym.sym == SDLK_POWER
 	       || event.key.keysym.sym == SDLK_EURO
 	       || event.key.keysym.sym == SDLK_UNDO){
-	printf("rejected: %d\n",event.key.keysym.sym);
+	//	printf("rejected: %d\n",event.key.keysym.sym);
       }else{
 	if(event.key.keysym.sym != SDLK_RSHIFT && event.key.keysym.sym != SDLK_LSHIFT){
 	  keyHeld = 1;

@@ -48,9 +48,7 @@ cityNames = ["Eshnunna","Tutub","Der","Sippar","Sippar-Amnanum","Kutha","Jemde N
 
 
 class Player:
-	def __init__(self,playerNumber,userName=None):
-		if(userName == None):
-			userName = "Player " + str(playerNumber)
+	def __init__(self,playerNumber,userName,requestHandler):
 		self.userName = userName
 		self.playerNumber = playerNumber
 		self.isOwnPlayer = False
@@ -58,6 +56,17 @@ class Player:
 		self.blueWood = STARTING_BLUE_WOOD
 		self.hasSummoners = True
 		self.team = -1
+class NetworkPlayer(Player):
+    def __init__(self,playerNumber,userName,requestHandler):
+        self.requestHandler = requestHandler
+	Player.__init__(self,playerNumber,userName,None)
+    def dispatchCommand(self,command):
+        try:
+            self.requestHandler.wfile.write(command + "|")
+        except:
+            print 'ERROR writing to network handler'
+            return
+
 class unitType:
 	def __init__(self,name,textureIndex,movementSpeed,attackSpeed,attackPower,armor,range,health,canFly,canSwim,costGreen,costBlue,buildTime,movementSpeedBonus,researchCostGreen,researchCostBlue,researchTime,canAttackGround=False):
 		self.name = name
@@ -152,13 +161,13 @@ class unit:
 	def __init__(self,unitType,player,xPos,yPos,node,level=None):
 		self.unitType = unitType
 		self.player = player
+		print 'player: ' + str(self.player)
+		print 'taemsize: ' + str(gameState.getTeamSize())
+		print 'team: ' + str(gameState.getTeamNumber())
 		self.team = (self.player-1)/gameState.getTeamSize()
 		self.ai = None
 		if(self.player in ai.theAIs):
 			self.ai = ai.theAIs[self.player]
-		print 'unit constructor'
-		print self.ai
-		print self.player
 		self.node = node
 		self.xPos = 0.0
 		self.yPos = 0.0
@@ -462,7 +471,7 @@ class node:
 			self.unit = unit
 			unit.node = self
 			gameState.getGameMode().units.append(unit)
-			if(gameState.getPlayerNumber() == self.playerStartValue or gameState.getPlayerNumber() == -2):
+			if(gameState.getPlayerNumber() == (self.playerStartValue-1) or gameState.getPlayerNumber() == -2):
 				for neighb in self.getNeighbors(5):
 					neighb.startViewing(self.unit)
 			if(self.city != None):
@@ -550,7 +559,6 @@ class playModeNode(node):
 		if(gameState.getGameMode().selectedNode != None and gameState.getGameMode().selectedNode.unit != None):
 			for node in gameState.getGameMode().selectedNode.unit.movePath:
 				node.onMovePath = True
-
 		if(gameState.getGameMode().doFocus == 1 or gameState.getGameMode().selectedNode == None or gameState.getGameMode().selectedNode.unit == None or gameState.getGameMode().selectedNode.unit.isMeditating or not gameState.getGameMode().selectedNode.unit.isControlled()):
 			self.cursorIndex = cDefines.defines['CURSOR_POINTER_INDEX']
 			playModeNode.mode = MODES.SELECT_MODE
@@ -602,7 +610,7 @@ class playModeNode(node):
 				playModeNode.isNeighbor = True
 			else:
 				playModeNode.isNeighbor = False
-			self.toggleCursor()
+		self.toggleCursor()
 #	def onMouseOut(self):
 #		if(gameState.getGameMode().selectedNode.unit.node.neighbors.count(self) > 0):
 #			playModeNode.isNeighbor = False

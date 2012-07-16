@@ -1,4 +1,5 @@
 import gameState
+import gameLogic
 import server
 import cDefines
 import random
@@ -15,10 +16,10 @@ def resetAIs():
     global theAIs
     theAIs = {}
 
-class aiPlayer(server.NetworkPlayer):
+class aiPlayer():
     def __init__(self):
-        self.playerNumber = server.NetworkPlayer.nextPlayerNumber
-        server.NetworkPlayer.nextPlayerNumber = server.NetworkPlayer.nextPlayerNumber + 1
+        print 'init'
+#        server.NetworkPlayer.nextPlayerNumber = server.NetworkPlayer.nextPlayerNumber + 1
     def dispatchCommand(self,command):
         return
     def takeTurn(self):

@@ -12,10 +12,10 @@
 #report game state(to look for cheaters/bugs)
 
 #client:
-#spacebar needs to trigger toggleCursor
+#fix ai
+#fix addplayer code in gamefindclient
+#let players(and ai) change their name
 #back button in online play is still massively fucked
-#finish code to change player number
-#add rudimentary AI
 #save game
 #handle disconnect gracefully
 #handle reconnect... requires ability to save/share game state
@@ -34,7 +34,7 @@
 #roads? Draw them properly or remove them...
 
 #BUGS
-#username cannot be 'empty'
+#username cannot be 'empty' or 'Player x'
 #replace open() on map files with mapdatas data
 #sending " to chat as first character doesn't work... 
 #fix py_decrefs in fonts.h
@@ -364,7 +364,7 @@ class playMode(tiledGameMode):
 				player.hasSummoners = False
 		for unit in self.units:
 			if(unit.unitType.name == "summoner"):
-				self.players[unit.player-1].hasSummoners = True
+				self.players[unit.player].hasSummoners = True
 		for player in self.players:
 			if(player != None):
 				if(winner != None and player.hasSummoners):
@@ -391,9 +391,9 @@ class playMode(tiledGameMode):
 			for unit in self.units:
 				if(unit.unitType.name == "gatherer" and unit.isMeditating and (unit.node.tileValue == cDefines.defines['RED_FOREST_TILE_INDEX'] or unit.node.tileValue == cDefines.defines['BLUE_FOREST_TILE_INDEX'])):
 					if(unit.node.tileValue == cDefines.defines['RED_FOREST_TILE_INDEX']):
-						self.players[unit.player-1].greenWood = self.players[unit.player-1].greenWood + gameLogic.RESOURCE_COLLECTION_RATE
+						self.players[unit.player].greenWood = self.players[unit.player].greenWood + gameLogic.RESOURCE_COLLECTION_RATE
 					elif(unit.node.tileValue == cDefines.defines['BLUE_FOREST_TILE_INDEX']):
-						self.players[unit.player-1].blueWood = self.players[unit.player-1].blueWood + gameLogic.RESOURCE_COLLECTION_RATE
+						self.players[unit.player].blueWood = self.players[unit.player].blueWood + gameLogic.RESOURCE_COLLECTION_RATE
 				if(unit.attackPoints > 0.0):
 					unit.attackPoints = unit.attackPoints - unit.unitType.attackSpeed
 				else:
@@ -516,28 +516,26 @@ class playMode(tiledGameMode):
 		elif(keycode == "escape"):
 			uiElements.menuModal()
 		else:
+			if(keycode == "`"):
+				self.clickScroll = True
+			elif(keycode == "a" or keycode == "A"):
+				self.autoSelectCheckBox.onClick()
+			elif(keycode == "g" or keycode == "G"):
+				self.gotoMode = True
+			elif(keycode == "k" or keycode == "K"):
+				if(self.nextUnit == self.selectedNode.unit):
+					uiElements.skip()
+			elif(keycode == "s" or keycode == "S"):
+				if(self.nextUnit == self.selectedNode.unit and self.nextUnit.unitType.name == "gatherer" and (self.selectedNode.tileValue == cDefines.defines["RED_FOREST_TILE_INDEX"] or self.selectedNode.tileValue == cDefines.defines["BLUE_FOREST_TILE_INDEX"])):
+					uiElements.startGathering()
+				if(self.nextUnit == self.selectedNode.unit and self.nextUnit.unitType.name == "summoner" and (self.selectedNode.city != None)):
+					uiElements.startSummoning()
 			if(hasattr(self.mousedOverObject,"toggleCursor")):
 				self.mousedOverObject.toggleCursor()
 			if(hasattr(self.mousedOverObject,"onKeyDown")):
 				self.mousedOverObject.onKeyDown(keycode)
 			elif(hasattr(self.elementWithFocus,"onKeyDown")):
 				self.elementWithFocus.onKeyDown(keycode)
-			if(keycode == "`"):
-				self.clickScroll = True
-			elif(keycode == "a"):
-				self.autoSelectCheckBox.onClick()
-			elif(keycode == "g"):
-				self.gotoMode = True
-				if(hasattr(self.mousedOverObject,"toggleCursor")):
-					self.mousedOverObject.toggleCursor()
-			elif(keycode == "k"):
-				if(self.nextUnit == self.selectedNode.unit):
-					uiElements.skip()
-			elif(keycode == "s"):
-				if(self.nextUnit == self.selectedNode.unit and self.nextUnit.unitType.name == "gatherer" and (self.selectedNode.tileValue == cDefines.defines["RED_FOREST_TILE_INDEX"] or self.selectedNode.tileValue == cDefines.defines["BLUE_FOREST_TILE_INDEX"])):
-					uiElements.startGathering()
-				if(self.nextUnit == self.selectedNode.unit and self.nextUnit.unitType.name == "summoner" and (self.selectedNode.city != None)):
-					uiElements.startSummoning()
 	def keyUp(self,keycode):
 		if(keycode == "left shift" or keycode == "right shift"):
 			self.shiftDown = False
@@ -583,8 +581,8 @@ class playMode(tiledGameMode):
 			gameState.getClient().sendCommand("skip")
 			gameState.getClient().sendCommand("chooseNextUnit")
 			self.nextUnit = None
-		self.greenWoodUIElem.text = str(int(math.floor(self.players[self.getPlayerNumber()-1].greenWood)))
-		self.blueWoodUIElem.text = str(int(math.floor(self.players[self.getPlayerNumber()-1].blueWood)))
+		self.greenWoodUIElem.text = str(int(math.floor(self.players[self.getPlayerNumber()].greenWood)))
+		self.blueWoodUIElem.text = str(int(math.floor(self.players[self.getPlayerNumber()].blueWood)))
 		if(self.previousTicks != 0 and self.nextUnit != None and self.nextUnit.isControlled()):
 			self.timeToMove = self.timeToMove - (self.ticks - self.previousTicks)
 		self.timeToMoveElem.text = "{0:.2f}".format(self.timeToMove/1000.0)
@@ -598,8 +596,8 @@ class playMode(tiledGameMode):
 # 			client.startClient('192.168.0.102')
 # 			client.startClient('84.73.77.222')
 			gameState.setPlayerNumber(-2)
-			gameState.addPlayer(1).isOwnPlayer = True
-			gameState.addPlayer(2).isOwnPlayer = True
+			gameState.addPlayer(playerNumber=1).isOwnPlayer = True
+			gameState.addPlayer(playerNumber=2).isOwnPlayer = True
 		self.players = gameState.getPlayers()
 		uiElements.uiElement(0.718,-0.932,textureIndex=texIndex("CHECKBOXES_BACKGROUND"),width=texWidth("CHECKBOXES_BACKGROUND"),height=texHeight("CHECKBOXES_BACKGROUND"))
 		self.autoSelectCheckBox = uiElements.autoSelectCheckBox(0.735,-0.94)
@@ -775,7 +773,7 @@ class joinLANGameScreenMode(gameMode):
 		uiElements.backButton(-0.930,0.9,newGameScreenMode)
 #		uiElements.menuButtonGameModeSelector(-0.07,-0.2,newGameScreenMode,text="Back")
 
-class joiningLANGameScreenMode(gameMode):
+class asdfjoiningLANGameScreenMode(gameMode):
 	def __init__(self,args):
 		gameMode.__init__(self)
 		self.playerElementNames = []
@@ -847,7 +845,6 @@ class loginMode(gameMode):
 
 class gameFindMode(gameMode):
 	def __init__(self,args):
-		
 		self.roomName = args[0]
 		self.rooms = []
 		if(len(args) > 1):
@@ -893,13 +890,18 @@ class joinGameMode(tiledGameMode):
 		self.backgroundImageIndex = texIndex("JOIN_GAME_BACKGROUND")
 		self.selectedNode = None
 		self.playerElements = []
-	def addPlayer(self,playerName):
-		for elem in self.playerElements:
-			if(elem.text == "empty"):
-				elem.text = playerName
-				elem.textColor = "FF FF FF"
-				elem.mouseOverColor = "FF FF FF"
-				break
+	def addPlayerDEPRECATED(self,player):
+#		for elem in self.playerElements:
+#			if(elem.text == "empty"):
+#				elem.text = playerName
+#				elem.textColor = "FF FF FF"
+#				elem.mouseOverColor = "FF FF FF"
+#				break
+		#todo: replace cursor of elem here
+		self.playerElements[player.playerNumber-1].text = player.playerName
+		self.playerElements[player.playerNumber-1].textColor = "FF FF FF"
+		self.playerElements[player.playerNumber-1].mouseOverColor = "FF FF FF"
+		
 	def removePlayer(self,playerName):
 		previousElem = None
 		self.playerElements[len(self.playerElements)-1].text = "empty"
@@ -932,6 +934,8 @@ class joinGameMode(tiledGameMode):
 		self.chatDisplay = uiElements.chatDisplay(0.35,0.4,textureName="JOIN_GAME_CHAT")
 		self.chatBox = uiElements.chatBox(0.35,-0.514,gameState.getClient(),textureName="JOIN_GAME_CHAT_BOX")
 		uiElements.sendChatButton(0.842,-0.595)
+		uiElements.uiElement(0.36,0.775,text="team 1:",textSize=0.0005)
+		uiElements.uiElement(0.36,0.643,text="team 2:",textSize=0.0005)
 		
 
 #		if(gameState.getClient() == None):#host connects to itself on createButtun.onClick
@@ -946,14 +950,26 @@ class joinGameMode(tiledGameMode):
 #		if(len(gameState.getNetworkPlayers()) == 1):
 			uiElements.addAIButton(0.35,0.504)
 			uiElements.startGameButton(0.795,0.504)
-	def drawTeams(self):
-		uiElements.uiElement(0.36,0.775,text="team 1:",textSize=0.0005)
-		uiElements.uiElement(0.36,0.643,text="team 2:",textSize=0.0005)
+	def redrawTeams(self):
+		players = gameState.getPlayers()
+		for elem in self.playerElements:
+			elem.destroy()
+		self.playerElements = []
+		playerNumber = 0
 		for i in range(0,gameState.getTeamSize()):
-			self.playerElements.append(uiElements.playerElement(0.50,0.775-(0.033*i),text="empty",textSize=0.0005,textColor="55 55 55",mouseOverColor="55 55 55"))
+			player = players[i]
+			if(player == None):
+				self.playerElements.append(uiElements.playerElement(0.50,0.775-(0.033*i),playerNumber))
+			else:
+				self.playerElements.append(uiElements.playerElement(0.50,0.775-(0.033*i),playerNumber,text=player.userName))
+			playerNumber=playerNumber+1
 		for i in range(0,gameState.getTeamSize()):
-			self.playerElements.append(uiElements.playerElement(0.50,0.643-(0.033*i),text="empty",textSize=0.0005,textColor="55 55 55",mouseOverColor="55 55 55"))
-		
+			player = players[i+gameState.getTeamSize()]
+			if(player == None):
+				self.playerElements.append(uiElements.playerElement(0.50,0.643-(0.033*i),playerNumber))
+			else:
+				self.playerElements.append(uiElements.playerElement(0.50,0.643-(0.033*i),playerNumber,text=player.userName))
+			playerNumber=playerNumber+1
 class joinLANGameMode(joinGameMode):
 	def __init__(self,args):
 #		mapName = gameState.getMapDatas()[0][0].name
@@ -992,7 +1008,7 @@ class createGameMode(tiledGameMode):
 			self.mapSelector.destroy()
 		self.mapNameField.text = mapName
 		if(hasattr(self,"roomNameField")):
-			self.roomNameField.setText(gameState.getUserName() + "'s " + str(gameState.getTeamSize()) + "v" + str(gameState.getTeamSize()) + "(" + mapName + ")")
+			self.roomNameField.setText(gameState.getOwnUserName() + "'s " + str(gameState.getTeamSize()) + "v" + str(gameState.getTeamSize()))
 		self.mapSelector = uiElements.mapSelector(-0.93,0.813,[],self.mapNameField)
 		for mapData in gameState.getMapDatas()[gameState.getTeamSize()-1]:
 			gameState.getGameMode().mapSelector.textFields.append(uiElements.mapSelect(-0.93,0.0,gameState.getGameMode().mapSelector,mapData.name))

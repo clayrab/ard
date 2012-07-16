@@ -80,8 +80,12 @@ class clickableElement(uiElement):
 		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],color=color,mouseOverColor=mouseOverColor,textXPos=textXPos,textYPos=textYPos,fontIndex=fontIndex)
 
 class playerElement(clickableElement):
+	def __init__(self,xPos,yPos,playerNumber,text="empty",textColor="55 55 55",textSize=0.0005,mouseOverColor="55 55 55"):
+		clickableElement.__init__(self,xPos,yPos,text=text,textColor=textColor,textSize=textSize,mouseOverColor=mouseOverColor)
+		self.playerNumber = playerNumber
 	def onClick(self):
-		gameState.getClient().sendCommand("changePlayerNumber",str(1))
+		if(self.text == "empty"):
+			gameState.getClient().sendCommand("changePlayerNumber",str(gameState.getPlayerNumber()) + ":" + str(self.playerNumber))
 
 class saveButton(clickableElement):	
 	def onClick(self):
@@ -1043,7 +1047,7 @@ class chatBox(textInputElement):
 		self.klient = klient
 	def sendChat(self):
 		if(len(self.realText) > 0):
-			self.klient.sendCommand("chat",gameState.getUserName()+": "+self.realText)
+			self.klient.sendCommand("chat",gameState.getOwnUserName()+": "+self.realText)
 			self.realText = ""
 			self.text = ""
 			self.cursorPosition = 0
@@ -1268,7 +1272,7 @@ class loginInputElement(textInputElement):
 	@staticmethod
 	def doLogin():
 		gameState.getGameFindClient().sendCommand("login",loginInputElement.usernameElem.realText + " " + loginInputElement.passwordElem.realText)
-		gameState.setUserName(loginInputElement.usernameElem.realText)
+		gameState.setOwnUserName(loginInputElement.usernameElem.realText)
 	def onKeyDown(self,keycode):
 		if(keycode == "return"):
 			loginInputElement.doLogin()
@@ -1402,7 +1406,7 @@ class lanConnectErrorModalButton(clickableElement,modal):
 
 class lanConnectErrorModal(smallModal):
 	def __init__(self):
-		smallModal.__init__(self,"Cannot connect.",dismissable=False)
+		smallModal.__init__(self,"Cannot connect.")
 		lanConnectErrorModalButton(self)
 
 class createMapButton(clickableElement):

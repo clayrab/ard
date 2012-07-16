@@ -47,13 +47,14 @@ def getConfig():
 	return configOptions
 
 userName = None
-def getUserName():
+def getOwnUserName():
 	global userName
 	return userName
-def setUserName(uName):
+def setOwnUserName(uName):
 	global userName
 	userName = uName
-
+def changeUserName(playerNumber,newUserName):
+	thePlayers[playerNumber].userName = newUserName
 theMapName = None
 def getMapName():
     global theMapName
@@ -108,8 +109,7 @@ def setPlayerNumber(playerNumber):
 	global thePlayerNumber
 	global theTeamNumber
 	thePlayerNumber = playerNumber
-	theTeamNumber = (playerNumber-1)/theTeamSize
-	print 'teamnumber:' + str(theTeamNumber)
+	theTeamNumber = playerNumber/theTeamSize
 def getPlayerNumber():
 	global thePlayerNumber
 #	if(thePlayerNumber == -2):
@@ -135,17 +135,33 @@ def getTeamSize():
 
 #thePlayersLock = threading.Lock()
 thePlayers = [None]*8
-def addPlayer(playerNumber):
-       	player = gameLogic.Player(playerNumber)
+def addPlayer(playerClass=gameLogic.Player,userName="Player ?",playerNumber=0,requestHandler=None):
+	player = None
+	if(thePlayers[playerNumber] == None):#will be a NetworkPlayer already on the host
+		player = playerClass(playerNumber=playerNumber,userName=userName,requestHandler=requestHandler)
 #	with thePlayersLock:
-       	thePlayers[playerNumber-1] = player
+		thePlayers[playerNumber] = player
 	return player
 def removePlayer(playerNumber):
 #	with thePlayersLock:
-	for aPlayer in thePlayers:
-		if(aPlayer.playerNumber == player.playerNumber):
+	for player in thePlayers:
+		if(player.playerNumber == playerNumber):
 			thePlayers.remove(player)
+def movePlayer(oldNumber,newNumber):
+	if(thePlayers[newNumber] == None):
+		thePlayers[newNumber] = thePlayers[oldNumber]
+		thePlayers[oldNumber] = None
+		thePlayers[newNumber].playerNumber = newNumber
+#		if(thePlayers[newNumber].userName == "Player " + str(oldNumber+1)):
+#			thePlayers[newNumber].userName = "Player " + str(newNumber+1)
+		if(oldNumber == getPlayerNumber()):
+			setPlayerNumber(newNumber)
+def resetPlayers():
+	global thePlayers
+	thePlayers = [None]*8
 def getPlayers():
+	global thePlayers
+	return thePlayers
 	playersCopy = []
 #	with thePlayersLock:
 	playersCopy = copy.copy(thePlayers)

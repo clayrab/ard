@@ -5,6 +5,7 @@ import gameState
 import gameModes
 import gameLogic
 import uiElements
+import server
 
 SERVER = -1
 SINGLE_PLAYER = -2
@@ -14,37 +15,75 @@ class Commands:
         random.seed(seed)
     @staticmethod
     def setMap(mapName):
-        print 'setmap' + mapName
 #        gameState.setMapName(mapName)
         if(hasattr(gameState.getGameMode(),"setMap")):
             gameState.getGameMode().setMap(mapName)
         else:
             gameState.setMapName(mapName)
     @staticmethod
+    def setOwnUserName(userName):
+        if(gameState.getOwnUserName() == None):#"Player X" from server, prefer real username, which would already be set
+            gameState.setOwnUserName(userName)
+        print gameState.getOwnUserName()
+        gameState.getClient().sendCommand("changeUserName",str(gameState.getPlayerNumber()) + ":" + gameState.getOwnUserName())
+        if(hasattr(gameState.getGameMode(),"redrawTeams")):
+            gameState.getGameMode().redrawTeams()
+    @staticmethod
+    def changeUserName(args):
+        tokens = args.split(":")
+        oldUserName = gameState.getPlayers()[int(tokens[0])].userName
+        gameState.changeUserName(int(tokens[0]),tokens[1])
+        if(hasattr(gameState.getGameMode(),"redrawTeams")):
+            gameState.getGameMode().redrawTeams()
+        for index in range(0,8):
+            if(oldUserName == "Player " + str(index+1)):
+                server.playerUserNames[index] = False
+    @staticmethod
     def setTeamSize(teamSize):
-        print 'client setteamsize: ' + teamSize
-        print gameState.getGameMode()
         gameState.setTeamSize(int(teamSize))
-        if(hasattr(gameState.getGameMode(),"drawTeams")):
-            print 'drawteams...'
-            gameState.getGameMode().drawTeams()
+        if(hasattr(gameState.getGameMode(),"redrawTeams")):
+            gameState.getGameMode().redrawTeams()
     @staticmethod
     def setPlayerNumber(playerNumber):
         if(gameState.getPlayerNumber() != SINGLE_PLAYER):
             gameState.setPlayerNumber(int(playerNumber))
-        if(gameState.getUserName() == None):
-            gameState.setUserName("Player " + playerNumber)
+#        if(gameState.getOwnUserName() == None):
+#            gameState.setOwnUserName("Player " + playerNumber)
     @staticmethod
-    def addPlayer(playerNumber):
-        player = gameState.addPlayer(int(playerNumber))
-        if(gameState.getPlayerNumber() == player.playerNumber or gameState.getPlayerNumber() == SINGLE_PLAYER):
-            player.isOwnPlayer = True
-        if(hasattr(gameState.getGameMode(),"addPlayer")):
-            gameState.getGameMode().addPlayer(player.userName)
+    def removePlayer(playerNumber):
+        gameState.removePlayer(int(playerNumber))
+        if(hasattr(gameState.getGameMode(),"redrawTeams")):
+            gameState.getGameMode().redrawTeams()        
     @staticmethod
-    def changePlayerNumber(newNumber):
-        
-        print 'newNumber: ' + str(newNumber)
+    def addPlayer(args):
+        tokens = args.split(":")
+        playerNumber = int(tokens[0])
+        userName = tokens[1]
+        gameState.addPlayer(playerNumber=playerNumber,userName=userName,requestHandler=None)
+        for player in gameState.getPlayers():
+            if(player != None):
+                if(gameState.getPlayerNumber() == player.playerNumber or gameState.getPlayerNumber() == SINGLE_PLAYER):
+                    player.isOwnPlayer = True
+                    gameState.setPlayerNumber(player.playerNumber)
+                else:
+                    player.isOwnPlayer = False
+        if(hasattr(gameState.getGameMode(),"redrawTeams")):
+            gameState.getGameMode().redrawTeams()
+    @staticmethod
+    def changePlayerNumber(args):
+        tokens = args.split(":")
+        oldNumber = int(tokens[0])
+        newNumber = int(tokens[1])
+        gameState.movePlayer(oldNumber,newNumber)
+        for player in gameState.getPlayers():
+            if(player != None):
+                if(gameState.getPlayerNumber() == player.playerNumber or gameState.getPlayerNumber() == SINGLE_PLAYER):
+                    player.isOwnPlayer = True
+                    gameState.setPlayerNumber(player.playerNumber)
+                else:
+                    player.isOwnPlayer = False
+        if(hasattr(gameState.getGameMode(),"redrawTeams")):
+            gameState.getGameMode().redrawTeams()
     @staticmethod
     def startGame():
         gameState.setGameMode(gameModes.playMode)

@@ -7,55 +7,32 @@ import gameState
 import client
 import uiElements
 import gameFindClient
+import gameLogic
 
 serverLock = threading.Lock()
 server = None
-networkPlayersLock = threading.Lock()
-theNetworkPlayers = []
+playerUserNames = [
+False,
+False,
+False,
+False,
+False,
+False,
+False,
+False,
+]
 def addNetworkPlayer(requestHandler):
-       	player = NetworkPlayer(requestHandler)
-	with networkPlayersLock:
-		global theNetworkPlayers
-		theNetworkPlayers.append(player)
-	return player
+    players = gameState.getPlayers()
+    for i in range(0,8):
+        if(players[i] == None):
+            player = gameState.addPlayer(playerClass=gameLogic.NetworkPlayer,playerNumber=i,requestHandler=requestHandler)
+            break
+
+        
+    return player
 def removeNetworkPlayer(player):
     #todo: need ot notify players of playernumber changes too
-	NetworkPlayer.nextPlayerNumber = NetworkPlayer.nextPlayerNumber - 1
-	with networkPlayersLock:
-		global theNetworkPlayers
-		for aPlayer in theNetworkPlayers:
-			if(aPlayer.playerNumber > player.playerNumber):
-				aPlayer.playerNumber = aPlayer.playerNumber - 1
-		theNetworkPlayers.remove(player)
-def getNetworkPlayers():
-	playersCopy = []
-	with networkPlayersLock:
-		global theNetworkPlayers
-		playersCopy = copy.copy(theNetworkPlayers)
-	return playersCopy
-
-def resetNetworkPlayers():
-	with networkPlayersLock:
-		global theNetworkPlayers
-		theNetworkPlayers = []
-		NetworkPlayer.nextPlayerNumber = 1
-
-def setupAI(aiPlayer):
-    for player in getNetworkPlayers():
-        player.dispatchCommand("addPlayer -1 " + str(aiPlayer.playerNumber))
-
-class NetworkPlayer:
-    nextPlayerNumber = 1
-    def __init__(self,requestHandler):
-        self.requestHandler = requestHandler
-        self.playerNumber = NetworkPlayer.nextPlayerNumber
-        NetworkPlayer.nextPlayerNumber = NetworkPlayer.nextPlayerNumber + 1
-    def dispatchCommand(self,command):
-        try:
-            self.requestHandler.wfile.write(command + "|")
-        except:
-            print 'ERROR writing to network handler'
-            return
+    print 'removeNetworkPlayer is completely broken at this point, reimplement'
             
 class RequestHandler(SocketServer.StreamRequestHandler):
     def handle(self):
@@ -65,8 +42,9 @@ class RequestHandler(SocketServer.StreamRequestHandler):
                 if not data:
                     break
                 else:
-                    for player in getNetworkPlayers():
-                        player.dispatchCommand(data)
+                    for player in gameState.getPlayers():
+                        if(player != None):
+                            player.dispatchCommand(data)
             except:
                 break
     def setup(self):
@@ -81,14 +59,23 @@ class RequestHandler(SocketServer.StreamRequestHandler):
                     self.player = addNetworkPlayer(self)
                     self.player.dispatchCommand("setTeamSize -1 " + str(gameState.getTeamSize()))
                     self.player.dispatchCommand("setPlayerNumber -1 " + str(self.player.playerNumber))
+                    userName = "Player ?"
+                    for index in range(0,8):
+                        isUsed = playerUserNames[index]
+                        if(not isUsed):
+                            playerUserNames[index] = True
+                            userName = "Player " + str(index+1)
+                            break                            
                     if(gameState.getMapName() != None):
                         self.player.dispatchCommand("setMap -1 " + gameState.getMapName())
                     seed = time.time() * 256
-                    for player in getNetworkPlayers():
-                        player.dispatchCommand("seedRNG -1 " + str(seed))
-                        self.player.dispatchCommand("addPlayer -1 " + str(player.playerNumber))
-                        if(player.playerNumber != self.player.playerNumber):
-                            player.dispatchCommand("addPlayer -1 " + str(self.player.playerNumber))
+                    for player in gameState.getPlayers():
+                        if(player != None):
+                            player.dispatchCommand("seedRNG -1 " + str(seed))
+                            self.player.dispatchCommand("addPlayer -1 " + str(player.playerNumber) + ":" + player.userName)
+                            if(player.playerNumber != self.player.playerNumber):
+                                player.dispatchCommand("addPlayer -1 " + str(self.player.playerNumber) + ":" + self.player.userName)
+                    self.player.dispatchCommand("setOwnUserName -1 " + userName)
                     print str(self.client_address) + " setup done."
             else:
             #TODO: send command to client indicating game has started or host is no longer accepting connections...
@@ -98,7 +85,22 @@ class RequestHandler(SocketServer.StreamRequestHandler):
         if(self.client_address[0] == "94.75.235.221"):
             return#just testing
         else:
-            removeNetworkPlayer(self.player)
+            deadPlayerNumber = self.player.playerNumber
+            deadUserName = self.player.userName
+            gameState.getPlayers().remove(self.player)
+            for player in gameState.getPlayers():
+                if(player != None):
+                    player.dispatchCommand("removePlayer -1 " + str(deadPlayerNumber))
+            for index in range(0,8):
+                if(deadUserName == "Player " + str(index+1)):
+                    playerUserNames[index] = False
+            print gameState.getPlayers()
+            if(hasattr(gameState.getGameMode(),"redrawTeams")):
+                gameState.getGameMode().redrawTeams()
+#            for player in gameState.getPlayers():
+#                if(player.requestHandler == self):
+#                    gameState.getPlayers().remove(player)
+#            removeNetworkPlayer(self.player)
             print str(self.client_address) + " disconnected."
 
 class Server(SocketServer.ThreadingMixIn,SocketServer.TCPServer):
@@ -124,8 +126,9 @@ def stopAcceptingConnections():
         server.acceptingConnections = False
 def startGame():
     stopAcceptingConnections()
-    for player in getNetworkPlayers():
-        player.dispatchCommand("startGame -1")
+    for player in gameState.getPlayers():
+        if(player != None):
+            player.dispatchCommand("startGame -1")
 
 serverStarted = False        
 def shutdownServer():
@@ -135,12 +138,10 @@ def shutdownServer():
 #            server.shutdown()
     return
 
-import ai
 def startServer(serverIP,port=0):
     with serverLock:
         global server
-        resetNetworkPlayers()
-        ai.resetAIs()
+        gameState.resetPlayers()
         if(server == None):
             if(port == 0):
                 port = int(gameState.getConfig()["serverPort"])
