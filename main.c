@@ -324,6 +324,11 @@ PyObject * pyXPositionUnit;
 PyObject * pyYPositionUnit;
 double xPositionUnit;
 double yPositionUnit;
+void updatePosition(){
+ if(xPositionUnit != xPosition){
+    pyObj = PyObject_CallMethod(pyUnit,"setPosition","(ff)",xPosition,yPosition);
+  }
+}
 void drawUnit(){
   pyUnitType = PyObject_GetAttrString(pyUnit,"unitType");
   Py_DECREF(pyObj);
@@ -333,9 +338,7 @@ void drawUnit(){
   xPositionUnit = PyFloat_AsDouble(pyXPositionUnit);
   yPositionUnit = PyFloat_AsDouble(pyYPositionUnit);
   glTranslatef(xPositionUnit,yPositionUnit,0.0);
-  if(xPositionUnit != xPosition){
-    pyObj = PyObject_CallMethod(pyUnit,"setPosition","(ff)",xPosition,yPosition);
-  }
+  updatePosition();
   //  printf("%lf %lf %lf %lf\n",xPosition,yPosition,xPositionUnit,yPositionUnit);
 
   pyUnitTextureIndex = PyObject_GetAttrString(pyUnitType,"textureIndex");
@@ -621,6 +624,9 @@ void drawUnits(){
 	drawUnit();
 	glPopMatrix();
 	glBindTexture(GL_TEXTURE_2D, texturesArray[CITY_SANS_TREE_INDEX]);
+      }else if(pyUnit != NULL && pyUnit != Py_None){
+	glBindTexture(GL_TEXTURE_2D, texturesArray[CITY_INDEX]);
+	updatePosition();
       }else{
 	glBindTexture(GL_TEXTURE_2D, texturesArray[CITY_INDEX]);
       }

@@ -12,9 +12,12 @@
 #report game state(to look for cheaters/bugs)
 
 #client:
-#fix ai
-#fix addplayer code in gamefindclient
+#gotomode should only go on when unit is selected and should go off when it's unselected or 'g' is hit again
+#pause game on removed
 #let players(and ai) change their name
+#fix text cursor
+#killing host before client causes error
+#units placed initially are not in astar
 #back button in online play is still massively fucked
 #save game
 #handle disconnect gracefully
@@ -99,10 +102,9 @@ import nameGenerator
 import cDefines
 import gameLogic
 import uiElements
-import ai
-import server
 import client
 import gameFindClient
+import server
 from textureFunctions import texWidth, texHeight, texIndex
 
 version = 0.1
@@ -216,7 +218,6 @@ class gameMode:
 #		gameLogic.aStarProcess.join()
 		if(gameState.getClient() != None):
 			gameState.getClient().socket.close()
-		server.shutdownServer()
 		gameLogic.aStarSearch.parentPipe.send(["kill"])#this causes the thread to quit
 		gameLogic.aStarProcess.terminate()
 		gameLogic.aStarProcess.join()
@@ -259,7 +260,7 @@ class tiledGameMode(gameMode):
 			self.nextUnit.move()
 #		elif(hasattr(self,"nextUnit") and hasattr(self,"autoSelect") and self.nextUnit != None and self.nextUnit.isControlled() and self.autoSelect):
 #			gameLogic.selectNode(self.nextUnit.node)
-		elif(hasattr(gameState.getGameMode().mousedOverObject,"toggleCursor")):
+		elif(hasattr(gameState.getGameMode(),"mousedOverObject") and hasattr(gameState.getGameMode().mousedOverObject,"toggleCursor")):
 			gameState.getGameMode().mousedOverObject.toggleCursor()
 			
 	def handleRightClick(self,name):
@@ -338,6 +339,7 @@ class playMode(tiledGameMode):
 		self.firstTurn = True
 		self.autoSelect = True
 		self.gotoMode = False
+		self.playerMissing = False
 	def getChooseNextDelayed(self):
 		if(self.chooseNextDelayed):
 			retVal = self.chooseNextDelayed
@@ -440,8 +442,7 @@ class playMode(tiledGameMode):
 			self.nextUnit = None
 		else:
 			self.nextUnit = random.choice(eligibleUnits)
-			if(self.nextUnit.ai != None):
-				self.nextUnit.ai.takeTurn()				
+			print "nextUnit " + str(self.nextUnit.node.xPos) + ":" + str(self.nextUnit.node.yPos)
 			if(self.firstTurn):
 				if(self.nextUnit.isControlled()):
 					gameLogic.selectNode(self.nextUnit.node)
@@ -476,13 +477,13 @@ class playMode(tiledGameMode):
 				self.timeToMove = 60000
 		else:
 			self.waitingElem.hidden = False
-		if(gameState.getGameMode().selectedNode != None and uiElements.viewer.theViewer != None):
-			if(hasattr(uiElements.viewer.theViewer,"isCityViewer")):
-				uiElements.viewer.theViewer.destroy()
-				uiElements.viewer.theViewer = uiElements.cityViewer(gameState.getGameMode().selectedNode)
-			elif(gameState.getGameMode().selectedNode.unit != None):
-				uiElements.viewer.theViewer.destroy()
-				uiElements.viewer.theViewer = uiElements.unitViewer(gameState.getGameMode().selectedNode)
+#		if(gameState.getGameMode().selectedNode != None and uiElements.viewer.theViewer != None):
+#			if(hasattr(uiElements.viewer.theViewer,"isCityViewer")):
+#				uiElements.viewer.theViewer.destroy()
+#				uiElements.viewer.theViewer = uiElements.cityViewer(gameState.getGameMode().selectedNode)
+#			elif(gameState.getGameMode().selectedNode.unit != None):
+#				uiElements.viewer.theViewer.destroy()
+#				uiElements.viewer.theViewer = uiElements.unitViewer(gameState.getGameMode().selectedNode)
 	def loadSummoners(self):
 		rowCount = 0
 		columnCount = 0
@@ -492,15 +493,7 @@ class playMode(tiledGameMode):
 			for node in row:
 				columnCount = columnCount + 1
 				if(node.playerStartValue != 0):
-#					node.addUnit(gameLogic.unit(gameState.theUnitTypes["summoner"],node.playerStartValue,rowCount,columnCount,node,1))
-#					node.addUnit(gameLogic.unit(gameState.theUnitTypes["dragon"],node.playerStartValue,rowCount,columnCount,node,1))
-#					node.addUnit(gameLogic.unit(gameState.theUnitTypes["gatherer"],node.playerStartValue,rowCount,columnCount,node,1))
-					node.addUnit(gameLogic.unit(gameState.theUnitTypes["swordsman"],node.playerStartValue,rowCount,columnCount,node,1))
-#					node.addUnit(gameLogic.unit(gameState.theUnitTypes["wolf"],node.playerStartValue,rowCount,columnCount,node,1))
-#					node.addUnit(gameLogic.unit(gameState.theUnitTypes["blue mage"],node.playerStartValue,rowCount,columnCount,node,1))
-#					node.addUnit(gameLogic.unit(gameState.theUnitTypes["white mage"],node.playerStartValue,rowCount,columnCount,node,1))
-#					node.addUnit(gameLogic.unit(gameState.theUnitTypes["red mage"],node.playerStartValue,rowCount,columnCount,node,1))
-#					node.addUnit(gameLogic.unit(gameState.theUnitTypes["archer"],node.playerStartValue,rowCount,columnCount,node,1))
+					node.addUnit(gameLogic.unit(gameState.theUnitTypes["swordsman"],node.playerStartValue-1,rowCount,columnCount,node,1))
 #					node.addFire(gameLogic.fire(node))
 #					node.addIce(gameLogic.ice(node))
 	
@@ -521,12 +514,13 @@ class playMode(tiledGameMode):
 			elif(keycode == "a" or keycode == "A"):
 				self.autoSelectCheckBox.onClick()
 			elif(keycode == "g" or keycode == "G"):
-				self.gotoMode = True
+				if(self.selectedNode != None and self.selectedNode.unit != None):
+					self.gotoMode = True
 			elif(keycode == "k" or keycode == "K"):
 				if(self.nextUnit == self.selectedNode.unit):
 					uiElements.skip()
 			elif(keycode == "s" or keycode == "S"):
-				if(self.nextUnit == self.selectedNode.unit and self.nextUnit.unitType.name == "gatherer" and (self.selectedNode.tileValue == cDefines.defines["RED_FOREST_TILE_INDEX"] or self.selectedNode.tileValue == cDefines.defines["BLUE_FOREST_TILE_INDEX"])):
+				if(self.selectedNode != None and self.nextUnit == self.selectedNode.unit and self.nextUnit.unitType.name == "gatherer" and (self.selectedNode.tileValue == cDefines.defines["RED_FOREST_TILE_INDEX"] or self.selectedNode.tileValue == cDefines.defines["BLUE_FOREST_TILE_INDEX"])):
 					uiElements.startGathering()
 				if(self.nextUnit == self.selectedNode.unit and self.nextUnit.unitType.name == "summoner" and (self.selectedNode.city != None)):
 					uiElements.startSummoning()
@@ -555,39 +549,44 @@ class playMode(tiledGameMode):
 				number = 1
 		return number
 	def onDraw(self,deltaTicks):
+		if(self.playerMissing):
+			uiElements.smallModal("missing a player...")
+		else:
 #		with gameLogic.aStarSearch.searchCompleteLock:
 #		print 'astarseach:' + str(gameLogic.aStarSearch)
 #		print gameLogic.aStarSearch.map
-		for unit in gameLogic.slidingUnits:
-			unit.slide(deltaTicks)
-		if(gameLogic.aStarSearch.searchComplete):
-			with gameLogic.aStarSearch.aStarLock:
+			for unit in gameLogic.slidingUnits:
+				unit.slide(deltaTicks)
+			if(gameLogic.aStarSearch.searchComplete):
+				with gameLogic.aStarSearch.aStarLock:
+					gameLogic.playModeNode.movePath = []
+					for node in gameLogic.aStarSearch.movePath:
+						gameLogic.playModeNode.movePath.append(node)
+						node.onMovePath = True
+					gameLogic.aStarSearch.searchComplete = False
+					gameLogic.aStarSearch.movePath = []
+			if(gameLogic.aStarSearch.parentPipe.poll()):
+				for node in gameLogic.playModeNode.movePath:
+					node.onMovePath = False
 				gameLogic.playModeNode.movePath = []
-				for node in gameLogic.aStarSearch.movePath:
+				data = gameLogic.aStarSearch.parentPipe.recv()
+				for arr in data:
+					node = gameState.getGameMode().map.nodes[arr[1]][arr[0]]
 					gameLogic.playModeNode.movePath.append(node)
 					node.onMovePath = True
-				gameLogic.aStarSearch.searchComplete = False
-				gameLogic.aStarSearch.movePath = []
-		if(gameLogic.aStarSearch.parentPipe.poll()):
-			for node in gameLogic.playModeNode.movePath:
-				node.onMovePath = False
-			gameLogic.playModeNode.movePath = []
-			data = gameLogic.aStarSearch.parentPipe.recv()
-			for arr in data:
-				node = gameState.getGameMode().map.nodes[arr[1]][arr[0]]
-				gameLogic.playModeNode.movePath.append(node)
-				node.onMovePath = True
-		if(self.timeToMove <= 0 and self.nextUnit != None and self.nextUnit.isControlled()):
-			gameState.getClient().sendCommand("skip")
-			gameState.getClient().sendCommand("chooseNextUnit")
-			self.nextUnit = None
-		self.greenWoodUIElem.text = str(int(math.floor(self.players[self.getPlayerNumber()].greenWood)))
-		self.blueWoodUIElem.text = str(int(math.floor(self.players[self.getPlayerNumber()].blueWood)))
-		if(self.previousTicks != 0 and self.nextUnit != None and self.nextUnit.isControlled()):
-			self.timeToMove = self.timeToMove - (self.ticks - self.previousTicks)
-		self.timeToMoveElem.text = "{0:.2f}".format(self.timeToMove/1000.0)
-		self.previousTicks = self.ticks		
-		gameMode.onDraw(self,deltaTicks)
+			with client.commandLock:
+				if(self.timeToMove <= 0 and self.nextUnit != None and self.nextUnit.isControlled()):
+					gameState.getClient().sendCommand("skip")
+					gameState.getClient().sendCommand("chooseNextUnit")
+					self.nextUnit = None
+#				if(self.players[self.getPlayerNumber()] != None
+				self.greenWoodUIElem.text = str(int(math.floor(self.players[self.getPlayerNumber()].greenWood)))
+				self.blueWoodUIElem.text = str(int(math.floor(self.players[self.getPlayerNumber()].blueWood)))
+			if(self.previousTicks != 0 and self.nextUnit != None and self.nextUnit.isControlled()):
+				self.timeToMove = self.timeToMove - (self.ticks - self.previousTicks)
+			self.timeToMoveElem.text = "{0:.2f}".format(self.timeToMove/1000.0)
+			self.previousTicks = self.ticks		
+			gameMode.onDraw(self,deltaTicks)
 
 	def addUIElements(self):
 		if(gameState.getClient() == None):#single player game
@@ -616,7 +615,6 @@ class playMode(tiledGameMode):
 			if(unit.node.visible):
 				gameLogic.aStarSearch.parentPipe.send(["unitAdd",unit.node.xPos,unit.node.yPos])
 		self.orderUnits()
-		self.chooseNextUnit()
 
 class mapEditorMode(tiledGameMode):	
 	def __init__(self,args):
@@ -844,7 +842,7 @@ class loginMode(gameMode):
 			uiElements.smallModal("Cannot connect to server.")
 
 class gameFindMode(gameMode):
-	def __init__(self,args):
+	def __init__(self,args):		
 		self.roomName = args[0]
 		self.rooms = []
 		if(len(args) > 1):
@@ -879,6 +877,7 @@ class gameFindMode(gameMode):
 		
 class joinGameMode(tiledGameMode):
 	def __init__(self,args):
+		print 'joingamemode'
 		tiledGameMode.__init__(self)
 		self.roomName = args[0]
 #		self.mapName = args[1]

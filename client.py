@@ -5,13 +5,13 @@ import gameState
 import gameModes
 import gameLogic
 import uiElements
-import server
 
 SERVER = -1
 SINGLE_PLAYER = -2
 class Commands:
     @staticmethod
     def seedRNG(seed):
+        print 'seed ' + str(seed)
         random.seed(seed)
     @staticmethod
     def setMap(mapName):
@@ -24,8 +24,7 @@ class Commands:
     def setOwnUserName(userName):
         if(gameState.getOwnUserName() == None):#"Player X" from server, prefer real username, which would already be set
             gameState.setOwnUserName(userName)
-        print gameState.getOwnUserName()
-        gameState.getClient().sendCommand("changeUserName",str(gameState.getPlayerNumber()) + ":" + gameState.getOwnUserName())
+#        
         if(hasattr(gameState.getGameMode(),"redrawTeams")):
             gameState.getGameMode().redrawTeams()
     @staticmethod
@@ -35,9 +34,10 @@ class Commands:
         gameState.changeUserName(int(tokens[0]),tokens[1])
         if(hasattr(gameState.getGameMode(),"redrawTeams")):
             gameState.getGameMode().redrawTeams()
-        for index in range(0,8):
-            if(oldUserName == "Player " + str(index+1)):
-                server.playerUserNames[index] = False
+
+#        for index in range(0,8):
+#            if(oldUserName == "Player " + str(index+1)):
+#                server.playerUserNames[index] = False
     @staticmethod
     def setTeamSize(teamSize):
         gameState.setTeamSize(int(teamSize))
@@ -51,9 +51,11 @@ class Commands:
 #            gameState.setOwnUserName("Player " + playerNumber)
     @staticmethod
     def removePlayer(playerNumber):
+        if(hasattr(gameState.getGameMode(),"playerMissing")):
+            gameState.getGameMode().playerMissing = True
         gameState.removePlayer(int(playerNumber))
         if(hasattr(gameState.getGameMode(),"redrawTeams")):
-            gameState.getGameMode().redrawTeams()        
+            gameState.getGameMode().redrawTeams()
     @staticmethod
     def addPlayer(args):
         tokens = args.split(":")
@@ -276,9 +278,10 @@ class Commands:
         if(hasattr(gameState.getGameMode(),"chatDisplay")):
             gameState.getGameMode().chatDisplay.addText(args)
 
+commandLock = threading.Lock()
 
 def doCommand(commandName,args=None):
-    print commandName + ":" + str(args)
+    print '***** start ' + commandName + str(args)
     commandFunc = getattr(Commands,commandName)
     if(commandFunc != None):
         if(args != None and args != ''):
@@ -287,6 +290,7 @@ def doCommand(commandName,args=None):
             commandFunc()
     else:
         print "ERROR: COMMAND " + commandName + " does not exist"
+    print '***** finish ' + commandName
 
 class Client:
     def __init__(self,hostIP,port=-1):
@@ -309,36 +313,46 @@ class Client:
             receivedData = ''
         for command in receivedData.split("|"):
             if(len(command) > 0):
+                print 'command from socket'
+                print command
                 tokens = command.split(" ",2)
                 if(tokens[0] == "chooseNextUnit"):
-                    if(len(self.commandLog) > 0):
-                        for command in self.commandLog:
-                            doCommand(command[0]+"Undo",command[1])
-                    doCommand("chooseNextUnit")
-                    if(len(self.commandLog) > 0):
-                        for command in self.commandLog:
-                            doCommand(command[0]+"Redo",command[1])
-                    self.commandLog = []
+                    with commandLock:
+                        if(len(self.commandLog) > 0):
+                            for command in self.commandLog:
+                                doCommand(command[0]+"Undo",command[1])
+                        doCommand("chooseNextUnit")
+                        if(len(self.commandLog) > 0):
+                            for command in self.commandLog:
+                                doCommand(command[0]+"Redo",command[1])
+                        self.commandLog = []
+                    if(hasattr(gameState.getGameMode(),"nextUnit") and gameState.getGameMode().nextUnit.ai != None):
+                        gameState.getGameMode().nextUnit.ai.takeTurn()
                 else:
                     if(gameState.getPlayerNumber() == SERVER or int(tokens[1]) != gameState.getPlayerNumber() or tokens[0] == "changePlayerNumber"):#skip our own commands, they were executed immediately
                         if(len(tokens) > 2):
-                            doCommand(tokens[0],args=tokens[2])
+                            with commandLock:
+                                doCommand(tokens[0],args=tokens[2])
                         else:
-                            doCommand(tokens[0])
+                            with commandLock:
+                                doCommand(tokens[0])
                     else:
                         self.commandLog = self.commandLog[:-1:]
-                        #print "commandLog: " + str(self.commandLog)
+                        #print "commandLog: " + str(self.commandLog)        
+            if(gameState.getOwnUserName() != None and gameState.getPlayers()[gameState.getPlayerNumber()].userName != gameState.getOwnUserName()):
+                gameState.getClient().sendCommand("changeUserName",str(gameState.getPlayerNumber()) + ":" + gameState.getOwnUserName())
 
     def sendCommand(self,command,argsString=""):
         if(command != "chooseNextUnit" and command != "changePlayerNumber"):
-            self.commandLog.append((command,argsString))
-            if(argsString != ""):
-                doCommand(command,argsString)
+            with commandLock:
+                self.commandLog.append((command,argsString))
+                if(argsString != ""):
+                    doCommand(command,argsString)
 #TODO: TEST THE ENTIRE GAME IN SINGLE PLAYER WITH THESE COMMANDS UNCOMMENTED
 #                doCommand(command+"Undo",argsString)
 #                doCommand(command+"Redo",argsString)
-            else:
-                doCommand(command)
+                else:
+                    doCommand(command)
         self.socket.send(command + " " + str(gameState.getPlayerNumber()) + " " + argsString + "|")
 
 def startClient(hostIP,hostPort=-1):

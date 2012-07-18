@@ -8,28 +8,31 @@ import client
 import uiElements
 import gameFindClient
 import gameLogic
+import ai
 
 serverLock = threading.Lock()
 server = None
-playerUserNames = [
-False,
-False,
-False,
-False,
-False,
-False,
-False,
-False,
-]
+
 def addNetworkPlayer(requestHandler):
     players = gameState.getPlayers()
     for i in range(0,8):
         if(players[i] == None):
             player = gameState.addPlayer(playerClass=gameLogic.NetworkPlayer,playerNumber=i,requestHandler=requestHandler)
             break
-
-        
     return player
+
+def addAIPlayer():
+    players = gameState.getPlayers()
+    for i in range(0,8):
+        if(players[i] == None):
+            aiPlayer = gameState.addPlayer(playerClass=gameLogic.AIPlayer,playerNumber=i,requestHandler=None)
+            break
+    gameState.addAIPlayer(aiPlayer)
+    for player in gameState.getPlayers():
+        if(player != None):
+            player.dispatchCommand("addPlayer -1 " + str(aiPlayer.playerNumber) + ":" + aiPlayer.userName)
+    return aiPlayer
+
 def removeNetworkPlayer(player):
     #todo: need ot notify players of playernumber changes too
     print 'removeNetworkPlayer is completely broken at this point, reimplement'
@@ -61,9 +64,9 @@ class RequestHandler(SocketServer.StreamRequestHandler):
                     self.player.dispatchCommand("setPlayerNumber -1 " + str(self.player.playerNumber))
                     userName = "Player ?"
                     for index in range(0,8):
-                        isUsed = playerUserNames[index]
+                        isUsed = gameState.playerUserNames[index]
                         if(not isUsed):
-                            playerUserNames[index] = True
+                            gameState.playerUserNames[index] = True
                             userName = "Player " + str(index+1)
                             break                            
                     if(gameState.getMapName() != None):
@@ -79,7 +82,7 @@ class RequestHandler(SocketServer.StreamRequestHandler):
                     print str(self.client_address) + " setup done."
             else:
             #TODO: send command to client indicating game has started or host is no longer accepting connections...
-                print 'host is not accepting connections'        
+                print 'host is not accepting connections'
     def finish(self):
 #        SocketServer.StreamRequestHandler.finish(self)
         if(self.client_address[0] == "94.75.235.221"):
@@ -87,13 +90,14 @@ class RequestHandler(SocketServer.StreamRequestHandler):
         else:
             deadPlayerNumber = self.player.playerNumber
             deadUserName = self.player.userName
-            gameState.getPlayers().remove(self.player)
+            if(gameState.getPlayers().count(self.player) > 0):#can be removed first by resetPlayers when server goes down
+                gameState.getPlayers().remove(self.player)
             for player in gameState.getPlayers():
                 if(player != None):
                     player.dispatchCommand("removePlayer -1 " + str(deadPlayerNumber))
             for index in range(0,8):
                 if(deadUserName == "Player " + str(index+1)):
-                    playerUserNames[index] = False
+                    gameState.playerUserNames[index] = False
             print gameState.getPlayers()
             if(hasattr(gameState.getGameMode(),"redrawTeams")):
                 gameState.getGameMode().redrawTeams()
@@ -111,27 +115,36 @@ class Server(SocketServer.ThreadingMixIn,SocketServer.TCPServer):
             uiElements.smallModal("There was an error hosting the game.")
         self.acceptingConnections = True
         self.acceptingConnectionsLock = threading.Lock()
+    def startAcceptingConnections(self):
+        print 'start accepting'
+        with self.acceptingConnectionsLock:
+            self.acceptingConnections = True
+    def stopAcceptingConnections(self):
+        print 'stop accepting'
+        with self.acceptingConnectionsLock:
+            self.acceptingConnections = False
 
-#def setMap(mapName):
-#    with server.acceptingConnectionsLock:    
-#        gameState.setMapName(mapName)#need this in case host's client doesn't recieve new mapname before another player connects
-#        for player in getNetworkPlayers():
-#            player.dispatchCommand("setMap -1 " + mapName)
-
-def startAcceptingConnections():
-    with server.acceptingConnectionsLock:
-        server.acceptingConnections = True
-def stopAcceptingConnections():
-    with server.acceptingConnectionsLock:
-        server.acceptingConnections = False
 def startGame():
-    stopAcceptingConnections()
-    for player in gameState.getPlayers():
-        if(player != None):
-            player.dispatchCommand("startGame -1")
+    with serverLock:
+        global server
+        server.stopAcceptingConnections()
+#todo: just send these thru the client...?
+        for player in gameState.getPlayers():
+            if(player != None):
+                player.dispatchCommand("startGame -1")
+                player.dispatchCommand("chooseNextUnit -1")
 
 serverStarted = False        
 def shutdownServer():
+    with serverLock:
+        global server
+        if(hasattr(gameState.getGameMode(),"playerMissing")):
+            gameState.getGameMode().playerMissing = True
+        if(server != None):
+            server.stopAcceptingConnections()
+        serverStarted = False
+    
+#        gameState.resetPlayers()
 #    with serverLock:
 #        global server
 #        if(server != None):
@@ -150,4 +163,5 @@ def startServer(serverIP,port=0):
             serverThread = threading.Thread(target=server.serve_forever)
             serverThread.daemon = True
             serverThread.start()
-            serverStarted = True
+        server.startAcceptingConnections()
+        serverStarted = True

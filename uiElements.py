@@ -5,7 +5,6 @@ import gameLogic
 import gameModes
 import gameFindClient
 import nameGenerator
-import ai
 import cDefines
 import shutil
 import client
@@ -923,7 +922,7 @@ class cityUnitDisplay(scrollableTextFieldsElement):
 class chatDisplay(scrollableTextFieldsElement):
 	#The goal here is to hold lines of text that are too long in textQueue and run them thru a function in fonts.h which will tell us how many words will constitute one line. This way we can add the text as a textFieldElement in order to reuse all the scrollableTextFields code.
 	def __init__(self,xPos,yPos,textureName="CHAT_DISPLAY"):
-		scrollableTextFieldsElement.__init__(self,xPos,yPos,[],textSize=0.0005,textureIndex=texIndex(textureName),width=texWidth(textureName),height=texHeight(textureName),numFields=40)
+		scrollableTextFieldsElement.__init__(self,xPos,yPos,[],textSize=0.0005,textureIndex=texIndex(textureName),width=texWidth(textureName),height=texHeight(textureName),numFields=36,xPositionOffset=0.02,yPositionOffset=0.05)
 		self.textQueue = Queue()
 		self.linesQueue = Queue()
 		self.currentText = ""
@@ -1330,9 +1329,10 @@ class exiitButton(inGameMenuButton):
 	def __init__(self,modal,xPos,yPos,text="Exit"):
 		inGameMenuButton.__init__(self,modal,xPos,yPos,text=text)
 	def onClick(self):
+		gameState.setGameMode(gameModes.newGameScreenMode)
 		client.stopClient()
 		server.shutdownServer()
-		gameState.setGameMode(gameModes.newGameScreenMode)
+		gameState.setOwnUserName(None)
 
 class modal(uiElement):
 	def destroy(self):
@@ -1406,7 +1406,7 @@ class lanConnectErrorModalButton(clickableElement,modal):
 
 class lanConnectErrorModal(smallModal):
 	def __init__(self):
-		smallModal.__init__(self,"Cannot connect.")
+		smallModal.__init__(self,"Cannot connect.",dismissable=False)
 		lanConnectErrorModalButton(self)
 
 class createMapButton(clickableElement):
@@ -1515,7 +1515,7 @@ class addAIButton(clickableElement):
 	def __init__(self,xPos,yPos):
 		clickableElement.__init__(self,xPos,yPos,textureIndex=texIndex("ADD_AI_BUTTON"),width=texWidth("ADD_AI_BUTTON"),height=texHeight("ADD_AI_BUTTON"))
 	def onClick(self):
-		ai.addAIPlayer()
+		server.addAIPlayer()
 		print 'click'
 
 class autoSelectCheckBox(clickableElement):

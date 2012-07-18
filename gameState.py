@@ -22,6 +22,17 @@ def getMapDatas():
 	global mapDatas
 	return mapDatas
 
+playerUserNames = [
+False,
+False,
+False,
+False,
+False,
+False,
+False,
+False,
+]
+
 unitTypesList = []
 dirList=os.listdir("units")
 for fileName in dirList:
@@ -103,9 +114,10 @@ def getGameFindClient():
 	global theGameFindClient
 	return theGameFindClient
 
-thePlayerNumber = 0
+thePlayerNumber = -1
 theTeamNumber = 0
 def setPlayerNumber(playerNumber):
+	print 'setplayernumber ' + str(playerNumber)
 	global thePlayerNumber
 	global theTeamNumber
 	thePlayerNumber = playerNumber
@@ -144,8 +156,9 @@ def addPlayer(playerClass=gameLogic.Player,userName="Player ?",playerNumber=0,re
 	return player
 def removePlayer(playerNumber):
 #	with thePlayersLock:
+	print 'removeplayer'
 	for player in thePlayers:
-		if(player.playerNumber == playerNumber):
+		if(player != None and player.playerNumber == playerNumber):
 			thePlayers.remove(player)
 def movePlayer(oldNumber,newNumber):
 	if(thePlayers[newNumber] == None):
@@ -157,6 +170,7 @@ def movePlayer(oldNumber,newNumber):
 		if(oldNumber == getPlayerNumber()):
 			setPlayerNumber(newNumber)
 def resetPlayers():
+	print 'resetPlayers'
 	global thePlayers
 	thePlayers = [None]*8
 def getPlayers():
@@ -167,3 +181,11 @@ def getPlayers():
 	playersCopy = copy.copy(thePlayers)
 	return playersCopy
 
+	
+theAIs = [None]*8
+def addAIPlayer(aiPlayer):
+    theAIs[aiPlayer.playerNumber] = aiPlayer
+    print theAIs
+def resetAIs():
+    global theAIs
+    theAIs = {}

@@ -3,12 +3,12 @@ import nameGenerator
 import cDefines
 import copy
 import uiElements
-import ai
 import random
 import threading
 import thread
 import time
 import sys
+import ai
 
 from multiprocessing import Process, Queue, Pipe
 #import aStar
@@ -46,7 +46,6 @@ class MODES:
 
 cityNames = ["Eshnunna","Tutub","Der","Sippar","Sippar-Amnanum","Kutha","Jemde Nasr","Kish","Babilim","Borsippa","Mashkan-shapir","Dilbat","Nippur","Marad","Adab","Isin","Kisurra","Shuruppak","Bad-tibira","Zabalam","Umma","Girsu","Lagash","Urum","Uruk","Larsa","Ur","Kuara","Eridu","Akshak","Akkad","Urfa","Shanidar cave","Urkesh","Shekhna","Arbid","Harran","Chagar Bazar","Kahat","El Fakhariya","Arslan Tash","Carchemish","Til Barsip","Nabada","Nagar","Telul eth-Thalathat","Tepe Gawra","Tell Arpachiyah","Shibaniba","Tarbisu","Ninua","Qatara","Dur Sharrukin","Tell Shemshara","Arbil","Imgur-Enlil","Nimrud","Emar","Arrapha","Kar-Tukulti-Ninurta","Ashur","Nuzi","al-Fakhar","Terqa","Mari","Haradum","Nerebtum","Agrab","Dur-Kurigalzu","Shaduppum","Seleucia","Ctesiphon","Zenobia","Zalabiye","Hasanlu","Takht-i-Suleiman","Behistun","Godin Tepe","Chogha Mish","Tepe Sialk","Susa","Kabnak","Dur Untash","Pasargadai","Naqsh-e Rustam","Parsa","Anshan","Konar Sandal","Tepe Yahya","Miletus","Sfard","Nicaea","Sapinuwa","Yazilikaya","Alaca Hoyuk","Masat Hoyuk","Hattusa","Ilios","Kanesh","Arslantepe","Sam'al","Beycesultan","Adana","Karatepe","Tarsus","Sultantepe","Attalia","Acre","Adoraim","Alalah","Aleppo","Al-Sinnabra","Aphek","Arad Rabbah","Ashdod","Ashkelon","Baalbek","Batroun","Beersheba","Beth Shean","Bet Shemesh","Bethany","Bet-el","Bezer","Byblos","Capernaum","Dan","Dimashq","Deir Alla","Dhiban","Dor","Ebla","En Gedi","Enfeh","Ekron","Et-Tell","Gath","Gezer","Gibeah","Gilgal Refaim","Gubla","Hamath","Hazor","Hebron","Herodion","Jezreel","Kadesh Barnea","Kedesh","Kumidi","Lachish","Megiddo","Qatna","Qumran","Rabat Amon","Samaria","Sarepta","Sharuhen","Shiloh","Sidon","Tadmor","Tirzah","Tyros","Ugarit","Umm el-Marra"]
 
-
 class Player:
 	def __init__(self,playerNumber,userName,requestHandler):
 		self.userName = userName
@@ -57,16 +56,41 @@ class Player:
 		self.hasSummoners = True
 		self.team = -1
 class NetworkPlayer(Player):
-    def __init__(self,playerNumber,userName,requestHandler):
-        self.requestHandler = requestHandler
-	Player.__init__(self,playerNumber,userName,None)
-    def dispatchCommand(self,command):
-        try:
-            self.requestHandler.wfile.write(command + "|")
-        except:
-            print 'ERROR writing to network handler'
-            return
+	def __init__(self,playerNumber,userName,requestHandler):
+		self.requestHandler = requestHandler
+		Player.__init__(self,playerNumber,userName,None)
+	def dispatchCommand(self,command):
+		try:
+			self.requestHandler.wfile.write(command + "|")
+		except:
+			print 'ERROR writing to network handler'
+			return
 
+
+class AIPlayer(Player):
+	nextAINumber = 1
+	def __init__(self,playerNumber,userName,requestHandler):
+		Player.__init__(self,playerNumber,"AI " + str(AIPlayer.nextAINumber),None)
+		AIPlayer.nextAINumber = AIPlayer.nextAINumber + 1
+	def dispatchCommand(self,command):
+		return
+	def takeTurn(self):
+		print 'take turn'
+		eligibleMoveNodes = []
+		for neighb in gameState.getGameMode().nextUnit.node.neighbors:
+			if(neighb.unit == None):
+				if(neighb.tileValue != cDefines.defines['MOUNTAIN_TILE_INDEX'] or (gameState.getGameMode().nextUnit.unitType.canFly)):
+					eligibleMoveNodes.append(neighb)
+		if(len(eligibleMoveNodes) > 0):
+#			moveToNode = random.choice(eligibleMoveNodes)
+			moveToNode = eligibleMoveNodes[0]
+#            moveToNode = eligibleMoveNodes[0]
+			gameState.getClient().sendCommand("moveTo",str(moveToNode.xPos) + " " + str(moveToNode.yPos))
+#			gameState.getClient().sendCommand("skip")
+		else:
+			gameState.getClient().sendCommand("skip")
+			
+		gameState.getClient().sendCommand("chooseNextUnit")
 class unitType:
 	def __init__(self,name,textureIndex,movementSpeed,attackSpeed,attackPower,armor,range,health,canFly,canSwim,costGreen,costBlue,buildTime,movementSpeedBonus,researchCostGreen,researchCostBlue,researchTime,canAttackGround=False):
 		self.name = name
@@ -164,10 +188,9 @@ class unit:
 		print 'player: ' + str(self.player)
 		print 'taemsize: ' + str(gameState.getTeamSize())
 		print 'team: ' + str(gameState.getTeamNumber())
-		self.team = (self.player-1)/gameState.getTeamSize()
-		self.ai = None
-		if(self.player in ai.theAIs):
-			self.ai = ai.theAIs[self.player]
+		self.team = (self.player)/gameState.getTeamSize()
+		self.ai = gameState.theAIs[self.player]
+		print self.ai
 		self.node = node
 		self.xPos = 0.0
 		self.yPos = 0.0
@@ -227,7 +250,7 @@ class unit:
 		if(self.xPosDraw == self.xPos and self.yPosDraw == self.yPos):
 			slidingUnits.remove(self)
 	def isControlled(self):
-		return gameState.getPlayers()[self.player-1].isOwnPlayer		
+		return gameState.getPlayers()[self.player].isOwnPlayer		
 	def isOwnUnit(self):
 		return (gameState.getPlayerNumber() == self.player)
 	def isOwnTeam(self):
@@ -990,6 +1013,9 @@ def selectNode(node,theCityViewer = uiElements.cityViewer):
 			for pathNode in node.unit.movePath:
 				pathNode.onMovePath = True
 		node.selected = True
+	if(gameState.getGameMode().selectedNode != node and hasattr(gameState.getGameMode(),"gotoMode") and gameState.getGameMode().gotoMode):
+		gameState.getGameMode().gotoMode = False
+		
 	gameState.getGameMode().selectedNode = node
 	if(uiElements.viewer.theViewer != None):
 		uiElements.viewer.theViewer.destroy()

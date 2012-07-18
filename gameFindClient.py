@@ -27,10 +27,8 @@ class Commands:
 #        gameState.setMapName(tokens[1])
         gameState.setGameMode(gameModes.joinGameMode,tokens)
 #        gameState.getGameMode().setMap(tokens[1])
-    @staticmethod
-    def addPlayer(args):	    
-        print 'this needs to be reimplemented!!'
-        print 'just addplayer to gameState and call redrawTeams on gameMode... in theory'
+#    @staticmethod
+#    def addPlayer(args):	    
 #        gameState.getGameMode().addPlayer(args)
     @staticmethod
     def removePlayer(args):	    
@@ -58,7 +56,7 @@ class Commands:
 #    @staticmethod
 #    def startGame(args):
 #        gameState.setGameMode(gameModes.playMode)
-#    @staticmethod
+    @staticmethod
     def versionPassed(args):
 #        uiElements.smallModal("Login failed.")
         return
