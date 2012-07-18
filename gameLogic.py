@@ -250,7 +250,10 @@ class unit:
 		if(self.xPosDraw == self.xPos and self.yPosDraw == self.yPos):
 			slidingUnits.remove(self)
 	def isControlled(self):
-		return gameState.getPlayers()[self.player].isOwnPlayer		
+		if(gameState.getPlayers()[self.player] != None):
+			return gameState.getPlayers()[self.player].isOwnPlayer
+		else:
+			return False
 	def isOwnUnit(self):
 		return (gameState.getPlayerNumber() == self.player)
 	def isOwnTeam(self):
@@ -1014,8 +1017,7 @@ def selectNode(node,theCityViewer = uiElements.cityViewer):
 				pathNode.onMovePath = True
 		node.selected = True
 	if(gameState.getGameMode().selectedNode != node and hasattr(gameState.getGameMode(),"gotoMode") and gameState.getGameMode().gotoMode):
-		gameState.getGameMode().gotoMode = False
-		
+		gameState.getGameMode().gotoMode = False		
 	gameState.getGameMode().selectedNode = node
 	if(uiElements.viewer.theViewer != None):
 		uiElements.viewer.theViewer.destroy()

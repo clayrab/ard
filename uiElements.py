@@ -1325,14 +1325,17 @@ class resumeButton(inGameMenuButton):
 	def onClick(self):
 		self.modal.destroy()
 
+def exitGame():
+	gameState.setGameMode(gameModes.newGameScreenMode)
+	client.stopClient()
+	server.shutdownServer()
+	gameState.setOwnUserName(None)
+
 class exiitButton(inGameMenuButton):
 	def __init__(self,modal,xPos,yPos,text="Exit"):
 		inGameMenuButton.__init__(self,modal,xPos,yPos,text=text)
 	def onClick(self):
-		gameState.setGameMode(gameModes.newGameScreenMode)
-		client.stopClient()
-		server.shutdownServer()
-		gameState.setOwnUserName(None)
+		exitGame()
 
 class modal(uiElement):
 	def destroy(self):
@@ -1367,6 +1370,28 @@ class smallModal(modal):
 		if(self.dismissable):
 			self.buttonElem = modalOkButton(self,self.yPosition-0.4)
 		gameState.getGameMode().modal = self
+
+class disconnectOkButton(modalButton):
+	def __init__(self,modal,yPos=-0.05,text="",textureIndex=cDefines.defines["OK_BUTTON_INDEX"]):
+		modalButton.__init__(self,modal,texWidth("OK_BUTTON")/-2.0,yPos,text=text,width=texWidth("OK_BUTTON"),height=texHeight("OK_BUTTON"),textureIndex=textureIndex,textXPos=0.1,textYPos=-0.1)
+	def onClick(self):
+		exitGame()
+		self.modal.destroy()
+
+class playerDisconnectedModal(smallModal):
+        def __init__(self):
+		print 'disconnected modal'
+		smallModal.__init__(self,"",dismissable=True)
+		yPos = 0.23
+		for player in gameState.getPlayers():
+			if(player != None):
+				yPos = yPos - 0.05
+				if(player.playerNumber in gameState.getGameMode().missingPlayers):
+					self.names.append(uiElement(self.xPosition+0.05,yPos,text="Player " + str(player.playerNumber) + " disconnected",textSize=0.0005).name)
+				else:
+					self.names.append(uiElement(self.xPosition+0.05,yPos,text="Player " + str(player.playerNumber) + " ok",textSize=0.0005).name)
+		disconnectOkButton(self,self.yPosition-0.4)
+
 
 class winLoseModalButton(clickableElement):
 	def __init__(self,modal):

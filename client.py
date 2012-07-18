@@ -51,11 +51,15 @@ class Commands:
 #            gameState.setOwnUserName("Player " + playerNumber)
     @staticmethod
     def removePlayer(playerNumber):
-        if(hasattr(gameState.getGameMode(),"playerMissing")):
-            gameState.getGameMode().playerMissing = True
         gameState.removePlayer(int(playerNumber))
         if(hasattr(gameState.getGameMode(),"redrawTeams")):
             gameState.getGameMode().redrawTeams()
+    @staticmethod
+    def disconnectedPlayer(playerNumber):
+        if(hasattr(gameState.getGameMode(),"playerMissing")):
+            gameState.getGameMode().playerMissing = True
+            gameState.getGameMode().missingPlayers.append(int(playerNumber))
+            uiElements.playerDisconnectedModal()
     @staticmethod
     def addPlayer(args):
         tokens = args.split(":")
@@ -279,9 +283,7 @@ class Commands:
             gameState.getGameMode().chatDisplay.addText(args)
 
 commandLock = threading.Lock()
-
 def doCommand(commandName,args=None):
-    print '***** start ' + commandName + str(args)
     commandFunc = getattr(Commands,commandName)
     if(commandFunc != None):
         if(args != None and args != ''):
@@ -290,7 +292,6 @@ def doCommand(commandName,args=None):
             commandFunc()
     else:
         print "ERROR: COMMAND " + commandName + " does not exist"
-    print '***** finish ' + commandName
 
 class Client:
     def __init__(self,hostIP,port=-1):
@@ -338,7 +339,7 @@ class Client:
                                 doCommand(tokens[0])
                     else:
                         self.commandLog = self.commandLog[:-1:]
-                        #print "commandLog: " + str(self.commandLog)        
+                        #print "commandLog: " + str(self.commandLog)
             if(gameState.getOwnUserName() != None and gameState.getPlayers()[gameState.getPlayerNumber()].userName != gameState.getOwnUserName()):
                 gameState.getClient().sendCommand("changeUserName",str(gameState.getPlayerNumber()) + ":" + gameState.getOwnUserName())
 

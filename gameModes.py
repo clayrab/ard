@@ -12,22 +12,17 @@
 #report game state(to look for cheaters/bugs)
 
 #client:
-#gotomode should only go on when unit is selected and should go off when it's unselected or 'g' is hit again
-#pause game on removed
-#let players(and ai) change their name
+#handle disconnected host gracefully
 #fix text cursor
 #killing host before client causes error
 #units placed initially are not in astar
 #back button in online play is still massively fucked
-#save game
-#handle disconnect gracefully
-#handle reconnect... requires ability to save/share game state
+#make spacebar cycle thru summoners when not player's turn
 #map name clickable to view map from findgamemode
 #testing connection timeout
 #sound effects
 #in-game chat
 #mouseover effects
-#bug where unit transports across map?? can't reproduce :( :( :(
 #show move speed and attack speed
 #select box shouldn't be green for uncontrolled nextunit
 #change the way a-star works so that there is no delay when waiting for it(this is now partially solved with gotomode)
@@ -35,6 +30,8 @@
 #healing animation
 #blunt/explosion animation?
 #roads? Draw them properly or remove them...
+#save game
+#handle reconnect... requires ability to save/share game state
 
 #BUGS
 #username cannot be 'empty' or 'Player x'
@@ -340,6 +337,7 @@ class playMode(tiledGameMode):
 		self.autoSelect = True
 		self.gotoMode = False
 		self.playerMissing = False
+		self.missingPlayers = []
 	def getChooseNextDelayed(self):
 		if(self.chooseNextDelayed):
 			retVal = self.chooseNextDelayed
@@ -550,11 +548,8 @@ class playMode(tiledGameMode):
 		return number
 	def onDraw(self,deltaTicks):
 		if(self.playerMissing):
-			uiElements.smallModal("missing a player...")
+			gameMode.onDraw(self,deltaTicks)
 		else:
-#		with gameLogic.aStarSearch.searchCompleteLock:
-#		print 'astarseach:' + str(gameLogic.aStarSearch)
-#		print gameLogic.aStarSearch.map
 			for unit in gameLogic.slidingUnits:
 				unit.slide(deltaTicks)
 			if(gameLogic.aStarSearch.searchComplete):
@@ -579,7 +574,7 @@ class playMode(tiledGameMode):
 					gameState.getClient().sendCommand("skip")
 					gameState.getClient().sendCommand("chooseNextUnit")
 					self.nextUnit = None
-#				if(self.players[self.getPlayerNumber()] != None
+			if(self.players[self.getPlayerNumber()] != None):
 				self.greenWoodUIElem.text = str(int(math.floor(self.players[self.getPlayerNumber()].greenWood)))
 				self.blueWoodUIElem.text = str(int(math.floor(self.players[self.getPlayerNumber()].blueWood)))
 			if(self.previousTicks != 0 and self.nextUnit != None and self.nextUnit.isControlled()):

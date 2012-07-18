@@ -155,11 +155,10 @@ def addPlayer(playerClass=gameLogic.Player,userName="Player ?",playerNumber=0,re
 		thePlayers[playerNumber] = player
 	return player
 def removePlayer(playerNumber):
-#	with thePlayersLock:
-	print 'removeplayer'
-	for player in thePlayers:
+	for index in range(0,8):
+		player = thePlayers[index]
 		if(player != None and player.playerNumber == playerNumber):
-			thePlayers.remove(player)
+			thePlayers[index] = None
 def movePlayer(oldNumber,newNumber):
 	if(thePlayers[newNumber] == None):
 		thePlayers[newNumber] = thePlayers[oldNumber]

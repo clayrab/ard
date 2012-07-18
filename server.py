@@ -90,21 +90,19 @@ class RequestHandler(SocketServer.StreamRequestHandler):
         else:
             deadPlayerNumber = self.player.playerNumber
             deadUserName = self.player.userName
-            if(gameState.getPlayers().count(self.player) > 0):#can be removed first by resetPlayers when server goes down
-                gameState.getPlayers().remove(self.player)
-            for player in gameState.getPlayers():
-                if(player != None):
-                    player.dispatchCommand("removePlayer -1 " + str(deadPlayerNumber))
-            for index in range(0,8):
-                if(deadUserName == "Player " + str(index+1)):
-                    gameState.playerUserNames[index] = False
-            print gameState.getPlayers()
-            if(hasattr(gameState.getGameMode(),"redrawTeams")):
-                gameState.getGameMode().redrawTeams()
-#            for player in gameState.getPlayers():
-#                if(player.requestHandler == self):
-#                    gameState.getPlayers().remove(player)
-#            removeNetworkPlayer(self.player)
+#            if(gameState.getPlayers().count(self.player) > 0):#can be removed first by resetPlayers when server goes down
+#                gameState.removePlayer(self.player.playerNumber)
+            if(server.acceptingConnections):
+                for player in gameState.getPlayers():
+                    if(player != None):
+                        player.dispatchCommand("removePlayer -1 " + str(deadPlayerNumber))
+                for index in range(0,8):
+                    if(deadUserName == "Player " + str(index+1)):
+                        gameState.playerUserNames[index] = False
+            else:
+                for player in gameState.getPlayers():
+                    if(player != None):
+                        player.dispatchCommand("disconnectedPlayer -1 " + str(deadPlayerNumber))
             print str(self.client_address) + " disconnected."
 
 class Server(SocketServer.ThreadingMixIn,SocketServer.TCPServer):
