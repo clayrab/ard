@@ -340,7 +340,7 @@ class Client:
                     else:
                         self.commandLog = self.commandLog[:-1:]
                         #print "commandLog: " + str(self.commandLog)
-            if(gameState.getOwnUserName() != None and gameState.getPlayers()[gameState.getPlayerNumber()].userName != gameState.getOwnUserName()):
+            if(gameState.getOwnUserName() != None and gameState.getPlayers()[gameState.getPlayerNumber()] != None and gameState.getPlayers()[gameState.getPlayerNumber()].userName != gameState.getOwnUserName()):
                 gameState.getClient().sendCommand("changeUserName",str(gameState.getPlayerNumber()) + ":" + gameState.getOwnUserName())
 
     def sendCommand(self,command,argsString=""):
@@ -359,8 +359,16 @@ class Client:
 def startClient(hostIP,hostPort=-1):
     gameState.setClient(Client(hostIP,hostPort))
 def stopClient():
+    try:
+        gameState.getClient().socket.shutdown(socket.SHUT_RD)
+    except socket.error as e:
+        print e.errno
     gameState.getClient().socket.close()
     gameState.setClient(None)
+    gameState.resetPlayers()
+    gameState.resetAIs()
+    gameState.setOwnUserName(None)
+
 #    clientThread = ClientThread(hostIP)
 #    clientThread.daemon = True
 #    clientThread.start()

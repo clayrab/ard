@@ -1,4 +1,5 @@
 #website:
+#robots.txt
 #SSL
 #registration
 #distribution
@@ -13,8 +14,10 @@
 
 #client:
 #handle disconnected host gracefully
+#player numbers are getting messed up during join/rejoin
 #fix text cursor
 #killing host before client causes error
+#host game then back then try to host game online('try again in 30 secs' is a lie)
 #units placed initially are not in astar
 #back button in online play is still massively fucked
 #make spacebar cycle thru summoners when not player's turn
@@ -766,60 +769,6 @@ class joinLANGameScreenMode(gameMode):
 		uiElements.backButton(-0.930,0.9,newGameScreenMode)
 #		uiElements.menuButtonGameModeSelector(-0.07,-0.2,newGameScreenMode,text="Back")
 
-class asdfjoiningLANGameScreenMode(gameMode):
-	def __init__(self,args):
-		gameMode.__init__(self)
-		self.playerElementNames = []
-	def removePlayerElements(self):
-		for name in self.playerElementNames:
-			del gameState.getGameMode().elementsDict[name]
-		self.playerElementNames = []
-		gameState.getGameMode().resortElems = True
-	def redrawPlayers(self):
-		self.removePlayerElements()
-		height = 0.7
-		for player in gameState.getPlayers():
-			if(player != None):
-				if(player.isOwnPlayer):
-					self.playerElementNames.append(uiElements.uiElement(-0.85,height,text="*player " + str(player.playerNumber) + "*").name)
-				else:
-					self.playerElementNames.append(uiElements.uiElement(-0.85,height,text="player " + str(player.playerNumber)).name)
-				height = height - 0.1
-	def addUIElements(self):
-		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])
-		uiElements.uiElement(-0.15,0.9,text="lan game")
-		uiElements.uiElement(-0.85,0.8,text="players")
-		self.mapNameElement = uiElements.uiElement(-0.85,-0.1,text="map")
-		#uiElements.menuButtonGameModeSelector(-0.45,0.0,newGameScreenMode,text="back")
-
-class asdfhostLANGameScreenMode(gameMode):
-	def __init__(self,args):
-		gameMode.__init__(self)
-		self.playerElementNames = []
-	def removePlayerElements(self):
-		for name in self.playerElementNames:
-			del gameState.getGameMode().elementsDict[name]
-		self.playerElementNames = []
-		gameState.getGameMode().resortElems = True
-	def redrawPlayers(self):
-		self.removePlayerElements()
-		height = 0.7
-		for player in gameState.getPlayers():
-			if(player != None):
-				if(player.isOwnPlayer):
-					self.playerElementNames.append(uiElements.uiElement(-0.85,height,text="*player " + str(player.playerNumber) + "*").name)
-				else:
-					self.playerElementNames.append(uiElements.uiElement(-0.85,height,text="player " + str(player.playerNumber)).name)
-				height = height - 0.1
-	def addUIElements(self):
-#		server.startServer('')
-#		client.startClient('127.0.0.1')
-		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])	
-		uiElements.uiElement(-0.15,0.9,text="lan game")
-		uiElements.uiElement(-0.85,0.8,text="players")
-		uiElements.mapField(-0.85,-0.1,uiElements.mapSelector,text="choose map")
-		uiElements.startButton(0.65,-0.8,playMode,text="start")
-
 class loginMode(gameMode):
 	def __init__(self,args):
 		gameMode.__init__(self)
@@ -870,9 +819,8 @@ class gameFindMode(gameMode):
 		uiElements.logoutButton(-0.930,0.9,newGameScreenMode)
 
 		
-class joinGameMode(tiledGameMode):
+class gameRoomMode(tiledGameMode):
 	def __init__(self,args):
-		print 'joingamemode'
 		tiledGameMode.__init__(self)
 		self.roomName = args[0]
 #		self.mapName = args[1]
@@ -880,7 +828,7 @@ class joinGameMode(tiledGameMode):
 		self.hostPort = int(args[2])
 #		self.teamSize = int(args[3])
 #		gameState.setTeamSize(int(args[4]))
-		self.joinGameMode = True
+		self.gameRoomMode = True
 		self.backgroundImageIndex = texIndex("JOIN_GAME_BACKGROUND")
 		self.selectedNode = None
 		self.playerElements = []
@@ -933,17 +881,21 @@ class joinGameMode(tiledGameMode):
 		
 
 #		if(gameState.getClient() == None):#host connects to itself on createButtun.onClick
+		print self.hostIP
+		print self.hostPort
 		try:
 			client.startClient(self.hostIP,self.hostPort)
-		except socket.error:
+		except socket.error as error:
+			print "error.strerror: " + str(error.strerror)
+			print "sys.exc_info: " + str(sys.exc_info()[0])
 			uiElements.lanConnectErrorModal()
 			return
 		#if(TODO DO THIS)else:
-		print gameState.getClient().hostIP
 		if(gameState.getClient().hostIP == "127.0.0.1"):
 #		if(len(gameState.getNetworkPlayers()) == 1):
 			uiElements.addAIButton(0.35,0.504)
 			uiElements.startGameButton(0.795,0.504)
+		print 'done'
 	def redrawTeams(self):
 		players = gameState.getPlayers()
 		for elem in self.playerElements:
@@ -964,19 +916,15 @@ class joinGameMode(tiledGameMode):
 			else:
 				self.playerElements.append(uiElements.playerElement(0.50,0.643-(0.033*i),playerNumber,text=player.userName))
 			playerNumber=playerNumber+1
-class joinLANGameMode(joinGameMode):
+
+class lanGameRoomMode(gameRoomMode):
 	def __init__(self,args):
-#		mapName = gameState.getMapDatas()[0][0].name
-#		gameState.setMapName(mapName)
 		if(len(args) == 0):
-			joinGameMode.__init__(self,["LAN game","127.0.0.1","6666"])
+			gameRoomMode.__init__(self,["LAN game","127.0.0.1","6666"])
 		else:
-			joinGameMode.__init__(self,["LAN game",args[0],"6666"])			
-#		else:
-#			print 'else'
-#			joinGameMode.__init__(self,["LAN game",args[1],args[2],"6666",args[4]])
+			gameRoomMode.__init__(self,["LAN game",args[0],"6666"])			
 	def addUIElements(self):
-		joinGameMode.addUIElements(self)
+		gameRoomMode.addUIElements(self)
 		for name in self.elementsDict.keys():
 			if(self.elementsDict[name].textureIndex == texIndex("BACK_BUTTON")):
 				del self.elementsDict[name]

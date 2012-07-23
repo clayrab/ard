@@ -169,7 +169,6 @@ def movePlayer(oldNumber,newNumber):
 		if(oldNumber == getPlayerNumber()):
 			setPlayerNumber(newNumber)
 def resetPlayers():
-	print 'resetPlayers'
 	global thePlayers
 	thePlayers = [None]*8
 def getPlayers():
@@ -179,7 +178,6 @@ def getPlayers():
 #	with thePlayersLock:
 	playersCopy = copy.copy(thePlayers)
 	return playersCopy
-
 	
 theAIs = [None]*8
 def addAIPlayer(aiPlayer):
@@ -188,3 +186,4 @@ def addAIPlayer(aiPlayer):
 def resetAIs():
     global theAIs
     theAIs = {}
+

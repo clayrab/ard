@@ -261,7 +261,7 @@ class hostIPConnectButton(clickableElement):
 	def onClick(self):
 		if(len(gameState.getGameMode().hostIPInputElem.text) > 0):
 			gameState.setHostIP(gameState.getGameMode().hostIPInputElem.text)
-			gameState.setGameMode(gameModes.joinLANGameMode,[gameState.getGameMode().hostIPInputElem.text])
+			gameState.setGameMode(gameModes.lanGameRoomMode,[gameState.getGameMode().hostIPInputElem.text])
 
 class hostIPInputElement(textInputElement):
 	def __init__(self,xPos,yPos):
@@ -270,7 +270,7 @@ class hostIPInputElement(textInputElement):
 	def onKeyDown(self,keycode):
 		if(keycode == "return"):
 			if(len(self.text) > 0):
-				gameState.setGameMode(gameModes.joinLANGameMode,[self.text])
+				gameState.setGameMode(gameModes.lanGameRoomMode,[self.text])
 				gameState.setHostIP(self.text)
 		elif(keycode == "." or keycode == "backspace"):
 			textInputElement.onKeyDown(self,str(keycode))
@@ -1329,7 +1329,6 @@ def exitGame():
 	gameState.setGameMode(gameModes.newGameScreenMode)
 	client.stopClient()
 	server.shutdownServer()
-	gameState.setOwnUserName(None)
 
 class exiitButton(inGameMenuButton):
 	def __init__(self,modal,xPos,yPos,text="Exit"):
@@ -1376,7 +1375,6 @@ class disconnectOkButton(modalButton):
 		modalButton.__init__(self,modal,texWidth("OK_BUTTON")/-2.0,yPos,text=text,width=texWidth("OK_BUTTON"),height=texHeight("OK_BUTTON"),textureIndex=textureIndex,textXPos=0.1,textYPos=-0.1)
 	def onClick(self):
 		exitGame()
-		self.modal.destroy()
 
 class playerDisconnectedModal(smallModal):
         def __init__(self):
@@ -1499,7 +1497,7 @@ class createGameButtun(clickableElement):
 			smallModal("Cannot create server. The socket may be in use, try again in 30 seconds.")
 			print "socket.error:"
 			print socket.error
-		gameState.setGameMode(gameModes.joinLANGameMode,["127.0.0.1"])
+		gameState.setGameMode(gameModes.lanGameRoomMode,["127.0.0.1"])
 #		try:
 #			client.startClient('127.0.0.1',6666)
 #		except socket.error:

@@ -24,12 +24,7 @@ class Commands:
     @staticmethod
     def showGameRoom(args):	    
         tokens = args.split("*")
-#        gameState.setMapName(tokens[1])
-        gameState.setGameMode(gameModes.joinGameMode,tokens)
-#        gameState.getGameMode().setMap(tokens[1])
-#    @staticmethod
-#    def addPlayer(args):	    
-#        gameState.getGameMode().addPlayer(args)
+        gameState.setGameMode(gameModes.gameRoomMode,tokens)
     @staticmethod
     def removePlayer(args):	    
         if(hasattr(gameState.getGameMode(),"removePlayer")):

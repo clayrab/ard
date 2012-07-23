@@ -752,7 +752,7 @@ void drawTiles(){
 }
 
 void doViewport(){
-  if(PyObject_HasAttrString(gameMode,"joinGameMode")){
+  if(PyObject_HasAttrString(gameMode,"gameRoomMode")){
     glViewport(60.0*SCREEN_WIDTH/SCREEN_BASE_WIDTH,258.0*SCREEN_HEIGHT/SCREEN_BASE_HEIGHT,991.5*SCREEN_WIDTH/SCREEN_BASE_WIDTH,824.0*SCREEN_HEIGHT/SCREEN_BASE_HEIGHT);
   }else if(PyObject_HasAttrString(gameMode,"createGameMode")){
     glViewport(544.0*SCREEN_WIDTH/SCREEN_BASE_WIDTH,258.0*SCREEN_HEIGHT/SCREEN_BASE_HEIGHT,991.5*SCREEN_WIDTH/SCREEN_BASE_WIDTH,824.0*SCREEN_HEIGHT/SCREEN_BASE_HEIGHT);
@@ -795,7 +795,7 @@ void calculateTranslation(){
   glTexCoord2f(0.0,1.0); glVertex3f(-1000.0,1000.0,0.0);
   glEnd();
   glPopMatrix();
-  if(PyObject_HasAttrString(gameMode,"joinGameMode")){
+  if(PyObject_HasAttrString(gameMode,"gameRoomMode")){
     glReadPixels( 7*SCREEN_WIDTH/16, SCREEN_HEIGHT/2, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &mapDepthTest1 );
     glReadPixels( 8*SCREEN_WIDTH/16, SCREEN_HEIGHT/2, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &mapDepthTest2 );
     glReadPixels( 9*SCREEN_WIDTH/16, SCREEN_HEIGHT/2, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &mapDepthTest3 );
@@ -816,7 +816,7 @@ void calculateTranslation(){
   }else{
     printf("mapdepth not found%d\n",1);
   }
-  if(PyObject_HasAttrString(gameMode,"joinGameMode")){
+  if(PyObject_HasAttrString(gameMode,"gameRoomMode")){
     convertWindowCoordsToViewportCoords(60.0*SCREEN_WIDTH/SCREEN_BASE_WIDTH,SCREEN_HEIGHT,translateZ,&convertedBottomLeftX,&convertedBottomLeftY,&convertedBottomLeftZ);
     convertWindowCoordsToViewportCoords(1551.5*SCREEN_WIDTH/SCREEN_BASE_WIDTH,0.0,translateZ,&convertedTopRightX,&convertedTopRightY,&convertedTopRightZ);
   }else if(PyObject_HasAttrString(gameMode,"createGameMode")){
