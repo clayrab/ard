@@ -658,3 +658,25 @@
 #define MAX_UNITS 400
 #define MAX_UNIT_NAME_LENGTH 50
 
+#define WOOD_HIT_INDEX 0
+#define WOOD_HIT "assets/audio/woodHit.ogg"
+#define TUBE_HIT_INDEX 1
+#define TUBE_HIT "assets/audio/sewageTubeHit.ogg"
+#define DARBUKA_HIT_INDEX 2
+#define DARBUKA_HIT "assets/audio/darbuka.ogg"
+#define DARBUKA2_HIT_INDEX 3
+#define DARBUKA2_HIT "assets/audio/darbuka2.ogg"
+#define FINGER_CYMBALS_HIT_INDEX 4
+#define FINGER_CYMBALS_HIT "assets/audio/fingerCymbals.ogg"
+#define SWORD_HIT_INDEX 5
+#define SWORD_HIT "assets/audio/swordHit.ogg"
+#define DRAGON_FIRE_INDEX 5
+#define DRAGON_FIRE "assets/audio/dragonFire.ogg"
+#define BOW_HIT_INDEX 6
+#define BOW_HIT "assets/audio/bowHit.ogg"
+
+#define OMAR_1_INDEX 0
+#define OMAR_1 "assets/audio/music/Omar Faruk Tekbilek - Whirling 01 Whirling Dervish.mp3"
+
+#define OMAR_7_INDEX 1
+#define OMAR_7 "assets/audio/music/Omar Faruk Tekbilek - Whirling 07 Caspian Winds.mp3"

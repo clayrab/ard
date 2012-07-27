@@ -135,7 +135,27 @@ class gameMode:
 		self.scrolledDistance = 0.0
 		self.maxTranslateZ = 0.0-cDefines.defines["maxZoom"]
 		self.exit = False
+		self.mousedOverObject = None
+		self.soundIndeces = []
+		self.musicIndeces = [cDefines.defines["OMAR_1_INDEX"]]
+		self.musicIndex = -1
+		self.restartMusic = False
+		self.showCursor = True
 		uiElements.viewer.theViewer = None
+	def getRestartMusic(self):
+		temp = self.restartMusic
+		self.restartMusic = False
+		return temp
+	def getSound(self):
+		if(len(self.soundIndeces) > 0):
+			temp = self.soundIndeces[0]
+			del self.soundIndeces[0]
+			return temp
+		else:
+			return None
+	def getMusic(self):
+		self.musicIndex = self.musicIndex + 1
+		return self.musicIndeces[self.musicIndex]
 	def handleMouseMovement(self,name,mouseX,mouseY):
 		self.mouseX = mouseX
 		self.mouseY = mouseY
@@ -212,6 +232,35 @@ class gameMode:
 			else:
 				if(hasattr(self.elementWithFocus,"onKeyUp")):
 					self.elementWithFocus.onKeyUp(keycode)
+	def handleMouseOver(self,name,isLeftMouseDown):
+		if(self.modal != None):
+			if(self.elementsDict.has_key(name)):
+				if(hasattr(self.elementsDict[name],"modal")):#only modalButton should have am attribute 'modal'
+					self.mousedOverObject = self.elementsDict[name]
+		else:
+			if(isLeftMouseDown > 0):#allows onLeftClickDown to be called for tiles when the mouse is dragged over them
+				if(hasattr(gameState.getGameMode(),"selectedButton")):
+					if(gameState.getGameMode().selectedButton != None):
+						if(gameState.getGameMode().selectedButton.tileType != cDefines.defines['CITY_TILE_INDEX']):
+							if(self.elementsDict.has_key(name)):
+								if(hasattr(self.elementsDict[name],"tileValue")):#node
+									self.elementsDict[name].onLeftClickDown()
+			if(self.mousedOverObject != None):
+				if(self.mousedOverObject.name != name):
+					if(hasattr(self.mousedOverObject,"onMouseOut")):
+						self.mousedOverObject.onMouseOut()
+					self.mousedOverObject = None
+			if(self.elementsDict.has_key(name)):
+				if(self.mousedOverObject != None):
+					if(self.mousedOverObject.name != name):
+						self.mousedOverObject = self.elementsDict[name]
+						if(hasattr(self.elementsDict[name],"onMouseOver")):
+							self.elementsDict[name].onMouseOver()
+				else:
+					self.mousedOverObject = self.elementsDict[name]
+					if(hasattr(self.elementsDict[name],"onMouseOver")):
+						self.elementsDict[name].onMouseOver()
+
 	def setMouseTextPosition(self,position):
 		self.mouseTextPosition = position
 	def onQuit(self):
@@ -244,7 +293,6 @@ class gameMode:
 			
 class tiledGameMode(gameMode):
 	def __init__(self,args=[]):
-		self.mousedOverObject = None
 		self.clickScroll = False
 		gameMode.__init__(self)
 		self.doFocus = 0
@@ -288,34 +336,6 @@ class tiledGameMode(gameMode):
 				self.elementsDict[name].onScrollDown()
 			else:
 				self.scrolledDistance = self.scrolledDistance - gameLogic.ZOOM_SPEED
-	def handleMouseOver(self,name,isLeftMouseDown):
-		if(self.modal != None):
-			if(self.elementsDict.has_key(name)):
-				if(hasattr(self.elementsDict[name],"modal")):#only modalButton should have am attribute 'modal'
-					self.mousedOverObject = self.elementsDict[name]
-		else:
-			if(isLeftMouseDown > 0):#allows onLeftClickDown to be called for tiles when the mouse is dragged over them
-				if(hasattr(gameState.getGameMode(),"selectedButton")):
-					if(gameState.getGameMode().selectedButton != None):
-						if(gameState.getGameMode().selectedButton.tileType != cDefines.defines['CITY_TILE_INDEX']):
-							if(self.elementsDict.has_key(name)):
-								if(hasattr(self.elementsDict[name],"tileValue")):#node
-									self.elementsDict[name].onLeftClickDown()
-			if(self.mousedOverObject != None):
-				if(self.mousedOverObject.name != name):
-					if(hasattr(self.mousedOverObject,"onMouseOut")):
-						self.mousedOverObject.onMouseOut()
-					self.mousedOverObject = None
-			if(self.elementsDict.has_key(name)):
-				if(self.mousedOverObject != None):
-					if(self.mousedOverObject.name != name):
-						self.mousedOverObject = self.elementsDict[name]
-						if(hasattr(self.elementsDict[name],"onMouseOver")):
-							self.elementsDict[name].onMouseOver()
-				else:
-					self.mousedOverObject = self.elementsDict[name]
-					if(hasattr(self.elementsDict[name],"onMouseOver")):
-						self.elementsDict[name].onMouseOver()
 
 class playMode(tiledGameMode):
 	def __init__(self,args):
@@ -341,6 +361,8 @@ class playMode(tiledGameMode):
 		self.gotoMode = False
 		self.playerMissing = False
 		self.missingPlayers = []
+		self.musicIndeces = [cDefines.defines["OMAR_7_INDEX"]]
+		self.restartMusic = True
 	def getChooseNextDelayed(self):
 		if(self.chooseNextDelayed):
 			retVal = self.chooseNextDelayed
@@ -674,7 +696,16 @@ class mapEditorMode(tiledGameMode):
 class textBasedMenuMode(gameMode):
 	def __init__(self,args):
 		gameMode.__init__(self,args)
+#		self.showCursor = False
+	def handleMouseOver(self,name,isLeftMouseDown):
+		return
+	def handleMouseMovement(self,name,mouseX,mouseY):
+		return
+	def setFocus(self,elem):
+		return
 	def keyDown(self,keycode):
+		if(keycode == "up" or keycode == "down"):
+			self.soundIndeces.append(cDefines.defines["DRAGON_FIRE_INDEX"])
 		if(keycode == "up"):
 			if(uiElements.menuButton.selectedIndex == 0):
 				uiElements.menuButton.buttonsList[uiElements.menuButton.selectedIndex].textColor  = uiElements.menuButton.normalTextColor

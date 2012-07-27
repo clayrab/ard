@@ -47,14 +47,14 @@ class uiElement:
 		self.frameLength = frameLength
 		self.frameCount = frameCount
 		self.focused = False
-		if(mouseOverColor != None):
-			self.mouseOverColor = mouseOverColor
-		elif(color != None):
-			self.mouseOverColor = color
-		elif(textColor != None):
-			self.mouseOverColor = textColor
-		else:
-			self.mouseOverColor = "FF FF FF"
+#		if(mouseOverColor != None):
+		self.mouseOverColor = mouseOverColor
+#		elif(color != None):
+#			self.mouseOverColor = color
+#		elif(textColor != None):
+#			self.mouseOverColor = textColor
+#		else:
+#			self.mouseOverColor = "FF FF FF"
 		if(self.color == None):
 			self.color = "FF FF FF"
 		if(self.textColor == None):
@@ -75,7 +75,7 @@ class uiElement:
 		gameState.getGameMode().resortElems = True
 
 class clickableElement(uiElement):
-	def __init__(self,xPos,yPos,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,textXPos=0.0,textYPos=0.0,fontIndex=0):
+	def __init__(self,xPos,yPos,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color=None,mouseOverColor=None,textXPos=0.0,textYPos=0.0,fontIndex=0):
 		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],color=color,mouseOverColor=mouseOverColor,textXPos=textXPos,textYPos=textYPos,fontIndex=fontIndex)
 
 class playerElement(clickableElement):
@@ -999,6 +999,7 @@ class gameTypeButton(clickableElement):
 		gameState.setTeamSize(self.teamSize)
 		if(hasattr(gameState.getGameMode(),"hostGameMode")):
 			gameState.getGameMode().setMap(gameState.getMapDatas()[self.teamSize-1][0].name)
+		gameState.getGameMode().soundIndeces.append(cDefines.defines["FINGER_CYMBALS_HIT_INDEX"])
 
 class da1v1Button(gameTypeButton):
 	def __init__(self,xPos,yPos,offColor="88 88 88"):
@@ -1144,7 +1145,7 @@ class menuButton(clickableElement):
 	normalTextColor = "1f 10 10"
 	currentGameMode = None
 	def __init__(self,xPos,yPos,text="",selected=False):
-		clickableElement.__init__(self,xPos,yPos,width=2.0,text=text,textColor=menuButton.normalTextColor,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],mouseOverColor="88 88 88",textSize=0.0013,fontIndex=1)
+		clickableElement.__init__(self,xPos,yPos,width=2.0,text=text,textColor=menuButton.normalTextColor,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],mouseOverColor=menuButton.selectedTextColor,textSize=0.0013,fontIndex=1)
 		if(menuButton.currentGameMode != gameState.getGameMode()):
 			menuButton.index = 0
 			menuButton.buttonsList = []
@@ -1165,6 +1166,7 @@ class menuButtonGameModeSelector(menuButton):
 		self.gameMode = gameMode
 	def onClick(self):
 		gameState.setGameMode(self.gameMode)
+		gameState.getGameMode().soundIndeces.append(cDefines.defines["DARBUKA_HIT_INDEX"])
 
 class mapEditSelectButton(menuButtonGameModeSelector):
 	def onClick(self):
@@ -1485,6 +1487,7 @@ class createGameButton(clickableElement):
 		clickableElement.__init__(self,xPos,yPos,textureIndex=texIndex("CREATE_GAME_BUTTON_LARGE"),width=texWidth("CREATE_GAME_BUTTON_LARGE"),height=texHeight("CREATE_GAME_BUTTON_LARGE"))
 	def onClick(self):
 		gameState.getGameFindClient().sendCommand("createGameRoom",gameState.getGameMode().roomNameField.realText + "|" + str(gameState.getTeamSize()) + "|" + gameState.getGameMode().mapNameField.text)
+		gameState.getGameMode().soundIndeces.append(cDefines.defines["DARBUKA_HIT_INDEX"])
 
 class createGameButtun(clickableElement):
 	def __init__(self,xPos,yPos):
@@ -1498,6 +1501,7 @@ class createGameButtun(clickableElement):
 			print "socket.error:"
 			print socket.error
 		gameState.setGameMode(gameModes.lanGameRoomMode,["127.0.0.1"])
+		gameState.getGameMode().soundIndeces.append(cDefines.defines["DARBUKA_HIT_INDEX"])
 #		try:
 #			client.startClient('127.0.0.1',6666)
 #		except socket.error:
@@ -1510,6 +1514,8 @@ class onlineBackButton(clickableElement):
 		clickableElement.__init__(self,xPos,yPos,textureIndex=texIndex("BACK_BUTTON"),width=texWidth("BACK_BUTTON"),height=texHeight("BACK_BUTTON"))
 	def onClick(self):
 		gameState.getGameFindClient().sendCommand("subscribe","lobby")
+		gameState.getGameMode().soundIndeces.append(cDefines.defines["DARBUKA_HIT_INDEX"])
+
 
 class backButton(clickableElement):
 	def __init__(self,xPos,yPos,gameMode):
@@ -1517,6 +1523,7 @@ class backButton(clickableElement):
 		self.gameMode = gameMode
 	def onClick(self):
 		gameState.setGameMode(self.gameMode)
+		gameState.getGameMode().soundIndeces.append(cDefines.defines["DARBUKA_HIT_INDEX"])
 
 class logoutButton(clickableElement):
 	def __init__(self,xPos,yPos,gameMode):
@@ -1539,7 +1546,7 @@ class addAIButton(clickableElement):
 		clickableElement.__init__(self,xPos,yPos,textureIndex=texIndex("ADD_AI_BUTTON"),width=texWidth("ADD_AI_BUTTON"),height=texHeight("ADD_AI_BUTTON"))
 	def onClick(self):
 		server.addAIPlayer()
-		print 'click'
+		gameState.getGameMode().soundIndeces.append(cDefines.defines["FINGER_CYMBALS_HIT_INDEX"])
 
 class autoSelectCheckBox(clickableElement):
 	def __init__(self,xPos,yPos):

@@ -5,6 +5,7 @@ import gameState
 import gameModes
 import gameLogic
 import uiElements
+import cDefines
 
 SERVER = -1
 SINGLE_PLAYER = -2
@@ -93,6 +94,7 @@ class Commands:
     @staticmethod
     def startGame():
         gameState.setGameMode(gameModes.playMode)
+        gameState.getGameMode().soundIndeces.append(cDefines.defines["DARBUKA_HIT_INDEX"])
     @staticmethod
     def chooseNextUnit():
         gameState.getGameMode().chooseNextUnit()

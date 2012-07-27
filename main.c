@@ -5,6 +5,7 @@
 
 #include <SDL.h>
 #include <SDL_opengl.h>
+#include <SDL_mixer.h>
 
 #include <libpng12/png.h>
 #include <Python/Python.h>
@@ -18,12 +19,6 @@
 
 #include "fonts.c"
 #include "defines.c"
-
-float timeTest;
-float timeTest2;
-float timeTest3;
-float timeTest4;
-float timeTestTotal;
 
 float focusSpeed = 0.0;
 
@@ -110,6 +105,8 @@ GLdouble mouseMapPosXPrevious, mouseMapPosYPrevious, mouseMapPosZPrevious = -ini
 GLint bufRenderMode;
 float *textureVertices;
 GLuint texturesArray[300];
+Mix_Chunk * soundArray[50];
+Mix_Music * musicArray[50];
 GLuint tilesLists;
 GLuint selectionBoxList;
 GLuint unitList;
@@ -1025,7 +1022,6 @@ int frameCount;
 int isFocused;
 
 void drawUIElement(PyObject * uiElement){
-  //timetest4 = SDL_GetTicks();
   isNode = PyObject_HasAttrString(uiElement,"tileValue");
   if(!isNode){
     pyXPosition = PyObject_GetAttrString(uiElement,"xPosition");
@@ -1061,7 +1057,11 @@ void drawUIElement(PyObject * uiElement){
     textColor = PyString_AsString(pyTextColor);
     textSize = PyFloat_AsDouble(pyTextSize);
     color = PyString_AsString(pyColor);
-    mouseOverColor = PyString_AsString(pyMouseOverColor);
+    if(pyMouseOverColor != Py_None){
+      mouseOverColor = PyString_AsString(pyMouseOverColor);
+    }else{
+      mouseOverColor = NULL;
+    }
     textXPosition = PyFloat_AsDouble(pyTextXPosition);
     textYPosition = PyFloat_AsDouble(pyTextYPosition);
     cursorPosition = PyFloat_AsDouble(pyCursorPosition);
@@ -1082,7 +1082,9 @@ void drawUIElement(PyObject * uiElement){
     Py_DECREF(pyTextColor);
     Py_DECREF(pyTextSize);
     Py_DECREF(pyColor);
-    Py_DECREF(pyMouseOverColor);
+    if(pyMouseOverColor != Py_None){
+      Py_DECREF(pyMouseOverColor);
+    }
     Py_DECREF(pyTextXPosition);
     Py_DECREF(pyTextYPosition);
     Py_DECREF(pyCursorPosition);
@@ -1120,7 +1122,6 @@ void drawUIElement(PyObject * uiElement){
 	  glPopName();
 	  glPopMatrix();
 	}
-	//timeTest3 = SDL_GetTicks();
   
 	if(PyObject_HasAttrString(uiElement,"realText")){
 	  pyRecalculateText = PyObject_GetAttrString(uiElement,"recalculateText");
@@ -1144,9 +1145,6 @@ void drawUIElement(PyObject * uiElement){
 	  }
 	  Py_DECREF(pyRecalculateText);	  
 	}
-	////timeTest3 = SDL_GetTicks()-timeTest3; printf("textShit: %f\n",timeTest3);
-	//timeTest3 = SDL_GetTicks();
-	//      printf("index: %ld %ld %f %f %f %f\n",name,textureIndex,xPosition,yPosition,width,height);
 	if(PyObject_HasAttrString(uiElement,"textQueue")){
 	  pyQueuedText = PyObject_CallMethod(uiElement,"getText",NULL);
 	  queuedText = PyString_AsString(pyQueuedText);
@@ -1163,11 +1161,9 @@ void drawUIElement(PyObject * uiElement){
 	  }
 	  Py_DECREF(pyQueuedText);
 	}
-	//timeTest3 = SDL_GetTicks()-timeTest3; printf("textShit: %f\n",timeTest3);
-	//timeTest3 = SDL_GetTicks();
 	if(PyObject_HasAttrString(uiElement,"text") && text[0] != 0){
 	  glColor3f(*red/255.0, *green/255.0, *blue/255.0);
-	  if(selectedName == name){
+	  if(selectedName == name && mouseOverColor != NULL){
 	    sscanf(mouseOverColor,"%X %X %X",red,green,blue);
 	  }else{
 	    sscanf(textColor,"%X %X %X",red,green,blue);
@@ -1182,14 +1178,11 @@ void drawUIElement(PyObject * uiElement){
 	  if(isFocused){
 	    drawText(text,fontIndex,cursorPosition,xPosition+width,NULL);
 	  }else{
-	    //timeTest3 = SDL_GetTicks();
 	    drawText(text,fontIndex,-1,xPosition+width,NULL);
-	    //timeTest3 = SDL_GetTicks()-timeTest3; printf("drawtext: %f\n",timeTest3);
 	  }	    
 	  glPopName();
 	  glPopMatrix();
 	}
-	//	timeTest3 = SDL_GetTicks()-timeTest3; printf("textShit: %f\n",timeTest3);
       }
       Py_DECREF(uiElement);
       if(name == selectedName && cursorIndex >= 0){
@@ -1197,17 +1190,19 @@ void drawUIElement(PyObject * uiElement){
       }
     }
   }
-  //timetest4 = SDL_GetTicks()-timeTest4; printf("drawelemtotal: %f\n",timeTest4);
 }
 float xPos;
 float yPos;
 float pointerWidth;
 float pointerHeight;
 char frameRate[20];
+PyObject * pyShowCursor;
+int showCursor = 0;
 void drawUI(){
-
   pyObj = PyObject_CallMethod(gameMode,"getUIElementsIterator",NULL);
-  //timeTest2 = SDL_GetTicks();
+  pyShowCursor = PyObject_GetAttrString(gameMode, "showCursor");//New reference
+  showCursor = PyLong_AsLong(pyShowCursor);
+  Py_DECREF(pyShowCursor);
   if(pyObj != NULL){
     UIElementsIterator = PyObject_GetIter(pyObj);//New reference
     while (uiElement = PyIter_Next(UIElementsIterator)) {
@@ -1216,9 +1211,8 @@ void drawUI(){
     Py_DECREF(UIElementsIterator);
     Py_DECREF(pyObj);
   }
-  //timeTest2 = SDL_GetTicks()-timeTest2; printf("draw elements: %f\n",timeTest2);
   glGetIntegerv(GL_RENDER_MODE,&bufRenderMode);
-  if(bufRenderMode==GL_RENDER){//need to hide the cursor during GL_SELECT
+  if(bufRenderMode==GL_RENDER && showCursor){//need to hide the cursor during GL_SELECT
     /*draw cursor*/
     glPushMatrix();
     glLoadIdentity();
@@ -1435,6 +1429,18 @@ static void initGL (){
   pngLoad(&texturesArray[FLAG_INDEX2],FLAG2);
   pngLoad(&texturesArray[FLAG_INDEX3],FLAG3);
   pngLoad(&texturesArray[ADD_AI_BUTTON_INDEX],ADD_AI_BUTTON);
+  
+  soundArray[WOOD_HIT_INDEX] = Mix_LoadWAV(WOOD_HIT);
+  soundArray[TUBE_HIT_INDEX] = Mix_LoadWAV(TUBE_HIT);
+  soundArray[DARBUKA_HIT_INDEX] = Mix_LoadWAV(DARBUKA_HIT);
+  soundArray[DARBUKA2_HIT_INDEX] = Mix_LoadWAV(DARBUKA2_HIT);
+  soundArray[FINGER_CYMBALS_HIT_INDEX] = Mix_LoadWAV(FINGER_CYMBALS_HIT);
+  soundArray[SWORD_HIT_INDEX] = Mix_LoadWAV(SWORD_HIT);
+  soundArray[DRAGON_FIRE_INDEX] = Mix_LoadWAV(DRAGON_FIRE);
+  soundArray[BOW_HIT_INDEX] = Mix_LoadWAV(BOW_HIT);
+
+  musicArray[OMAR_1_INDEX] = Mix_LoadMUS(OMAR_1);
+  musicArray[OMAR_7_INDEX] = Mix_LoadMUS(OMAR_7);
 
   vertexArrays[FOREST_TILE_INDEX] = *forestVertices;
   vertexArrays[GRASS_TILE_INDEX] = *grassVertices;
@@ -1577,14 +1583,14 @@ static void handleInput(){
       isFocusing = 1;
     }
   }
-    if(previousMousedoverName != selectedName){
-      if(PyObject_HasAttrString(gameMode,"handleMouseOver")){
-	pyObj = PyObject_CallMethod(gameMode,"handleMouseOver","(ii)",selectedName,leftButtonDown);//New reference
-	printPyStackTrace();
-	Py_DECREF(pyObj);
-      }
-      previousMousedoverName = selectedName;
+  if(previousMousedoverName != selectedName){
+    if(PyObject_HasAttrString(gameMode,"handleMouseOver")){
+      pyObj = PyObject_CallMethod(gameMode,"handleMouseOver","(ii)",selectedName,leftButtonDown);//New reference
+      printPyStackTrace();
+      Py_DECREF(pyObj);
     }
+    previousMousedoverName = selectedName;
+  }
 
   //SDL_Delay(20);//for framerate testing...
 
@@ -1863,7 +1869,6 @@ PyObject * pyChooseNextDelayed;
 int chooseNextDelayed;
 Uint32 chooseNextTimeStart;
 static void draw(){
-  //timeTest = SDL_GetTicks();
   if(PyObject_HasAttrString(gameMode,"chooseNextDelayed")){
     pyChooseNextDelayed = PyObject_CallMethod(gameMode,"getChooseNextDelayed",NULL);//New reference
     printPyStackTrace();
@@ -1900,10 +1905,7 @@ static void draw(){
   glLoadIdentity();
   glTranslatef(translateX,translateY,translateZ);
   glRenderMode(GL_SELECT);
-  //timeTest = SDL_GetTicks()-timeTest; printf("1: %f\n",timeTest);
-  //timeTest = SDL_GetTicks();
   drawBoard();
-  //timeTest = SDL_GetTicks()-timeTest; printf("drawBoard: %f\n",timeTest);
 
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
@@ -1912,7 +1914,6 @@ static void draw(){
   gluPickMatrix(mouseX,SCREEN_HEIGHT-mouseY,1,1,viewport);
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
-  //timeTest = SDL_GetTicks();
 
   hitsCnt = glRenderMode(GL_RENDER);
   processTheHits(hitsCnt,selectBuf);
@@ -1960,10 +1961,7 @@ static void draw(){
   glEnd();
   glTranslatef(translateX,translateY,translateZ);
   glDepthFunc(GL_GEQUAL);
-  //timeTest = SDL_GetTicks()-timeTest; printf("3: %f\n",timeTest);
-  //timeTest = SDL_GetTicks();
   drawBoard();
-  //timeTest = SDL_GetTicks()-timeTest; printf("drawBoard: %f\n",timeTest);
   glDepthFunc(GL_ALWAYS);
 
   glMatrixMode(GL_PROJECTION);
@@ -1971,19 +1969,32 @@ static void draw(){
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
   glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-  //timeTest = SDL_GetTicks();
   drawUI();
-  //timeTest = SDL_GetTicks()-timeTest; printf("drawUI: %f\n",timeTest);
-
   glFlush();
-  //timeTest = SDL_GetTicks();
   SDL_GL_SwapBuffers ();	
-  //timeTest = SDL_GetTicks()-timeTest; printf("swap: %f\n",timeTest);
 }
 PyObject * pyExit;
+int musicChannel = -2;
+int soundIndex = -1;
+int restartMusic = 0;
 static void mainLoop (){
   while ( !done ) {
     gameMode = PyObject_CallMethod(gameState,"getGameMode",NULL);
+    pyObj = PyObject_CallMethod(gameMode, "getRestartMusic",NULL);//New reference
+    restartMusic = PyLong_AsLong(pyObj);
+    if(!Mix_PlayingMusic() || restartMusic){
+      pyObj = PyObject_CallMethod(gameMode,"getMusic",NULL);
+      soundIndex = PyLong_AsLong(pyObj);
+      Mix_PlayMusic(musicArray[soundIndex], 0);
+      Py_DECREF(pyObj);
+    }
+    pyObj = PyObject_CallMethod(gameMode,"getSound",NULL);
+    while(pyObj != Py_None && pyObj != NULL){
+      soundIndex = PyLong_AsLong(pyObj);
+      Mix_PlayChannel(-1, soundArray[soundIndex], 0);
+      pyObj = PyObject_CallMethod(gameMode,"getSound",NULL);
+      Py_DECREF(pyObj);
+    }
     if(PyObject_HasAttrString(gameMode,"map")){
       theMap = PyObject_GetAttrString(gameMode, "map");//New reference
     }
@@ -1992,9 +2003,7 @@ static void mainLoop (){
     deltaTicks = SDL_GetTicks()-currentTick;
     currentTick = SDL_GetTicks();
     handleInput();
-    //timeTestTotal = SDL_GetTicks();
     draw();
-    //timeTestTotal = SDL_GetTicks()-timeTestTotal; printf("*****drawTotal******: %f\n",timeTestTotal);
     
     if(PyObject_HasAttrString(gameMode,"map")){
       Py_DECREF(theMap);
@@ -2019,10 +2028,21 @@ int nextPowerOf2(unsigned int v){
 }
 
 int main(int argc, char **argv){
-  if ( SDL_Init (SDL_INIT_VIDEO) < 0 ) {
+  if ( SDL_Init (SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0 ) {
     fprintf(stderr, "Couldn't initialize SDL: %s\n",SDL_GetError());
     exit(1);
   }
+
+  int audio_rate = 44100;//22050;
+  Uint16 audio_format = AUDIO_S16SYS;
+  int audio_channels = 2;
+  int audio_buffers = 4096;
+
+  if(Mix_OpenAudio(audio_rate, audio_format, audio_channels, audio_buffers) != 0) {
+    fprintf(stderr, "Unable to initialize audio: %s\n", Mix_GetError());
+    exit(1);
+  }
+
   SDL_GL_SetAttribute (SDL_GL_DEPTH_SIZE, 16);
   //  SDL_GL_SetAttribute (SDL_GL_DOUBLEBUFFER, 1);
   Uint32 flags = SDL_OPENGL;

@@ -185,9 +185,6 @@ class unit:
 	def __init__(self,unitType,player,xPos,yPos,node,level=None):
 		self.unitType = unitType
 		self.player = player
-		print 'player: ' + str(self.player)
-		print 'taemsize: ' + str(gameState.getTeamSize())
-		print 'team: ' + str(gameState.getTeamNumber())
 		self.team = (self.player)/gameState.getTeamSize()
 		self.ai = gameState.theAIs[self.player]
 		print self.ai
