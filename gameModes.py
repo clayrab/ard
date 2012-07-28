@@ -15,6 +15,7 @@
 #client:
 #handle disconnected host gracefully
 #player numbers are getting messed up during join/rejoin
+#start game with AI, exit, start another game with AI
 #fix text cursor
 #killing host before client causes error
 #host game then back then try to host game online('try again in 30 secs' is a lie)
@@ -537,8 +538,11 @@ class playMode(tiledGameMode):
 			elif(keycode == "a" or keycode == "A"):
 				self.autoSelectCheckBox.onClick()
 			elif(keycode == "g" or keycode == "G"):
-				if(self.selectedNode != None and self.selectedNode.unit != None):
-					self.gotoMode = True
+				if(not self.gotoMode):
+					if(self.selectedNode != None and self.selectedNode.unit != None and self.selectedNode.unit.gotoNode == None):
+						self.gotoMode = True
+				else:
+						self.gotoMode = False
 			elif(keycode == "k" or keycode == "K"):
 				if(self.nextUnit == self.selectedNode.unit):
 					uiElements.skip()
@@ -594,6 +598,16 @@ class playMode(tiledGameMode):
 					node = gameState.getGameMode().map.nodes[arr[1]][arr[0]]
 					gameLogic.playModeNode.movePath.append(node)
 					node.onMovePath = True
+			if(self.nextUnit != None and self.nextUnit.gotoNode != None):
+				print len(gameLogic.playModeNode.movePath)
+				if(len(gameLogic.playModeNode.movePath) > 0):
+					self.selectedNode.unit.movePath = gameLogic.playModeNode.movePath
+					self.selectedNode.unit.gotoNode = None
+					self.selectedNode.unit.move()
+				else:
+					print '********* need to test this ********'
+					gameLogic.aStarSearch.search(self.nextUnit.gotoNode,self.nextUnit.node,self.nextUnit.unitType.canFly,self.nextUnit.unitType.canSwim)
+
 			with client.commandLock:
 				if(self.timeToMove <= 0 and self.nextUnit != None and self.nextUnit.isControlled()):
 					gameState.getClient().sendCommand("skip")
@@ -705,7 +719,7 @@ class textBasedMenuMode(gameMode):
 		return
 	def keyDown(self,keycode):
 		if(keycode == "up" or keycode == "down"):
-			self.soundIndeces.append(cDefines.defines["DRAGON_FIRE_INDEX"])
+			self.soundIndeces.append(cDefines.defines["FINGER_CYMBALS_HIT_INDEX"])
 		if(keycode == "up"):
 			if(uiElements.menuButton.selectedIndex == 0):
 				uiElements.menuButton.buttonsList[uiElements.menuButton.selectedIndex].textColor  = uiElements.menuButton.normalTextColor

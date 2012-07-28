@@ -197,6 +197,7 @@ class unit:
 		self.attackPoints = 0
 		self.buildPoints = self.unitType.buildTime	
 		self.movePath = []
+		self.gotoNode = None
 		self.waiting = False
 		if(level != None):
 			self.level = level
@@ -567,12 +568,16 @@ class playModeNode(node):
 					if(len(gameState.getGameMode().selectedNode.unit.movePath) > 0):
 						for node in gameState.getGameMode().selectedNode.unit.movePath:
 							node.onMovePath = False
+					gameState.getGameMode().selectedNode.unit.movePath = playModeNode.movePath
+					if(len(gameState.getGameMode().selectedNode.unit.movePath) == 0):#movepath wasn't done calculating
+						gameState.getGameMode().selectedNode.unit.gotoNode = self
+						self.onMovePath = True
+						gameState.getGameMode().gotoMode = False
+					else:
+						gameState.getGameMode().selectedNode.unit.gotoNode = None
 					if(gameState.getGameMode().selectedNode.unit == gameState.getGameMode().nextUnit):
-						gameState.getGameMode().selectedNode.unit.movePath = playModeNode.movePath
 						if(len(gameState.getGameMode().selectedNode.unit.movePath) > 0 ):
 							gameState.getGameMode().selectedNode.unit.move()
-					else:
-						gameState.getGameMode().selectedNode.unit.movePath = playModeNode.movePath
 			else:
 				selectNode(self)
 	def toggleCursor(self):
@@ -698,6 +703,7 @@ class aStarThread():
 		self.map = None
 		self.nodes = []
 		self.polarity = 0
+		self.startNode = None
 		self.endNode = None
 		self.canFly = False
 		self.canSwim = True
@@ -711,9 +717,6 @@ class aStarThread():
 #		Process.__init__(self)
 	@staticmethod
 	def runTarget(pipe):
-#		aStarSearch.queueFuck = queue
-#	startNode.findAStarHeuristicCost(aStarSearch.endNode)
-	#	aStarSearch.openNodes.append(startNode)
 		while True:
 			if(pipe.poll()):
 				data = pipe.recv()
@@ -729,13 +732,14 @@ class aStarThread():
 					aStarSearch.map.nodes[data[2]][data[1]].unit = False
 #					aStarSearch.map.nodes[data[4]][data[3]].unit = True
 				else:
-					aStarSearch.movePath = []
-					aStarSearch.resetNodes()
-					aStarSearch.canFly = data[4]
-					aStarSearch.canSwim = data[5]
-					aStarSearch.endNode = aStarSearch.map.nodes[data[3]][data[2]]
-					startNode = aStarSearch.map.nodes[data[1]][data[0]]
-					aStarSearch.openNodes.append(startNode)
+					if(not(aStarSearch.endNode == aStarSearch.map.nodes[data[3]][data[2]] and aStarSearch.startNode == aStarSearch.map.nodes[data[1]][data[0]])):
+						aStarSearch.movePath = []
+						aStarSearch.resetNodes()
+						aStarSearch.canFly = data[4]
+						aStarSearch.canSwim = data[5]
+						aStarSearch.endNode = aStarSearch.map.nodes[data[3]][data[2]]
+						aStarSearch.startNode = aStarSearch.map.nodes[data[1]][data[0]]
+						aStarSearch.openNodes.append(aStarSearch.startNode)
 			else:
 				aStarSearch.aStarSearchRecurse()
         @staticmethod

@@ -1982,12 +1982,12 @@ static void mainLoop (){
     gameMode = PyObject_CallMethod(gameState,"getGameMode",NULL);
     pyObj = PyObject_CallMethod(gameMode, "getRestartMusic",NULL);//New reference
     restartMusic = PyLong_AsLong(pyObj);
-    if(!Mix_PlayingMusic() || restartMusic){
+    /*if(!Mix_PlayingMusic() || restartMusic){
       pyObj = PyObject_CallMethod(gameMode,"getMusic",NULL);
       soundIndex = PyLong_AsLong(pyObj);
       Mix_PlayMusic(musicArray[soundIndex], 0);
       Py_DECREF(pyObj);
-    }
+      }*/
     pyObj = PyObject_CallMethod(gameMode,"getSound",NULL);
     while(pyObj != Py_None && pyObj != NULL){
       soundIndex = PyLong_AsLong(pyObj);
