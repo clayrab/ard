@@ -22,17 +22,11 @@ def getMapDatas():
 	global mapDatas
 	return mapDatas
 
-playerUserNames = [
-False,
-False,
-False,
-False,
-False,
-False,
-False,
-False,
-]
-
+playerUserNames = [False,False,False,False,False,False,False,False,]#need this because arbitrary players can leave, unlike ai players
+def resetPlayerUserNames():
+	global playerUserNames
+	playerUserNames = [False,False,False,False,False,False,False,False,]
+	
 unitTypesList = []
 dirList=os.listdir("units")
 for fileName in dirList:
@@ -174,10 +168,10 @@ def resetPlayers():
 def getPlayers():
 	global thePlayers
 	return thePlayers
-	playersCopy = []
+#	playersCopy = []
 #	with thePlayersLock:
-	playersCopy = copy.copy(thePlayers)
-	return playersCopy
+#	playersCopy = copy.copy(thePlayers)
+#	return playersCopy
 	
 theAIs = [None]*8
 def addAIPlayer(aiPlayer):
@@ -185,5 +179,5 @@ def addAIPlayer(aiPlayer):
     print theAIs
 def resetAIs():
     global theAIs
-    theAIs = {}
+    theAIs = [None]*8
 

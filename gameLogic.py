@@ -91,6 +91,7 @@ class AIPlayer(Player):
 			gameState.getClient().sendCommand("skip")
 			
 		gameState.getClient().sendCommand("chooseNextUnit")
+		print 'done'
 class unitType:
 	def __init__(self,name,textureIndex,movementSpeed,attackSpeed,attackPower,armor,range,health,canFly,canSwim,costGreen,costBlue,buildTime,movementSpeedBonus,researchCostGreen,researchCostBlue,researchTime,canAttackGround=False):
 		self.name = name

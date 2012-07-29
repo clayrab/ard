@@ -13,8 +13,6 @@
 #report game state(to look for cheaters/bugs)
 
 #client:
-#handle disconnected host gracefully
-#player numbers are getting messed up during join/rejoin
 #start game with AI, exit, start another game with AI
 #fix text cursor
 #killing host before client causes error
@@ -24,12 +22,12 @@
 #make spacebar cycle thru summoners when not player's turn
 #map name clickable to view map from findgamemode
 #testing connection timeout
+#handle disconnects gracefully
 #sound effects
 #in-game chat
 #mouseover effects
 #show move speed and attack speed
 #select box shouldn't be green for uncontrolled nextunit
-#change the way a-star works so that there is no delay when waiting for it(this is now partially solved with gotomode)
 #icons for green and blue wood
 #healing animation
 #blunt/explosion animation?
@@ -518,6 +516,7 @@ class playMode(tiledGameMode):
 				columnCount = columnCount + 1
 				if(node.playerStartValue != 0):
 					node.addUnit(gameLogic.unit(gameState.theUnitTypes["swordsman"],node.playerStartValue-1,rowCount,columnCount,node,1))
+					node.addUnit(gameLogic.unit(gameState.theUnitTypes["swordsman"],node.playerStartValue-1,rowCount,columnCount,node,1))
 #					node.addFire(gameLogic.fire(node))
 #					node.addIce(gameLogic.ice(node))
 	
@@ -600,14 +599,12 @@ class playMode(tiledGameMode):
 					node.onMovePath = True
 			if(self.nextUnit != None and self.nextUnit.gotoNode != None):
 				print len(gameLogic.playModeNode.movePath)
-				if(len(gameLogic.playModeNode.movePath) > 0):
-					self.selectedNode.unit.movePath = gameLogic.playModeNode.movePath
-					self.selectedNode.unit.gotoNode = None
-					self.selectedNode.unit.move()
+				if(len(gameLogic.playModeNode.movePath) > 0 and gameLogic.playModeNode.movePath[0] in self.nextUnit.node.neighbors and gameLogic.playModeNode.movePath[-1] == self.nextUnit.gotoNode):
+					self.nextUnit.movePath = gameLogic.playModeNode.movePath
+					self.nextUnit.gotoNode = None
+					self.nextUnit.move()
 				else:
-					print '********* need to test this ********'
 					gameLogic.aStarSearch.search(self.nextUnit.gotoNode,self.nextUnit.node,self.nextUnit.unitType.canFly,self.nextUnit.unitType.canSwim)
-
 			with client.commandLock:
 				if(self.timeToMove <= 0 and self.nextUnit != None and self.nextUnit.isControlled()):
 					gameState.getClient().sendCommand("skip")
@@ -974,7 +971,7 @@ class lanGameRoomMode(gameRoomMode):
 			if(self.elementsDict[name].textureIndex == texIndex("BACK_BUTTON")):
 				del self.elementsDict[name]
 				break
-		uiElements.backButton(-0.930,0.9,newGameScreenMode)
+		uiElements.lanBackButton(-0.930,0.9,newGameScreenMode)
 
 class createGameMode(tiledGameMode):
 	def __init__(self,args):

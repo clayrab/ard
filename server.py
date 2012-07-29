@@ -15,6 +15,7 @@ server = None
 
 def addNetworkPlayer(requestHandler):
     players = gameState.getPlayers()
+    print players
     for i in range(0,8):
         if(players[i] == None):
             player = gameState.addPlayer(playerClass=gameLogic.NetworkPlayer,playerNumber=i,requestHandler=requestHandler)
@@ -153,6 +154,9 @@ def startServer(serverIP,port=0):
     with serverLock:
         global server
         gameState.resetPlayers()
+        gameState.resetAIs()
+        gameState.resetPlayerUserNames()
+        gameLogic.AIPlayer.nextAINumber = 1
         if(server == None):
             if(port == 0):
                 port = int(gameState.getConfig()["serverPort"])

@@ -244,41 +244,6 @@ class Commands:
         node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
         unitType = gameState.theUnitTypes[tokens[2]]
         node.city.queueResearch(unitType)
-#    @staticmethod
-#    def stopWaiting(args):
-#        tokens = args.split(" ")
-#        node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
-#        node.unit.waiting = False
-
-#        if(uiElements.unitViewer.theUnitViewer != None and uiElements.unitViewer.theUnitViewer.unit == node.unit):
-#            uiElements.unitViewer.reset()
-#        if(uiElements.actionViewer.theViewer.node == node):
-#            uiElements.actionViewer.theViewer.reset()
-#    @staticmethod
-#    def stopWaitingUndo(args):
- #       tokens = args.split(" ")
-#        node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
-#        node.unit.waiting = True
-#    @staticmethod
-#    def stopWaitingRedo(args):
-#        tokens = args.split(" ")
-#        node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
-#        node.unit.waiting = False
-#    @staticmethod
-#    def wait(args):
-#        tokens = args.split(" ")
-#        node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
-#        node.unit.waiting = True
-#    @staticmethod
-#    def waitUndo(args):
-#        tokens = args.split(" ")
-#        node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
-#        node.unit.waiting = False
-#    @staticmethod
-#    def waitRedo(args):
-#        tokens = args.split(" ")
-#        node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
-#        node.unit.waiting = True
     @staticmethod
     def chat(args):
         if(hasattr(gameState.getGameMode(),"chatDisplay")):
@@ -304,11 +269,6 @@ class Client:
         self.socket.connect((hostIP,port))
         self.socket.setblocking(0)
         self.commandLog = []
-#        self.delayedCommands = []
-#    def sendDelayedCommands(self):
-#        for command in self.delayedCommands:
-#             self.socket.send(command)
-#        self.delayedCommands = []
     def checkSocket(self):
         try:
             receivedData = self.socket.recv(1024)
