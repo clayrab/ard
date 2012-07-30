@@ -13,13 +13,8 @@
 #report game state(to look for cheaters/bugs)
 
 #client:
-#make spacebar cycle thru summoners when not player's turn
+#fix win/lose logic
 #fix text cursor
-
-#killing host before client not handled well
-#host game then back then try to host game online('try again in 30 secs' is a lie)
-#testing connection timeout
-#handle disconnects gracefully
 
 #in-game chat
 #roads? Draw them properly or remove them...
@@ -34,6 +29,12 @@
 #icons for green and blue wood
 #healing animation
 #blunt/explosion animation?
+
+#killing host before client not handled well
+#host game then back then try to host game online('try again in 30 secs' is a lie)
+#testing connection timeout
+#handle disconnects gracefully
+
 
 #BUGS
 #username cannot be 'empty' or 'Player x'
@@ -340,6 +341,7 @@ class playMode(tiledGameMode):
 	def __init__(self,args):
 		tiledGameMode.__init__(self)
 		self.units = []
+		self.summoners = []
 		self.elementalEffects = []
 		self.nextUnit = None
 		self.selectedNode = None
@@ -464,7 +466,6 @@ class playMode(tiledGameMode):
 			self.nextUnit = None
 		else:
 			self.nextUnit = random.choice(eligibleUnits)
-			print "nextUnit " + str(self.nextUnit.node.xPos) + ":" + str(self.nextUnit.node.yPos)
 			if(self.firstTurn):
 				if(self.nextUnit.isControlled()):
 					gameLogic.selectNode(self.nextUnit.node)
@@ -515,7 +516,8 @@ class playMode(tiledGameMode):
 			for node in row:
 				columnCount = columnCount + 1
 				if(node.playerStartValue != 0):
-					node.addUnit(gameLogic.unit(gameState.theUnitTypes["swordsman"],node.playerStartValue-1,rowCount,columnCount,node,1))
+					node.addUnit(gameLogic.unit(gameState.theUnitTypes["summoner"],node.playerStartValue-1,rowCount,columnCount,node,1))
+					node.addUnit(gameLogic.unit(gameState.theUnitTypes["summoner"],node.playerStartValue-1,rowCount,columnCount,node,1))
 					node.addUnit(gameLogic.unit(gameState.theUnitTypes["swordsman"],node.playerStartValue-1,rowCount,columnCount,node,1))
 #					node.addFire(gameLogic.fire(node))
 #					node.addIce(gameLogic.ice(node))
@@ -529,6 +531,16 @@ class playMode(tiledGameMode):
 				self.focusXPos = self.nextUnit.node.xPos
 				self.focusYPos = self.nextUnit.node.yPos
 				self.doFocus = 1
+			else:
+				if(self.selectedNode != None and self.selectedNode.unit != None and self.selectedNode.unit.unitType.name == "summoner"):
+					selectNext = False
+					for unit in self.summoners*2:
+						if(unit.isControlled()):
+							if(selectNext):
+								gameLogic.selectNode(unit.node)
+								break
+							if(unit == self.selectedNode.unit):
+								selectNext = True
 		elif(keycode == "escape"):
 			uiElements.menuModal()
 		else:
@@ -598,7 +610,6 @@ class playMode(tiledGameMode):
 					gameLogic.playModeNode.movePath.append(node)
 					node.onMovePath = True
 			if(self.nextUnit != None and self.nextUnit.gotoNode != None):
-				print len(gameLogic.playModeNode.movePath)
 				if(len(gameLogic.playModeNode.movePath) > 0 and gameLogic.playModeNode.movePath[0] in self.nextUnit.node.neighbors and gameLogic.playModeNode.movePath[-1] == self.nextUnit.gotoNode):
 					self.nextUnit.movePath = gameLogic.playModeNode.movePath
 					self.nextUnit.gotoNode = None
@@ -923,8 +934,6 @@ class gameRoomMode(tiledGameMode):
 		
 
 #		if(gameState.getClient() == None):#host connects to itself on createButtun.onClick
-		print self.hostIP
-		print self.hostPort
 		try:
 			client.startClient(self.hostIP,self.hostPort)
 		except socket.error as error:
@@ -937,7 +946,6 @@ class gameRoomMode(tiledGameMode):
 #		if(len(gameState.getNetworkPlayers()) == 1):
 			uiElements.addAIButton(0.35,0.504)
 			uiElements.startGameButton(0.795,0.504)
-		print 'done'
 	def redrawTeams(self):
 		players = gameState.getPlayers()
 		for elem in self.playerElements:

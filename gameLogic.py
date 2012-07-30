@@ -344,6 +344,8 @@ class unit:
 				for neighb in node.getNeighbors(5):
 					neighb.stopViewing(node.unit)
 				gameState.getGameMode().units.remove(node.unit)
+				if(unit.unitType.name == "summoner"):
+					gameState.getGameMode().summoners.remove(node.unit)
 				aStarSearch.parentPipe.send(["unitRemove",node.xPos,node.yPos])
 				if(node.unit.unitType == "summoner" and node.city != None):
 					node.city.researchProgress = {}
@@ -496,6 +498,8 @@ class node:
 			self.unit = unit
 			unit.node = self
 			gameState.getGameMode().units.append(unit)
+			if(unit.unitType.name == "summoner"):
+				gameState.getGameMode().summoners.append(unit)
 			if(gameState.getPlayerNumber() == (self.playerStartValue-1) or gameState.getPlayerNumber() == -2):
 				for neighb in self.getNeighbors(5):
 					neighb.startViewing(self.unit)

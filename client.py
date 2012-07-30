@@ -169,8 +169,8 @@ class Commands:
         tokens = args.split(" ")
         node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
         unitType = gameState.theUnitTypes[tokens[2]]
-        gameState.getGameMode().players[node.unit.player-1].greenWood = gameState.getGameMode().players[node.unit.player-1].greenWood - (node.city.researchProgress[unitType][0]*unitType.costGreen)
-        gameState.getGameMode().players[node.unit.player-1].blueWood = gameState.getGameMode().players[node.unit.player-1].blueWood - (node.city.researchProgress[unitType][0]*unitType.costBlue)
+        gameState.getGameMode().players[node.unit.player].greenWood = gameState.getGameMode().players[node.unit.player].greenWood - (node.city.researchProgress[unitType][0]*unitType.costGreen)
+        gameState.getGameMode().players[node.unit.player].blueWood = gameState.getGameMode().players[node.unit.player].blueWood - (node.city.researchProgress[unitType][0]*unitType.costBlue)
         node.city.queueUnit(gameLogic.unit(unitType,node.city.player,node.xPos,node.yPos,node))
         if(gameState.getGameMode().selectedNode == node and hasattr(uiElements.viewer.theViewer,"isCityViewer")):
             uiElements.viewer.theViewer.destroy()
@@ -199,11 +199,11 @@ class Commands:
             cancelledQueuedThing = node.city.unitBuildQueue.pop(index-1)
             node.city.cancelledUnits.append((cancelledQueuedThing,index,))
             if(hasattr(cancelledQueuedThing,"unitType")):#unit
-                gameState.getGameMode().players[node.unit.player-1].greenWood = gameState.getGameMode().players[node.unit.player-1].greenWood + cancelledQueuedThing.unitType.costGreen
-                gameState.getGameMode().players[node.unit.player-1].blueWood = gameState.getGameMode().players[node.unit.player-1].blueWood + cancelledQueuedThing.unitType.costBlue
+                gameState.getGameMode().players[node.unit.player].greenWood = gameState.getGameMode().players[node.unit.player].greenWood + cancelledQueuedThing.unitType.costGreen
+                gameState.getGameMode().players[node.unit.player].blueWood = gameState.getGameMode().players[node.unit.player].blueWood + cancelledQueuedThing.unitType.costBlue
             else:#unittype
-                gameState.getGameMode().players[node.unit.player-1].greenWood = gameState.getGameMode().players[node.unit.player-1].greenWood + cancelledQueuedThing.researchCostGreen
-                gameState.getGameMode().players[node.unit.player-1].blueWood = gameState.getGameMode().players[node.unit.player-1].blueWood + cancelledQueuedThing.researchCostBlue
+                gameState.getGameMode().players[node.unit.player].greenWood = gameState.getGameMode().players[node.unit.player].greenWood + cancelledQueuedThing.researchCostGreen
+                gameState.getGameMode().players[node.unit.player].blueWood = gameState.getGameMode().players[node.unit.player].blueWood + cancelledQueuedThing.researchCostBlue
         if(gameState.getGameMode().selectedNode == node and hasattr(uiElements.viewer.theViewer,"isCityViewer")):
             uiElements.viewer.theViewer.destroy()
             uiElements.viewer.theViewer = uiElements.cityViewer(node)
@@ -227,8 +227,8 @@ class Commands:
         node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
         unitType = gameState.theUnitTypes[tokens[2]]
         node.city.queueResearch(unitType)
-        gameState.getGameMode().players[node.unit.player-1].greenWood = gameState.getGameMode().players[node.unit.player-1].greenWood - unitType.researchCostGreen
-        gameState.getGameMode().players[node.unit.player-1].blueWood = gameState.getGameMode().players[node.unit.player-1].blueWood - unitType.researchCostBlue
+        gameState.getGameMode().players[node.unit.player].greenWood = gameState.getGameMode().players[node.unit.player].greenWood - unitType.researchCostGreen
+        gameState.getGameMode().players[node.unit.player].blueWood = gameState.getGameMode().players[node.unit.player].blueWood - unitType.researchCostBlue
         if(gameState.getGameMode().selectedNode == node and hasattr(uiElements.viewer.theViewer,"isCityViewer")):
             uiElements.viewer.theViewer.destroy()
             uiElements.viewer.theViewer = uiElements.cityViewer(node)
