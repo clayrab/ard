@@ -37,7 +37,7 @@ class Commands:
     @staticmethod
     def showRoom(args):
         tokens = args.split("|",1)
-        gameState.setGameMode(gameModes.gameFindMode,tokens)
+        gameState.setGameMode(gameModes.findGameMode,tokens)
 #    @staticmethod
 #    def seedRNG(seed):
 #        random.seed(seed)

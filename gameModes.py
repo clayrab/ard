@@ -13,27 +13,27 @@
 #report game state(to look for cheaters/bugs)
 
 #client:
-#start game with AI, exit, start another game with AI
-#fix text cursor
-#killing host before client causes error
-#host game then back then try to host game online('try again in 30 secs' is a lie)
-#units placed initially are not in astar
-#back button in online play is still massively fucked
 #make spacebar cycle thru summoners when not player's turn
-#map name clickable to view map from findgamemode
+#fix text cursor
+
+#killing host before client not handled well
+#host game then back then try to host game online('try again in 30 secs' is a lie)
 #testing connection timeout
 #handle disconnects gracefully
-#sound effects
+
 #in-game chat
+#roads? Draw them properly or remove them...
+#save game
+#handle reconnect... requires ability to save/share game state
+#ai
+#fix quick play map selection and AI-auto-join
+#sound effects
 #mouseover effects
 #show move speed and attack speed
 #select box shouldn't be green for uncontrolled nextunit
 #icons for green and blue wood
 #healing animation
 #blunt/explosion animation?
-#roads? Draw them properly or remove them...
-#save game
-#handle reconnect... requires ability to save/share game state
 
 #BUGS
 #username cannot be 'empty' or 'Player x'
@@ -827,7 +827,7 @@ class loginMode(gameMode):
 			gameState.setGameMode(newGameScreenMode)
 			uiElements.smallModal("Cannot connect to server.")
 
-class gameFindMode(gameMode):
+class findGameMode(gameMode):
 	def __init__(self,args):		
 		self.roomName = args[0]
 		self.rooms = []
@@ -1020,5 +1020,14 @@ class hostGameMode(createGameMode):
 		uiElements.da4v4Button(-0.440,0.9,offColor="AA AA AA")
 		uiElements.createGameButtun(0.717,-0.616)		
 		gameState.getGameMode().setMap(gameState.getMapDatas()[0][0].name)
+
+class mapViewMode(createGameMode):
+	def addUIElements(self):
+		self.mapNameField = uiElements.uiElement(-1.0+texWidth("CREATE_GAME_BACKGROUND_LEFT"),0.85,fontIndex=3,textColor="ee ed 9b")
+#		uiElements.backButton(-0.930,0.9,newGameScreenMode)
+		uiElements.onlineBackButton(-0.930,0.9)
+		gameState.getGameMode().setMap(gameState.getMapDatas()[0][0].name)
+	
+	
 
 gameState.setGameMode(newGameScreenMode)

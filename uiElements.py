@@ -810,7 +810,8 @@ class scrollableRoomNameElement(uiElement):
 
 class scrollableMapNameElement(uiElement):
 	def onClick(self):
-		print 'click'
+		gameState.setMapName(self.text)
+		gameState.setGameMode(gameModes.mapViewMode)
 
 class scrollableRoomElement(scrollableElement):
 	def __init__(self,xPos,yPos,roomName,mapName,playerCount,maxPlayerCount,text="",textSize=0.0005):
@@ -1023,13 +1024,20 @@ class createRoomButton(clickableElement):
 	def onClick(self):
 		try:
 			server.startServer('')
-			client.startClient('127.0.0.1')
-		except socket.error:
-#			gameState.setGameMode(gameModes.gameFindMode,"lobby")
-#			gameState.getGameFindClient().sendCommand("subscribe","lobby")
-			
+		except socket.error, msg:
 			socketErrorModal()
+			print 'server start error'
+			print socket.error
+			print msg
 			return
+#		try:
+#			client.startClient('127.0.0.1')
+#		except socket.error, msg:
+#			socketErrorModal()
+#			print 'client start error'
+#			print socket.error
+#			print msg
+#			return
 		teamSize = 0
 		for button in gameTypeButton.buttons:
 			if(button.selected):

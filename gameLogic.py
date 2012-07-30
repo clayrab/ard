@@ -597,7 +597,7 @@ class playModeNode(node):
 				gameState.getGameMode().selectedNode.unit == gameState.getGameMode().nextUnit,#1
 				gameState.getGameMode().selectedNode.unit.isControlled(),#2
 				self.findDistance(gameState.getGameMode().selectedNode,gameState.getGameMode().map.polarity) <= float(gameState.getGameMode().selectedNode.unit.unitType.range),#3
-				self.unit != None,#4
+				self.unit != None and self.visible,#4
 				self.unit != None and not self.unit.isOwnTeam(),#5
 				gameState.getGameMode().selectedNode.unit.unitType.name == "white mage",#6
 				gameState.getGameMode().selectedNode != None and self == gameState.getGameMode().selectedNode,#7
