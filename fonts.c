@@ -318,14 +318,12 @@ int drawText(char* str,int fontIndex,int cursorPosition,float rightMargin,GLdoub
       glPushMatrix();
       }
   }
-  /*
   if(strPosition == cursorPosition){
     drawCursor();
   }
   glPushName(strPosition);
   glCallList(list_base+(2*32));//draw a space at the end for cursor position
   glPopName();
-  */
   glPopMatrix();
   return numLines;
 }

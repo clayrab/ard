@@ -13,9 +13,6 @@
 #report game state(to look for cheaters/bugs)
 
 #client:
-#fix win/lose logic
-#fix text cursor
-
 #in-game chat
 #roads? Draw them properly or remove them...
 #save game
@@ -34,7 +31,6 @@
 #host game then back then try to host game online('try again in 30 secs' is a lie)
 #testing connection timeout
 #handle disconnects gracefully
-
 
 #BUGS
 #username cannot be 'empty' or 'Player x'
@@ -634,14 +630,14 @@ class playMode(tiledGameMode):
 			self.previousTicks = self.ticks		
 			gameMode.onDraw(self,deltaTicks)
 	def addUIElements(self):
-		if(gameState.getClient() == None):#single player game
-			server.startServer('')
-			client.startClient('127.0.0.1')
+#		if(gameState.getClient() == None):#single player game
+#			server.startServer('')
+#			client.startClient('127.0.0.1')
 # 			client.startClient('192.168.0.102')
 # 			client.startClient('84.73.77.222')
-			gameState.setPlayerNumber(-2)
-			gameState.addPlayer(playerNumber=1).isOwnPlayer = True
-			gameState.addPlayer(playerNumber=2).isOwnPlayer = True
+#			gameState.setPlayerNumber(-2)
+#			gameState.addPlayer(playerNumber=1).isOwnPlayer = True
+#			gameState.addPlayer(playerNumber=2).isOwnPlayer = True
 		self.players = gameState.getPlayers()
 		uiElements.uiElement(0.718,-0.932,textureIndex=texIndex("CHECKBOXES_BACKGROUND"),width=texWidth("CHECKBOXES_BACKGROUND"),height=texHeight("CHECKBOXES_BACKGROUND"))
 		self.autoSelectCheckBox = uiElements.autoSelectCheckBox(0.735,-0.94)
@@ -765,7 +761,7 @@ class newGameScreenMode(textBasedMenuMode):
 	def addUIElements(self):
 		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])
 		uiElements.uiElement(-0.5*texWidth("TITLE"),0.45,textureIndex=texIndex("TITLE"),width=texWidth("TITLE"),height=texHeight("TITLE"))
-		uiElements.menuButtonGameModeSelector(-0.18,-0.34,quickPlayMapSelectMode,text="Quick Play")
+		uiElements.menuButtonGameModeSelector(-0.18,-0.34,quickPlayMode,text="Quick Play")
 		uiElements.menuButtonGameModeSelector(-0.28,-0.46,joinLANGameScreenMode,text="Join LAN Game")
 		uiElements.menuButtonGameModeSelector(-0.30,-0.58,hostGameMode,text="Host LAN Game")
 		uiElements.menuButtonGameModeSelector(-0.19,-0.70,loginMode,text="Play Online")
@@ -778,17 +774,6 @@ class comingSoonMode(textBasedMenuMode):
 		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])
 		uiElements.menuButtonGameModeSelector(-0.45,0.0,newGameScreenMode,text="campaign mode coming soon!")
 		
-class quickPlayMapSelectMode(textBasedMenuMode):
-	def addUIElements(self):
-		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])
-		dirList=os.listdir("maps")
-		heightDelta = 0.0
-		for fileName in dirList:
-			if(fileName.endswith(".map")):
-				heightDelta = heightDelta - 0.1
-				uiElements.mapPlaySelectButton(-0.16,0.3+heightDelta,playMode,text=fileName[0:len(fileName)-4])
-		uiElements.backButton(-0.930,0.9,newGameScreenMode)
-
 class mapEditorSelectMode(textBasedMenuMode):
 	def addUIElements(self):
 		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])
@@ -1039,6 +1024,16 @@ class mapViewMode(createGameMode):
 		uiElements.onlineBackButton(-0.930,0.9)
 		gameState.getGameMode().setMap(gameState.getMapDatas()[0][0].name)
 	
+class quickPlayMode(createGameMode):
+	def addUIElements(self):
+		self.mapNameField = uiElements.uiElement(-1.0+texWidth("CREATE_GAME_BACKGROUND_LEFT"),0.85,fontIndex=3,textColor="ee ed 9b")
+		server.startServer('')
+		client.startClient('127.0.0.1')
+		server.addAIPlayer()
+		uiElements.backButton(-0.930,0.9,newGameScreenMode)
+		gameState.getGameMode().setMap(gameState.getMapDatas()[0][0].name)
+		uiElements.startGameButton(0.806,-0.616)
+#uiElements.createGameButtun(0.717,-0.616)	
 	
 
 gameState.setGameMode(newGameScreenMode)
