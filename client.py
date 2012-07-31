@@ -289,7 +289,7 @@ class Client:
                             for command in self.commandLog:
                                 doCommand(command[0]+"Redo",command[1])
                         self.commandLog = []
-                    if(hasattr(gameState.getGameMode(),"nextUnit") and gameState.getGameMode().nextUnit.ai != None):
+                    if(hasattr(gameState.getGameMode(),"nextUnit") and gameState.getGameMode().nextUnit != None and gameState.getGameMode().nextUnit.ai != None):
                         gameState.getGameMode().nextUnit.ai.takeTurn()
                 else:
                     if(gameState.getPlayerNumber() == SERVER or int(tokens[1]) != gameState.getPlayerNumber() or tokens[0] == "changePlayerNumber"):#skip our own commands, they were executed immediately

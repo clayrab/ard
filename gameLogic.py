@@ -54,7 +54,7 @@ class Player:
 		self.greenWood = STARTING_GREEN_WOOD
 		self.blueWood = STARTING_BLUE_WOOD
 		self.hasSummoners = True
-		self.team = -1
+		self.team = (self.playerNumber)/gameState.getTeamSize()
 class NetworkPlayer(Player):
 	def __init__(self,playerNumber,userName,requestHandler):
 		self.requestHandler = requestHandler
@@ -344,7 +344,7 @@ class unit:
 				for neighb in node.getNeighbors(5):
 					neighb.stopViewing(node.unit)
 				gameState.getGameMode().units.remove(node.unit)
-				if(unit.unitType.name == "summoner"):
+				if(node.unit.unitType.name == "summoner"):
 					gameState.getGameMode().summoners.remove(node.unit)
 				aStarSearch.parentPipe.send(["unitRemove",node.xPos,node.yPos])
 				if(node.unit.unitType == "summoner" and node.city != None):
@@ -575,9 +575,12 @@ class playModeNode(node):
 							node.onMovePath = False
 					gameState.getGameMode().selectedNode.unit.movePath = playModeNode.movePath
 					if(len(gameState.getGameMode().selectedNode.unit.movePath) == 0):#movepath wasn't done calculating
-						gameState.getGameMode().selectedNode.unit.gotoNode = self
-						self.onMovePath = True
-						gameState.getGameMode().gotoMode = False
+						if(playModeNode.isNeighbor):
+							gameState.getGameMode().selectedNode.unit.movePath.append(self)
+						else:
+							gameState.getGameMode().selectedNode.unit.gotoNode = self
+							self.onMovePath = True
+							gameState.getGameMode().gotoMode = False
 					else:
 						gameState.getGameMode().selectedNode.unit.gotoNode = None
 					if(gameState.getGameMode().selectedNode.unit == gameState.getGameMode().nextUnit):

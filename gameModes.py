@@ -108,6 +108,8 @@ import server
 from textureFunctions import texWidth, texHeight, texIndex
 
 version = 0.1
+maxTimeToMove = 5000
+#maxTimeToMove = 30000
 
 #print random.__file__
 
@@ -356,7 +358,7 @@ class playMode(tiledGameMode):
 		#self.backgroundImageIndex = texIndex("CREATE_GAME_BACKGROUND")
 		self.ticks = 0#set in main.c
 		self.previousTicks = 0
-		self.timeToMove = 60000
+		self.timeToMove = maxTimeToMove
 		self.firstTurn = True
 		self.autoSelect = True
 		self.gotoMode = False
@@ -388,18 +390,16 @@ class playMode(tiledGameMode):
 		for player in self.players:
 			if(player != None):
 				player.hasSummoners = False
-		for unit in self.units:
-			if(unit.unitType.name == "summoner"):
-				self.players[unit.player].hasSummoners = True
+		for unit in self.summoners:
+			self.players[unit.player].hasSummoners = True
+		teamsWithSummoners = []
 		for player in self.players:
 			if(player != None):
-				if(winner != None and player.hasSummoners):
-					winner = None
-					break
 				if(player.hasSummoners):
-					winner = player
-		if(winner != None):
-			if(gameState.getPlayerNumber() == winner.playerNumber):
+					if(teamsWithSummoners.count(player.team) < 1):
+						teamsWithSummoners.append(player.team)
+		if(len(teamsWithSummoners) == 1):
+			if(gameState.getTeamNumber() == teamsWithSummoners[0]):
 				uiElements.winModal()
 			else:
 				uiElements.loseModal()
@@ -496,8 +496,8 @@ class playMode(tiledGameMode):
 		if(self.nextUnit != None and self.nextUnit.isControlled()):
 			self.waitingElem.hidden = True
 			self.timeToMove = self.timeToMove + 5000
-			if(self.timeToMove > 60000):
-				self.timeToMove = 60000
+			if(self.timeToMove > maxTimeToMove):
+				self.timeToMove = maxTimeToMove
 		else:
 			self.waitingElem.hidden = False
 #		if(gameState.getGameMode().selectedNode != None and uiElements.viewer.theViewer != None):
@@ -517,7 +517,6 @@ class playMode(tiledGameMode):
 				columnCount = columnCount + 1
 				if(node.playerStartValue != 0):
 					node.addUnit(gameLogic.unit(gameState.theUnitTypes["summoner"],node.playerStartValue-1,rowCount,columnCount,node,1))
-					node.addUnit(gameLogic.unit(gameState.theUnitTypes["summoner"],node.playerStartValue-1,rowCount,columnCount,node,1))
 					node.addUnit(gameLogic.unit(gameState.theUnitTypes["swordsman"],node.playerStartValue-1,rowCount,columnCount,node,1))
 #					node.addFire(gameLogic.fire(node))
 #					node.addIce(gameLogic.ice(node))
@@ -535,12 +534,17 @@ class playMode(tiledGameMode):
 				if(self.selectedNode != None and self.selectedNode.unit != None and self.selectedNode.unit.unitType.name == "summoner"):
 					selectNext = False
 					for unit in self.summoners*2:
-						if(unit.isControlled()):
+						if(unit.isControlled() and unit.isMeditating):
 							if(selectNext):
 								gameLogic.selectNode(unit.node)
 								break
 							if(unit == self.selectedNode.unit):
 								selectNext = True
+				else:
+					for unit in self.summoners:
+						if(unit.isControlled() and unit.isMeditating):
+							gameLogic.selectNode(unit.node)
+					
 		elif(keycode == "escape"):
 			uiElements.menuModal()
 		else:
@@ -616,11 +620,11 @@ class playMode(tiledGameMode):
 					self.nextUnit.move()
 				else:
 					gameLogic.aStarSearch.search(self.nextUnit.gotoNode,self.nextUnit.node,self.nextUnit.unitType.canFly,self.nextUnit.unitType.canSwim)
-			with client.commandLock:
-				if(self.timeToMove <= 0 and self.nextUnit != None and self.nextUnit.isControlled()):
-					gameState.getClient().sendCommand("skip")
-					gameState.getClient().sendCommand("chooseNextUnit")
-					self.nextUnit = None
+#			with client.commandLock:
+			if(self.timeToMove <= 0 and self.nextUnit != None and self.nextUnit.isControlled()):
+				gameState.getClient().sendCommand("skip")
+				gameState.getClient().sendCommand("chooseNextUnit")
+#					self.nextUnit = None
 			if(self.players[self.getPlayerNumber()] != None):
 				self.greenWoodUIElem.text = str(int(math.floor(self.players[self.getPlayerNumber()].greenWood)))
 				self.blueWoodUIElem.text = str(int(math.floor(self.players[self.getPlayerNumber()].blueWood)))
@@ -629,7 +633,6 @@ class playMode(tiledGameMode):
 			self.timeToMoveElem.text = "{0:.2f}".format(self.timeToMove/1000.0)
 			self.previousTicks = self.ticks		
 			gameMode.onDraw(self,deltaTicks)
-
 	def addUIElements(self):
 		if(gameState.getClient() == None):#single player game
 			server.startServer('')
