@@ -679,7 +679,6 @@ class mapEditorTileSelectUIElement(uiElement):
 		self.tileType = tileType
 		self.selected = False
 		self.playerNumber = playerNumber
-
 		self.toolTipElement = uiElement(self.xPosition+0.00,self.yPosition+0.04,width=0.0,height=0.0,text="asdf",textSize=0.0005,hidden=True)
 	def onClick(self):
 		if(gameState.getGameMode().selectedButton != None):
@@ -1335,6 +1334,31 @@ class resumeButton(inGameMenuButton):
 	def onClick(self):
 		self.modal.destroy()
 
+class saveGameButton(inGameMenuButton):
+	def __init__(self,modal,xPos,yPos,text="Save"):
+		inGameMenuButton.__init__(self,modal,xPos,yPos,text=text)
+	def onClick(self):
+		self.modal.destroy()
+		saveGameModal()
+
+class doSaveGameButton(inGameMenuButton):
+	def __init__(self,modal,xPos,yPos,text="OK"):
+		inGameMenuButton.__init__(self,modal,xPos,yPos,text=text)
+	def onClick(self):
+		gameLogic.saveGame()
+		self.modal.destroy()
+
+class saveNameInput(textInputElement):
+	def __init__(self,modal,xPos,yPos):
+		textInputElement.__init__(self,xPos,yPos,width=texWidth("UI_TEXT_INPUT_IMAGE"),height=texHeight("UI_TEXT_INPUT_IMAGE"),textureIndex=texIndex("UI_TEXT_INPUT"),text="")
+		self.modal = modal
+#		self.gameMode = gameMode
+	def onKeyDown(self,keycode):
+		if(keycode == "return"):
+			gameLogic.saveGame()
+		else:
+			textInputElement.onKeyDown(self,str(keycode))
+
 def exitGame():
 	gameState.setGameMode(gameModes.newGameScreenMode)
 	client.stopClient()
@@ -1345,6 +1369,12 @@ class exiitButton(inGameMenuButton):
 		inGameMenuButton.__init__(self,modal,xPos,yPos,text=text)
 	def onClick(self):
 		exitGame()
+
+class cancelSaveButton(inGameMenuButton):
+	def __init__(self,modal,xPos,yPos,text="Cancel"):
+		inGameMenuButton.__init__(self,modal,xPos,yPos,text=text)
+	def onClick(self):
+		gameState.getGameMode().modal.destroy()
 
 class modal(uiElement):
 	def destroy(self):
@@ -1365,8 +1395,22 @@ class menuModal(modal):
 		uiElement.__init__(self,-1.0,1.0,width=texWidth("MENU_MODAL"),height=texHeight("MENU_MODAL"),textureIndex=texIndex("MENU_MODAL"))
 		self.names = []
 		self.dismissable = dismissable
-		self.exitButton = exiitButton(self,-0.06,-0.2)
 		self.names.append(resumeButton(self,-0.12,0.2).name)
+		self.names.append(saveGameButton(self,-0.07,0.0).name)
+		self.exitButton = exiitButton(self,-0.06,-0.2)
+		self.names.append(self.exitButton.name)
+		gameState.getGameMode().modal = self
+
+class saveGameModal(modal):
+	def __init__(self,dismissable=True):
+		uiElement.__init__(self,-1.0,1.0,width=texWidth("MENU_MODAL"),height=texHeight("MENU_MODAL"),textureIndex=texIndex("MENU_MODAL"))
+		self.names = []
+		self.dismissable = dismissable
+#		self.names.append(uiElement(-0.12,0.26,text="save name:",textColor="bb bb bb",textSize=0.0008,fontIndex=1).name)
+		self.saveNameInput = saveNameInput(self,-0.25,0.14)
+		self.names.append(self.saveNameInput.name)
+		self.names.append(doSaveGameButton(self,0.160,0.080).name)
+		self.exitButton = cancelSaveButton(self,0.062,-0.080)
 		self.names.append(self.exitButton.name)
 		gameState.getGameMode().modal = self
 

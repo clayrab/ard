@@ -18,7 +18,6 @@
 #save game
 #handle reconnect... requires ability to save/share game state
 #ai
-#fix quick play map selection and AI-auto-join
 #sound effects
 #mouseover effects
 #show move speed and attack speed
@@ -57,6 +56,7 @@
 #anti-alias text
 
 #POLISH
+#make save game modal smaller/prettier
 #existing movePath and new movePath need to be distinguishable
 #some C optimization inside drawTile() and maybe draw()... make lists, reduce mallocs in draw loop, etc
 #move gameplay viewport back to entire window. make UI less intrusive, small elements at the corners, encircle map with mountains
@@ -104,11 +104,9 @@ import server
 from textureFunctions import texWidth, texHeight, texIndex
 
 version = 0.1
-maxTimeToMove = 5000
-#maxTimeToMove = 30000
+maxTimeToMove = 30000
 
 #print random.__file__
-
 sys.setrecursionlimit(10000)
 #sys.setrecursionlimit(800)
 #need this to allow deep recursion for AStar
@@ -180,8 +178,11 @@ class gameMode:
 		if(self.modal != None):
 			if(self.elementsDict.has_key(name)):
 				if(hasattr(self.elementsDict[name],"modal")):#only modalButton instances should have a modal attribute
-					self.elementsDict[name].onClick()
-				
+					self.setFocus(self.elementsDict[name])
+					if(hasattr(self.elementsDict[name],"onClick")):
+						self.elementsDict[name].onClick()
+					elif(hasattr(self.elementsDict[name],"onLeftClickDown")):
+						self.elementsDict[name].onLeftClickDown()
 		else:
 			if(self.elementsDict.has_key(name)):
 				self.setFocus(self.elementsDict[name])
@@ -220,6 +221,9 @@ class gameMode:
 					self.mousedOverObject.onKeyDown(keycode)
 				elif(hasattr(self.elementWithFocus,"onKeyDown")):
 					self.elementWithFocus.onKeyDown(keycode)
+		elif(hasattr(self.elementWithFocus,"modal")):
+			if(hasattr(self.elementWithFocus,"onKeyDown")):
+				self.elementWithFocus.onKeyDown(keycode)			
 	def handleKeyUp(self,keycode):
 		if(keycode == "`"):
 			if(hasattr(self,"clickScroll")):
@@ -233,7 +237,7 @@ class gameMode:
 	def handleMouseOver(self,name,isLeftMouseDown):
 		if(self.modal != None):
 			if(self.elementsDict.has_key(name)):
-				if(hasattr(self.elementsDict[name],"modal")):#only modalButton should have am attribute 'modal'
+				if(hasattr(self.elementsDict[name],"modal")):#elements in modals must have am attribute 'modal'
 					self.mousedOverObject = self.elementsDict[name]
 		else:
 			if(isLeftMouseDown > 0):#allows onLeftClickDown to be called for tiles when the mouse is dragged over them
@@ -630,14 +634,6 @@ class playMode(tiledGameMode):
 			self.previousTicks = self.ticks		
 			gameMode.onDraw(self,deltaTicks)
 	def addUIElements(self):
-#		if(gameState.getClient() == None):#single player game
-#			server.startServer('')
-#			client.startClient('127.0.0.1')
-# 			client.startClient('192.168.0.102')
-# 			client.startClient('84.73.77.222')
-#			gameState.setPlayerNumber(-2)
-#			gameState.addPlayer(playerNumber=1).isOwnPlayer = True
-#			gameState.addPlayer(playerNumber=2).isOwnPlayer = True
 		self.players = gameState.getPlayers()
 		uiElements.uiElement(0.718,-0.932,textureIndex=texIndex("CHECKBOXES_BACKGROUND"),width=texWidth("CHECKBOXES_BACKGROUND"),height=texHeight("CHECKBOXES_BACKGROUND"))
 		self.autoSelectCheckBox = uiElements.autoSelectCheckBox(0.735,-0.94)
@@ -1027,8 +1023,13 @@ class mapViewMode(createGameMode):
 class quickPlayMode(createGameMode):
 	def addUIElements(self):
 		self.mapNameField = uiElements.uiElement(-1.0+texWidth("CREATE_GAME_BACKGROUND_LEFT"),0.85,fontIndex=3,textColor="ee ed 9b")
-		server.startServer('')
-		client.startClient('127.0.0.1')
+		try:
+			server.startServer('')
+			client.startClient('127.0.0.1')
+		except socket.error:
+			gameState.setGameMode(newGameScreenMode)
+			uiElements.smallModal("Cannot connect to socket. Try again in 1 minute.")
+			return
 		server.addAIPlayer()
 		uiElements.backButton(-0.930,0.9,newGameScreenMode)
 		gameState.getGameMode().setMap(gameState.getMapDatas()[0][0].name)

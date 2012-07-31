@@ -8,7 +8,6 @@ import uiElements
 import cDefines
 
 SERVER = -1
-SINGLE_PLAYER = -2
 class Commands:
     @staticmethod
     def seedRNG(seed):
@@ -46,8 +45,7 @@ class Commands:
             gameState.getGameMode().redrawTeams()
     @staticmethod
     def setPlayerNumber(playerNumber):
-        if(gameState.getPlayerNumber() != SINGLE_PLAYER):
-            gameState.setPlayerNumber(int(playerNumber))
+        gameState.setPlayerNumber(int(playerNumber))
 #        if(gameState.getOwnUserName() == None):
 #            gameState.setOwnUserName("Player " + playerNumber)
     @staticmethod
@@ -69,7 +67,7 @@ class Commands:
         gameState.addPlayer(playerNumber=playerNumber,userName=userName,requestHandler=None)
         for player in gameState.getPlayers():
             if(player != None):
-                if(gameState.getPlayerNumber() == player.playerNumber or gameState.getPlayerNumber() == SINGLE_PLAYER):
+                if(gameState.getPlayerNumber() == player.playerNumber):
                     player.isOwnPlayer = True
                     gameState.setPlayerNumber(player.playerNumber)
                 else:
@@ -84,7 +82,7 @@ class Commands:
         gameState.movePlayer(oldNumber,newNumber)
         for player in gameState.getPlayers():
             if(player != None):
-                if(gameState.getPlayerNumber() == player.playerNumber or gameState.getPlayerNumber() == SINGLE_PLAYER):
+                if(gameState.getPlayerNumber() == player.playerNumber):
                     player.isOwnPlayer = True
                     gameState.setPlayerNumber(player.playerNumber)
                 else:

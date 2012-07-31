@@ -1011,6 +1011,10 @@ class mapp:
 	def setNumPlayers(self,numPlayers):
 		self.numPlayers = numPlayers
 
+def saveGame():
+#	mapFile = open('saves/','w')
+	print 'saved'
+
 def selectNode(node,theCityViewer = uiElements.cityViewer):
 	for pnode in playModeNode.movePath:
 		pnode.onMovePath = False

@@ -19,7 +19,6 @@ pubKey = rsa.PublicKey(729482730069696146782520964991061295554468827373965413313
 privKey = rsa.PrivateKey(7294827300696961467825209649910612955544688273739654133132828909790861956391138768640249164939907033611860365075051236361359042803639003856587767504588353, 65537, 6977264057202623443995841153775681866813605135283831723778907294830864861810642621995438195929805731219864983148755866749414123928269010901281896813845553, 6795004418806002701275892780554702381414286837297772798037030472995866173266951571, 1073557403510678821257076760372205704035248017469579525573290803741034843)
 
 SERVER = -1
-SINGLE_PLAYER = -2
 class Commands:
     @staticmethod
     def showGameRoom(args):	    
@@ -38,19 +37,6 @@ class Commands:
     def showRoom(args):
         tokens = args.split("|",1)
         gameState.setGameMode(gameModes.findGameMode,tokens)
-#    @staticmethod
-#    def seedRNG(seed):
-#        random.seed(seed)
-#    @staticmethod
-#    def setMap(mapName):
-#        gameState.setMapName(mapName)
-#    @staticmethod
-#    def setPlayerNumber(playerNumber):
-#        if(gameState.getPlayerNumber() != SINGLE_PLAYER):
-#            gameState.setPlayerNumber(int(playerNumber))
-#    @staticmethod
-#    def startGame(args):
-#        gameState.setGameMode(gameModes.playMode)
     @staticmethod
     def versionPassed(args):
 #        uiElements.smallModal("Login failed.")
