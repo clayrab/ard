@@ -47,7 +47,7 @@ class MODES:
 cityNames = ["Eshnunna","Tutub","Der","Sippar","Sippar-Amnanum","Kutha","Jemde Nasr","Kish","Babilim","Borsippa","Mashkan-shapir","Dilbat","Nippur","Marad","Adab","Isin","Kisurra","Shuruppak","Bad-tibira","Zabalam","Umma","Girsu","Lagash","Urum","Uruk","Larsa","Ur","Kuara","Eridu","Akshak","Akkad","Urfa","Shanidar cave","Urkesh","Shekhna","Arbid","Harran","Chagar Bazar","Kahat","El Fakhariya","Arslan Tash","Carchemish","Til Barsip","Nabada","Nagar","Telul eth-Thalathat","Tepe Gawra","Tell Arpachiyah","Shibaniba","Tarbisu","Ninua","Qatara","Dur Sharrukin","Tell Shemshara","Arbil","Imgur-Enlil","Nimrud","Emar","Arrapha","Kar-Tukulti-Ninurta","Ashur","Nuzi","al-Fakhar","Terqa","Mari","Haradum","Nerebtum","Agrab","Dur-Kurigalzu","Shaduppum","Seleucia","Ctesiphon","Zenobia","Zalabiye","Hasanlu","Takht-i-Suleiman","Behistun","Godin Tepe","Chogha Mish","Tepe Sialk","Susa","Kabnak","Dur Untash","Pasargadai","Naqsh-e Rustam","Parsa","Anshan","Konar Sandal","Tepe Yahya","Miletus","Sfard","Nicaea","Sapinuwa","Yazilikaya","Alaca Hoyuk","Masat Hoyuk","Hattusa","Ilios","Kanesh","Arslantepe","Sam'al","Beycesultan","Adana","Karatepe","Tarsus","Sultantepe","Attalia","Acre","Adoraim","Alalah","Aleppo","Al-Sinnabra","Aphek","Arad Rabbah","Ashdod","Ashkelon","Baalbek","Batroun","Beersheba","Beth Shean","Bet Shemesh","Bethany","Bet-el","Bezer","Byblos","Capernaum","Dan","Dimashq","Deir Alla","Dhiban","Dor","Ebla","En Gedi","Enfeh","Ekron","Et-Tell","Gath","Gezer","Gibeah","Gilgal Refaim","Gubla","Hamath","Hazor","Hebron","Herodion","Jezreel","Kadesh Barnea","Kedesh","Kumidi","Lachish","Megiddo","Qatna","Qumran","Rabat Amon","Samaria","Sarepta","Sharuhen","Shiloh","Sidon","Tadmor","Tirzah","Tyros","Ugarit","Umm el-Marra"]
 
 class Player:
-	def __init__(self,playerNumber,userName,requestHandler):
+	def __init__(self,playerNumber,userName,requestHandler,isAI=False):
 		self.userName = userName
 		self.playerNumber = playerNumber
 		self.isOwnPlayer = False
@@ -55,6 +55,7 @@ class Player:
 		self.blueWood = STARTING_BLUE_WOOD
 		self.hasSummoners = True
 		self.team = (self.playerNumber)/gameState.getTeamSize()
+		self.isAI = isAI
 class NetworkPlayer(Player):
 	def __init__(self,playerNumber,userName,requestHandler):
 		self.requestHandler = requestHandler
@@ -70,7 +71,7 @@ class NetworkPlayer(Player):
 class AIPlayer(Player):
 	nextAINumber = 1
 	def __init__(self,playerNumber,userName,requestHandler):
-		Player.__init__(self,playerNumber,"AI " + str(AIPlayer.nextAINumber),None)
+		Player.__init__(self,playerNumber,"AI " + str(AIPlayer.nextAINumber),None,isAI=True)
 		AIPlayer.nextAINumber = AIPlayer.nextAINumber + 1
 	def dispatchCommand(self,command):
 		return
@@ -82,11 +83,8 @@ class AIPlayer(Player):
 				if(neighb.tileValue != cDefines.defines['MOUNTAIN_TILE_INDEX'] or (gameState.getGameMode().nextUnit.unitType.canFly)):
 					eligibleMoveNodes.append(neighb)
 		if(len(eligibleMoveNodes) > 0):
-#			moveToNode = random.choice(eligibleMoveNodes)
 			moveToNode = eligibleMoveNodes[0]
-#            moveToNode = eligibleMoveNodes[0]
 			gameState.getClient().sendCommand("moveTo",str(moveToNode.xPos) + " " + str(moveToNode.yPos))
-#			gameState.getClient().sendCommand("skip")
 		else:
 			gameState.getClient().sendCommand("skip")
 			
@@ -188,7 +186,6 @@ class unit:
 		self.player = player
 		self.team = (self.player)/gameState.getTeamSize()
 		self.ai = gameState.theAIs[self.player]
-		print self.ai
 		self.node = node
 		self.xPos = 0.0
 		self.yPos = 0.0
@@ -199,13 +196,12 @@ class unit:
 		self.buildPoints = self.unitType.buildTime	
 		self.movePath = []
 		self.gotoNode = None
-		self.waiting = False
+#		self.waiting = False
 		if(level != None):
 			self.level = level
 		else:
 			self.level = node.city.researchProgress[self.unitType][0]
 		self.health = float(self.unitType.health*self.level)
-		self.originCity = node.city
 #		self.gatheringNode = None
 		self.isMeditating = False
 		self.recentDamage = {}
@@ -282,7 +278,7 @@ class unit:
 			self.movePath = self.movePath[1:]
 			gameState.getClient().sendCommand("chooseNextUnit")
 	def moveTo(self,node):
-		self.waiting = False
+#		self.waiting = False
 #		self.gatheringNode = None
 		node.onMovePath = False
 		for neighb in self.node.getNeighbors(5):
@@ -319,7 +315,7 @@ class unit:
 		gameState.getClient().sendCommand("healTo",str(node.xPos) + " " + str(node.yPos))
 		gameState.getClient().sendCommand("chooseNextUnit")
 	def healTo(self,node):
-		self.waiting = False
+#		self.waiting = False
 		node.unit.health = node.unit.health + self.getAttackPower()
 		self.attackPoints = self.attackPoints + INITIATIVE_ACTION_DEPLETION
 		if(node.unit.health > node.unit.getMaxHealth()):
@@ -330,7 +326,7 @@ class unit:
 		gameState.getClient().sendCommand("attackTo",str(node.xPos) + " " + str(node.yPos))
 		gameState.getClient().sendCommand("chooseNextUnit")
 	def attackTo(self,node):
-		self.waiting = False
+#		self.waiting = False
 		if(node.unit != None and node.unit.player != self.player):
 			multiplier = 1.0		
 #			if(self.node.tileValue == cDefines.defines['MOUNTAIN_TILE_INDEX']):
@@ -1011,10 +1007,6 @@ class mapp:
 	def setNumPlayers(self,numPlayers):
 		self.numPlayers = numPlayers
 
-def saveGame():
-#	mapFile = open('saves/','w')
-	print 'saved'
-
 def selectNode(node,theCityViewer = uiElements.cityViewer):
 	for pnode in playModeNode.movePath:
 		pnode.onMovePath = False
@@ -1045,9 +1037,63 @@ def selectNode(node,theCityViewer = uiElements.cityViewer):
 		gameState.getGameMode().mousedOverObject.toggleCursor()
 #	node.toggleCursor()
 
+def loadGame(saveName):
+	file = open("saves/"+saveName+".sav","r")
+	with open("saves/"+saveName+".sav","r") as f:
+		for line in f:
+			print line.strip()
+	print 'loaded'
+
+def saveGame(saveName):
+	saveFile = open('saves/' + saveName + '.sav','w')
+	lines = []
+	lines.append(str(gameState.getMapName())+"\n")
+	lines.append(str(gameState.getTeamSize())+"\n")
+	lines.append(str(gameState.getPlayerNumber())+"\n")
+	for player in gameState.getPlayers():
+		if(player != None):
+			lines.append(str(player.userName)+"|")
+			lines.append(str(player.playerNumber)+"|")
+			lines.append(str(player.isOwnPlayer)+"|")
+			lines.append(str(player.greenWood)+"|")
+			lines.append(str(player.blueWood)+"|")
+			lines.append(str(player.hasSummoners)+"|")
+			lines.append(str(player.team)+"|")
+			lines.append(str(player.isAI)+"\n")
+		else:
+			lines.append("None\n")
+	for unit in gameState.getGameMode().units:
+		lines.append(unit.unitType.name+"|")
+		lines.append(str(unit.player)+"|")
+		lines.append(str(unit.team)+"|")
+		lines.append(str(unit.node.xPos)+"|")
+		lines.append(str(unit.node.yPos)+"|")
+		lines.append(str(unit.movementPoints)+"|")
+		lines.append(str(unit.attackPoints)+"|")
+		lines.append(str(unit.buildPoints)+"|")
+		for node in unit.movePath:
+			lines.append(str(node.xPos)+","+str(node.yPos)+"_")
+		lines.append("|")
+		if(unit.gotoNode != None):
+			lines.append(str(unit.gotoNode.xPos)+","+str(unit.gotoNode.yPos)+"|")
+		else:
+			lines.append("None|")
+		lines.append(str(unit.level)+"|")
+		lines.append(str(unit.health)+"|")
+		lines.append(str(unit.isMeditating)+"\n")
+	if(gameState.getGameMode().nextUnit != None):
+		lines.append(str(gameState.getGameMode().nextUnit.node.xPos)+","+str(gameState.getGameMode().nextUnit.node.yPos)+"\n")
+	else:
+		lines.append("None\n")
+#node.addUnit(gameLogic.unit(gameState.theUnitTypes["summoner"],node.playerStartValue-1,rowCount,columnCount,node,1))
+	saveFile.writelines(lines)
+	saveFile.close()
+	print 'saved'
+
 global aStarSearch
 aStarSearch = aStarThread()
 aStarProcess = Process(target=aStarSearch.runTarget,args=(aStarSearch.childPipe,))
 aStarProcess.daemon = True
 aStarProcess.start()
 #aStarProcess.terminate()
+

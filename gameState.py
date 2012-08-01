@@ -18,6 +18,7 @@ for fileName in dirList:
 		file = open("maps/"+fileName)
 		mapData = gameLogic.mapData(fileName,file.read())
 		mapDatas[mapData.teamSize-1].append(mapData)
+		file.close()
 def getMapDatas():
 	global mapDatas
 	return mapDatas
@@ -60,6 +61,7 @@ def setOwnUserName(uName):
 	userName = uName
 def changeUserName(playerNumber,newUserName):
 	thePlayers[playerNumber].userName = newUserName
+
 theMapName = None
 def getMapName():
     global theMapName
@@ -111,7 +113,6 @@ def getGameFindClient():
 thePlayerNumber = -1
 theTeamNumber = 0
 def setPlayerNumber(playerNumber):
-	print 'setplayernumber ' + str(playerNumber)
 	global thePlayerNumber
 	global theTeamNumber
 	thePlayerNumber = playerNumber

@@ -379,7 +379,7 @@ class playMode(tiledGameMode):
 		self.map = gameLogic.mapp(gameLogic.playModeNode)
 		gameLogic.aStarSearch.parentPipe.send(['map',gameState.getMapName()])
 	def unitComparater(self,unit):
-		if (unit.waiting or unit.isMeditating or (unit.attackPoints > 0.0)):
+		if (unit.isMeditating or (unit.attackPoints > 0.0)):
 			return 1000.0
 		else:
 			return unit.movementPoints
@@ -409,7 +409,6 @@ class playMode(tiledGameMode):
 			   return
 		self.orderUnits()
 		while(self.units[0].movementPoints > 0.0 or self.units[0].attackPoints > 0.0):
-# or self.units[0].waiting or self.units[0].isMeditating):
 			self.orderUnits()
 			for elementalEffect in self.elementalEffects:
 				elementalEffect.movePoints = elementalEffect.movePoints - elementalEffect.speed
@@ -434,7 +433,7 @@ class playMode(tiledGameMode):
 					else:
 						unit.movementPoints = unit.movementPoints - ((float(unit.getMovementSpeed())+float(unit.node.roadValue))/cDefines.defines['GRASS_MOVE_COST'])
 					if(unit.movementPoints < 0.0):
-						unit.movementPoints = 0.0#for waiting/meditating units
+						unit.movementPoints = 0.0#for meditating units
 			for row in self.map.nodes:
 				for node in row:
 					if(node.city != None):
@@ -451,13 +450,13 @@ class playMode(tiledGameMode):
 #		eligibleUnits.append(self.units[0])
 		for unit in self.units:
 			if(len(eligibleUnits) > 0):
-				if((unit.movementPoints == eligibleUnits[0].movementPoints) and (not unit.waiting) and (not unit.isMeditating) and (unit.attackPoints <= 0.0)):
+				if((unit.movementPoints == eligibleUnits[0].movementPoints) and (not unit.isMeditating) and (unit.attackPoints <= 0.0)):
 					eligibleUnits.append(unit)
 			else:
-				if(unit.movementPoints <= 0.0 and unit.attackPoints <= 0.0 and (not unit.waiting) and (not unit.isMeditating)):
+				if(unit.movementPoints <= 0.0 and unit.attackPoints <= 0.0 and (not unit.isMeditating)):
 					eligibleUnits.append(unit)
 
-		if(len(eligibleUnits) == 0):#all units are waiting/meditating!!!
+		if(len(eligibleUnits) == 0):#all units are meditating!!!
 			for unit in self.units:#add movementpoints to each unit
 				#unit.movementPoints = unit.movementPoints + (gameLogic.INITIATIVE_ACTION_DEPLETION/5.0)
 				unit.skip()
@@ -756,8 +755,9 @@ class textBasedMenuMode(gameMode):
 class newGameScreenMode(textBasedMenuMode):
 	def addUIElements(self):
 		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])
-		uiElements.uiElement(-0.5*texWidth("TITLE"),0.45,textureIndex=texIndex("TITLE"),width=texWidth("TITLE"),height=texHeight("TITLE"))
-		uiElements.menuButtonGameModeSelector(-0.18,-0.34,quickPlayMode,text="Quick Play")
+		uiElements.uiElement(-0.5*texWidth("TITLE"),0.65,textureIndex=texIndex("TITLE"),width=texWidth("TITLE"),height=texHeight("TITLE"))
+		uiElements.menuButtonGameModeSelector(-0.18,-0.22,quickPlayMode,text="Quick Play")
+		uiElements.menuButtonGameModeSelector(-0.07,-0.34,loadGameMode,text="Load")
 		uiElements.menuButtonGameModeSelector(-0.28,-0.46,joinLANGameScreenMode,text="Join LAN Game")
 		uiElements.menuButtonGameModeSelector(-0.30,-0.58,hostGameMode,text="Host LAN Game")
 		uiElements.menuButtonGameModeSelector(-0.19,-0.70,loginMode,text="Play Online")
@@ -1034,6 +1034,14 @@ class quickPlayMode(createGameMode):
 		uiElements.backButton(-0.930,0.9,newGameScreenMode)
 		gameState.getGameMode().setMap(gameState.getMapDatas()[0][0].name)
 		uiElements.startGameButton(0.806,-0.616)
+
+class loadGameMode(gameMode):
+	def addUIElements(self):
+		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])
+		uiElements.savedGameSelector()
+		uiElements.backButton(-0.930,0.9,newGameScreenMode)
+	
+
 #uiElements.createGameButtun(0.717,-0.616)	
 	
 

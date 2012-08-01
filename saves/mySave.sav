@@ -1,0 +1,16 @@
+Clay's Map
+1
+0
+Player 1|0|True|250.0|0.0|True|0|False
+AI 1|1|False|250.0|0.0|True|1|True
+None
+None
+None
+None
+None
+None
+swordsman|0|0|13|24|0.0|0|60||None|1|50.0|False
+summoner|1|1|13|3|100.0|0|60||None|1|50.0|False
+swordsman|1|1|15|2|100.0|0|60||None|1|50.0|False
+summoner|0|0|1|10|100.0|0|60|0,9_0,8_0,7_0,6_0,5_1,4_1,3_2,2_|None|1|50.0|False
+13,24

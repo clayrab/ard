@@ -802,7 +802,9 @@ class scrollingTextElement(scrollableElement):
 		self.hidden = True
 		self.lineHeight = 0
 		self.scrollableElement = scrollableElement
-		
+	def onClick(self):
+		if(hasattr(self.scrollableElement,"onClick")):
+			self.scrollableElement.onClick(self)
 class scrollableRoomNameElement(uiElement):
 	def onClick(self):
 		gameState.getGameFindClient().sendCommand("subscribe",self.text)
@@ -824,7 +826,7 @@ class scrollableRoomElement(scrollableElement):
 		self.names.append(self.roomCountElem.name)
 
 class scrollableTextFieldsElement(uiElement):
-	def __init__(self,xPos,yPos,textFields,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,xPositionOffset=0.0,yPositionOffset=0.04,lineHeight=0.041,numFields=25,scrollSpeed=1,scrollPadTex="UI_SCROLL_PAD"):
+	def __init__(self,xPos,yPos,textFields,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.0005,color="FF FF FF",mouseOverColor=None,xPositionOffset=0.0,yPositionOffset=0.04,lineHeight=0.041,numFields=25,scrollSpeed=1,scrollPadTex="UI_SCROLL_PAD"):
 		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,color=color,mouseOverColor=mouseOverColor)
 		self.xPositionOffset = xPositionOffset
 		self.yPositionOffset = yPositionOffset
@@ -971,11 +973,12 @@ class roomSelector(scrollableTextFieldsElement):
 		self.redraw()
 
 class unitTypeSelector(scrollableTextFieldsElement):
-	def handleClick(self,textFieldElem):
-		for unitType in gameState.theUnitTypes.values():
-			if(unitType.name == textFieldElem.text):
-				cityEditor.theCityEditor.addUnitType(unitType)
-		self.destroy()
+	def onClick(self,textFieldElem=None):
+		if(textFieldElem!=None):
+			for unitType in gameState.theUnitTypes.values():
+				if(unitType.name == textFieldElem.text):
+					cityEditor.theCityEditor.addUnitType(unitType)
+			self.destroy()
 
 class gameTypeButton(clickableElement):
 	buttons = []
@@ -1195,14 +1198,26 @@ class exitButton(menuButton):
 	def onClick(self):
 		gameState.getGameMode().exit = True
 
+class savedGameSelector(scrollableTextFieldsElement):
+	def __init__(self):
+		dirList=os.listdir("saves")
+		textFields = []
+		for fileName in dirList:
+			if((not fileName.startswith(".")) and (fileName.endswith("sav"))):
+				textFields.append(fileName[:-4])
+		scrollableTextFieldsElement.__init__(self,-0.5*texWidth("MAP_SELECTOR"),0.76,textFields,width=texWidth("MAP_SELECTOR"),height=texHeight("MAP_SELECTOR"),textureIndex=texIndex("MAP_SELECTOR"),numFields=38,lineHeight=0.036,xPositionOffset=0.015,yPositionOffset=0.045,scrollSpeed=10)
+	def onClick(self,textFieldElem=None):
+		if(textFieldElem != None):
+			gameLogic.loadGame(textFieldElem.text)
+
 class mapSelector(scrollableTextFieldsElement):
 	def __init__(self,xPos,yPos,textFields,mapField):
 		scrollableTextFieldsElement.__init__(self,xPos,yPos,textFields,width=texWidth("MAP_SELECTOR"),height=texHeight("MAP_SELECTOR"),textureIndex=texIndex("MAP_SELECTOR"),numFields=38,lineHeight=0.036,xPositionOffset=0.015,yPositionOffset=0.045,scrollSpeed=10)
 		self.mapField = mapField
-	def handleClick(self,textFieldElem):
-		server.setMap(textFieldElem.text)
-		self.mapField.text = textFieldElem.text
-		self.destroy()
+#	def onClick(self,textFieldElem):
+#		server.setMap(textFieldElem.text)
+#		self.mapField.text = textFieldElem.text
+#		self.destroy()
 
 class mapSelect(scrollingTextElement):
 	def __init__(self,xPos,yPos,scrollableElement,text):
@@ -1214,16 +1229,16 @@ class onlineMapSelector(scrollableTextFieldsElement):
 	def __init__(self,xPos,yPos,textFields,mapField,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,yPositionOffset=0.04,lineHeight=0.041,numFields=25,scrollSpeed=1):
 		scrollableTextFieldsElement.__init__(self,xPos,yPos,textFields,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,color=color,mouseOverColor=mouseOverColor)
 		self.mapField = mapField
-	def handleClick(self,fieldElem):
-		self.mapField.text = fieldElem.text
-		self.mapField.mapName = fieldElem.text
-		self.destroy()
+#	def onClick(self,fieldElem):
+#		self.mapField.text = fieldElem.text
+#		self.mapField.mapName = fieldElem.text
+#		self.destroy()
 
 #class mapSelector(scrollableTextFieldsElement):
 #	def __init__(self,xPos,yPos,textFields,mapField):
 #		scrollableTextFieldsElement.__init__(self,xPos,yPos,textFields,width=texWidth("MAP_SELECTOR"),height=texHeight("MAP_SELECTOR"),textureIndex=texIndex("MAP_SELECTOR"))
 #		self.mapField = mapField
-#	def handleClick(self,fieldElem):
+#	def onClick(self,fieldElem):
 #		print fieldElem.text
 		
 
@@ -1240,14 +1255,14 @@ class mapField(clickableElement):
 				mapNames.append(fileName[0:len(fileName)-4])
 		self.selector(self.xPosition,self.yPosition-0.06,mapNames,self,text="select build time",textSize=0.0005,textureIndex=cDefines.defines['UI_SCROLLABLE_INDEX'],width=(2.0*cDefines.defines['UI_SCROLLABLE_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_SCROLLABLE_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']))
 
-class maxPlayersSelector(scrollableTextFieldsElement):
-	def handleClick(self,fieldElem):
-		gameState.getGameMode().maxPlayersField.text = fieldElem.text + " players"
-		self.destroy()
-
-class maxPlayersField(clickableElement):
-	def onClick(self):
-		maxPlayersSelector(self.xPosition,self.yPosition-0.06,["1","2","4","8"],textSize=0.0006)
+#I think all this maxPlayers crap is deprecated, but want to test map editor before deleting
+#class maxPlayersSelector(scrollableTextFieldsElement):
+#	def onClick(self,fieldElem):
+#		gameState.getGameMode().maxPlayersField.text = fieldElem.text + " players"
+#		self.destroy()
+#class maxPlayersField(clickableElement):
+#	def onClick(self):
+#		maxPlayersSelector(self.xPosition,self.yPosition-0.06,["1","2","4","8"],textSize=0.0006)
 
 #class createButton(menuButton):
 #	def onClick(self):
@@ -1345,17 +1360,17 @@ class doSaveGameButton(inGameMenuButton):
 	def __init__(self,modal,xPos,yPos,text="OK"):
 		inGameMenuButton.__init__(self,modal,xPos,yPos,text=text)
 	def onClick(self):
-		gameLogic.saveGame()
+		gameLogic.saveGame(self.modal.saveNameInput.realText)
 		self.modal.destroy()
 
 class saveNameInput(textInputElement):
 	def __init__(self,modal,xPos,yPos):
-		textInputElement.__init__(self,xPos,yPos,width=texWidth("UI_TEXT_INPUT_IMAGE"),height=texHeight("UI_TEXT_INPUT_IMAGE"),textureIndex=texIndex("UI_TEXT_INPUT"),text="")
+		textInputElement.__init__(self,xPos,yPos,width=texWidth("UI_TEXT_INPUT_IMAGE"),height=texHeight("UI_TEXT_INPUT_IMAGE"),textureIndex=texIndex("UI_TEXT_INPUT"),text="mySave")
 		self.modal = modal
 #		self.gameMode = gameMode
 	def onKeyDown(self,keycode):
 		if(keycode == "return"):
-			gameLogic.saveGame()
+			gameLogic.saveGame(self.modal.saveNameInput.realText)
 		else:
 			textInputElement.onKeyDown(self,str(keycode))
 
