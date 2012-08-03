@@ -507,7 +507,6 @@ class node:
 			self.unit = theUnit
 			theUnit.node = self
 			gameState.getGameMode().units.append(theUnit)
-			print 'appended...'
 			if(theUnit.unitType.name == "summoner"):
 				gameState.getGameMode().summoners.append(theUnit)
 #			if(gameState.getPlayerNumber() == (self.playerStartValue-1) or gameState.getPlayerNumber() == -2):
@@ -1101,8 +1100,12 @@ def loadGame(saveName):
 				theUnit.level = int(tokens[9])
 				theUnit.health = float(tokens[10])
 				theUnit.isMeditating = True if tokens[11]=="True" else False
-				for movePathLine in tokens[12:]:
-					print movePathLine
+				if(len(tokens[12]) > 0):
+					coordsStrs = tokens[12].split("_")
+					for coordsStr in coordsStrs:
+						if(len(coordsStr) > 0):
+							coords = coordsStr.split(",")
+							theUnit.movePath.append(gameState.getGameMode().map.nodes[int(coords[1])][int(coords[0])])
 				if(lines[3] != "None"):
 					nextUnitCoords = lines[3].split(",")
 					gameState.getGameMode().nextUnit = gameState.getGameMode().map.nodes[int(nextUnitCoords[1])][int(nextUnitCoords[0])].unit
@@ -1110,8 +1113,9 @@ def loadGame(saveName):
 					print "Error, no next unit was saved!"
 			#TODO CALL CHOOSENEXTUNIT HERE AND TEST
 				node.addUnit(theUnit)
-				print line
 		gameState.getGameMode().restartGame()
+		if(gameState.getGameMode().nextUnit.isControlled()):
+			selectNode(gameState.getGameMode().nextUnit.node)
 	print 'loaded'
 
 def saveGame(saveName):
@@ -1139,10 +1143,6 @@ def saveGame(saveName):
 		lines.append(unit.unitType.name+"|")
 		lines.append(str(unit.player)+"|")
 		lines.append(str(unit.team)+"|")
-		print unit.xPos
-		print unit.yPos
-		print unit.node.xPos
-		print unit.node.yPos
 		lines.append(str(unit.node.xPos)+"|")
 		lines.append(str(unit.node.yPos)+"|")
 		lines.append(str(unit.movementPoints)+"|")
