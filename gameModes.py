@@ -25,6 +25,7 @@
 #icons for green and blue wood
 #healing animation
 #blunt/explosion animation?
+#start summoning button near unit?
 
 #killing host before client not handled well
 #host game then back then try to host game online('try again in 30 secs' is a lie)
@@ -515,8 +516,8 @@ class playMode(tiledGameMode):
 			for node in row:
 				columnCount = columnCount + 1
 				if(node.playerStartValue != 0):
-					node.addUnit(gameLogic.unit(gameState.theUnitTypes["summoner"],node.playerStartValue-1,rowCount,columnCount,node,1))
-					node.addUnit(gameLogic.unit(gameState.theUnitTypes["swordsman"],node.playerStartValue-1,rowCount,columnCount,node,1))
+					node.addUnit(gameLogic.unit(gameState.theUnitTypes["summoner"],node.playerStartValue-1,node,1))
+					node.addUnit(gameLogic.unit(gameState.theUnitTypes["swordsman"],node.playerStartValue-1,node,1))
 #					node.addFire(gameLogic.fire(node))
 #					node.addIce(gameLogic.ice(node))
 	
@@ -630,7 +631,7 @@ class playMode(tiledGameMode):
 			if(self.previousTicks != 0 and self.nextUnit != None and self.nextUnit.isControlled()):
 				self.timeToMove = self.timeToMove - (self.ticks - self.previousTicks)
 			self.timeToMoveElem.text = "{0:.2f}".format(self.timeToMove/1000.0)
-			self.previousTicks = self.ticks		
+			self.previousTicks = self.ticks
 			gameMode.onDraw(self,deltaTicks)
 	def addUIElements(self):
 		self.players = gameState.getPlayers()
@@ -647,6 +648,11 @@ class playMode(tiledGameMode):
 
 	def startGame(self):
 		self.loadSummoners()
+		for unit in self.units:
+			if(unit.node.visible):
+				gameLogic.aStarSearch.parentPipe.send(["unitAdd",unit.node.xPos,unit.node.yPos])
+		self.orderUnits()
+	def restartGame(self):
 		for unit in self.units:
 			if(unit.node.visible):
 				gameLogic.aStarSearch.parentPipe.send(["unitAdd",unit.node.xPos,unit.node.yPos])
@@ -1034,7 +1040,7 @@ class quickPlayMode(createGameMode):
 		uiElements.backButton(-0.930,0.9,newGameScreenMode)
 		gameState.getGameMode().setMap(gameState.getMapDatas()[0][0].name)
 		uiElements.startGameButton(0.806,-0.616)
-
+	
 class loadGameMode(gameMode):
 	def addUIElements(self):
 		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])

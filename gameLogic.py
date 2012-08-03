@@ -3,11 +3,15 @@ import nameGenerator
 import cDefines
 import copy
 import uiElements
+import gameModes
+import client
+import server
 import random
 import threading
 import thread
 import time
 import sys
+import socket
 import ai
 
 from multiprocessing import Process, Queue, Pipe
@@ -57,9 +61,14 @@ class Player:
 		self.team = (self.playerNumber)/gameState.getTeamSize()
 		self.isAI = isAI
 class NetworkPlayer(Player):
-	def __init__(self,playerNumber,userName,requestHandler):
+	def __init__(self,playerNumber,userName,requestHandler,player=None):
 		self.requestHandler = requestHandler
 		Player.__init__(self,playerNumber,userName,None)
+		if(player != None):
+			self.isOwnPlayer = player.isOwnPlayer
+			self.greenWood = player.greenWood
+			self.greenWood = player.greenWood
+			self.team = player.team
 	def dispatchCommand(self,command):
 		try:
 			self.requestHandler.wfile.write(command + "|")
@@ -71,7 +80,11 @@ class NetworkPlayer(Player):
 class AIPlayer(Player):
 	nextAINumber = 1
 	def __init__(self,playerNumber,userName,requestHandler):
-		Player.__init__(self,playerNumber,"AI " + str(AIPlayer.nextAINumber),None,isAI=True)
+		if(userName == "Player ?"):
+			Player.__init__(self,playerNumber,"AI " + str(AIPlayer.nextAINumber),None,isAI=True)
+		else:
+			Player.__init__(self,playerNumber,userName,None,isAI=True)
+			
 		AIPlayer.nextAINumber = AIPlayer.nextAINumber + 1
 	def dispatchCommand(self,command):
 		return
@@ -181,7 +194,7 @@ class fire:
 			self.node.fire = None
 slidingUnits = []	
 class unit:
-	def __init__(self,unitType,player,xPos,yPos,node,level=None):
+	def __init__(self,unitType,player,node,level=None):
 		self.unitType = unitType
 		self.player = player
 		self.team = (self.player)/gameState.getTeamSize()
@@ -489,20 +502,22 @@ class node:
 			distance = 0.0
 		distance = distance + abs(self.yPos - target.yPos)
 		return distance
-	def addUnit(self,unit):
+	def addUnit(self,theUnit):
 		if(self.unit == None and self.tileValue != cDefines.defines['MOUNTAIN_TILE_INDEX']):
-			self.unit = unit
-			unit.node = self
-			gameState.getGameMode().units.append(unit)
-			if(unit.unitType.name == "summoner"):
-				gameState.getGameMode().summoners.append(unit)
-			if(gameState.getPlayerNumber() == (self.playerStartValue-1) or gameState.getPlayerNumber() == -2):
+			self.unit = theUnit
+			theUnit.node = self
+			gameState.getGameMode().units.append(theUnit)
+			print 'appended...'
+			if(theUnit.unitType.name == "summoner"):
+				gameState.getGameMode().summoners.append(theUnit)
+#			if(gameState.getPlayerNumber() == (self.playerStartValue-1) or gameState.getPlayerNumber() == -2):
+			if(theUnit.isOwnTeam()):
 				for neighb in self.getNeighbors(5):
 					neighb.startViewing(self.unit)
 			if(self.city != None):
 				self.city.player = self.unit.player
 		else:
-			(random.choice(self.neighbors)).addUnit(unit)
+			(random.choice(self.neighbors)).addUnit(theUnit)
 	def onRightClick(self):
 		gameState.getGameMode().clickScroll = True
 
@@ -1038,10 +1053,65 @@ def selectNode(node,theCityViewer = uiElements.cityViewer):
 #	node.toggleCursor()
 
 def loadGame(saveName):
-	file = open("saves/"+saveName+".sav","r")
-	with open("saves/"+saveName+".sav","r") as f:
-		for line in f:
-			print line.strip()
+	with open("saves/"+saveName+".sav","r") as saveFile:
+#		for line in saveFile:
+#			print line.strip()
+		lines = saveFile.read().split("\n")
+		gameState.setMapName(lines[0])
+		gameState.setTeamSize(int(lines[1]))
+		gameState.setPlayerNumber(int(lines[2]))
+		try:
+			server.startServer('')
+		except socket.error:
+			gameState.setGameMode(gameModes.newGameScreenMode)
+			uiElements.smallModal("Cannot open socket. Try again in 1 minute.")
+			return
+		for line in lines[4:12]:
+			if(line != "None"):
+				tokens = line.split("|")
+				if(tokens[6] == "True"):#isAI
+					player = gameState.addPlayer(playerClass=AIPlayer,playerNumber=int(tokens[0]),userName=tokens[1],requestHandler=None)
+					gameState.addAIPlayer(player)
+				else:
+					player = gameState.addPlayer(playerNumber=int(tokens[0]),userName=tokens[1],requestHandler=None)
+#					player = gameState.getPlayers()[int(tokens[0])]
+				player.isOwnPlayer = True if tokens[2]=="True" else False
+				player.greenWood = float(tokens[3])
+				player.blueWood = float(tokens[4])
+				player.team = int(tokens[5])
+		print gameState.getPlayers()
+		try:
+			client.startClient('127.0.0.1')
+		except socket.error:
+			gameState.setGameMode(gameModes.newGameScreenMode)
+			uiElements.smallModal("Cannot connect to socket. Try again in 1 minute.")
+			return
+		gameState.setGameMode(gameModes.playMode)
+		for line in lines[12:]:
+			if(len(line) > 0):
+				tokens = line.split("|")
+				node = gameState.getGameMode().map.nodes[int(tokens[4])][int(tokens[3])]
+				theUnit = unit(gameState.theUnitTypes[tokens[0]],int(tokens[1]),node,1)
+				theUnit.movementPoints = float(tokens[5])
+				theUnit.attackPoints = float(tokens[6])
+				theUnit.buildPoints = int(tokens[7])
+				if(tokens[8] != "None"):
+					coords = tokens[8].split(",")
+					theUnit.gotoNode = gameState.getGameMode().map.nodes[int(coords[1])][int(coords[0])]
+				theUnit.level = int(tokens[9])
+				theUnit.health = float(tokens[10])
+				theUnit.isMeditating = True if tokens[11]=="True" else False
+				for movePathLine in tokens[12:]:
+					print movePathLine
+				if(lines[3] != "None"):
+					nextUnitCoords = lines[3].split(",")
+					gameState.getGameMode().nextUnit = gameState.getGameMode().map.nodes[int(nextUnitCoords[1])][int(nextUnitCoords[0])].unit
+				else:
+					print "Error, no next unit was saved!"
+			#TODO CALL CHOOSENEXTUNIT HERE AND TEST
+				node.addUnit(theUnit)
+				print line
+		gameState.getGameMode().restartGame()
 	print 'loaded'
 
 def saveGame(saveName):
@@ -1050,14 +1120,17 @@ def saveGame(saveName):
 	lines.append(str(gameState.getMapName())+"\n")
 	lines.append(str(gameState.getTeamSize())+"\n")
 	lines.append(str(gameState.getPlayerNumber())+"\n")
+	if(gameState.getGameMode().nextUnit != None):
+		lines.append(str(gameState.getGameMode().nextUnit.node.xPos)+","+str(gameState.getGameMode().nextUnit.node.yPos)+"\n")
+	else:
+		lines.append("None\n")
 	for player in gameState.getPlayers():
 		if(player != None):
-			lines.append(str(player.userName)+"|")
 			lines.append(str(player.playerNumber)+"|")
+			lines.append(str(player.userName)+"|")
 			lines.append(str(player.isOwnPlayer)+"|")
 			lines.append(str(player.greenWood)+"|")
 			lines.append(str(player.blueWood)+"|")
-			lines.append(str(player.hasSummoners)+"|")
 			lines.append(str(player.team)+"|")
 			lines.append(str(player.isAI)+"\n")
 		else:
@@ -1066,25 +1139,26 @@ def saveGame(saveName):
 		lines.append(unit.unitType.name+"|")
 		lines.append(str(unit.player)+"|")
 		lines.append(str(unit.team)+"|")
+		print unit.xPos
+		print unit.yPos
+		print unit.node.xPos
+		print unit.node.yPos
 		lines.append(str(unit.node.xPos)+"|")
 		lines.append(str(unit.node.yPos)+"|")
 		lines.append(str(unit.movementPoints)+"|")
 		lines.append(str(unit.attackPoints)+"|")
 		lines.append(str(unit.buildPoints)+"|")
-		for node in unit.movePath:
-			lines.append(str(node.xPos)+","+str(node.yPos)+"_")
-		lines.append("|")
 		if(unit.gotoNode != None):
 			lines.append(str(unit.gotoNode.xPos)+","+str(unit.gotoNode.yPos)+"|")
 		else:
 			lines.append("None|")
 		lines.append(str(unit.level)+"|")
 		lines.append(str(unit.health)+"|")
-		lines.append(str(unit.isMeditating)+"\n")
-	if(gameState.getGameMode().nextUnit != None):
-		lines.append(str(gameState.getGameMode().nextUnit.node.xPos)+","+str(gameState.getGameMode().nextUnit.node.yPos)+"\n")
-	else:
-		lines.append("None\n")
+		lines.append(str(unit.isMeditating)+"|")
+		for node in unit.movePath:
+			lines.append(str(node.xPos)+","+str(node.yPos)+"_")
+		lines.append("\n")
+
 #node.addUnit(gameLogic.unit(gameState.theUnitTypes["summoner"],node.playerStartValue-1,rowCount,columnCount,node,1))
 	saveFile.writelines(lines)
 	saveFile.close()

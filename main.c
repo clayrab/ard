@@ -328,7 +328,7 @@ void updatePosition(){
 }
 void drawUnit(){
   pyUnitType = PyObject_GetAttrString(pyUnit,"unitType");
-  Py_DECREF(pyObj);
+  //  Py_DECREF(pyUnitType);
   pyXPositionUnit = PyObject_GetAttrString(pyUnit,"xPosDraw");
   pyYPositionUnit = PyObject_GetAttrString(pyUnit,"yPosDraw");
 
@@ -352,7 +352,6 @@ void drawUnit(){
   pyRecentDamageIter = PyObject_GetIter(pyRecentDamage);
 
   glColor3f(1.0,1.0,1.0);
-
   glBindTexture(GL_TEXTURE_2D, texturesArray[unitTextureIndex]);
   glCallList(unitList);
   
@@ -1930,8 +1929,6 @@ static void draw(){
     selectedName = selectedNodeName;
   }
 
-
-
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
   glGetIntegerv(GL_VIEWPORT,viewport);
@@ -1939,11 +1936,8 @@ static void draw(){
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
   calculateTranslation();
-
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		
-
   drawBackground();
-
   doViewport();
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();

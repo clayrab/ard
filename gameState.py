@@ -79,8 +79,8 @@ def setGameMode(gameModeType,args=[]):
     if(hasattr(theGameMode,"loadMap")):
 	    theGameMode.loadMap()
     theGameMode.addUIElements()
-    if(hasattr(theGameMode,"startGame")):
-	    theGameMode.startGame()
+#    if(hasattr(theGameMode,"startGame")):
+#	    theGameMode.startGame()
 
 def getGameMode():
 	global theGameMode
@@ -142,12 +142,16 @@ def getTeamSize():
 
 #thePlayersLock = threading.Lock()
 thePlayers = [None]*8
-def addPlayer(playerClass=gameLogic.Player,userName="Player ?",playerNumber=0,requestHandler=None):
+def addPlayer(playerClass=gameLogic.Player,userName="Player ?",playerNumber=0,requestHandler=None,playerObj=None):
 	player = None
-	if(thePlayers[playerNumber] == None):#will be a NetworkPlayer already on the host
-		player = playerClass(playerNumber=playerNumber,userName=userName,requestHandler=requestHandler)
-#	with thePlayersLock:
+	if(playerObj != None):
+		player = playerClass(playerNumber=playerNumber,userName=userName,requestHandler=requestHandler,player=playerObj)
 		thePlayers[playerNumber] = player
+	elif(thePlayers[playerNumber] == None):#will be a NetworkPlayer already on the host
+		player = playerClass(playerNumber=playerNumber,userName=userName,requestHandler=requestHandler)
+		thePlayers[playerNumber] = player
+	else:
+		player = thePlayers[playerNumber]
 	return player
 def removePlayer(playerNumber):
 	for index in range(0,8):
@@ -177,8 +181,6 @@ def getPlayers():
 theAIs = [None]*8
 def addAIPlayer(aiPlayer):
     theAIs[aiPlayer.playerNumber] = aiPlayer
-    print theAIs
 def resetAIs():
     global theAIs
     theAIs = [None]*8
-

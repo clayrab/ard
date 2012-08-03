@@ -15,9 +15,13 @@ server = None
 
 def addNetworkPlayer(requestHandler):
     players = gameState.getPlayers()
-    print players
     for i in range(0,8):
-        if(players[i] == None):
+        if(players[i] != None and not players[i].isAI and not hasattr(players[i],"dispatchCommand")):
+            #modifies existing players(from a loaded game) to be network players on the server
+            player = gameState.addPlayer(playerClass=gameLogic.NetworkPlayer,playerNumber=i,requestHandler=requestHandler,playerObj = players[i])
+            break
+        
+        elif(players[i] == None):
             player = gameState.addPlayer(playerClass=gameLogic.NetworkPlayer,playerNumber=i,requestHandler=requestHandler)
             break
     return player
@@ -74,7 +78,7 @@ class RequestHandler(SocketServer.StreamRequestHandler):
                         self.player.dispatchCommand("setMap -1 " + gameState.getMapName())
                     seed = time.time() * 256
                     for player in gameState.getPlayers():
-                        if(player != None):
+                        if(player != None):#AI don't have dispatchcommand
                             player.dispatchCommand("seedRNG -1 " + str(seed))
                             self.player.dispatchCommand("addPlayer -1 " + str(player.playerNumber) + ":" + player.userName)
                             if(player.playerNumber != self.player.playerNumber):

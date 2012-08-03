@@ -92,6 +92,7 @@ class Commands:
     @staticmethod
     def startGame():
         gameState.setGameMode(gameModes.playMode)
+        gameState.getGameMode().startGame()
         gameState.getGameMode().soundIndeces.append(cDefines.defines["DARBUKA_HIT_INDEX"])
     @staticmethod
     def chooseNextUnit():
@@ -169,7 +170,7 @@ class Commands:
         unitType = gameState.theUnitTypes[tokens[2]]
         gameState.getGameMode().players[node.unit.player].greenWood = gameState.getGameMode().players[node.unit.player].greenWood - (node.city.researchProgress[unitType][0]*unitType.costGreen)
         gameState.getGameMode().players[node.unit.player].blueWood = gameState.getGameMode().players[node.unit.player].blueWood - (node.city.researchProgress[unitType][0]*unitType.costBlue)
-        node.city.queueUnit(gameLogic.unit(unitType,node.city.player,node.xPos,node.yPos,node))
+        node.city.queueUnit(gameLogic.unit(unitType,node.city.player,node))
         if(gameState.getGameMode().selectedNode == node and hasattr(uiElements.viewer.theViewer,"isCityViewer")):
             uiElements.viewer.theViewer.destroy()
             uiElements.viewer.theViewer = uiElements.cityViewer(node)
@@ -274,7 +275,6 @@ class Client:
             receivedData = ''
         for command in receivedData.split("|"):
             if(len(command) > 0):
-                print 'command from socket'
                 print command
                 tokens = command.split(" ",2)
                 if(tokens[0] == "chooseNextUnit"):
