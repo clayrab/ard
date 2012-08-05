@@ -104,7 +104,7 @@ import server
 from textureFunctions import texWidth, texHeight, texIndex
 
 version = 0.1
-maxTimeToMove = 5000
+maxTimeToMove = 40000
 
 #print random.__file__
 sys.setrecursionlimit(10000)
