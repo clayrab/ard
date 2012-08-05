@@ -194,8 +194,8 @@ class Commands:
         tokens = args.split(" ")
         node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
         index = int(tokens[2])
-        if(len(node.city.unitBuildQueue) > 0):
-            cancelledQueuedThing = node.city.unitBuildQueue.pop(index-1)
+        if(len(node.city.buildQueue) > 0):
+            cancelledQueuedThing = node.city.buildQueue.pop(index-1)
             node.city.cancelledUnits.append((cancelledQueuedThing,index,))
             if(hasattr(cancelledQueuedThing,"unitType")):#unit
                 gameState.getGameMode().players[node.unit.player].greenWood = gameState.getGameMode().players[node.unit.player].greenWood + cancelledQueuedThing.unitType.costGreen
@@ -212,14 +212,14 @@ class Commands:
         index = int(tokens[2])
         node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
         cancelledThing,index = node.city.cancelledUnits.pop()
-        node.city.unitBuildQueue.insert(index-1,cancelledThing)
+        node.city.buildQueue.insert(index-1,cancelledThing)
     @staticmethod
     def cancelQueuedThingRedo(args):
         tokens = args.split(" ")
         index = int(tokens[2])
         node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
-        if(len(node.city.unitBuildQueue) > 0):
-            node.city.unitBuildQueue.pop(index-1)
+        if(len(node.city.buildQueue) > 0):
+            node.city.buildQueue.pop(index-1)
     @staticmethod
     def startResearch(args):
         tokens = args.split(" ")

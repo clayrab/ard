@@ -13,6 +13,8 @@
 #report game state(to look for cheaters/bugs)
 
 #client:
+#deprecate costOfOwnership
+#wait for commandLog to be empty to save...
 #in-game chat
 #roads? Draw them properly or remove them...
 #save game

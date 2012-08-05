@@ -540,7 +540,7 @@ class cityViewer(viewer):
 			queuedThings.append(self.node.city.researchUnitType)
 		elif(self.node.city.unitBeingBuilt != None):
 			queuedThings.append(self.node.city.unitBeingBuilt)
-		for thing in self.node.city.unitBuildQueue:
+		for thing in self.node.city.buildQueue:
 			queuedThings.append(thing)
 		queuedThingElem.firstThing = True
 		self.names.append(cityUnitDisplay(self.xPosition+0.012,self.yPosition-1.358,queuedThings,self.node.city,queuedThingElem,"QUEUE_BORDER").name)

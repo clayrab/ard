@@ -141,6 +141,8 @@ class unitType:
 			print "attackPowerBonus:"+str(self.attackPowerBonus)
 			print "researchCost:"+str(self.researchCost)
 			print "researchTime:"+str(self.researchTime)
+	def stringify(self):
+		return self.name
 class ice:
 	def __init__(self,node):
 		self.node = node
@@ -257,6 +259,26 @@ class unit:
 					self.yPosDraw = self.yPos
 		if(self.xPosDraw == self.xPos and self.yPosDraw == self.yPos):
 			slidingUnits.remove(self)
+	def stringify(self):
+		retStr = ""
+		retStr = retStr + self.unitType.name+"|"
+		retStr = retStr + str(self.player)+"|"
+		retStr = retStr + str(self.team)+"|"
+		retStr = retStr + str(self.node.xPos)+"|"
+		retStr = retStr + str(self.node.yPos)+"|"
+		retStr = retStr + str(self.movementPoints)+"|"
+		retStr = retStr + str(self.attackPoints)+"|"
+		retStr = retStr + str(self.buildPoints)+"|"
+		if(self.gotoNode != None):
+			retStr = retStr + str(self.gotoNode.xPos)+","+str(self.gotoNode.yPos)+"|"
+		else:
+			retStr = retStr + "None|"
+		retStr = retStr + str(self.level)+"|"
+		retStr = retStr + str(self.health)+"|"
+		retStr = retStr + str(self.isMeditating)+"|"
+		for node in self.movePath:
+			retStr = retStr + str(node.xPos)+","+str(node.yPos)+"_"
+		return retStr
 	def isControlled(self):
 		if(gameState.getPlayers()[self.player] != None):
 			return gameState.getPlayers()[self.player].isOwnPlayer
@@ -387,7 +409,7 @@ class city:
 			unitTypes = []
 		self.name = name
 		self.node = node
-		self.costOfOwnership = costOfOwnership
+		self.costOfOwnership = costOfOwnership#TODO: deprecated this
 		self.unitTypes = []
 		self.unitTypes.append(gameState.theUnitTypes["summoner"])
 		self.unitTypes.append(gameState.theUnitTypes["gatherer"])	
@@ -401,42 +423,42 @@ class city:
 		self.researchUnitType = None
 		self.unitBeingBuilt = None
 		self.cancelledUnits = []
-		self.unitBuildQueue = []
+		self.buildQueue = []
 		self.player = 0
 	def queueResearch(self,unitType):
-		self.unitBuildQueue.append(unitType)
+		self.buildQueue.append(unitType)
 		if(self.unitBeingBuilt == None and not self.researching):
 			self.buildNextFromQueue()			
 	def unqueueResearch(self):
-		if(len(self.unitBuildQueue) > 0):
-			self.unitBuildQueue = self.unitBuildQueue[:-1:]
+		if(len(self.buildQueue) > 0):
+			self.buildQueue = self.buildQueue[:-1:]
 		else:
 			self.researching = False
 			self.researchUnitType = None
 	def queueUnit(self,unit):
-		self.unitBuildQueue.append(unit)
+		self.buildQueue.append(unit)
 		if(self.unitBeingBuilt == None and not self.researching):
 			self.buildNextFromQueue()
 	def unqueueUnit(self):
-		if(len(self.unitBuildQueue) > 0):
-			self.unitBuildQueue = self.unitBuildQueue[:-1:]
+		if(len(self.buildQueue) > 0):
+			self.buildQueue = self.buildQueue[:-1:]
 		else:
 			self.unitBeingBuilt = None
 	def buildNextFromQueue(self):
 #		self.unitBeingBuilt = None
 #		self.researching = False
 #		self.researchUnitType = None
-		if(len(self.unitBuildQueue) > 0):
-			nextThing = self.unitBuildQueue[0]
-			self.unitBuildQueue = self.unitBuildQueue[1:]
+		if(len(self.buildQueue) > 0):
+			nextThing = self.buildQueue[0]
+			self.buildQueue = self.buildQueue[1:]
 			if(hasattr(nextThing,"unitType")):#unit
 				self.unitBeingBuilt = nextThing
 			else:#unitType/research
 				self.researching = True
 				self.researchUnitType = nextThing
-#		if(len(self.unitBuildQueue) > 0):
-#			self.unitBeingBuilt = self.unitBuildQueue[0]
-#			self.unitBuildQueue = self.unitBuildQueue[1:]
+#		if(len(self.buildQueue) > 0):
+#			self.unitBeingBuilt = self.buildQueue[0]
+#			self.buildQueue = self.buildQueue[1:]
 #		else:
 #			self.node.unit.waiting = False#wake up summoner
 	def incrementBuildProgress(self):
@@ -1051,6 +1073,26 @@ def selectNode(node,theCityViewer = uiElements.cityViewer):
 		gameState.getGameMode().mousedOverObject.toggleCursor()
 #	node.toggleCursor()
 
+def makeUnitFromString(string):
+	tokens = string.split("|")
+	theUnit = unit(gameState.theUnitTypes[tokens[0]],int(tokens[1]),node,1)
+	theUnit.movementPoints = float(tokens[5])
+	theUnit.attackPoints = float(tokens[6])
+	theUnit.buildPoints = int(tokens[7])
+	if(tokens[8] != "None"):
+		coords = tokens[8].split(",")
+		theUnit.gotoNode = gameState.getGameMode().map.nodes[int(coords[1])][int(coords[0])]
+	theUnit.level = int(tokens[9])
+	theUnit.health = float(tokens[10])
+	theUnit.isMeditating = tokens[11]=="True"
+	if(len(tokens[12]) > 0):
+		coordsStrs = tokens[12].split("_")
+		for coordsStr in coordsStrs:
+			if(len(coordsStr) > 0):
+				coords = coordsStr.split(",")
+				theUnit.movePath.append(gameState.getGameMode().map.nodes[int(coords[1])][int(coords[0])])
+	return theUnit
+
 def loadGame(saveName):
 	with open("saves/"+saveName+".sav","r") as saveFile:
 #		for line in saveFile:
@@ -1078,7 +1120,6 @@ def loadGame(saveName):
 				player.greenWood = float(tokens[3])
 				player.blueWood = float(tokens[4])
 				player.team = int(tokens[5])
-		print gameState.getPlayers()
 		try:
 			client.startClient('127.0.0.1')
 		except socket.error:
@@ -1086,33 +1127,58 @@ def loadGame(saveName):
 			uiElements.smallModal("Cannot connect to socket. Try again in 1 minute.")
 			return
 		gameState.setGameMode(gameModes.playMode)
-		for line in lines[12:]:
-			if(len(line) > 0):
+		for line in lines[12:]:#units; some built, some building/queued
+			if(len(line) > 0 and not line[0] == "*"):
 				tokens = line.split("|")
+				theUnit = makeUnitFromString(line)
 				node = gameState.getGameMode().map.nodes[int(tokens[4])][int(tokens[3])]
-				theUnit = unit(gameState.theUnitTypes[tokens[0]],int(tokens[1]),node,1)
-				theUnit.movementPoints = float(tokens[5])
-				theUnit.attackPoints = float(tokens[6])
-				theUnit.buildPoints = int(tokens[7])
-				if(tokens[8] != "None"):
-					coords = tokens[8].split(",")
-					theUnit.gotoNode = gameState.getGameMode().map.nodes[int(coords[1])][int(coords[0])]
-				theUnit.level = int(tokens[9])
-				theUnit.health = float(tokens[10])
-				theUnit.isMeditating = True if tokens[11]=="True" else False
-				if(len(tokens[12]) > 0):
-					coordsStrs = tokens[12].split("_")
-					for coordsStr in coordsStrs:
-						if(len(coordsStr) > 0):
-							coords = coordsStr.split(",")
-							theUnit.movePath.append(gameState.getGameMode().map.nodes[int(coords[1])][int(coords[0])])
-				if(lines[3] != "None"):
-					nextUnitCoords = lines[3].split(",")
-					gameState.getGameMode().nextUnit = gameState.getGameMode().map.nodes[int(nextUnitCoords[1])][int(nextUnitCoords[0])].unit
-				else:
-					print "Error, no next unit was saved!"
-			#TODO CALL CHOOSENEXTUNIT HERE AND TEST
 				node.addUnit(theUnit)
+			elif(len(line) > 0):
+				cityTokens = line.split("*")
+				print cityTokens
+				tokens = cityTokens[1].split("|")
+				node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
+				node.city.researching = tokens[2]=="True"
+				if(tokens[3] == "None"):
+					node.city.researchUnitType = None
+				else:
+					node.city.researchUnitType = gameState.theUnitTypes[tokens[3]]
+				if(len(cityTokens[2]) == 0):
+					node.city.unitBeingBuilt = None
+				else:
+					node.city.unitBeingBuilt = makeUnitFromString(cityTokens[2])
+				print cityTokens[3]
+				researchProgressTokens = cityTokens[3].split("|")
+				print researchProgressTokens
+				for researchProgressToken in researchProgressTokens:
+					if(len(researchProgressToken) > 0):
+						tokens = researchProgressToken.split(",")
+						print tokens
+						node.city.researchProgress[gameState.theUnitTypes[tokens[0]]] = [int(tokens[1]),int(tokens[2])]
+				
+				for unitString in cityTokens[4:]:
+					print unitString.count(",")
+					print unitString
+					if(len(unitString) > 0):
+						if(unitString.count("|") > 0):
+							node.city.buildQueue.append(makeUnitFromString(unitString))
+						else:
+							node.city.buildQueue.append(gameState.theUnitTypes[unitString])
+							
+							print unitString
+#			for item in summoner.node.city.buildQueue:
+#				lines.append("*")
+#				lines.append(item.stringify())
+
+
+
+
+		if(lines[3] != "None"):
+			nextUnitCoords = lines[3].split(",")
+			gameState.getGameMode().nextUnit = gameState.getGameMode().map.nodes[int(nextUnitCoords[1])][int(nextUnitCoords[0])].unit
+		else:
+			#TODO CALL CHOOSENEXTUNIT HERE AND TEST
+			print "Error, no next unit was saved!"
 		gameState.getGameMode().restartGame()
 		if(gameState.getGameMode().nextUnit.isControlled()):
 			selectNode(gameState.getGameMode().nextUnit.node)
@@ -1140,26 +1206,29 @@ def saveGame(saveName):
 		else:
 			lines.append("None\n")
 	for unit in gameState.getGameMode().units:
-		lines.append(unit.unitType.name+"|")
-		lines.append(str(unit.player)+"|")
-		lines.append(str(unit.team)+"|")
-		lines.append(str(unit.node.xPos)+"|")
-		lines.append(str(unit.node.yPos)+"|")
-		lines.append(str(unit.movementPoints)+"|")
-		lines.append(str(unit.attackPoints)+"|")
-		lines.append(str(unit.buildPoints)+"|")
-		if(unit.gotoNode != None):
-			lines.append(str(unit.gotoNode.xPos)+","+str(unit.gotoNode.yPos)+"|")
-		else:
-			lines.append("None|")
-		lines.append(str(unit.level)+"|")
-		lines.append(str(unit.health)+"|")
-		lines.append(str(unit.isMeditating)+"|")
-		for node in unit.movePath:
-			lines.append(str(node.xPos)+","+str(node.yPos)+"_")
+		lines.append(unit.stringify())
 		lines.append("\n")
-
-#node.addUnit(gameLogic.unit(gameState.theUnitTypes["summoner"],node.playerStartValue-1,rowCount,columnCount,node,1))
+	for summoner in gameState.getGameMode().summoners:
+		if(summoner.isMeditating):
+			lines.append("*")
+			lines.append(str(summoner.node.xPos)+"|")
+			lines.append(str(summoner.node.yPos)+"|")
+			lines.append(str(summoner.node.city.researching)+"|")
+			lines.append(("None" if summoner.node.city.researchUnitType == None else summoner.node.city.researchUnitType.name)+"|")
+			lines.append("*")
+			if(summoner.node.city.unitBeingBuilt != None):
+				lines.append(summoner.node.city.unitBeingBuilt.stringify())
+			lines.append("*")
+			for researchUnitType in summoner.node.city.researchProgress:
+				lines.append(researchUnitType.name)
+				lines.append(",")
+				lines.append(str(summoner.node.city.researchProgress[researchUnitType][0]))
+				lines.append(",")
+				lines.append(str(summoner.node.city.researchProgress[researchUnitType][1]))
+				lines.append("|")
+			for item in summoner.node.city.buildQueue:
+				lines.append("*")
+				lines.append(item.stringify())
 	saveFile.writelines(lines)
 	saveFile.close()
 	print 'saved'
