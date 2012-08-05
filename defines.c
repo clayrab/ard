@@ -27,214 +27,217 @@
 
 #define AUTO_CHOOSE_NEXT_DELAY 1500
 
-#define TILES_IMAGE "assets/tiles2.png"
-#define UI_IMAGE "assets/UI.png"
-#define TILE_SELECT_BOX_IMAGE "assets/tileSelect.png"
+#define TILES "assets/tiles2.png"
+#define UI "assets/UI.png"
+#define TILE_SELECT_BOX "assets/tileSelect.png"
 #define TILE_SELECT_BOX_INDEX 0
 
-#define UI_MAP_EDITOR_TOP_IMAGE "assets/UITop.png"
-#define UI_MAP_EDITOR_TOP_IMAGE_HEIGHT 100
-#define UI_MAP_EDITOR_TOP_IMAGE_WIDTH 1600
+#define UI_MAP_EDITOR_TOP "assets/UITop.png"
+#define UI_MAP_EDITOR_TOP_HEIGHT 100
+#define UI_MAP_EDITOR_TOP_WIDTH 1600
 #define UI_MAP_EDITOR_TOP_INDEX 1
 
-#define UI_MAP_EDITOR_BOTTOM_IMAGE "assets/UIBottom.png"
-#define UI_MAP_EDITOR_BOTTOM_IMAGE_HEIGHT 13
-#define UI_MAP_EDITOR_BOTTOM_IMAGE_WIDTH 1600
+#define UI_MAP_EDITOR_BOTTOM "assets/UIBottom.png"
+#define UI_MAP_EDITOR_BOTTOM_HEIGHT 13
+#define UI_MAP_EDITOR_BOTTOM_WIDTH 1600
 #define UI_MAP_EDITOR_BOTTOM_INDEX 2
 
-#define UI_MAP_EDITOR_LEFT_IMAGE "assets/UILeft.png"
-#define UI_MAP_EDITOR_LEFT_IMAGE_HEIGHT 1089
-#define UI_MAP_EDITOR_LEFT_IMAGE_WIDTH 286
+#define UI_MAP_EDITOR_LEFT "assets/UILeft.png"
+#define UI_MAP_EDITOR_LEFT_HEIGHT 1089
+#define UI_MAP_EDITOR_LEFT_WIDTH 286
 #define UI_MAP_EDITOR_LEFT_INDEX 3
 
-#define UI_MAP_EDITOR_RIGHT_IMAGE "assets/UIRight.png"
-#define UI_MAP_EDITOR_RIGHT_IMAGE_HEIGHT 1089
-#define UI_MAP_EDITOR_RIGHT_IMAGE_WIDTH 13
+#define UI_MAP_EDITOR_RIGHT "assets/UIRight.png"
+#define UI_MAP_EDITOR_RIGHT_HEIGHT 1089
+#define UI_MAP_EDITOR_RIGHT_WIDTH 13
 #define UI_MAP_EDITOR_RIGHT_INDEX 4
 
-#define UI_NEW_GAME_SCREEN_IMAGE "assets/MenusBackground.png"
-#define UI_NEW_GAME_SCREEN_IMAGE_HEIGHT 1200
-#define UI_NEW_GAME_SCREEN_IMAGE_WIDTH 1600
+#define UI_NEW_GAME_SCREEN "assets/MenusBackground.png"
+#define UI_NEW_GAME_SCREEN_HEIGHT 1200
+#define UI_NEW_GAME_SCREEN_WIDTH 1600
 #define UI_NEW_GAME_SCREEN_INDEX 5
 
-#define CURSOR_POINTER_IMAGE "assets/cursors/gam372.png"
+#define CURSOR_POINTER "assets/cursors/gam372.png"
 #define CURSOR_POINTER_INDEX 6
 
-#define CURSOR_POINTER_ON_IMAGE "assets/cursors/gam375.png"
+#define CURSOR_POINTER_ON "assets/cursors/gam375.png"
 #define CURSOR_POINTER_ON_INDEX 7
 
-#define CURSOR_MOVE_IMAGE "assets/cursors/gam378.png"
+#define CURSOR_MOVE "assets/cursors/gam378.png"
 #define CURSOR_MOVE_INDEX 8
 
 #define CURSOR_WIDTH 32
 #define CURSOR_HEIGHT 32
 
-#define PLAYER_START_BUTTON_IMAGE "assets/playerStartButton.png"
+#define PLAYER_START_BUTTON "assets/playerStartButton.png"
 #define PLAYER_START_BUTTON_WIDTH 13
 #define PLAYER_START_BUTTON_HEIGHT 14
 #define PLAYER_START_BUTTON_INDEX 9
 
-#define PLAYER_START_IMAGE "assets/playerStart.png"
+#define PLAYER_START "assets/playerStart.png"
 #define PLAYER_START_WIDTH 13
 #define PLAYER_START_HEIGHT 14
 #define PLAYER_START_INDEX 10
 
-#define UI_SCROLLABLE_IMAGE "assets/scrollableElement.png"
-#define UI_SCROLLABLE_IMAGE_HEIGHT 404
-#define UI_SCROLLABLE_IMAGE_WIDTH 210
+#define UI_SCROLLABLE "assets/scrollableElement.png"
+#define UI_SCROLLABLE_HEIGHT 404
+#define UI_SCROLLABLE_WIDTH 210
 #define UI_SCROLLABLE_INDEX 11
 
 #define UI_SCROLL_PAD "assets/scrollPad.png"
 #define UI_SCROLL_PAD_HEIGHT 16
 #define UI_SCROLL_PAD_WIDTH 16
 #define UI_SCROLL_PAD_INDEX 12
+#define UI_SCROLL_PAD_DUMMY_HEIGHT 0
+#define UI_SCROLL_PAD_DUMMY_WIDTH 0
+#define UI_SCROLL_PAD_DUMMY_INDEX 12
 
-#define UI_TEXT_INPUT_IMAGE "assets/textInput.png"
-#define UI_TEXT_INPUT_IMAGE_HEIGHT 41
-#define UI_TEXT_INPUT_IMAGE_WIDTH 304
+#define UI_TEXT_INPUT "assets/textInput.png"
+#define UI_TEXT_INPUT_HEIGHT 41
+#define UI_TEXT_INPUT_WIDTH 304
 #define UI_TEXT_INPUT_INDEX 13
 
-#define MEEPLE_IMAGE "assets/meeple.png"
-#define MEEPLE_IMAGE_HEIGHT 20
-#define MEEPLE_IMAGE_WIDTH 200
+#define MEEPLE "assets/meeple.png"
+#define MEEPLE_HEIGHT 20
+#define MEEPLE_WIDTH 200
 #define MEEPLE_INDEX 14
 
-#define HEALTH_BAR_IMAGE "assets/healthBar.png"
-#define HEALTH_BAR_IMAGE_HEIGHT 6
-#define HEALTH_BAR_IMAGE_WIDTH 52
+#define HEALTH_BAR "assets/healthBar.png"
+#define HEALTH_BAR_HEIGHT 6
+#define HEALTH_BAR_WIDTH 52
 #define HEALTH_BAR_INDEX 15
 
-#define UNIT_BUILD_BAR_IMAGE "assets/unitBuildBar.png"
-#define UNIT_BUILD_BAR_IMAGE_HEIGHT 12
-#define UNIT_BUILD_BAR_IMAGE_WIDTH 180
+#define UNIT_BUILD_BAR "assets/unitBuildBar.png"
+#define UNIT_BUILD_BAR_HEIGHT 12
+#define UNIT_BUILD_BAR_WIDTH 180
 #define UNIT_BUILD_BAR_INDEX 16
 
-#define CITY_SANS_TREE_IMAGE "assets/citySansTree.png"
+#define CITY_SANS_TREE "assets/citySansTree.png"
 #define CITY_SANS_TREE_HEIGHT 96
 #define CITY_SANS_TREE_WIDTH 98
 #define CITY_SANS_TREE_INDEX 17
 
-#define WALK_ICON_IMAGE "assets/walkIcon.png"
+#define WALK_ICON "assets/walkIcon.png"
 #define WALK_ICON_HEIGHT 36
 #define WALK_ICON_WIDTH 36
 #define WALK_ICON_INDEX 18
 
-#define ADD_BUTTON_IMAGE "assets/addButton.png"
+#define ADD_BUTTON "assets/addButton.png"
 #define ADD_BUTTON_HEIGHT 20
 #define ADD_BUTTON_WIDTH 20
 #define ADD_BUTTON_INDEX 19
 
-#define REMOVE_BUTTON_IMAGE "assets/removeButton.png"
+#define REMOVE_BUTTON "assets/removeButton.png"
 #define REMOVE_BUTTON_HEIGHT 20
 #define REMOVE_BUTTON_WIDTH 20
 #define REMOVE_BUTTON_INDEX 20
 
-#define CITY_VIEWER_BOX_IMAGE "assets/cityViewerBox.png"
+#define CITY_VIEWER_BOX "assets/cityViewerBox.png"
 #define CITY_VIEWER_BOX_HEIGHT 352
 #define CITY_VIEWER_BOX_WIDTH 211
 #define CITY_VIEWER_BOX_INDEX 21
 
-#define UNIT_VIEWER_BOX_IMAGE "assets/unitViewerBox.png"
+#define UNIT_VIEWER_BOX "assets/unitViewerBox.png"
 #define UNIT_VIEWER_BOX_HEIGHT 100
 #define UNIT_VIEWER_BOX_WIDTH 211
 #define UNIT_VIEWER_BOX_INDEX 22
 
-#define UNIT_TYPE_VIEWER_BOX_IMAGE "assets/unitTypeViewerBox.png"
+#define UNIT_TYPE_VIEWER_BOX "assets/unitTypeViewerBox.png"
 #define UNIT_TYPE_VIEWER_BOX_HEIGHT 241
 #define UNIT_TYPE_VIEWER_BOX_WIDTH 211
 #define UNIT_TYPE_VIEWER_BOX_INDEX 23
 
-#define RESEARCH_BOX_IMAGE "assets/researchBox.png"
+#define RESEARCH_BOX "assets/researchBox.png"
 #define RESEARCH_BOX_HEIGHT 45
 #define RESEARCH_BOX_WIDTH 190
 #define RESEARCH_BOX_INDEX 24
 
-#define SELECTION_BRACKET_IMAGE "assets/selectionBrackets.png"
+#define SELECTION_BRACKET "assets/selectionBrackets.png"
 #define SELECTION_BRACKET_HEIGHT 20
 #define SELECTION_BRACKET_WIDTH 67
 #define SELECTION_BRACKET_INDEX 25
 
-#define ADD_BUTTON_SMALL_IMAGE "assets/addButtonSmall.png"
+#define ADD_BUTTON_SMALL "assets/addButtonSmall.png"
 #define ADD_BUTTON_SMALL_HEIGHT 13
 #define ADD_BUTTON_SMALL_WIDTH 13
 #define ADD_BUTTON_SMALL_INDEX 26
 
-#define REMOVE_BUTTON_SMALL_IMAGE "assets/removeButtonSmall.png"
+#define REMOVE_BUTTON_SMALL "assets/removeButtonSmall.png"
 #define REMOVE_BUTTON_SMALL_HEIGHT 13
 #define REMOVE_BUTTON_SMALL_WIDTH 13
 #define REMOVE_BUTTON_SMALL_INDEX 27
 
-#define REMOVE_BUTTON_SMALL_IMAGE "assets/removeButtonSmall.png"
+#define REMOVE_BUTTON_SMALL "assets/removeButtonSmall.png"
 #define REMOVE_BUTTON_SMALL_HEIGHT 13
 #define REMOVE_BUTTON_SMALL_WIDTH 13
 #define REMOVE_BUTTON_SMALL_INDEX 27
 
-#define UNIT_CIRCLE_RED_IMAGE "assets/selectionBoxRed.png"
+#define UNIT_CIRCLE_RED "assets/selectionBoxRed.png"
 #define UNIT_CIRCLE_RED_HEIGHT 40
 #define UNIT_CIRCLE_RED_WIDTH 40
 #define UNIT_CIRCLE_RED_INDEX 28
 
-#define UNIT_CIRCLE_BLUE_IMAGE "assets/selectionBoxBlue.png"
+#define UNIT_CIRCLE_BLUE "assets/selectionBoxBlue.png"
 #define UNIT_CIRCLE_BLUE_HEIGHT 40
 #define UNIT_CIRCLE_BLUE_WIDTH 40
 #define UNIT_CIRCLE_BLUE_INDEX 29
 
-#define UNIT_CIRCLE_GREEN_IMAGE "assets/selectionBoxBlue.png"
+#define UNIT_CIRCLE_GREEN "assets/selectionBoxBlue.png"
 #define UNIT_CIRCLE_GREEN_INDEX 30
-#define UNIT_CIRCLE_YELLOW_IMAGE "assets/selectionBoxBlue.png"
+#define UNIT_CIRCLE_YELLOW "assets/selectionBoxBlue.png"
 #define UNIT_CIRCLE_YELLOW_INDEX 31
-#define UNIT_CIRCLE_PINK_IMAGE "assets/selectionBoxBlue.png"
+#define UNIT_CIRCLE_PINK "assets/selectionBoxBlue.png"
 #define UNIT_CIRCLE_PINK_INDEX 32
-#define UNIT_CIRCLE_ORANGE_IMAGE "assets/selectionBoxBlue.png"
+#define UNIT_CIRCLE_ORANGE "assets/selectionBoxBlue.png"
 #define UNIT_CIRCLE_ORANGE_INDEX 33
-#define UNIT_CIRCLE_PURPLE_IMAGE "assets/selectionBoxBlue.png"
+#define UNIT_CIRCLE_PURPLE "assets/selectionBoxBlue.png"
 #define UNIT_CIRCLE_PURPLE_INDEX 34
-#define UNIT_CIRCLE_BROWN_IMAGE "assets/selectionBoxBlue.png"
+#define UNIT_CIRCLE_BROWN "assets/selectionBoxBlue.png"
 #define UNIT_CIRCLE_BROWN_INDEX 35
 
-#define CURSOR_ATTACK_IMAGE "assets/cursors/swordIcon.png"
+#define CURSOR_ATTACK "assets/cursors/swordIcon.png"
 #define CURSOR_ATTACK_INDEX 36
 
-#define CURSOR_HEAL_IMAGE "assets/cursors/healCursor.png"
+#define CURSOR_HEAL "assets/cursors/healCursor.png"
 #define CURSOR_HEAL_INDEX 37
 
-#define ARCHER_IMAGE "assets/archer.png"
+#define ARCHER "assets/archer.png"
 #define ARCHER_INDEX 38
 
-#define SWORDSMAN_IMAGE "assets/swordsman.png"
+#define SWORDSMAN "assets/swordsman.png"
 #define SWORDSMAN_INDEX 39
 
-#define SELECTION_BOX_IMAGE "assets/selectionBox.png"
+#define SELECTION_BOX "assets/selectionBox.png"
 #define SELECTION_BOX_INDEX 40
 
-#define SUMMONER_IMAGE "assets/summoner.png"
+#define SUMMONER "assets/summoner.png"
 #define SUMMONER_INDEX 41
 
-#define CITY_IMAGE "assets/city.png"
+#define CITY "assets/city.png"
 #define CITY_INDEX 42
 
-#define GATHERER_IMAGE "assets/gatherer.png"
+#define GATHERER "assets/gatherer.png"
 #define GATHERER_INDEX 43
 
-#define DRAGON_IMAGE "assets/dragon.png"
+#define DRAGON "assets/dragon.png"
 #define DRAGON_INDEX 44
 
-#define WHITE_MAGE_IMAGE "assets/white_mage.png"
+#define WHITE_MAGE "assets/white_mage.png"
 #define WHITE_MAGE_INDEX 45
 
-#define WOLF_IMAGE "assets/wolf.png"
+#define WOLF "assets/wolf.png"
 #define WOLF_INDEX 46
 
-#define FIRE_IMAGE "assets/fire.png"
+#define FIRE "assets/fire.png"
 #define FIRE_INDEX 47
 
-#define RED_MAGE_IMAGE "assets/red_mage.png"
+#define RED_MAGE "assets/red_mage.png"
 #define RED_MAGE_INDEX 48
 
-#define BLUE_MAGE_IMAGE "assets/blue_mage.png"
+#define BLUE_MAGE "assets/blue_mage.png"
 #define BLUE_MAGE_INDEX 49
 
-#define ICE_IMAGE "assets/ice.png"
+#define ICE "assets/ice.png"
 #define ICE_INDEX 50
 
 #define GAME_FIND_BACKGROUND "assets/gameFindBackground.png"

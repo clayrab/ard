@@ -538,6 +538,8 @@ class playMode(tiledGameMode):
 						if(unit.isControlled() and unit.isMeditating):
 							gameLogic.selectNode(unit.node)
 					
+		elif(keycode == "return"):
+			uiElements.chatModal()
 		elif(keycode == "escape"):
 			uiElements.menuModal()
 		else:
@@ -637,6 +639,7 @@ class playMode(tiledGameMode):
 		uiElements.uiElement(0.775,0.980,textureIndex=texIndex("BLUE_WOOD_ICON"),width=texWidth("BLUE_WOOD_ICON"),height=texHeight("BLUE_WOOD_ICON"))
 		self.blueWoodUIElem = uiElements.uiElement(0.799,0.957,text=str(self.players[0].blueWood),textSize=0.00045)
 		self.waitingElem = uiElements.uiElement(-0.2,0.93,text="waiting for another player",textColor="ee ed 9b",textSize=0.00055,hidden=True)
+		self.chatDisplay = uiElements.inGameChatDisplay(0.556,0.82)
 		uiElements.openMenuButton(0.99-texWidth("MENU_BUTTON"),0.99)
 
 	def startGame(self):
@@ -788,9 +791,9 @@ class newMapMode(gameMode):
 	def addUIElements(self):
 		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])
 		uiElements.uiElement(-0.15,0.17,text="map name")
-		self.mapNameInputElement = uiElements.newMapNameInputElement(-0.15,0.15,mapEditorMode,width=(2.0*cDefines.defines['UI_TEXT_INPUT_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_TEXT_INPUT_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),text="",textSize=0.0007,textColor='FF FF FF',textureIndex=cDefines.defines['UI_TEXT_INPUT_INDEX'],textYPos=-0.055,textXPos=0.02)
+		self.mapNameInputElement = uiElements.newMapNameInputElement(-0.15,0.15,mapEditorMode,width=(2.0*cDefines.defines['UI_TEXT_INPUT_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_TEXT_INPUT_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),text="",textSize=0.0007,textColor='FF FF FF',textureIndex=cDefines.defines['UI_TEXT_INPUT_INDEX'],textYPos=-0.055,textXPos=0.02)
 		uiElements.uiElement(-0.15,-0.03,text="number of players")
-		self.mapPlayerCountInputElement = uiElements.newMapPlayerCountInputElement(-0.15,-0.05,mapEditorMode,width=(2.0*cDefines.defines['UI_TEXT_INPUT_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_TEXT_INPUT_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),text="",textSize=0.0007,textColor='FF FF FF',textureIndex=cDefines.defines['UI_TEXT_INPUT_INDEX'],textYPos=-0.055,textXPos=0.02)
+		self.mapPlayerCountInputElement = uiElements.newMapPlayerCountInputElement(-0.15,-0.05,mapEditorMode,width=(2.0*cDefines.defines['UI_TEXT_INPUT_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_TEXT_INPUT_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']),text="",textSize=0.0007,textColor='FF FF FF',textureIndex=cDefines.defines['UI_TEXT_INPUT_INDEX'],textYPos=-0.055,textXPos=0.02)
 		self.setFocus(self.mapNameInputElement)
 		uiElements.createMapButton(-0.15,-0.3,mapEditorMode,text="create map")
 

@@ -153,7 +153,7 @@ class removeFirstRowButton(clickableElement):
 
 class textInputElement(uiElement):
 	elements = []
-	def __init__(self,xPos,yPos,isPassword=False,width=texWidth('UI_TEXT_INPUT_IMAGE'),height=texHeight('UI_TEXT_INPUT_IMAGE'),text="",textureIndex=texIndex('UI_TEXT_INPUT'),textColor='DD DD DD',textSize=0.0006,textXPos=0.010,textYPos=-0.045,fontIndex=0):
+	def __init__(self,xPos,yPos,isPassword=False,width=texWidth('UI_TEXT_INPUT'),height=texHeight('UI_TEXT_INPUT'),text="",textureIndex=texIndex('UI_TEXT_INPUT'),textColor='DD DD DD',textSize=0.0006,textXPos=0.010,textYPos=-0.045,fontIndex=0):
 		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textSize=textSize,textColor=textColor,textXPos=textXPos,textYPos=textYPos,cursorPosition=len(text),fontIndex=fontIndex)
 		textInputElement.elements.append(self)
 		if(isPassword):
@@ -265,7 +265,7 @@ class hostIPConnectButton(clickableElement):
 
 class hostIPInputElement(textInputElement):
 	def __init__(self,xPos,yPos):
-		textInputElement.__init__(self,xPos,yPos,width=texWidth("UI_TEXT_INPUT_IMAGE"),height=texHeight("UI_TEXT_INPUT_IMAGE"),textureIndex=texIndex("UI_TEXT_INPUT"),text="192.168.0.102")
+		textInputElement.__init__(self,xPos,yPos,width=texWidth("UI_TEXT_INPUT"),height=texHeight("UI_TEXT_INPUT"),textureIndex=texIndex("UI_TEXT_INPUT"),text="192.168.0.102")
 #		self.gameMode = gameMode
 	def onKeyDown(self,keycode):
 		if(keycode == "return"):
@@ -461,16 +461,16 @@ class unitViewer(viewer):
 		self.names.append(unitTypeViewerButton(self.xPosition+0.040,self.yPosition-0.120,self.node.unit.unitType,textureIndex=self.node.unit.unitType.textureIndex,height=0.14,width=0.14*0.75).name)
 
 		self.names.append(uiElement(self.xPosition+0.180,self.yPosition-0.125,text="health",textSize=0.0005,textColor="ee ed 9b").name)
-		self.names.append(uiElement(self.xPosition+0.180,self.yPosition-0.130,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE'),textureIndex=texIndex('UNIT_BUILD_BAR')).name)
-		self.names.append(uiElement(self.xPosition+0.180,self.yPosition-0.130,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE')*(float(self.node.unit.health)/self.node.unit.getMaxHealth()),textureIndex=texIndex('UNIT_BUILD_BAR'),color="FF 00 00").name)
+		self.names.append(uiElement(self.xPosition+0.180,self.yPosition-0.130,height=texHeight('UNIT_BUILD_BAR'),width=texWidth('UNIT_BUILD_BAR'),textureIndex=texIndex('UNIT_BUILD_BAR')).name)
+		self.names.append(uiElement(self.xPosition+0.180,self.yPosition-0.130,height=texHeight('UNIT_BUILD_BAR'),width=texWidth('UNIT_BUILD_BAR')*(float(self.node.unit.health)/self.node.unit.getMaxHealth()),textureIndex=texIndex('UNIT_BUILD_BAR'),color="FF 00 00").name)
 
 		self.names.append(uiElement(self.xPosition+0.180,self.yPosition-0.185,text="move initiative",textSize=0.0005,textColor="ee ed 9b").name)
-		self.names.append(uiElement(self.xPosition+0.180,self.yPosition-0.190,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE'),textureIndex=texIndex('UNIT_BUILD_BAR')).name)
-		self.names.append(uiElement(self.xPosition+0.180,self.yPosition-0.190,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE')*(float(gameLogic.INITIATIVE_ACTION_DEPLETION-self.node.unit.movementPoints)/float(gameLogic.INITIATIVE_ACTION_DEPLETION)),textureIndex=texIndex('UNIT_BUILD_BAR'),color="FF 00 00").name)
+		self.names.append(uiElement(self.xPosition+0.180,self.yPosition-0.190,height=texHeight('UNIT_BUILD_BAR'),width=texWidth('UNIT_BUILD_BAR'),textureIndex=texIndex('UNIT_BUILD_BAR')).name)
+		self.names.append(uiElement(self.xPosition+0.180,self.yPosition-0.190,height=texHeight('UNIT_BUILD_BAR'),width=texWidth('UNIT_BUILD_BAR')*(float(gameLogic.INITIATIVE_ACTION_DEPLETION-self.node.unit.movementPoints)/float(gameLogic.INITIATIVE_ACTION_DEPLETION)),textureIndex=texIndex('UNIT_BUILD_BAR'),color="FF 00 00").name)
 
 		self.names.append(uiElement(self.xPosition+0.180,self.yPosition-0.245,text="atk initiative",textSize=0.0005,textColor="ee ed 9b").name)
-		self.names.append(uiElement(self.xPosition+0.180,self.yPosition-0.250,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE'),textureIndex=texIndex('UNIT_BUILD_BAR')).name)
-		self.names.append(uiElement(self.xPosition+0.180,self.yPosition-0.250,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE')*(float(gameLogic.INITIATIVE_ACTION_DEPLETION-self.node.unit.attackPoints)/float(gameLogic.INITIATIVE_ACTION_DEPLETION)),textureIndex=texIndex('UNIT_BUILD_BAR'),color="FF 00 00").name)
+		self.names.append(uiElement(self.xPosition+0.180,self.yPosition-0.250,height=texHeight('UNIT_BUILD_BAR'),width=texWidth('UNIT_BUILD_BAR'),textureIndex=texIndex('UNIT_BUILD_BAR')).name)
+		self.names.append(uiElement(self.xPosition+0.180,self.yPosition-0.250,height=texHeight('UNIT_BUILD_BAR'),width=texWidth('UNIT_BUILD_BAR')*(float(gameLogic.INITIATIVE_ACTION_DEPLETION-self.node.unit.attackPoints)/float(gameLogic.INITIATIVE_ACTION_DEPLETION)),textureIndex=texIndex('UNIT_BUILD_BAR'),color="FF 00 00").name)
 		
 		self.names.append(uiElement(self.xPosition+0.022,self.yPosition-0.32,text=self.node.unit.unitType.name,textSize=0.00055,textColor="ee ed 9b").name)
 		self.names.append(uiElement(self.xPosition+0.022,self.yPosition-0.36,text="lvl " + str(self.node.unit.level),textSize=0.00055,textColor="ee ed 9b").name)
@@ -639,7 +639,7 @@ class cityEditor(uiElement):
 		uiElement.__init__(self,-0.983,0.983,textureIndex=texIndex("UI_CITY_EDITOR_BACKGROUND_BACKGROUND"),height=texHeight("UI_CITY_EDITOR_BACKGROUND_BACKGROUND"),width=texWidth("UI_CITY_EDITOR_BACKGROUND_BACKGROUND"))
 		self.names = []
 		self.city = city
-		self.names.append(cityNameInputElement(-0.972,0.746,width=texWidth('UI_TEXT_INPUT_IMAGE'),height=texHeight('UI_TEXT_INPUT_IMAGE'),text=self.city.name,textSize=0.0005,textColor='FF FF FF',textureIndex=texIndex('UI_TEXT_INPUT'),textYPos=-0.035,textXPos=0.01).name)
+		self.names.append(cityNameInputElement(-0.972,0.746,width=texWidth('UI_TEXT_INPUT'),height=texHeight('UI_TEXT_INPUT'),text=self.city.name,textSize=0.0005,textColor='FF FF FF',textureIndex=texIndex('UI_TEXT_INPUT'),textYPos=-0.035,textXPos=0.01).name)
 		height = 0.56
 		for unitType in self.city.unitTypes:
 			self.names.append(uiElement(-0.95,height,text=unitType.name,textSize=0.0005).name)
@@ -702,6 +702,7 @@ class scrollPadElement(uiElement):
 		self.rightOffset = rightOffset
 		self.scrollableElement = scrollableElement
 		self.numScrollableElements = len(self.scrollableElement.textFieldElements) - self.scrollableElement.numFields
+#		self.numScrollableElements = len(self.scrollableElement.textFields) - self.scrollableElement.numFields
 		self.totalScrollableHeight = self.scrollableElement.height - self.topOffset - self.bottomOffset - self.height
 	def onLeftClickDown(self):
 		self.scrolling = True
@@ -781,12 +782,12 @@ class queuedThingElem(scrollableElement):
 			queuedThingElem.firstThing = False
 			if(self.unit != None):
 				self.names.append(uiElement(self.xPosition+0.085,self.yPosition-0.05,text=self.unitType.name+"("+str(self.unit.level)+")",textSize=0.0005,textColor="ee ee ee",fontIndex=2).name)
-				self.names.append(uiElement(self.xPosition+0.085,self.yPosition-0.08,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE'),textureIndex=texIndex('UNIT_BUILD_BAR')).name)
-				self.names.append(uiElement(self.xPosition+0.085,self.yPosition-0.08,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE')*(gameState.getGameMode().selectedNode.city.unitBeingBuilt.unitType.buildTime-gameState.getGameMode().selectedNode.city.unitBeingBuilt.buildPoints)/gameState.getGameMode().selectedNode.city.unitBeingBuilt.unitType.buildTime,textureIndex=texIndex('UNIT_BUILD_BAR'),color="FF 00 00").name)
+				self.names.append(uiElement(self.xPosition+0.085,self.yPosition-0.08,height=texHeight('UNIT_BUILD_BAR'),width=texWidth('UNIT_BUILD_BAR'),textureIndex=texIndex('UNIT_BUILD_BAR')).name)
+				self.names.append(uiElement(self.xPosition+0.085,self.yPosition-0.08,height=texHeight('UNIT_BUILD_BAR'),width=texWidth('UNIT_BUILD_BAR')*(gameState.getGameMode().selectedNode.city.unitBeingBuilt.unitType.buildTime-gameState.getGameMode().selectedNode.city.unitBeingBuilt.buildPoints)/gameState.getGameMode().selectedNode.city.unitBeingBuilt.unitType.buildTime,textureIndex=texIndex('UNIT_BUILD_BAR'),color="FF 00 00").name)
 			else:
 				self.names.append(uiElement(self.xPosition+0.085,self.yPosition-0.05,text=self.unitType.name+" lv "+str(self.city.researchProgress[self.unitType][0]+1),textSize=0.0005,textColor="ee ee ee",fontIndex=2).name)
-				self.names.append(uiElement(self.xPosition+0.085,self.yPosition-0.08,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE'),textureIndex=texIndex('UNIT_BUILD_BAR')).name)
-				self.names.append(uiElement(self.xPosition+0.085,self.yPosition-0.08,height=texHeight('UNIT_BUILD_BAR_IMAGE'),width=texWidth('UNIT_BUILD_BAR_IMAGE')*(float(gameState.getGameMode().selectedNode.city.researchProgress[gameState.getGameMode().selectedNode.city.researchUnitType][1])/gameState.getGameMode().selectedNode.city.researchUnitType.researchTime),textureIndex=texIndex('UNIT_BUILD_BAR'),color="FF 00 00").name)
+				self.names.append(uiElement(self.xPosition+0.085,self.yPosition-0.08,height=texHeight('UNIT_BUILD_BAR'),width=texWidth('UNIT_BUILD_BAR'),textureIndex=texIndex('UNIT_BUILD_BAR')).name)
+				self.names.append(uiElement(self.xPosition+0.085,self.yPosition-0.08,height=texHeight('UNIT_BUILD_BAR'),width=texWidth('UNIT_BUILD_BAR')*(float(gameState.getGameMode().selectedNode.city.researchProgress[gameState.getGameMode().selectedNode.city.researchUnitType][1])/gameState.getGameMode().selectedNode.city.researchUnitType.researchTime),textureIndex=texIndex('UNIT_BUILD_BAR'),color="FF 00 00").name)
 		else:
 			if(self.unit != None):
 #				self.names.append(uiElement(self.xPosition+0.085,self.yPosition-0.05,text="summon",textSize=0.0005,textColor="ee ee ee",fontIndex=2).name)
@@ -876,7 +877,7 @@ class scrollableTextFieldsElement(uiElement):
 		for textFieldElement in self.textFieldElements:
 			count = count + 1
 			textFieldElement.setYPosition(self.yPosition+yPosOffset)
-			if(count < self.numFields + self.scrollPosition + 1 and count > self.scrollPosition):
+			if(count < self.numFields + self.scrollPosition + 1 and count > self.scrollPosition - 1):
 				yPosOffset = yPosOffset - self.lineHeight
 				textFieldElement.hidden = False
 				for name in textFieldElement.names:
@@ -939,7 +940,7 @@ class chatDisplay(scrollableTextFieldsElement):
 				self.currentText = ""
 			self.textFields.append(" ".join(wordTokens[:wordLength]))
 			self.redraw()
-			if(self.scrollPadElem != None and self.scrollPosition >= self.scrollPadElem.numScrollableElements):
+			if(self.scrollPadElem != None and self.scrollPosition <= self.scrollPadElem.numScrollableElements):
 				self.scrollPosition = self.scrollPadElem.numScrollableElements+1
 				self.redraw()
 	def addText(self,text):
@@ -948,6 +949,14 @@ class chatDisplay(scrollableTextFieldsElement):
 		if(self.currentText == "" and not self.textQueue.empty()):
 			self.currentText = self.textQueue.get()
 		return self.currentText
+
+class inGameChatDisplay(chatDisplay):
+	def __init__(self,xPos,yPos):
+		scrollableTextFieldsElement.__init__(self,xPos,yPos,[],textSize=0.0005,numFields=3,width=0.980-xPos,scrollPadTex="UI_SCROLL_PAD_DUMMY")
+		self.textQueue = Queue()
+		self.linesQueue = Queue()
+		self.currentText = ""
+	
 
 class roomSelector(scrollableTextFieldsElement):
 	def __init__(self,xPos,yPos,rooms,width=0.0,height=0.0,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None):
@@ -1106,7 +1115,7 @@ class addUnitTypeButton(clickableElement):
 #		del unitTypes[gameState.theUnitTypes["summo"]]
 #		for unitType in cityEditor.theCityEditor.city.unitTypes:
 #			del unitTypes[unitType.name]
-		unitTypeSelector(self.xPosition,self.yPosition-0.06,gameState.theUnitTypes.values(),text="select unit",textSize=0.0005,textureIndex=cDefines.defines['UI_SCROLLABLE_INDEX'],width=(2.0*cDefines.defines['UI_SCROLLABLE_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_SCROLLABLE_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']))
+		unitTypeSelector(self.xPosition,self.yPosition-0.06,gameState.theUnitTypes.values(),text="select unit",textSize=0.0005,textureIndex=cDefines.defines['UI_SCROLLABLE_INDEX'],width=(2.0*cDefines.defines['UI_SCROLLABLE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_SCROLLABLE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']))
 
 class removeUnitTypeButton(clickableElement):
 	def __init__(self,xPos,yPos,unitType,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None):
@@ -1123,13 +1132,13 @@ class unitCostField(clickableElement):
 		clickableElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],color=color,mouseOverColor=mouseOverColor,textXPos=textXPos,textYPos=textYPos)
 		self.unitType = unitType
 	def onClick(self):
-		unitCostSelector(self.xPosition,self.yPosition-0.06,unitCosts,self,text="select cost",textSize=0.0005,textureIndex=cDefines.defines['UI_SCROLLABLE_INDEX'],width=(2.0*cDefines.defines['UI_SCROLLABLE_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_SCROLLABLE_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']))
+		unitCostSelector(self.xPosition,self.yPosition-0.06,unitCosts,self,text="select cost",textSize=0.0005,textureIndex=cDefines.defines['UI_SCROLLABLE_INDEX'],width=(2.0*cDefines.defines['UI_SCROLLABLE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_SCROLLABLE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']))
 
 class startingManaField(clickableElement):
        	def __init__(self,xPos,yPos,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,textXPos=0.0,textYPos=0.0):
 		clickableElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],color=color,mouseOverColor=mouseOverColor,textXPos=textXPos,textYPos=textYPos)
 	def onClick(self):
-		startingManaSelector(self.xPosition,self.yPosition-0.06,startingManas,self,text="select cost",textSize=0.0005,textureIndex=cDefines.defines['UI_SCROLLABLE_INDEX'],width=(2.0*cDefines.defines['UI_SCROLLABLE_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_SCROLLABLE_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']))
+		startingManaSelector(self.xPosition,self.yPosition-0.06,startingManas,self,text="select cost",textSize=0.0005,textureIndex=cDefines.defines['UI_SCROLLABLE_INDEX'],width=(2.0*cDefines.defines['UI_SCROLLABLE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_SCROLLABLE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']))
 
 
 #class unitBuildTimeField(clickableElement):
@@ -1137,7 +1146,7 @@ class startingManaField(clickableElement):
 #		clickableElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],color=color,mouseOverColor=mouseOverColor,textXPos=textXPos,textYPos=textYPos)
 #		self.unitType = unitType
 #	def onClick(self):
-#		unitBuildTimeSelector(self.xPosition,self.yPosition-0.06,unitBuildTimes,self,text="select build timeGET RID OF THIS",textSize=0.0005,textureIndex=cDefines.defines['UI_SCROLLABLE_INDEX'],width=(2.0*cDefines.defines['UI_SCROLLABLE_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_SCROLLABLE_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']))
+#		unitBuildTimeSelector(self.xPosition,self.yPosition-0.06,unitBuildTimes,self,text="select build timeGET RID OF THIS",textSize=0.0005,textureIndex=cDefines.defines['UI_SCROLLABLE_INDEX'],width=(2.0*cDefines.defines['UI_SCROLLABLE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_SCROLLABLE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']))
 
 	
 
@@ -1253,7 +1262,7 @@ class mapField(clickableElement):
 		for fileName in dirList:
 			if(fileName.endswith(".map")):
 				mapNames.append(fileName[0:len(fileName)-4])
-		self.selector(self.xPosition,self.yPosition-0.06,mapNames,self,text="select build time",textSize=0.0005,textureIndex=cDefines.defines['UI_SCROLLABLE_INDEX'],width=(2.0*cDefines.defines['UI_SCROLLABLE_IMAGE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_SCROLLABLE_IMAGE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']))
+		self.selector(self.xPosition,self.yPosition-0.06,mapNames,self,text="select build time",textSize=0.0005,textureIndex=cDefines.defines['UI_SCROLLABLE_INDEX'],width=(2.0*cDefines.defines['UI_SCROLLABLE_WIDTH']/cDefines.defines['SCREEN_WIDTH']),height=(2.0*cDefines.defines['UI_SCROLLABLE_HEIGHT']/cDefines.defines['SCREEN_HEIGHT']))
 
 #I think all this maxPlayers crap is deprecated, but want to test map editor before deleting
 #class maxPlayersSelector(scrollableTextFieldsElement):
@@ -1333,6 +1342,12 @@ class modalButton(clickableElement):
 		self.modal = modal
 		clickableElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],color=color,mouseOverColor=mouseOverColor,textXPos=textXPos,textYPos=textYPos,fontIndex=fontIndex)
 
+class modalTextInput(textInputElement):
+	def __init__(self,modal,xPos,yPos,width=0.0,height=0.0,text="",textColor="FF FF FF"):
+		self.modal = modal
+		textInputElement.__init__(self,xPos,yPos,width=texWidth("UI_TEXT_INPUT"),height=texHeight("UI_TEXT_INPUT"),textureIndex=texIndex("UI_TEXT_INPUT"),text=text,textColor=textColor)
+
+
 class modalOkButton(modalButton):
 	def __init__(self,modal,yPos=-0.05,text="",textureIndex=cDefines.defines["OK_BUTTON_INDEX"]):
 		modalButton.__init__(self,modal,texWidth("OK_BUTTON")/-2.0,yPos,text=text,width=texWidth("OK_BUTTON"),height=texHeight("OK_BUTTON"),textureIndex=textureIndex,textXPos=0.1,textYPos=-0.1)
@@ -1363,11 +1378,7 @@ class doSaveGameButton(inGameMenuButton):
 		gameLogic.saveGame(self.modal.saveNameInput.realText)
 		self.modal.destroy()
 
-class saveNameInput(textInputElement):
-	def __init__(self,modal,xPos,yPos):
-		textInputElement.__init__(self,xPos,yPos,width=texWidth("UI_TEXT_INPUT_IMAGE"),height=texHeight("UI_TEXT_INPUT_IMAGE"),textureIndex=texIndex("UI_TEXT_INPUT"),text="mySave")
-		self.modal = modal
-#		self.gameMode = gameMode
+class saveNameInput(modalTextInput):
 	def onKeyDown(self,keycode):
 		if(keycode == "return"):
 			gameLogic.saveGame(self.modal.saveNameInput.realText)
@@ -1404,6 +1415,26 @@ class modal(uiElement):
 			del gameState.getGameMode().elementsDict[self.buttonElem.name]
 		gameState.getGameMode().resortElems = True
 		gameState.getGameMode().modal = None
+		gameState.getGameMode().elementWithFocus = None
+
+class chatModalTextInput(modalTextInput):
+	def onKeyDown(self,keycode):
+		if(keycode == "return"):
+			if(len(self.realText) > 0):
+				gameState.getClient().sendCommand("chat",gameState.getOwnUserName()+": "+self.realText)	
+			self.modal.destroy()
+		else:
+			textInputElement.onKeyDown(self,str(keycode))
+		
+class chatModal(modal):
+	def __init__(self,dismissable=True):
+		uiElement.__init__(self,0.0,0.0)
+		self.names = []
+		self.chatTextInput = chatModalTextInput(self,-0.25,0.14)
+		self.names.append(self.chatTextInput.name)
+		self.dismissable = dismissable
+		gameState.getGameMode().modal = self
+		gameState.getGameMode().elementWithFocus = self.chatTextInput
 
 class menuModal(modal):
 	def __init__(self,dismissable=True):
@@ -1608,7 +1639,6 @@ class logoutButton(clickableElement):
 		self.gameMode = gameMode
 	def onClick(self):
 		gameFindClient.stopClient()
-#		gameState.getGameFindClient().sendCommand("logout","")
 		gameState.setGameMode(self.gameMode)
 	
 
