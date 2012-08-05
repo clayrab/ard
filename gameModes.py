@@ -13,28 +13,25 @@
 #report game state(to look for cheaters/bugs)
 
 #client:
-#deprecate costOfOwnership
-#wait for commandLog to be empty to save...
 #in-game chat
 #roads? Draw them properly or remove them...
-#save game
 #handle reconnect... requires ability to save/share game state
-#ai
 #sound effects
 #mouseover effects
 #show move speed and attack speed
 #select box shouldn't be green for uncontrolled nextunit
 #icons for green and blue wood
 #healing animation
-#blunt/explosion animation?
-#start summoning button near unit?
-
+#blunt/explosion animation
+#start summoning button near unit would be very nice
 #killing host before client not handled well
 #host game then back then try to host game online('try again in 30 secs' is a lie)
 #testing connection timeout
 #handle disconnects gracefully
+#ai
 
 #BUGS
+#deprecate costOfOwnership
 #username cannot be 'empty' or 'Player x'
 #replace open() on map files with mapdatas data
 #sending " to chat as first character doesn't work... 
@@ -369,6 +366,10 @@ class playMode(tiledGameMode):
 		self.missingPlayers = []
 		self.musicIndeces = [cDefines.defines["OMAR_7_INDEX"]]
 		self.restartMusic = True
+	def focus(self):
+		self.focusXPos = self.nextUnit.node.xPos
+		self.focusYPos = self.nextUnit.node.yPos
+		self.doFocus = 1
 	def getChooseNextDelayed(self):
 		if(self.chooseNextDelayed):
 			retVal = self.chooseNextDelayed
@@ -471,28 +472,20 @@ class playMode(tiledGameMode):
 			if(self.firstTurn):
 				if(self.nextUnit.isControlled()):
 					gameLogic.selectNode(self.nextUnit.node)
-					self.focusXPos = self.nextUnit.node.xPos
-					self.focusYPos = self.nextUnit.node.yPos
-					self.doFocus = 1
+					self.focus()
 				else:
 					for unit in self.units:
 						if(unit.unitType.name == "summoner" and unit.isControlled()):
 							gameLogic.selectNode(unit.node)
-							self.focusXPos = unit.node.xPos
-							self.focusYPos = unit.node.yPos
-							self.doFocus = 1
+							self.focus()
 							break
 				self.firstTurn = False
 			else:
 				if(self.autoSelect and self.nextUnit.isControlled()):
 					gameLogic.selectNode(self.nextUnit.node)
-					self.focusXPos = self.nextUnit.node.xPos
-					self.focusYPos = self.nextUnit.node.yPos
-					self.doFocus = 1
+					self.focus()
 				elif(len(self.nextUnit.movePath) > 0 and self.nextUnit.isControlled()):
-					self.focusXPos = self.nextUnit.node.xPos
-					self.focusYPos = self.nextUnit.node.yPos
-					self.doFocus = 1				
+					self.focus()
 			if(hasattr(gameState.getGameMode().mousedOverObject,"toggleCursor")):
 				gameState.getGameMode().mousedOverObject.toggleCursor()
 		if(self.nextUnit != None and self.nextUnit.isControlled()):
@@ -529,9 +522,7 @@ class playMode(tiledGameMode):
 		if(keycode == "space"):
 			if(self.nextUnit != None and self.nextUnit.isControlled()):
 				gameLogic.selectNode(self.nextUnit.node)
-				self.focusXPos = self.nextUnit.node.xPos
-				self.focusYPos = self.nextUnit.node.yPos
-				self.doFocus = 1
+				self.focus()
 			else:
 				if(self.selectedNode != None and self.selectedNode.unit != None and self.selectedNode.unit.unitType.name == "summoner"):
 					selectNext = False
@@ -665,11 +656,13 @@ class mapEditorMode(tiledGameMode):
 		self.selectedButton = None
 		self.selectedCityNode = None
 		tiledGameMode.__init__(self)
-	def loadMap(self):
-		self.map = gameLogic.mapp(gameLogic.mapEditorNode)
+	def focus(self):
 		self.focusXPos = int(len(self.map.nodes[0])/2)
 		self.focusYPos = int(len(self.map.nodes)/2)
 		self.doFocus = 1
+	def loadMap(self):
+		self.map = gameLogic.mapp(gameLogic.mapEditorNode)
+		self.focus()
 	def keyDown(self,keycode):
 		try:
 			self.elementWithFocus.onKeyDown(keycode)
@@ -910,9 +903,7 @@ class gameRoomMode(tiledGameMode):
 		gameState.setMapName(mapName)
 		self.map = gameLogic.mapp(gameLogic.mapViewNode)
 		self.mapNameElem.text = mapName
-		self.focusXPos = int(len(self.map.nodes[0])/2)
-		self.focusYPos = int(len(self.map.nodes)/2)
-		self.doFocus = 1
+		self.focus()
 	def addUIElements(self):
 #		uiElements.uiElement(0.0,0.9,text=gameState.getMapName())
 		self.mapNameElem = uiElements.uiElement(0.0,0.9,text="")
@@ -923,8 +914,6 @@ class gameRoomMode(tiledGameMode):
 		uiElements.sendChatButton(0.842,-0.595)
 		uiElements.uiElement(0.36,0.775,text="team 1:",textSize=0.0005)
 		uiElements.uiElement(0.36,0.643,text="team 2:",textSize=0.0005)
-		
-
 #		if(gameState.getClient() == None):#host connects to itself on createButtun.onClick
 		try:
 			client.startClient(self.hostIP,self.hostPort)

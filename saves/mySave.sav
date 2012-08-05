@@ -1,17 +1,17 @@
 Clay's Map
 1
-0
-4,12
-0|Player 1|True|0.0|0.0|0|False
-1|AI 1|False|250.0|0.0|1|True
+1
+19,13
+0|AI 1|False|250.0|0.0|0|True
+1|Player 1|True|0.0|0.0|1|False
 None
 None
 None
 None
 None
 None
-swordsman|1|1|15|3|0.0|0|60|None|1|50.0|False|
-swordsman|0|0|4|12|0.0|0|60|None|1|50.0|False|
-summoner|1|1|16|2|25.0|0|60|None|1|50.0|False|
-summoner|0|0|3|23|0.0|0|60|None|1|50.0|True|
-*3|23|False|None|*summoner|0|0|3|23|0|0|20|None|1|50.0|False|*swordsman,1,0|summoner,1,0|gatherer,1,0|*swordsman*swordsman|0|0|3|23|0|0|60|None|1|50.0|False|
+swordsman|1|1|19|13|0.0|0|60|None|1|50.0|False|
+swordsman|0|0|0|14|100.0|0|60|None|1|50.0|False|
+summoner|0|0|0|17|100.0|0|60|None|1|50.0|False|
+summoner|1|1|23|4|0.0|0|60|None|1|50.0|True|
+*23|4|False|None|*swordsman|1|1|23|4|0|0|60|None|1|50.0|False|*swordsman,2,0|summoner,1,0|gatherer,1,0|*summoner|1|1|23|4|0|0|60|None|1|50.0|False|

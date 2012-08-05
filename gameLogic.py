@@ -89,7 +89,6 @@ class AIPlayer(Player):
 	def dispatchCommand(self,command):
 		return
 	def takeTurn(self):
-		print 'take turn'
 		eligibleMoveNodes = []
 		for neighb in gameState.getGameMode().nextUnit.node.neighbors:
 			if(neighb.unit == None):
@@ -102,7 +101,6 @@ class AIPlayer(Player):
 			gameState.getClient().sendCommand("skip")
 			
 		gameState.getClient().sendCommand("chooseNextUnit")
-		print 'done'
 class unitType:
 	def __init__(self,name,textureIndex,movementSpeed,attackSpeed,attackPower,armor,range,health,canFly,canSwim,costGreen,costBlue,buildTime,movementSpeedBonus,researchCostGreen,researchCostBlue,researchTime,canAttackGround=False):
 		self.name = name
@@ -1095,8 +1093,6 @@ def makeUnitFromString(string):
 
 def loadGame(saveName):
 	with open("saves/"+saveName+".sav","r") as saveFile:
-#		for line in saveFile:
-#			print line.strip()
 		lines = saveFile.read().split("\n")
 		gameState.setMapName(lines[0])
 		gameState.setTeamSize(int(lines[1]))
@@ -1135,7 +1131,6 @@ def loadGame(saveName):
 				node.addUnit(theUnit)
 			elif(len(line) > 0):
 				cityTokens = line.split("*")
-				print cityTokens
 				tokens = cityTokens[1].split("|")
 				node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
 				node.city.researching = tokens[2]=="True"
@@ -1147,32 +1142,18 @@ def loadGame(saveName):
 					node.city.unitBeingBuilt = None
 				else:
 					node.city.unitBeingBuilt = makeUnitFromString(cityTokens[2])
-				print cityTokens[3]
 				researchProgressTokens = cityTokens[3].split("|")
-				print researchProgressTokens
 				for researchProgressToken in researchProgressTokens:
 					if(len(researchProgressToken) > 0):
 						tokens = researchProgressToken.split(",")
-						print tokens
 						node.city.researchProgress[gameState.theUnitTypes[tokens[0]]] = [int(tokens[1]),int(tokens[2])]
 				
 				for unitString in cityTokens[4:]:
-					print unitString.count(",")
-					print unitString
 					if(len(unitString) > 0):
 						if(unitString.count("|") > 0):
 							node.city.buildQueue.append(makeUnitFromString(unitString))
 						else:
 							node.city.buildQueue.append(gameState.theUnitTypes[unitString])
-							
-							print unitString
-#			for item in summoner.node.city.buildQueue:
-#				lines.append("*")
-#				lines.append(item.stringify())
-
-
-
-
 		if(lines[3] != "None"):
 			nextUnitCoords = lines[3].split(",")
 			gameState.getGameMode().nextUnit = gameState.getGameMode().map.nodes[int(nextUnitCoords[1])][int(nextUnitCoords[0])].unit
@@ -1182,6 +1163,7 @@ def loadGame(saveName):
 		gameState.getGameMode().restartGame()
 		if(gameState.getGameMode().nextUnit.isControlled()):
 			selectNode(gameState.getGameMode().nextUnit.node)
+			gameState.getGameMode().focus()
 	print 'loaded'
 
 def saveGame(saveName):
