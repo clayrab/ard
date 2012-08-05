@@ -104,7 +104,7 @@ import server
 from textureFunctions import texWidth, texHeight, texIndex
 
 version = 0.1
-maxTimeToMove = 30000
+maxTimeToMove = 5000
 
 #print random.__file__
 sys.setrecursionlimit(10000)
@@ -620,7 +620,7 @@ class playMode(tiledGameMode):
 			if(self.timeToMove <= 0 and self.nextUnit != None and self.nextUnit.isControlled()):
 				gameState.getClient().sendCommand("skip")
 				gameState.getClient().sendCommand("chooseNextUnit")
-#					self.nextUnit = None
+				self.nextUnit = None#prevents this block from firing twice
 			if(self.players[self.getPlayerNumber()] != None):
 				self.greenWoodUIElem.text = str(int(math.floor(self.players[self.getPlayerNumber()].greenWood)))
 				self.blueWoodUIElem.text = str(int(math.floor(self.players[self.getPlayerNumber()].blueWood)))
