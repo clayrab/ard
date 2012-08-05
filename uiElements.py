@@ -877,7 +877,7 @@ class scrollableTextFieldsElement(uiElement):
 		for textFieldElement in self.textFieldElements:
 			count = count + 1
 			textFieldElement.setYPosition(self.yPosition+yPosOffset)
-			if(count < self.numFields + self.scrollPosition + 1 and count > self.scrollPosition - 1):
+			if(not self.hidden and count < self.numFields + self.scrollPosition + 1 and count > self.scrollPosition - 1):
 				yPosOffset = yPosOffset - self.lineHeight
 				textFieldElement.hidden = False
 				for name in textFieldElement.names:
@@ -945,6 +945,12 @@ class chatDisplay(scrollableTextFieldsElement):
 				self.redraw()
 	def addText(self,text):
 		self.textQueue.put(text)
+		print 'addtext'
+		if(hasattr(gameState.getGameMode(),"lastChatTicks")):
+			gameState.getGameMode().lastChatTicks = gameState.getGameMode().ticks
+			self.hidden = False
+			self.hideAndShowTextFields()
+		   
 	def getText(self):
 		if(self.currentText == "" and not self.textQueue.empty()):
 			self.currentText = self.textQueue.get()
@@ -952,7 +958,7 @@ class chatDisplay(scrollableTextFieldsElement):
 
 class inGameChatDisplay(chatDisplay):
 	def __init__(self,xPos,yPos):
-		scrollableTextFieldsElement.__init__(self,xPos,yPos,[],textSize=0.0005,numFields=3,width=0.980-xPos,scrollPadTex="UI_SCROLL_PAD_DUMMY")
+		scrollableTextFieldsElement.__init__(self,xPos,yPos,[],hidden=True,textSize=0.0005,numFields=3,width=0.980-xPos,scrollPadTex="UI_SCROLL_PAD_DUMMY")
 		self.textQueue = Queue()
 		self.linesQueue = Queue()
 		self.currentText = ""

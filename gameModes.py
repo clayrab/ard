@@ -357,6 +357,7 @@ class playMode(tiledGameMode):
 		self.chooseNextDelayed = False
 		#self.backgroundImageIndex = texIndex("CREATE_GAME_BACKGROUND")
 		self.ticks = 0#set in main.c
+		self.lastChatTicks = -9999
 		self.previousTicks = 0
 		self.timeToMove = maxTimeToMove
 		self.firstTurn = True
@@ -627,6 +628,11 @@ class playMode(tiledGameMode):
 				self.timeToMove = self.timeToMove - (self.ticks - self.previousTicks)
 			self.timeToMoveElem.text = "{0:.2f}".format(self.timeToMove/1000.0)
 			self.previousTicks = self.ticks
+			if(self.ticks - self.lastChatTicks > 6000):
+#				for elem in self.chatDisplay.textFieldElements:
+#					elem.hidden = True
+				self.chatDisplay.hidden = True
+				self.chatDisplay.hideAndShowTextFields()
 			gameMode.onDraw(self,deltaTicks)
 	def addUIElements(self):
 		self.players = gameState.getPlayers()
