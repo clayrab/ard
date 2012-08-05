@@ -665,10 +665,6 @@ class mapEditorMode(tiledGameMode):
 		self.selectedButton = None
 		self.selectedCityNode = None
 		tiledGameMode.__init__(self)
-	def focus(self):
-		self.focusXPos = int(len(self.map.nodes[0])/2)
-		self.focusYPos = int(len(self.map.nodes)/2)
-		self.doFocus = 1
 	def loadMap(self):
 		self.map = gameLogic.mapp(gameLogic.mapEditorNode)
 		self.focus()
@@ -890,7 +886,10 @@ class gameRoomMode(tiledGameMode):
 		self.playerElements[player.playerNumber-1].text = player.playerName
 		self.playerElements[player.playerNumber-1].textColor = "FF FF FF"
 		self.playerElements[player.playerNumber-1].mouseOverColor = "FF FF FF"
-		
+	def focus(self):
+		self.focusXPos = int(len(self.map.nodes[0])/2)
+		self.focusYPos = int(len(self.map.nodes)/2)
+		self.doFocus = 1		
 	def removePlayer(self,playerName):
 		previousElem = None
 		self.playerElements[len(self.playerElements)-1].text = "empty"
