@@ -192,6 +192,7 @@ class fire:
 					dieToNode.fire.vitality = dieToNode.fire.vitality + (self.vitality/2.0)
 			gameState.getGameMode().elementalEffects.remove(self)
 			self.node.fire = None
+
 slidingUnits = []	
 class unit:
 	def __init__(self,unitType,player,node,level=None):

@@ -13,7 +13,11 @@
 #report game state(to look for cheaters/bugs)
 
 #client:
-#it's very slow/sluggish
+#need to let you queue beyond your $
+#make 'done' button
+#get rid of edge-scrolling
+#holding g toggles togo back and forth...
+#it's very slow/sluggish sometimes
 #change 'city' to 'stone'
 #units are not added to a star when built?
 #need to show all attacks
@@ -379,7 +383,6 @@ class playMode(tiledGameMode):
 		self.musicIndeces = [cDefines.defines["OMAR_7_INDEX"]]
 		self.restartMusic = True
 	def focus(self,node):
-		print '** focus **'
 		self.focusXPos = node.xPos
 		self.focusYPos = node.yPos
 		self.doFocus = 1
@@ -575,6 +578,9 @@ class playMode(tiledGameMode):
 						self.gotoMode = False
 			elif(keycode == "k" or keycode == "K"):
 				if(self.nextUnit == self.selectedNode.unit):
+					uiElements.skip()
+			elif(keycode == "d" or keycode == "D"):
+				if(self.nextUnit == self.selectedNode.unit and self.nextUnit.isMeditating and self.nextUnit.unitType.name == "summoner"):
 					uiElements.skip()
 			elif(keycode == "s" or keycode == "S"):
 				if(self.selectedNode != None and self.nextUnit == self.selectedNode.unit and self.nextUnit.unitType.name == "gatherer" and (self.selectedNode.tileValue == cDefines.defines["RED_FOREST_TILE_INDEX"] or self.selectedNode.tileValue == cDefines.defines["BLUE_FOREST_TILE_INDEX"])):
