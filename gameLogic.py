@@ -396,7 +396,7 @@ class unit:
 		selectNode(None)
 	def skip(self):
 		self.movementPoints = self.movementPoints + INITIATIVE_ACTION_DEPLETION
-		if(gameState.getGameMode().nextUnit.ai == None):
+		if(gameState.getGameMode().nextUnit != None and gameState.getGameMode().nextUnit.ai == None):
 			gameState.getGameMode().gotoMode = False
 			selectNode(None)
 

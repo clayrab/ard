@@ -356,13 +356,17 @@ class skipButton(clickableElement):
 	def __init__(self,xPos,yPos):
 		clickableElement.__init__(self,xPos,yPos,height=texHeight('SKIP_BUTTON'),width=texWidth('SKIP_BUTTON'),textureIndex=texIndex('SKIP_BUTTON'))
 	def onClick(self):
-		skip()	
+		skip()
+
+class doneButton(clickableElement):
+	def __init__(self,xPos,yPos):
+		skipButton.__init__(self,xPos,yPos,textureIndex=texIndex('SKIP_BUTTON'))
 
 def startSummoning():
 	viewer.theViewer.destroy()
 	gameState.getClient().sendCommand("startMeditating",str(gameState.getGameMode().selectedNode.xPos) + " " + str(gameState.getGameMode().selectedNode.yPos))
-	if(gameState.getGameMode().selectedNode.unit == gameState.getGameMode().nextUnit):
-		gameState.getClient().sendCommand("chooseNextUnit")
+#	if(gameState.getGameMode().selectedNode.unit == gameState.getGameMode().nextUnit):
+#		gameState.getClient().sendCommand("chooseNextUnit")
 	
 class startSummoningButton(clickableElement):
 	def __init__(self,xPos,yPos):
@@ -376,8 +380,8 @@ class summonButton(clickableElement):
 		self.unitType = unitType
 	def onClick(self):
 		gameState.getClient().sendCommand("startSummoning",str(gameState.getGameMode().selectedNode.xPos) + " " + str(gameState.getGameMode().selectedNode.yPos) + " " + self.unitType.name)
-		if(gameState.getGameMode().selectedNode.unit == gameState.getGameMode().nextUnit):
-			gameState.getClient().sendCommand("chooseNextUnit")
+#		if(gameState.getGameMode().selectedNode.unit == gameState.getGameMode().nextUnit):
+#			gameState.getClient().sendCommand("chooseNextUnit")
 #		elif(gameState.getGameMode().nextUnit != None and gameState.getGameMode().nextUnit.isControlled()):
 #			gameLogic.selectNode(gameState.getGameMode().nextUnit.node)
 
@@ -387,8 +391,8 @@ class researchButton(clickableElement):
 		self.unitType = unitType
 	def onClick(self):
 		gameState.getClient().sendCommand("startResearch",str(gameState.getGameMode().selectedNode.xPos) + " " + str(gameState.getGameMode().selectedNode.yPos) + " " + self.unitType.name)
-		if(gameState.getGameMode().nextUnit == gameState.getGameMode().selectedNode.unit):
-			gameState.getClient().sendCommand("chooseNextUnit")
+#		if(gameState.getGameMode().nextUnit == gameState.getGameMode().selectedNode.unit):
+#			gameState.getClient().sendCommand("chooseNextUnit")
 #		elif(gameState.getGameMode().nextUnit != None and gameState.getGameMode().nextUnit.isControlled()):
 #			gameLogic.selectNode(gameState.getGameMode().nextUnit.node)
 
@@ -528,13 +532,12 @@ class cityViewer(viewer):
 		for unitType in self.node.city.researchProgress:
 			if(self.node.city.researchProgress[unitType][0] > 0):
 				buildableUnitTypes.append(unitType)
-		self.names.append(cityUnitDisplay(self.xPosition+0.012,self.yPosition-0.174,buildableUnitTypes,self.node.city,buildUnitElem,"BUILD_BORDER").name)
-		
+		self.names.append(cityUnitDisplay(self.xPosition+0.012,self.yPosition-0.172,buildableUnitTypes,self.node.city,buildUnitElem,"BUILD_BORDER").name)
 		researchableUnitTypes = []
 		for unitType in self.node.city.unitTypes:
 			if(unitType.name != "summoner" and unitType.name != "gatherer"): 
 				researchableUnitTypes.append(unitType)
-		self.names.append(cityUnitDisplay(self.xPosition+0.012,self.yPosition-0.766,researchableUnitTypes,self.node.city,researchUnitElem,"RESEARCH_BORDER").name)
+		self.names.append(cityUnitDisplay(self.xPosition+0.012,self.yPosition-0.758,researchableUnitTypes,self.node.city,researchUnitElem,"RESEARCH_BORDER").name)
 		queuedThings = []
 		if(self.node.city.researching):
 			queuedThings.append(self.node.city.researchUnitType)
@@ -543,7 +546,9 @@ class cityViewer(viewer):
 		for thing in self.node.city.buildQueue:
 			queuedThings.append(thing)
 		queuedThingElem.firstThing = True
-		self.names.append(cityUnitDisplay(self.xPosition+0.012,self.yPosition-1.358,queuedThings,self.node.city,queuedThingElem,"QUEUE_BORDER").name)
+		self.names.append(cityUnitDisplay(self.xPosition+0.012,self.yPosition-1.344,queuedThings,self.node.city,queuedThingElem,"QUEUE_BORDER").name)
+		self.names.append(skipButton(-0.618,-0.922).name)
+
 		
 class unitTypeResearchViewer(uiElement):
 	theUnitTypeResearchViewer = None

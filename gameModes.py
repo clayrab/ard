@@ -13,6 +13,14 @@
 #report game state(to look for cheaters/bugs)
 
 #client:
+#it's very slow/sluggish
+#chat is broken in gamejoinmode
+#summoners need to have turns. give them a 'done' button that just does skip, only choose them when their queue is empty
+#change 'city' to 'stone'
+#units are not added to a star when built?
+#need to show all attacks
+#need to show turn changing better
+#make flags bigger
 #in-game chat
 #roads? Draw them properly or remove them...
 #handle reconnect... requires ability to save/share game state
@@ -306,11 +314,14 @@ class tiledGameMode(gameMode):
 #		return self.doFocusTemp
 	def onDoneFocusing(self):
 		self.doFocus = 0
-		if(hasattr(self,"nextUnit") and self.nextUnit != None and len(self.nextUnit.movePath) > 0 and self.nextUnit.isControlled()):
-			self.nextUnit.move()
-#		elif(hasattr(self,"nextUnit") and hasattr(self,"autoSelect") and self.nextUnit != None and self.nextUnit.isControlled() and self.autoSelect):
-#			gameLogic.selectNode(self.nextUnit.node)
-		elif(hasattr(gameState.getGameMode(),"mousedOverObject") and hasattr(gameState.getGameMode().mousedOverObject,"toggleCursor")):
+		if(hasattr(self,"nextUnit")):
+			if(self.nextUnit != None and self.nextUnit.isControlled()):
+				if(len(self.nextUnit.movePath) > 0):
+					self.nextUnit.move()
+				else:
+					self.soundIndeces.append(cDefines.defines["FINGER_CYMBALS_HIT_INDEX"])
+					gameLogic.selectNode(self.nextUnit.node)
+		if(hasattr(gameState.getGameMode(),"mousedOverObject") and hasattr(gameState.getGameMode().mousedOverObject,"toggleCursor")):
 			gameState.getGameMode().mousedOverObject.toggleCursor()
 			
 	def handleRightClick(self,name):
@@ -367,9 +378,9 @@ class playMode(tiledGameMode):
 		self.missingPlayers = []
 		self.musicIndeces = [cDefines.defines["OMAR_7_INDEX"]]
 		self.restartMusic = True
-	def focus(self):
-		self.focusXPos = self.nextUnit.node.xPos
-		self.focusYPos = self.nextUnit.node.yPos
+	def focus(self,unit):
+		self.focusXPos = unit.node.xPos
+		self.focusYPos = unit.node.yPos
 		self.doFocus = 1
 	def getChooseNextDelayed(self):
 		if(self.chooseNextDelayed):
@@ -384,7 +395,7 @@ class playMode(tiledGameMode):
 		self.map = gameLogic.mapp(gameLogic.playModeNode)
 		gameLogic.aStarSearch.parentPipe.send(['map',gameState.getMapName()])
 	def unitComparater(self,unit):
-		if (unit.isMeditating or (unit.attackPoints > 0.0)):
+		if((unit.isMeditating and unit.unitType.name == "gatherer") or (unit.isMeditating and unit.unitType.name == "summoner" and (unit.node.city.researching or unit.node.city.unitBeingBuilt != None)) or (unit.attackPoints > 0.0)):
 			return 1000.0
 		else:
 			return unit.movementPoints
@@ -454,13 +465,20 @@ class playMode(tiledGameMode):
 		eligibleUnits = []
 #		eligibleUnits.append(self.units[0])
 		for unit in self.units:
-			if(len(eligibleUnits) > 0):
-				if((unit.movementPoints == eligibleUnits[0].movementPoints) and (not unit.isMeditating) and (unit.attackPoints <= 0.0)):
-					eligibleUnits.append(unit)
+			if(unit.movementPoints > 0.0 or unit.attackPoints > 0.0):
+				break
+			if(unit.isMeditating and unit.node.city == None):
+				break
+			if(unit.isMeditating and (unit.node.city.researching or unit.node.city.unitBeingBuilt != None)):
+				break
+			if(len(eligibleUnits) == 0):
+				eligibleUnits.append(unit)
+#			elif(unit.movementPoints == eligibleUnits[0].movementPoints and unit.attackPoints <= 0.0):
+			elif(unit.movementPoints <= 0.0 and unit.attackPoints <= 0.0):
+				eligibleUnits.append(unit)
 			else:
-				if(unit.movementPoints <= 0.0 and unit.attackPoints <= 0.0 and (not unit.isMeditating)):
-					eligibleUnits.append(unit)
-
+				break
+		print eligibleUnits
 		if(len(eligibleUnits) == 0):#all units are meditating!!!
 			for unit in self.units:#add movementpoints to each unit
 				#unit.movementPoints = unit.movementPoints + (gameLogic.INITIATIVE_ACTION_DEPLETION/5.0)
@@ -472,21 +490,19 @@ class playMode(tiledGameMode):
 			self.nextUnit = random.choice(eligibleUnits)
 			if(self.firstTurn):
 				if(self.nextUnit.isControlled()):
-					gameLogic.selectNode(self.nextUnit.node)
-					self.focus()
+					self.focus(self.nextUnit)
 				else:
 					for unit in self.units:
 						if(unit.unitType.name == "summoner" and unit.isControlled()):
 							gameLogic.selectNode(unit.node)
-							self.focus()
+							self.focus(unit)
 							break
 				self.firstTurn = False
 			else:
 				if(self.autoSelect and self.nextUnit.isControlled()):
-					gameLogic.selectNode(self.nextUnit.node)
-					self.focus()
+					self.focus(self.nextUnit)
 				elif(len(self.nextUnit.movePath) > 0 and self.nextUnit.isControlled()):
-					self.focus()
+					self.focus(self.nextUnit)
 			if(hasattr(gameState.getGameMode().mousedOverObject,"toggleCursor")):
 				gameState.getGameMode().mousedOverObject.toggleCursor()
 		if(self.nextUnit != None and self.nextUnit.isControlled()):
@@ -522,8 +538,7 @@ class playMode(tiledGameMode):
 			self.shiftDown = True
 		if(keycode == "space"):
 			if(self.nextUnit != None and self.nextUnit.isControlled()):
-				gameLogic.selectNode(self.nextUnit.node)
-				self.focus()
+				self.focus(self.nextUnit)
 			else:
 				if(self.selectedNode != None and self.selectedNode.unit != None and self.selectedNode.unit.unitType.name == "summoner"):
 					selectNext = False
