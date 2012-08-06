@@ -14,8 +14,6 @@
 
 #client:
 #it's very slow/sluggish
-#chat is broken in gamejoinmode
-#summoners need to have turns. give them a 'done' button that just does skip, only choose them when their queue is empty
 #change 'city' to 'stone'
 #units are not added to a star when built?
 #need to show all attacks
@@ -314,6 +312,8 @@ class tiledGameMode(gameMode):
 #		return self.doFocusTemp
 	def onDoneFocusing(self):
 		self.doFocus = 0
+		if(hasattr(self,"nextUnit") and self.nextUnit != None and self.nextUnit.ai != None):
+                        self.nextUnit.ai.takeTurn()
 		if(hasattr(self,"nextUnit")):
 			if(self.nextUnit != None and self.nextUnit.isControlled()):
 				if(len(self.nextUnit.movePath) > 0):
@@ -378,9 +378,10 @@ class playMode(tiledGameMode):
 		self.missingPlayers = []
 		self.musicIndeces = [cDefines.defines["OMAR_7_INDEX"]]
 		self.restartMusic = True
-	def focus(self,unit):
-		self.focusXPos = unit.node.xPos
-		self.focusYPos = unit.node.yPos
+	def focus(self,node):
+		print '** focus **'
+		self.focusXPos = node.xPos
+		self.focusYPos = node.yPos
 		self.doFocus = 1
 	def getChooseNextDelayed(self):
 		if(self.chooseNextDelayed):
@@ -478,7 +479,6 @@ class playMode(tiledGameMode):
 				eligibleUnits.append(unit)
 			else:
 				break
-		print eligibleUnits
 		if(len(eligibleUnits) == 0):#all units are meditating!!!
 			for unit in self.units:#add movementpoints to each unit
 				#unit.movementPoints = unit.movementPoints + (gameLogic.INITIATIVE_ACTION_DEPLETION/5.0)
@@ -490,19 +490,23 @@ class playMode(tiledGameMode):
 			self.nextUnit = random.choice(eligibleUnits)
 			if(self.firstTurn):
 				if(self.nextUnit.isControlled()):
-					self.focus(self.nextUnit)
+					self.focus(self.nextUnit.node)
 				else:
 					for unit in self.units:
 						if(unit.unitType.name == "summoner" and unit.isControlled()):
 							gameLogic.selectNode(unit.node)
-							self.focus(unit)
+							self.focus(unit.node)
 							break
 				self.firstTurn = False
 			else:
-				if(self.autoSelect and self.nextUnit.isControlled()):
-					self.focus(self.nextUnit)
-				elif(len(self.nextUnit.movePath) > 0 and self.nextUnit.isControlled()):
-					self.focus(self.nextUnit)
+#				if(self.autoSelect and self.nextUnit.isControlled()):
+#					self.focus(self.nextUnit.node)
+#				elif(len(self.nextUnit.movePath) > 0 and self.nextUnit.isControlled()):
+				if(self.nextUnit.node.visible):
+					self.focus(self.nextUnit.node)
+			if(not self.doFocus):
+				self.doFocus = 1#force onDoneFocusing for AI
+#				self.focus(doFocuxself.selectedNode)
 			if(hasattr(gameState.getGameMode().mousedOverObject,"toggleCursor")):
 				gameState.getGameMode().mousedOverObject.toggleCursor()
 		if(self.nextUnit != None and self.nextUnit.isControlled()):
@@ -538,7 +542,7 @@ class playMode(tiledGameMode):
 			self.shiftDown = True
 		if(keycode == "space"):
 			if(self.nextUnit != None and self.nextUnit.isControlled()):
-				self.focus(self.nextUnit)
+				self.focus(self.nextUnit.node)
 			else:
 				if(self.selectedNode != None and self.selectedNode.unit != None and self.selectedNode.unit.unitType.name == "summoner"):
 					selectNext = False
@@ -605,8 +609,9 @@ class playMode(tiledGameMode):
 		if(self.playerMissing):
 			gameMode.onDraw(self,deltaTicks)
 		else:
-			for unit in gameLogic.slidingUnits:
-				unit.slide(deltaTicks)
+			if(not self.doFocus):
+				for unit in gameLogic.slidingUnits:
+					unit.slide(deltaTicks)
 			if(gameLogic.aStarSearch.searchComplete):
 				with gameLogic.aStarSearch.aStarLock:
 					gameLogic.playModeNode.movePath = []
@@ -933,7 +938,6 @@ class gameRoomMode(tiledGameMode):
 		uiElements.onlineBackButton(-0.930,0.9)
 		uiElements.uiElement(0.35,0.813,width=texWidth("JOIN_GAME_PLAYERS"),height=texHeight("JOIN_GAME_PLAYERS"),textureIndex=texIndex("JOIN_GAME_PLAYERS"))
 		self.chatDisplay = uiElements.chatDisplay(0.35,0.4,textureName="JOIN_GAME_CHAT")
-		self.chatBox = uiElements.chatBox(0.35,-0.514,gameState.getClient(),textureName="JOIN_GAME_CHAT_BOX")
 		uiElements.sendChatButton(0.842,-0.595)
 		uiElements.uiElement(0.36,0.775,text="team 1:",textSize=0.0005)
 		uiElements.uiElement(0.36,0.643,text="team 2:",textSize=0.0005)
@@ -946,8 +950,8 @@ class gameRoomMode(tiledGameMode):
 			uiElements.lanConnectErrorModal()
 			return
 		#if(TODO DO THIS)else:
+		self.chatBox = uiElements.chatBox(0.35,-0.514,gameState.getClient(),textureName="JOIN_GAME_CHAT_BOX")
 		if(gameState.getClient().hostIP == "127.0.0.1"):
-#		if(len(gameState.getNetworkPlayers()) == 1):
 			uiElements.addAIButton(0.35,0.504)
 			uiElements.startGameButton(0.795,0.504)
 	def redrawTeams(self):

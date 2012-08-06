@@ -275,7 +275,6 @@ class Client:
             receivedData = ''
         for command in receivedData.split("|"):
             if(len(command) > 0):
-                print command
                 tokens = command.split(" ",2)
                 if(tokens[0] == "chooseNextUnit"):
                     with commandLock:
@@ -287,8 +286,6 @@ class Client:
                             for command in self.commandLog:
                                 doCommand(command[0]+"Redo",command[1])
                         self.commandLog = []
-                    if(hasattr(gameState.getGameMode(),"nextUnit") and gameState.getGameMode().nextUnit != None and gameState.getGameMode().nextUnit.ai != None):
-                        gameState.getGameMode().nextUnit.ai.takeTurn()
                 else:
                     if(gameState.getPlayerNumber() == SERVER or int(tokens[1]) != gameState.getPlayerNumber() or tokens[0] == "changePlayerNumber"):#skip our own commands, they were executed immediately
                         if(len(tokens) > 2):

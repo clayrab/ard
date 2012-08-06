@@ -327,6 +327,7 @@ class unit:
 		aStarSearch.parentPipe.send(["unitRemove",self.node.xPos,self.node.yPos])
 		if(node.visible):
 			aStarSearch.parentPipe.send(["unitAdd",node.xPos,node.yPos])
+#			gameState.getGameMode().focus(node)
 		self.node.unit = None
 		if(gameState.getGameMode().selectedNode == self.node):
 			selectNode(self.node)
