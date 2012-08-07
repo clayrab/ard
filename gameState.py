@@ -173,10 +173,6 @@ def resetPlayers():
 def getPlayers():
 	global thePlayers
 	return thePlayers
-#	playersCopy = []
-#	with thePlayersLock:
-#	playersCopy = copy.copy(thePlayers)
-#	return playersCopy
 	
 theAIs = [None]*8
 def addAIPlayer(aiPlayer):
@@ -186,28 +182,30 @@ def resetAIs():
     theAIs = [None]*8
 
 global researchProgress
-researchProgress = {}
-researchProgress[theUnitTypes["gatherer"]] = [1,0]
-
+researchProgress = [{},{},{},{},{},{},{},{},]
 global availableUnitTypes
-availableUnitTypes = []
-availableUnitTypes.append(theUnitTypes["gatherer"])
+availableUnitTypes = [[],[],[],[],[],[],[],[],]
+for i in range(0,8):
+	availableUnitTypes[i].append(theUnitTypes["gatherer"])
+	researchProgress[i][theUnitTypes["gatherer"]] = [1,0]
+def getAvailableUnitTypes():
+	global availableUnitTypes
+	return availableUnitTypes[thePlayerNumber]
+
+def getResearchProgress():
+	global researchProgress
+	return researchProgress[thePlayerNumber]
 
 def reevalAvailableUnitTypes():
 	global researchProgress
 	global availableUnitTypes
-	availableUnitTypes = []
-	availableUnitTypes.append(theUnitTypes["gatherer"])
+	availableUnitTypes = [[],[],[],[],[],[],[],[],]
+	for i in range(0,8):
+		availableUnitTypes[i].append(theUnitTypes["gatherer"])
 	for unit in theGameMode.units:
-		if(unit.player == thePlayerNumber and unit.isMeditating and unit.unitType.name == "gatherer" and unit.node.city != None):
+		if(unit.isMeditating and unit.unitType.name == "gatherer" and unit.node.city != None):
 			for unitType in unit.node.city.unitTypes:
-				if(availableUnitTypes.count(unitType) == 0):
-					availableUnitTypes.append(unitType)
-				if(not researchProgress.has_key(unitType)):
-					researchProgress[unitType] = [1,0]
-				
-				
-			
-	print 'reevaluationResearch'
-	print availableUnitTypes
-	print researchProgress
+				if(availableUnitTypes[unit.player].count(unitType) == 0):
+					availableUnitTypes[unit.player].append(unitType)
+				if(not researchProgress[unit.player].has_key(unitType)):
+					researchProgress[unit.player][unitType] = [1,0]

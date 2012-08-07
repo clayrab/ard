@@ -170,8 +170,8 @@ class Commands:
         tokens = args.split(" ")
         node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
         unitType = gameState.theUnitTypes[tokens[2]]
-        gameState.getGameMode().players[node.unit.player].greenWood = gameState.getGameMode().players[node.unit.player].greenWood - (gameState.researchProgress[unitType][0]*unitType.costGreen)
-        gameState.getGameMode().players[node.unit.player].blueWood = gameState.getGameMode().players[node.unit.player].blueWood - (gameState.researchProgress[unitType][0]*unitType.costBlue)
+        gameState.getGameMode().players[node.unit.player].greenWood = gameState.getGameMode().players[node.unit.player].greenWood - (gameState.getResearchProgress()[unitType][0]*unitType.costGreen)
+        gameState.getGameMode().players[node.unit.player].blueWood = gameState.getGameMode().players[node.unit.player].blueWood - (gameState.getResearchProgress()[unitType][0]*unitType.costBlue)
         node.unit.queueUnit(gameLogic.unit(unitType,node.unit.player,node))
         node.unit.isMeditating = True
         if(gameState.getGameMode().selectedNode == node and hasattr(uiElements.viewer.theViewer,"isSummonerViewer")):

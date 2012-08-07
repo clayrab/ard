@@ -214,7 +214,7 @@ class unit:
 		if(level != None):
 			self.level = level
 		else:
-			self.level = gameState.researchProgress[self.unitType][0]
+			self.level = gameState.getResearchProgress()[self.unitType][0]
 		self.health = float(self.unitType.health*self.level)
 #		self.gatheringNode = None
 		self.isMeditating = False
@@ -449,10 +449,10 @@ class unit:
 #		if(self.node.unit != None and self.node.unit.unitType.name == "summoner" and self.node.unit.isMeditating):
 		if(self.researching):
 			if(self.researchUnitType != None):
-				gameState.researchProgress[self.researchUnitType][1] = gameState.researchProgress[self.researchUnitType][1] + 1
-				if(gameState.researchProgress[self.researchUnitType][1] >= self.researchUnitType.researchTime):
-					gameState.researchProgress[self.researchUnitType][0] = gameState.researchProgress[self.researchUnitType][0] + 1
-					gameState.researchProgress[self.researchUnitType][1] = 0
+				gameState.getResearchProgress()[self.researchUnitType][1] = gameState.getResearchProgress()[self.researchUnitType][1] + 1
+				if(gameState.getResearchProgress()[self.researchUnitType][1] >= self.researchUnitType.researchTime):
+					gameState.getResearchProgress()[self.researchUnitType][0] = gameState.getResearchProgress()[self.researchUnitType][0] + 1
+					gameState.getResearchProgress()[self.researchUnitType][1] = 0
 #						self.node.unit.waiting = False#wake up summoner
 					self.researching = False
 					self.researchUnitType = None
@@ -524,6 +524,8 @@ class node:
 			self.unit = theUnit
 			theUnit.node = self
 			gameState.getGameMode().units.append(theUnit)
+			if(self.visible):
+				aStarSearch.parentPipe.send(["unitAdd",self.xPos,self.yPos])
 			if(theUnit.unitType.name == "summoner"):
 				gameState.getGameMode().summoners.append(theUnit)
 #			if(gameState.getPlayerNumber() == (self.playerStartValue-1) or gameState.getPlayerNumber() == -2):
@@ -1144,11 +1146,11 @@ def loadGame(saveName):
 					node.city.unitBeingBuilt = None
 				else:
 					node.city.unitBeingBuilt = makeUnitFromString(cityTokens[2])
-				researchProgressTokens = cityTokens[3].split("|")
-				for researchProgressToken in researchProgressTokens:
-					if(len(researchProgressToken) > 0):
-						tokens = researchProgressToken.split(",")
-						node.city.researchProgress[gameState.theUnitTypes[tokens[0]]] = [int(tokens[1]),int(tokens[2])]
+#				researchProgressTokens = cityTokens[3].split("|")
+#				for researchProgressToken in researchProgressTokens:
+#					if(len(researchProgressToken) > 0):
+#						tokens = researchProgressToken.split(",")
+#						node.city.researchProgress[gameState.theUnitTypes[tokens[0]]] = [int(tokens[1]),int(tokens[2])]
 				
 				for unitString in cityTokens[4:]:
 					if(len(unitString) > 0):
@@ -1203,16 +1205,16 @@ def saveGame(saveName):
 			if(summoner.node.city.unitBeingBuilt != None):
 				lines.append(summoner.node.city.unitBeingBuilt.stringify())
 			lines.append("*")
-			for researchUnitType in summoner.node.city.researchProgress:
-				lines.append(researchUnitType.name)
-				lines.append(",")
-				lines.append(str(summoner.node.city.researchProgress[researchUnitType][0]))
-				lines.append(",")
-				lines.append(str(summoner.node.city.researchProgress[researchUnitType][1]))
-				lines.append("|")
 			for item in summoner.node.city.buildQueue:
 				lines.append("*")
 				lines.append(item.stringify())
+	for researchUnitType in gameState.getResearchProgress():
+		lines.append(researchUnitType.name)
+#		lines.append(",")
+#		lines.append(str(summoner.node.city.researchProgress[researchUnitType][0]))
+#		lines.append(",")
+#		lines.append(str(summoner.node.city.researchProgress[researchUnitType][1]))
+		lines.append("|")
 	saveFile.writelines(lines)
 	saveFile.close()
 	print 'saved'

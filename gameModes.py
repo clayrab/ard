@@ -13,18 +13,10 @@
 #report game state(to look for cheaters/bugs)
 
 #client:
-#need to let you queue beyond your $
 #fix save/load from summoner changes
-#make 'done' button
-#get rid of edge-scrolling
-#holding g toggles togo back and forth...
 #it's very slow/sluggish sometimes
-#change 'city' to 'stone'
-#units are not added to a star when built?
-#need to show all attacks
 #need to show turn changing better
 #make flags bigger
-#in-game chat
 #roads? Draw them properly or remove them...
 #handle reconnect... requires ability to save/share game state
 #sound effects
@@ -40,6 +32,8 @@
 #testing connection timeout
 #handle disconnects gracefully
 #ai
+#make edge-scrolling configurable
+#make music/sound volume configurable
 
 #BUGS
 #deprecate costOfOwnership

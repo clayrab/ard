@@ -1429,8 +1429,11 @@ static void initGL (){
   pngLoad(&texturesArray[FLAG_INDEX3],FLAG3);
   pngLoad(&texturesArray[ADD_AI_BUTTON_INDEX],ADD_AI_BUTTON);
   pngLoad(&texturesArray[UNIT_VIEWER_BACKGROUND_INDEX],UNIT_VIEWER_BACKGROUND);
-  pngLoad(&texturesArray[SUMMONER_VIEWER_BACKGROUND_INDEX],SUMMONER_VIEWER_BACKGROUND);
+  pngLoad(&texturesArray[SUMMON_VIEWER_BACKGROUND_INDEX],SUMMON_VIEWER_BACKGROUND);
   pngLoad(&texturesArray[STONE_VIEWER_BACKGROUND_INDEX],STONE_VIEWER_BACKGROUND);
+  pngLoad(&texturesArray[BUILD_INDEX],BUILD);
+  pngLoad(&texturesArray[SUMMON_INDEX],SUMMON);
+  pngLoad(&texturesArray[QUEUE_INDEX],QUEUE);
   
   soundArray[WOOD_HIT_INDEX] = Mix_LoadWAV(WOOD_HIT);
   soundArray[TUBE_HIT_INDEX] = Mix_LoadWAV(TUBE_HIT);
@@ -1600,13 +1603,8 @@ static void handleInput(){
     if(repeatKey){
       if(SDL_GetTicks() - keyHeldTime > 40){
 	keyHeldTime = SDL_GetTicks();
-
-	       //	       || event.key.keysym.sym ==SDLK_RSHIFT
-	       //	       || event.key.keysym.sym ==SDLK_LSHIFT
-
-
 	if(PyObject_HasAttrString(gameMode,"handleKeyDown")){
-	  pyObj = PyObject_CallMethod(gameMode,"handleKeyDown","s",keyArray);
+	  //	  pyObj = PyObject_CallMethod(gameMode,"handleKeyDown","s",keyArray);
 	  printPyStackTrace();
 	  Py_DECREF(pyObj);
 	}
@@ -1626,7 +1624,7 @@ static void handleInput(){
 	Py_DECREF(pyObj);
       }
       printPyStackTrace();
-      if(mouseX == 0){
+      /*      if(mouseX == 0){
 	moveRight = -1;
       }else if(mouseX >= SCREEN_WIDTH-1){
 	moveRight = 1;
@@ -1639,7 +1637,7 @@ static void handleInput(){
 	moveUp = -1;
       }else{
 	moveUp = 0;
-      }
+	}*/
       break;
     case SDL_MOUSEBUTTONDOWN:
       if(event.button.button == SDL_BUTTON_WHEELUP){
