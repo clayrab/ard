@@ -1107,6 +1107,8 @@ def loadGame(saveName):
 			gameState.setGameMode(gameModes.newGameScreenMode)
 			uiElements.smallModal("Cannot open socket. Try again in 1 minute.")
 			return
+		gameState.availableUnitTypes = [[],[],[],[],[],[],[],[],]
+		gameState.researchProgress = [{},{},{},{},{},{},{},{},]
 		for line in lines[4:12]:
 			if(line != "None"):
 				tokens = line.split("|")
@@ -1120,6 +1122,11 @@ def loadGame(saveName):
 				player.greenWood = float(tokens[3])
 				player.blueWood = float(tokens[4])
 				player.team = int(tokens[5])
+				for researchProgressToken in tokens[7:]:
+					if(len(researchProgressToken) > 0):
+						tokens = researchProgressToken.split(",")
+						gameState.availableUnitTypes[player.playerNumber].append(gameState.theUnitTypes[tokens[0]])
+						gameState.researchProgress[player.playerNumber][gameState.theUnitTypes[tokens[0]]] = [int(tokens[1]),int(tokens[2])]
 		try:
 			client.startClient('127.0.0.1')
 		except socket.error:
@@ -1134,30 +1141,25 @@ def loadGame(saveName):
 				node = gameState.getGameMode().map.nodes[int(tokens[4])][int(tokens[3])]
 				node.addUnit(theUnit)
 			elif(len(line) > 0):
-				cityTokens = line.split("*")
-				tokens = cityTokens[1].split("|")
+				summonerTokens = line.split("*")
+				tokens = summonerTokens[1].split("|")
 				node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
-				node.city.researching = tokens[2]=="True"
+				node.unit.researching = tokens[2]=="True"
 				if(tokens[3] == "None"):
-					node.city.researchUnitType = None
+					node.unit.researchUnitType = None
 				else:
-					node.city.researchUnitType = gameState.theUnitTypes[tokens[3]]
-				if(len(cityTokens[2]) == 0):
-					node.city.unitBeingBuilt = None
+					node.unit.researchUnitType = gameState.theUnitTypes[tokens[3]]
+				if(len(summonerTokens[2]) == 0):
+					node.unit.unitBeingBuilt = None
 				else:
-					node.city.unitBeingBuilt = makeUnitFromString(cityTokens[2])
-#				researchProgressTokens = cityTokens[3].split("|")
-#				for researchProgressToken in researchProgressTokens:
-#					if(len(researchProgressToken) > 0):
-#						tokens = researchProgressToken.split(",")
-#						node.city.researchProgress[gameState.theUnitTypes[tokens[0]]] = [int(tokens[1]),int(tokens[2])]
+					node.unit.unitBeingBuilt = makeUnitFromString(summonerTokens[2])
 				
-				for unitString in cityTokens[4:]:
+				for unitString in summonerTokens[4:]:
 					if(len(unitString) > 0):
 						if(unitString.count("|") > 0):
-							node.city.buildQueue.append(makeUnitFromString(unitString))
+							node.unit.buildQueue.append(makeUnitFromString(unitString))
 						else:
-							node.city.buildQueue.append(gameState.theUnitTypes[unitString])
+							node.unit.buildQueue.append(gameState.theUnitTypes[unitString])
 		if(lines[3] != "None"):
 			nextUnitCoords = lines[3].split(",")
 			gameState.getGameMode().nextUnit = gameState.getGameMode().map.nodes[int(nextUnitCoords[1])][int(nextUnitCoords[0])].unit
@@ -1167,7 +1169,7 @@ def loadGame(saveName):
 		gameState.getGameMode().restartGame()
 		if(gameState.getGameMode().nextUnit.isControlled()):
 			selectNode(gameState.getGameMode().nextUnit.node)
-			gameState.getGameMode().focus()
+			gameState.getGameMode().focus(gameState.getGameMode().nextUnit.node)
 	print 'loaded'
 
 def saveGame(saveName):
@@ -1188,7 +1190,15 @@ def saveGame(saveName):
 			lines.append(str(player.greenWood)+"|")
 			lines.append(str(player.blueWood)+"|")
 			lines.append(str(player.team)+"|")
-			lines.append(str(player.isAI)+"\n")
+			lines.append(str(player.isAI)+"|")
+			for researchUnitType in gameState.researchProgress[player.playerNumber]:
+				lines.append(researchUnitType.name)
+				lines.append(",")
+				lines.append(str(gameState.researchProgress[player.playerNumber][researchUnitType][0]))
+				lines.append(",")
+				lines.append(str(gameState.researchProgress[player.playerNumber][researchUnitType][1]))
+				lines.append("|")
+			lines.append("\n")
 		else:
 			lines.append("None\n")
 	for unit in gameState.getGameMode().units:
@@ -1199,22 +1209,16 @@ def saveGame(saveName):
 			lines.append("*")
 			lines.append(str(summoner.node.xPos)+"|")
 			lines.append(str(summoner.node.yPos)+"|")
-			lines.append(str(summoner.node.city.researching)+"|")
-			lines.append(("None" if summoner.node.city.researchUnitType == None else summoner.node.city.researchUnitType.name)+"|")
+			lines.append(str(summoner.researching)+"|")
+			lines.append(("None" if summoner.researchUnitType == None else summoner.researchUnitType.name)+"|")
 			lines.append("*")
-			if(summoner.node.city.unitBeingBuilt != None):
-				lines.append(summoner.node.city.unitBeingBuilt.stringify())
-			lines.append("*")
-			for item in summoner.node.city.buildQueue:
+			if(summoner.unitBeingBuilt != None):
+				lines.append(summoner.unitBeingBuilt.stringify())
+			else:
+				lines.append("None")				
+			for item in summoner.buildQueue:
 				lines.append("*")
 				lines.append(item.stringify())
-	for researchUnitType in gameState.getResearchProgress():
-		lines.append(researchUnitType.name)
-#		lines.append(",")
-#		lines.append(str(summoner.node.city.researchProgress[researchUnitType][0]))
-#		lines.append(",")
-#		lines.append(str(summoner.node.city.researchProgress[researchUnitType][1]))
-		lines.append("|")
 	saveFile.writelines(lines)
 	saveFile.close()
 	print 'saved'

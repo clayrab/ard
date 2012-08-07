@@ -403,6 +403,7 @@ class researchButton(clickableElement):
 		elif(gameState.getGameMode().nextUnit != None and gameState.getGameMode().nextUnit.isControlled()):
 			gameLogic.selectNode(gameState.getGameMode().nextUnit.node)
 			gameState.getGameMode().focus(gameState.getGameMode().nextUnit.node)
+
 class unitTypeViewer(uiElement):
 	theViewer = None
 	def __init__(self,unitType):
@@ -1471,7 +1472,8 @@ class saveGameModal(modal):
 		self.names = []
 		self.dismissable = dismissable
 #		self.names.append(uiElement(-0.12,0.26,text="save name:",textColor="bb bb bb",textSize=0.0008,fontIndex=1).name)
-		self.saveNameInput = saveNameInput(self,-0.25,0.14)
+		
+		self.saveNameInput = saveNameInput(self,-0.25,0.14,text="MySave")
 		self.names.append(self.saveNameInput.name)
 		self.names.append(doSaveGameButton(self,0.160,0.080).name)
 		self.exitButton = cancelSaveButton(self,0.062,-0.080)

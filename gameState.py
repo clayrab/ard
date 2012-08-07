@@ -37,6 +37,7 @@ for fileName in dirList:
 		unitTypesList.append(gameLogic.unitType(fileName.replace("_"," ").strip(),cDefines.defines[obj['textureName']+"_INDEX"],obj['movementSpeed'],obj['attackSpeed'],obj['attackPower'],obj['armor'],obj['range'],obj['health'],bool(obj['canFly']),bool(obj['canSwim']),obj['costGreen'],obj['costBlue'],obj['buildTime'],obj['movementSpeedBonus'],obj['researchCostGreen'],obj['researchCostBlue'],obj['researchTime']))
 		unitFile.close()
 
+global theUnitTypes
 theUnitTypes = {}
 for unitType in unitTypesList:
 	theUnitTypes[unitType.name] = unitType
@@ -199,6 +200,7 @@ def getResearchProgress():
 def reevalAvailableUnitTypes():
 	global researchProgress
 	global availableUnitTypes
+	global theUnitTypes
 	availableUnitTypes = [[],[],[],[],[],[],[],[],]
 	for i in range(0,8):
 		availableUnitTypes[i].append(theUnitTypes["gatherer"])
