@@ -535,6 +535,7 @@ class playMode(tiledGameMode):
 				if(node.playerStartValue != 0):
 					node.addUnit(gameLogic.unit(gameState.theUnitTypes["summoner"],node.playerStartValue-1,node,1))
 					node.addUnit(gameLogic.unit(gameState.theUnitTypes["gatherer"],node.playerStartValue-1,node,1))
+
 #					node.addFire(gameLogic.fire(node))
 #					node.addIce(gameLogic.ice(node))
 	

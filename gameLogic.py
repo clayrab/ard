@@ -654,6 +654,7 @@ class playModeNode(node):
 				#is neighbor or gotoMode and not a mountain or is mountain and canFly
 				self.cursorIndex = cDefines.defines['CURSOR_MOVE_INDEX']
 				playModeNode.mode = MODES.MOVE_MODE
+				self.onMovePath = True
 				aStarSearch.search(self,gameState.getGameMode().selectedNode,gameState.getGameMode().selectedNode.unit.unitType.canFly,gameState.getGameMode().selectedNode.unit.unitType.canSwim)
 			else:
 				self.cursorIndex = cDefines.defines['CURSOR_POINTER_INDEX']
@@ -668,15 +669,16 @@ class playModeNode(node):
 							neighbs.append(gameState.getGameMode().map.nodes[self.yPos + yDelta][self.xPos + xDelta])
 		return neighbs
 	def onMouseOver(self):
+#		if(playModeNode.mode == MODES.MOVE_MODE):
+#			self.onMovePath = True
 		if(hasattr(gameState.getGameMode(),"selectedNode") and gameState.getGameMode().selectedNode != None and gameState.getGameMode().selectedNode.unit != None):
 			if(gameState.getGameMode().selectedNode.unit.node.neighbors.count(self) > 0):
 				playModeNode.isNeighbor = True
 			else:
 				playModeNode.isNeighbor = False
 		self.toggleCursor()
-#	def onMouseOut(self):
-#		if(gameState.getGameMode().selectedNode.unit.node.neighbors.count(self) > 0):
-#			playModeNode.isNeighbor = False
+	def onMouseOut(self):
+		self.onMovePath = False
 	def onKeyUp(self,keycode):
 		self.toggleCursor()
 
@@ -1044,6 +1046,7 @@ def selectNode(node):
 	playModeNode.movePath = []
 	if(gameState.getGameMode().selectedNode != None):
 		gameState.getGameMode().selectedNode.selected = False
+		gameState.getGameMode().selectedNode.onMovePath = False
 		if(gameState.getGameMode().selectedNode.unit != None and len(gameState.getGameMode().selectedNode.unit.movePath) > 0):
 			for pathNode in gameState.getGameMode().selectedNode.unit.movePath:
 				pathNode.onMovePath = False
