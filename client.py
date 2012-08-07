@@ -146,6 +146,8 @@ class Commands:
         tokens = args.split(" ")
         node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
         node.unit.isMeditating = True
+        if(node.city != None and node.unit.unitType.name == "gatherer"):
+            gameState.reevalAvailableUnitTypes()
 #        if(node == gameState.getGameMode().selectedNode and node.unit.isOwnUnit()):
 #            if(uiElements.viewer.theViewer != None):
 #                uiElements.viewer.theViewer.destroy()

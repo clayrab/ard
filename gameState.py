@@ -189,9 +189,25 @@ global researchProgress
 researchProgress = {}
 researchProgress[theUnitTypes["gatherer"]] = [1,0]
 
-global buildableUnitTypes
+global availableUnitTypes
 availableUnitTypes = []
 availableUnitTypes.append(theUnitTypes["gatherer"])
 
 def reevalAvailableUnitTypes():
+	global researchProgress
+	global availableUnitTypes
+	availableUnitTypes = []
+	availableUnitTypes.append(theUnitTypes["gatherer"])
+	for unit in theGameMode.units:
+		if(unit.player == thePlayerNumber and unit.isMeditating and unit.unitType.name == "gatherer" and unit.node.city != None):
+			for unitType in unit.node.city.unitTypes:
+				if(availableUnitTypes.count(unitType) == 0):
+					availableUnitTypes.append(unitType)
+				if(not researchProgress.has_key(unitType)):
+					researchProgress[unitType] = [1,0]
+				
+				
+			
 	print 'reevaluationResearch'
+	print availableUnitTypes
+	print researchProgress

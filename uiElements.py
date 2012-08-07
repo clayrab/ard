@@ -543,10 +543,12 @@ class summonerViewer(viewer):
 		buildableUnitTypes = []
 		for unitType in gameState.availableUnitTypes:
 			buildableUnitTypes.append(unitType)
+		print buildableUnitTypes
 		self.names.append(summonerUnitsDisplay(self.xPosition+0.012,self.yPosition-0.172,buildableUnitTypes,node.unit,buildUnitElem,"BUILD_BORDER").name)
 		researchableUnitTypes = []
 		for unitType in gameState.researchProgress:
-			researchableUnitTypes.append(unitType)
+			if(unitType.name != "gatherer"):
+				researchableUnitTypes.append(unitType)
 		self.names.append(summonerUnitsDisplay(self.xPosition+0.012,self.yPosition-0.758,researchableUnitTypes,node.unit,researchUnitElem,"RESEARCH_BORDER").name)
 		queuedThings = []
 		if(self.node.unit.researching):
@@ -750,6 +752,7 @@ class buildUnitElem(scrollableElement):
 		scrollableElement.__init__(self,xPos,yPos)
 		self.unitType = unitType
 		self.summoner = summoner
+		print self.unitType.name
 		self.names.append(uiElement(self.xPosition,self.yPosition,textureIndex=texIndex("UNIT_UI_BACK"),height=texHeight("UNIT_UI_BACK"),width=texWidth("UNIT_UI_BACK")).name)
 		self.names.append(unitTypeViewerButton(self.xPosition+0.009,self.yPosition-0.026,self.unitType,textureIndex=self.unitType.textureIndex,height=0.07,width=0.07).name)
 		self.names.append(uiElement(self.xPosition+0.085,self.yPosition-0.05,text=self.unitType.name+"("+str(gameState.researchProgress[self.unitType][0])+")",textSize=0.0005,textColor="ee ee ee",fontIndex=2).name)
@@ -777,8 +780,8 @@ class researchUnitElem(scrollableElement):
 		self.names.append(uiElement(self.xPosition+0.174,self.yPosition-0.094,text=str(self.unitType.researchCostBlue),textSize=0.00034,textColor="ee ee ee",fontIndex=0).name)
 		self.names.append(uiElement(self.xPosition+0.221,self.yPosition-0.071,textureIndex=texIndex("TIME_ICON"),width=texWidth("TIME_ICON"),height=texHeight("TIME_ICON")).name)
 		self.names.append(uiElement(self.xPosition+0.244,self.yPosition-0.094,text=str(self.unitType.buildTime),textSize=0.00034,textColor="ee ee ee",fontIndex=0).name)
-#		if(gameState.getGameMode().selectedNode.unit != None and gameState.getGameMode().selectedNode.unit.isMeditating and gameState.getGameMode().selectedNode.unit.isControlled() and gameState.getGameMode().players[gameState.getGameMode().selectedNode.unit.player].greenWood >= self.unitType.researchCostGreen and gameState.getGameMode().players[gameState.getGameMode().selectedNode.unit.player].blueWood >= self.unitType.researchCostBlue):
-		if(gameState.getGameMode().selectedNode.unit != None and gameState.getGameMode().selectedNode.unit.isMeditating and gameState.getGameMode().selectedNode.unit.isControlled()):
+		if(gameState.getGameMode().selectedNode.unit != None and gameState.getGameMode().selectedNode.unit.isControlled() and gameState.getGameMode().players[gameState.getGameMode().selectedNode.unit.player].greenWood >= self.unitType.researchCostGreen and gameState.getGameMode().players[gameState.getGameMode().selectedNode.unit.player].blueWood >= self.unitType.researchCostBlue):
+#		if(gameState.getGameMode().selectedNode.unit != None and gameState.getGameMode().selectedNode.unit.isMeditating and gameState.getGameMode().selectedNode.unit.isControlled()):
 			self.names.append(researchButton(self.xPosition+0.293,self.yPosition-0.068,self.unitType).name)
 
 class queuedThingElem(scrollableElement):
