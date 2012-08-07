@@ -184,3 +184,14 @@ def addAIPlayer(aiPlayer):
 def resetAIs():
     global theAIs
     theAIs = [None]*8
+
+global researchProgress
+researchProgress = {}
+researchProgress[theUnitTypes["gatherer"]] = [1,0]
+
+global buildableUnitTypes
+availableUnitTypes = []
+availableUnitTypes.append(theUnitTypes["gatherer"])
+
+def reevalAvailableUnitTypes():
+	print 'reevaluationResearch'

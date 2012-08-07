@@ -146,13 +146,13 @@ class Commands:
         tokens = args.split(" ")
         node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
         node.unit.isMeditating = True
-        if(node == gameState.getGameMode().selectedNode and node.unit.isOwnUnit()):
-            if(uiElements.viewer.theViewer != None):
-                uiElements.viewer.theViewer.destroy()
-            if(gameState.getGameMode().selectedNode.city != None):
-                uiElements.viewer.theViewer = uiElements.cityViewer(node)
-            else:
-                uiElements.viewer.theViewer = uiElements.unitViewer(node)
+#        if(node == gameState.getGameMode().selectedNode and node.unit.isOwnUnit()):
+#            if(uiElements.viewer.theViewer != None):
+#                uiElements.viewer.theViewer.destroy()
+#            if(gameState.getGameMode().selectedNode.city != None):
+#                uiElements.viewer.theViewer = uiElements.summonerViewer(node)
+#            else:
+#                uiElements.viewer.theViewer = uiElements.unitViewer(node)
     @staticmethod
     def startMeditatingUndo(args):
         tokens = args.split(" ")
@@ -168,12 +168,13 @@ class Commands:
         tokens = args.split(" ")
         node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
         unitType = gameState.theUnitTypes[tokens[2]]
-        gameState.getGameMode().players[node.unit.player].greenWood = gameState.getGameMode().players[node.unit.player].greenWood - (node.city.researchProgress[unitType][0]*unitType.costGreen)
-        gameState.getGameMode().players[node.unit.player].blueWood = gameState.getGameMode().players[node.unit.player].blueWood - (node.city.researchProgress[unitType][0]*unitType.costBlue)
-        node.city.queueUnit(gameLogic.unit(unitType,node.city.player,node))
-        if(gameState.getGameMode().selectedNode == node and hasattr(uiElements.viewer.theViewer,"isCityViewer")):
+        gameState.getGameMode().players[node.unit.player].greenWood = gameState.getGameMode().players[node.unit.player].greenWood - (gameState.researchProgress[unitType][0]*unitType.costGreen)
+        gameState.getGameMode().players[node.unit.player].blueWood = gameState.getGameMode().players[node.unit.player].blueWood - (gameState.researchProgress[unitType][0]*unitType.costBlue)
+        node.unit.queueUnit(gameLogic.unit(unitType,node.unit.player,node))
+        node.unit.isMeditating = True
+        if(gameState.getGameMode().selectedNode == node and hasattr(uiElements.viewer.theViewer,"isSummonerViewer")):
             uiElements.viewer.theViewer.destroy()
-            uiElements.viewer.theViewer = uiElements.cityViewer(node)
+            uiElements.viewer.theViewer = uiElements.summonerViewer(node)
             
     @staticmethod
     def startSummoningUndo(args):
@@ -181,68 +182,68 @@ class Commands:
         node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
         unitType = gameState.theUnitTypes[tokens[2]]
         if(node.unit != None and node.unit.unitType.name == "summoner"):
-            node.city.unqueueUnit()
+            node.unit.unqueueUnit()
     @staticmethod
     def startSummoningRedo(args):
         tokens = args.split(" ")
         node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
         unitType = gameState.theUnitTypes[tokens[2]]
         if(node.unit != None and node.unit.unitType.name == "summoner"):
-            node.city.queueUnit(gameLogic.unit(unitType,node.city.player,node.xPos,node.yPos,node))
+            node.unit.queueUnit(gameLogic.unit(unitType,node.unit.player,node.xPos,node.yPos,node))
     @staticmethod
     def cancelQueuedThing(args):
         tokens = args.split(" ")
         node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
         index = int(tokens[2])
-        if(len(node.city.buildQueue) > 0):
-            cancelledQueuedThing = node.city.buildQueue.pop(index-1)
-            node.city.cancelledUnits.append((cancelledQueuedThing,index,))
+        if(len(node.unit.buildQueue) > 0):
+            cancelledQueuedThing = node.unit.buildQueue.pop(index-1)
+            node.unit.cancelledUnits.append((cancelledQueuedThing,index,))
             if(hasattr(cancelledQueuedThing,"unitType")):#unit
                 gameState.getGameMode().players[node.unit.player].greenWood = gameState.getGameMode().players[node.unit.player].greenWood + cancelledQueuedThing.unitType.costGreen
                 gameState.getGameMode().players[node.unit.player].blueWood = gameState.getGameMode().players[node.unit.player].blueWood + cancelledQueuedThing.unitType.costBlue
             else:#unittype
                 gameState.getGameMode().players[node.unit.player].greenWood = gameState.getGameMode().players[node.unit.player].greenWood + cancelledQueuedThing.researchCostGreen
                 gameState.getGameMode().players[node.unit.player].blueWood = gameState.getGameMode().players[node.unit.player].blueWood + cancelledQueuedThing.researchCostBlue
-        if(gameState.getGameMode().selectedNode == node and hasattr(uiElements.viewer.theViewer,"isCityViewer")):
+        if(gameState.getGameMode().selectedNode == node and hasattr(uiElements.viewer.theViewer,"isSummonerViewer")):
             uiElements.viewer.theViewer.destroy()
-            uiElements.viewer.theViewer = uiElements.cityViewer(node)
+            uiElements.viewer.theViewer = uiElements.summonerViewer(node)
     @staticmethod
     def cancelQueuedThingUndo(args):
         tokens = args.split(" ")
         index = int(tokens[2])
         node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
-        cancelledThing,index = node.city.cancelledUnits.pop()
-        node.city.buildQueue.insert(index-1,cancelledThing)
+        cancelledThing,index = node.unit.cancelledUnits.pop()
+        node.unit.buildQueue.insert(index-1,cancelledThing)
     @staticmethod
     def cancelQueuedThingRedo(args):
         tokens = args.split(" ")
         index = int(tokens[2])
         node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
-        if(len(node.city.buildQueue) > 0):
-            node.city.buildQueue.pop(index-1)
+        if(len(node.unit.buildQueue) > 0):
+            node.unit.buildQueue.pop(index-1)
     @staticmethod
     def startResearch(args):
         tokens = args.split(" ")
         node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
         unitType = gameState.theUnitTypes[tokens[2]]
-        node.city.queueResearch(unitType)
+        node.unit.queueResearch(unitType)
         gameState.getGameMode().players[node.unit.player].greenWood = gameState.getGameMode().players[node.unit.player].greenWood - unitType.researchCostGreen
         gameState.getGameMode().players[node.unit.player].blueWood = gameState.getGameMode().players[node.unit.player].blueWood - unitType.researchCostBlue
-        if(gameState.getGameMode().selectedNode == node and hasattr(uiElements.viewer.theViewer,"isCityViewer")):
+        if(gameState.getGameMode().selectedNode == node and hasattr(uiElements.viewer.theViewer,"isSummonerViewer")):
             uiElements.viewer.theViewer.destroy()
-            uiElements.viewer.theViewer = uiElements.cityViewer(node)
+            uiElements.viewer.theViewer = uiElements.summonerViewer(node)
     @staticmethod
     def startResearchUndo(args):
         tokens = args.split(" ")
         node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
         unitType = gameState.theUnitTypes[tokens[2]]
-        node.city.unqueueResearch()
+        node.unit.unqueueResearch()
     @staticmethod
     def startResearchRedo(args):
         tokens = args.split(" ")
         node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
         unitType = gameState.theUnitTypes[tokens[2]]
-        node.city.queueResearch(unitType)
+        node.unit.queueResearch(unitType)
     @staticmethod
     def chat(args):
         if(hasattr(gameState.getGameMode(),"chatDisplay")):

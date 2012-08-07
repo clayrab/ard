@@ -14,6 +14,7 @@
 
 #client:
 #need to let you queue beyond your $
+#fix save/load from summoner changes
 #make 'done' button
 #get rid of edge-scrolling
 #holding g toggles togo back and forth...
@@ -399,7 +400,7 @@ class playMode(tiledGameMode):
 		self.map = gameLogic.mapp(gameLogic.playModeNode)
 		gameLogic.aStarSearch.parentPipe.send(['map',gameState.getMapName()])
 	def unitComparater(self,unit):
-		if((unit.isMeditating and unit.unitType.name == "gatherer") or (unit.isMeditating and unit.unitType.name == "summoner" and (unit.node.city.researching or unit.node.city.unitBeingBuilt != None)) or (unit.attackPoints > 0.0)):
+		if(unit.isMeditating):
 			return 1000.0
 		else:
 			return unit.movementPoints
@@ -454,10 +455,9 @@ class playMode(tiledGameMode):
 						unit.movementPoints = unit.movementPoints - ((float(unit.getMovementSpeed())+float(unit.node.roadValue))/cDefines.defines['GRASS_MOVE_COST'])
 					if(unit.movementPoints < 0.0):
 						unit.movementPoints = 0.0#for meditating units
-			for row in self.map.nodes:
-				for node in row:
-					if(node.city != None):
-						node.city.incrementBuildProgress()
+			for summoner in self.summoners:
+				summoner.incrementBuildProgress()
+				
 		#todo: sort fire and add while loop for when fire should go more than once before the next unit
 		elementalEffectsMoving = True
 		while(elementalEffectsMoving):
@@ -471,9 +471,7 @@ class playMode(tiledGameMode):
 		for unit in self.units:
 			if(unit.movementPoints > 0.0 or unit.attackPoints > 0.0):
 				break
-			if(unit.isMeditating and unit.node.city == None):
-				break
-			if(unit.isMeditating and (unit.node.city.researching or unit.node.city.unitBeingBuilt != None)):
+			if(unit.isMeditating):
 				break
 			if(len(eligibleUnits) == 0):
 				eligibleUnits.append(unit)
@@ -536,7 +534,11 @@ class playMode(tiledGameMode):
 				columnCount = columnCount + 1
 				if(node.playerStartValue != 0):
 					node.addUnit(gameLogic.unit(gameState.theUnitTypes["summoner"],node.playerStartValue-1,node,1))
-					node.addUnit(gameLogic.unit(gameState.theUnitTypes["swordsman"],node.playerStartValue-1,node,1))
+					node.addUnit(gameLogic.unit(gameState.theUnitTypes["gatherer"],node.playerStartValue-1,node,1))
+					node.addUnit(gameLogic.unit(gameState.theUnitTypes["gatherer"],node.playerStartValue-1,node,1))
+					node.addUnit(gameLogic.unit(gameState.theUnitTypes["gatherer"],node.playerStartValue-1,node,1))
+					node.addUnit(gameLogic.unit(gameState.theUnitTypes["gatherer"],node.playerStartValue-1,node,1))
+					node.addUnit(gameLogic.unit(gameState.theUnitTypes["gatherer"],node.playerStartValue-1,node,1))
 #					node.addFire(gameLogic.fire(node))
 #					node.addIce(gameLogic.ice(node))
 	
@@ -585,8 +587,8 @@ class playMode(tiledGameMode):
 			elif(keycode == "s" or keycode == "S"):
 				if(self.selectedNode != None and self.nextUnit == self.selectedNode.unit and self.nextUnit.unitType.name == "gatherer" and (self.selectedNode.tileValue == cDefines.defines["RED_FOREST_TILE_INDEX"] or self.selectedNode.tileValue == cDefines.defines["BLUE_FOREST_TILE_INDEX"])):
 					uiElements.startGathering()
-				if(self.nextUnit == self.selectedNode.unit and self.nextUnit.unitType.name == "summoner" and (self.selectedNode.city != None)):
-					uiElements.startSummoning()
+#				if(self.nextUnit == self.selectedNode.unit and self.nextUnit.unitType.name == "summoner" and (self.selectedNode.city != None)):
+#					uiElements.startSummoning()
 			if(hasattr(self.mousedOverObject,"toggleCursor")):
 				self.mousedOverObject.toggleCursor()
 			if(hasattr(self.mousedOverObject,"onKeyDown")):

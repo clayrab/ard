@@ -214,11 +214,16 @@ class unit:
 		if(level != None):
 			self.level = level
 		else:
-			self.level = node.city.researchProgress[self.unitType][0]
+			self.level = gameState.researchProgress[self.unitType][0]
 		self.health = float(self.unitType.health*self.level)
 #		self.gatheringNode = None
 		self.isMeditating = False
 		self.recentDamage = {}
+		self.researching = False
+		self.researchUnitType = None
+		self.unitBeingBuilt = None
+		self.cancelledUnits = []
+		self.buildQueue = []
 	def setPosition(self,xPos,yPos):
 		if(self.xPosDraw == -100000.0):
 			self.xPosDraw = xPos
@@ -334,18 +339,19 @@ class unit:
 			selectNode(self.node)
 		self.node = node
 		node.unit = self
-		if(node.city != None):
-			node.city.player = node.unit.player
-			for neighbor in node.neighbors:
-				if(neighbor.unit != None and neighbor.unit.player != self.player):
-					self.movePath = []
-						#break
+#		if(node.city != None and node.unit.unitType.name == "gatherer"):
+#			node.city.player = node.unit.player
+#			gameState.reevalAvailableUnitTypes()
+#		for neighbor in node.neighbors:
+#			if(neighbor.unit != None and neighbor.unit.player != self.player):
+#				self.movePath = []
+#				break
 #			if(node.unit.gatheringNode == node):
 #				self.waiting = True
 		self.movementPoints = self.movementPoints + INITIATIVE_ACTION_DEPLETION
-		if(gameState.getGameMode().nextUnit.ai == None):
-			gameState.getGameMode().gotoMode = False
-			selectNode(None)
+#		if(gameState.getGameMode().nextUnit.ai == None):
+		gameState.getGameMode().gotoMode = False
+		selectNode(node)
 	def heal(self,node):
 		gameState.getClient().sendCommand("healTo",str(node.xPos) + " " + str(node.yPos))
 		gameState.getClient().sendCommand("chooseNextUnit")
@@ -378,8 +384,8 @@ class unit:
 				if(node.unit.unitType.name == "summoner"):
 					gameState.getGameMode().summoners.remove(node.unit)
 				aStarSearch.parentPipe.send(["unitRemove",node.xPos,node.yPos])
-				if(node.unit.unitType == "summoner" and node.city != None):
-					node.city.researchProgress = {}
+				if(node.unit.unitType == "gatherer" and node.city != None):
+					gameState.reevaAvailableUnitTypes()
 				node.unit = None
 				if(gameState.getGameMode().selectedNode == node):
 					selectNode(node)
@@ -401,30 +407,6 @@ class unit:
 		if(gameState.getGameMode().nextUnit != None and gameState.getGameMode().nextUnit.ai == None):
 			gameState.getGameMode().gotoMode = False
 			selectNode(None)
-
-			
-class city:
-	def __init__(self,name,node,unitTypes=None,costOfOwnership=10):
-		if(unitTypes == None):
-			unitTypes = []
-		self.name = name
-		self.node = node
-		self.costOfOwnership = costOfOwnership#TODO: deprecated this
-		self.unitTypes = []
-		self.unitTypes.append(gameState.theUnitTypes["summoner"])
-		self.unitTypes.append(gameState.theUnitTypes["gatherer"])	
-		self.unitTypes.extend(unitTypes)
-		self.researchProgress = {}
-		for unitType in unitTypes:
-			self.researchProgress[unitType] = [1,0]
-		self.researchProgress[gameState.theUnitTypes["summoner"]] = [1,0]
-		self.researchProgress[gameState.theUnitTypes["gatherer"]] = [1,0]
-		self.researching = False
-		self.researchUnitType = None
-		self.unitBeingBuilt = None
-		self.cancelledUnits = []
-		self.buildQueue = []
-		self.player = 0
 	def queueResearch(self,unitType):
 		self.buildQueue.append(unitType)
 		if(self.unitBeingBuilt == None and not self.researching):
@@ -456,30 +438,43 @@ class city:
 			else:#unitType/research
 				self.researching = True
 				self.researchUnitType = nextThing
+		else:
+			self.isMeditating = False
 #		if(len(self.buildQueue) > 0):
 #			self.unitBeingBuilt = self.buildQueue[0]
 #			self.buildQueue = self.buildQueue[1:]
 #		else:
 #			self.node.unit.waiting = False#wake up summoner
 	def incrementBuildProgress(self):
-		if(self.node.unit != None and self.node.unit.unitType.name == "summoner" and self.node.unit.isMeditating):
-			if(self.researching):
-				if(self.researchUnitType != None):
-					self.researchProgress[self.researchUnitType][1] = self.researchProgress[self.researchUnitType][1] + 1
-					if(self.researchProgress[self.researchUnitType][1] >= self.researchUnitType.researchTime):
-						self.researchProgress[self.researchUnitType][0] = self.researchProgress[self.researchUnitType][0] + 1
-						self.researchProgress[self.researchUnitType][1] = 0
+#		if(self.node.unit != None and self.node.unit.unitType.name == "summoner" and self.node.unit.isMeditating):
+		if(self.researching):
+			if(self.researchUnitType != None):
+				gameState.researchProgress[self.researchUnitType][1] = gameState.researchProgress[self.researchUnitType][1] + 1
+				if(gameState.researchProgress[self.researchUnitType][1] >= self.researchUnitType.researchTime):
+					gameState.researchProgress[self.researchUnitType][0] = gameState.researchProgress[self.researchUnitType][0] + 1
+					gameState.researchProgress[self.researchUnitType][1] = 0
 #						self.node.unit.waiting = False#wake up summoner
-						self.researching = False
-						self.researchUnitType = None
-						self.buildNextFromQueue()
-			else:
-				if(self.unitBeingBuilt != None):
-					self.unitBeingBuilt.buildPoints = self.unitBeingBuilt.buildPoints - 1
-					if(self.unitBeingBuilt.buildPoints <= 0.0):
-						self.node.addUnit(self.unitBeingBuilt)
-						self.unitBeingBuilt = None
-						self.buildNextFromQueue()
+					self.researching = False
+					self.researchUnitType = None
+					self.buildNextFromQueue()
+		else:
+			if(self.unitBeingBuilt != None):
+				self.unitBeingBuilt.buildPoints = self.unitBeingBuilt.buildPoints - 1
+				if(self.unitBeingBuilt.buildPoints <= 0.0):
+					self.node.addUnit(self.unitBeingBuilt)
+					self.unitBeingBuilt = None
+					self.buildNextFromQueue()
+			
+class city:
+	def __init__(self,name,node,unitTypes=[],costOfOwnership=10):
+		self.name = name
+		self.node = node
+		self.costOfOwnership = costOfOwnership#TODO: deprecated this
+		self.unitTypes = unitTypes
+#		self.unitTypes.append(gameState.theUnitTypes["summoner"])
+#		self.unitTypes.append(gameState.theUnitTypes["gatherer"])	
+#		self.unitTypes.extend(unitTypes)
+		self.player = 0
 
 class node:
 	def __init__(self,xPos,yPos,tileValue=cDefines.defines['GRASS_TILE_INDEX'],roadValue=0,city=None,playerStartValue=0):
@@ -535,8 +530,8 @@ class node:
 			if(theUnit.isOwnTeam()):
 				for neighb in self.getNeighbors(5):
 					neighb.startViewing(self.unit)
-			if(self.city != None):
-				self.city.player = self.unit.player
+#			if(self.city != None and self.unit.unitType.name == ""):
+#				self.city.player = self.unit.player
 		else:
 			(random.choice(self.neighbors)).addUnit(theUnit)
 	def onRightClick(self):
@@ -732,7 +727,7 @@ class mapEditorNode(node):
 class mapViewNode(node):
 #	def __init__(self)
 	def onClick(self):
-		selectNode(self,uiElements.cityViewerNoPlay)			
+		selectNode(self)			
 
 #class aStarThread(threading.Thread):
 class aStarThread():
@@ -1043,7 +1038,7 @@ class mapp:
 	def setNumPlayers(self,numPlayers):
 		self.numPlayers = numPlayers
 
-def selectNode(node,theCityViewer = uiElements.cityViewer):
+def selectNode(node):
 	for pnode in playModeNode.movePath:
 		pnode.onMovePath = False
 	playModeNode.movePath = []
@@ -1065,10 +1060,12 @@ def selectNode(node,theCityViewer = uiElements.cityViewer):
 	if(uiElements.unitTypeViewer.theViewer != None):
 		uiElements.unitTypeViewer.theViewer.destroy()
 	if(node != None):
-		if((node.unit == None and node.city !=None) or (node.unit != None and node.unit.unitType.name == "summoner" and node.unit.isMeditating and node.city != None)):
-			uiElements.viewer.theViewer = theCityViewer(node)
-		elif(node.unit != None):
+		if((node.unit != None and node.visible and node.unit.unitType.name == "summoner")):
+			uiElements.viewer.theViewer = uiElements.summonerViewer(node)
+		elif(node.unit != None and node.visible):
 			uiElements.viewer.theViewer = uiElements.unitViewer(node)
+		elif(node.city != None):
+			uiElements.viewer.theViewer = uiElements.cityViewer(node)
 	if(hasattr(gameState.getGameMode().mousedOverObject,"toggleCursor")):
 		gameState.getGameMode().mousedOverObject.toggleCursor()
 #	node.toggleCursor()

@@ -1428,6 +1428,9 @@ static void initGL (){
   pngLoad(&texturesArray[FLAG_INDEX2],FLAG2);
   pngLoad(&texturesArray[FLAG_INDEX3],FLAG3);
   pngLoad(&texturesArray[ADD_AI_BUTTON_INDEX],ADD_AI_BUTTON);
+  pngLoad(&texturesArray[UNIT_VIEWER_BACKGROUND_INDEX],UNIT_VIEWER_BACKGROUND);
+  pngLoad(&texturesArray[SUMMONER_VIEWER_BACKGROUND_INDEX],SUMMONER_VIEWER_BACKGROUND);
+  pngLoad(&texturesArray[STONE_VIEWER_BACKGROUND_INDEX],STONE_VIEWER_BACKGROUND);
   
   soundArray[WOOD_HIT_INDEX] = Mix_LoadWAV(WOOD_HIT);
   soundArray[TUBE_HIT_INDEX] = Mix_LoadWAV(TUBE_HIT);
