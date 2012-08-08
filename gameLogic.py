@@ -491,6 +491,7 @@ class node:
 		gameState.getGameMode().elementsDict[self.name] = self
 		self.neighbors = []
 		self.unit = None
+		self.visible = True
 	def getValue(self):
 		return self.tileValue
 	def findDistance(self,target,polarity):

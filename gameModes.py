@@ -13,7 +13,6 @@
 #report game state(to look for cheaters/bugs)
 
 #client:
-#it's very slow/sluggish sometimes
 #need to show turn changing better
 #make flags bigger
 #roads? Draw them properly or remove them...
@@ -33,6 +32,8 @@
 #ai
 #make edge-scrolling configurable
 #make music/sound volume configurable
+#it's very slow/sluggish sometimes. aStar now kills itself if no keepalives are sent... hoping this helps.
+#render less nodes by clipping off edges. do this for picking just around the mouse too.
 
 #BUGS
 #deprecate costOfOwnership

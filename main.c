@@ -319,8 +319,10 @@ double xPosition;
 double yPosition;
 PyObject * pyXPositionUnit;
 PyObject * pyYPositionUnit;
+PyObject * pyIsSelected;
 double xPositionUnit;
 double yPositionUnit;
+long isSelected;
 void updatePosition(){
  if(xPositionUnit != xPosition){
     pyObj = PyObject_CallMethod(pyUnit,"setPosition","(ff)",xPosition,yPosition);
@@ -334,9 +336,8 @@ void drawUnit(){
 
   xPositionUnit = PyFloat_AsDouble(pyXPositionUnit);
   yPositionUnit = PyFloat_AsDouble(pyYPositionUnit);
-  glTranslatef(xPositionUnit,yPositionUnit,0.0);
+  glTranslatef(xPositionUnit,yPositionUnit,0.1);
   updatePosition();
-  //  printf("%lf %lf %lf %lf\n",xPosition,yPosition,xPositionUnit,yPositionUnit);
 
   pyUnitTextureIndex = PyObject_GetAttrString(pyUnitType,"textureIndex");
   pyName = PyObject_GetAttrString(pyUnitType,"name");
@@ -359,6 +360,7 @@ void drawUnit(){
 
   //  glPushMatrix();
   //  glTranslatef(-0.1,-0.78,0.0);
+
   glBindTexture(GL_TEXTURE_2D, texturesArray[FLAG_POLE_INDEX]);
   glBegin(GL_QUADS);
   glTexCoord2f(0.0,0.0); glVertex3f(0.5, -0.75, -0.1);
@@ -468,7 +470,7 @@ void drawUnit(){
 }
 float shading;
 char playerStartVal[2];
-void drawTile(uint tilesXIndex, uint tilesYIndex, long name, long tileValue, long roadValue,char * cityName,long isSelected, long isOnMovePath,long playerStartValue, long cursorIndex){
+void drawTile(uint tilesXIndex, uint tilesYIndex, long name, long tileValue, long roadValue,char * cityName, long isOnMovePath,long playerStartValue, long cursorIndex){
   textureVertices = vertexArrays[tileValue];
   shading = 1.0;
   if(!isVisible){
@@ -490,19 +492,6 @@ void drawTile(uint tilesXIndex, uint tilesYIndex, long name, long tileValue, lon
   glPopName();
 
   //  glColor3f(0.0,1.0,0.0);
-  if(isSelected == 1 || (isNextUnit == 1 && isVisible)){
-    if(isSelected == 1 && (isNextUnit == 1 && isVisible)){
-      glColor3f(0.0,1.0,0.0);
-    }else if(isSelected == 1){
-      glColor3f(0.0,0.65,0.0);
-    }else{//(isNextUnit == 1 && isVisible)
-      glColor3f(1.0,1.0,10);
-    }
-    glBindTexture(GL_TEXTURE_2D, texturesArray[SELECTION_BOX_INDEX]);
-    glCallList(selectionBoxList);
-  }
-
-
   if(roadValue == 1){
     glCallList(tilesLists+(4*ROAD_TILE_INDEX));
   }
@@ -577,7 +566,6 @@ PyObject * roadValue;
 PyObject * pyCity;
 PyObject * pyCursorIndex;
 PyObject * pyPlayerStartValue;
-PyObject * pyIsSelected;
 PyObject * pyIsOnMovePath;
 PyObject * pyIsVisible;
 long longName;
@@ -591,7 +579,6 @@ PyObject * nextUnit;
 PyObject * pyUnitPlayer;
 long unitPlayer;
 long playerStartValue;
-long isSelected;
 long isOnMovePath;
 void drawUnits(){
   rowNumber = -1;
@@ -609,26 +596,44 @@ void drawUnits(){
       pyIce = PyObject_GetAttrString(node,"ice");
       pyIsVisible = PyObject_GetAttrString(node,"visible");//New reference
       isVisible = PyLong_AsLong(pyIsVisible);
+      Py_DECREF(pyIsVisible);
+
+      pyIsSelected = PyObject_GetAttrString(node,"selected");//New reference
+      isSelected = PyLong_AsLong(pyIsSelected);
+      Py_DECREF(pyIsSelected);
       xPosition = translateTilesXToPositionX(colNumber,rowNumber);
       yPosition = translateTilesYToPositionY(rowNumber);
       colNumber = colNumber - 1;
-      glPushMatrix();
-      glTranslatef(xPosition,yPosition,0.0);
-      glPopMatrix();
       if(pyUnit != NULL && pyUnit != Py_None && isVisible){
 	glPushMatrix();
 	drawUnit();
 	glPopMatrix();
-	glBindTexture(GL_TEXTURE_2D, texturesArray[CITY_SANS_TREE_INDEX]);
+	//	glBindTexture(GL_TEXTURE_2D, texturesArray[CITY_SANS_TREE_INDEX]);
       }else if(pyUnit != NULL && pyUnit != Py_None){
-	glBindTexture(GL_TEXTURE_2D, texturesArray[CITY_INDEX]);
 	updatePosition();
       }else{
-	glBindTexture(GL_TEXTURE_2D, texturesArray[CITY_INDEX]);
+	//	glBindTexture(GL_TEXTURE_2D, texturesArray[CITY_INDEX]);
       }
       glPushMatrix();
       glTranslatef(xPosition,yPosition,0.0);
-
+      if(isSelected == 1 || (isNextUnit == 1 && isVisible)){
+	if(isSelected == 1 && (isNextUnit == 1 && isVisible)){
+	  glColor3f(0.0,1.0,0.0);
+	}else if(isSelected == 1){
+	  glColor3f(0.0,0.65,0.0);
+	}else{//(isNextUnit == 1 && isVisible)
+	  glColor3f(1.0,1.0,10);
+	}
+	glBindTexture(GL_TEXTURE_2D, texturesArray[SELECTION_BOX_INDEX]);
+	glPushMatrix();
+	//    glDepthFunc(GL_EQUAL);
+	glTranslatef(0.0,0.0,0.1);
+	glScalef(2.0,2.0,0.0);
+	glCallList(selectionBoxList);
+	//    glDepthFunc(GL_GEQUAL);
+	glPopMatrix();
+      }
+      glBindTexture(GL_TEXTURE_2D, texturesArray[CITY_INDEX]);
       cityName = "";//TODO: REMOVE ME
       pyCity = PyObject_GetAttrString(node,"city");
       if(pyCity != Py_None){
@@ -655,11 +660,6 @@ void drawUnits(){
       if(pyFire != NULL && pyFire != Py_None && isVisible){
 	drawFire();
       }  
-
-
-      if(pyIsVisible != NULL){
-	Py_DECREF(pyIsVisible);
-      }
       if(pyUnit != NULL){
 	Py_DECREF(pyUnit);
       }
@@ -695,10 +695,10 @@ void drawTiles(){
       pyCursorIndex = PyObject_GetAttrString(node,"cursorIndex");//New reference
       pyPlayerStartValue = PyObject_GetAttrString(node,"playerStartValue");//New reference                                 
       pyUnit = PyObject_GetAttrString(node,"unit");
-      pyIsSelected = PyObject_GetAttrString(node,"selected");//New reference
       pyIsOnMovePath = PyObject_GetAttrString(node,"onMovePath");//New reference
       pyIsVisible = PyObject_GetAttrString(node,"visible");//New reference
       isVisible = PyLong_AsLong(pyIsVisible);
+      Py_DECREF(pyIsVisible);
       isNextUnit = 0;
       nextUnit = PyObject_GetAttrString(gameMode,"nextUnit");
       if(pyUnit != NULL && pyUnit != Py_None){
@@ -711,18 +711,13 @@ void drawTiles(){
       longRoadValue = PyLong_AsLong(roadValue);
       cursorIndex = PyLong_AsLong(pyCursorIndex);
       playerStartValue = PyLong_AsLong(pyPlayerStartValue);
-      isSelected = PyLong_AsLong(pyIsSelected);
       isOnMovePath = PyLong_AsLong(pyIsOnMovePath);
       Py_DECREF(nodeName);
       Py_DECREF(nodeValue);
       Py_DECREF(roadValue);
       Py_DECREF(pyCursorIndex);
       Py_DECREF(pyPlayerStartValue);
-      Py_DECREF(pyIsSelected);
       Py_DECREF(pyIsOnMovePath);
-      if(pyIsVisible != NULL){
-	Py_DECREF(pyIsVisible);
-      }
       if(pyUnit != NULL){
 	Py_DECREF(pyUnit);
       }
@@ -735,7 +730,7 @@ void drawTiles(){
       yPosition = translateTilesYToPositionY(rowNumber);
       glPushMatrix();
       glTranslatef(xPosition,yPosition,0.0);
-      drawTile(colNumber,rowNumber,longName,longValue,longRoadValue,cityName,isSelected,isOnMovePath,playerStartValue,cursorIndex);
+      drawTile(colNumber,rowNumber,longName,longValue,longRoadValue,cityName,isOnMovePath,playerStartValue,cursorIndex);
       glPopMatrix();
       colNumber = colNumber - 1;
     }
@@ -929,9 +924,14 @@ void calculateTranslation(){
 }
 
 drawBoard(){
+  glClear(GL_DEPTH_BUFFER_BIT);		 
   if(theMap != Py_None && theMap != NULL){
+
     drawTiles();
+    //  glClear(GL_DEPTH_BUFFER_BIT);		 
+    //    glDepthFunc(GL_GREATER);
     drawUnits();
+    //    glDepthFunc(GL_LEQUAL);
   }
 }
 
@@ -1268,16 +1268,17 @@ static void initGL (){
 
   //glClearColor(1.0, 1.0, 1.0, 1.0); //sets screen clear color
   //glClearColor(123.0/255.0,126.0/255.0,125.0/255.0,1.0);//grey that matches the UI...
-  glClearDepth(0.0);
   glEnable(GL_ALPHA_TEST);
+  glClearDepth(1);
   glEnable(GL_DEPTH_TEST);
+  glDepthRange(0,1);
+  glDepthFunc(GL_LEQUAL);    
   //  glAlphaFunc(GL_GREATER,0.1);//clear area around the fonts will not write to the z-buffer
+  glAlphaFunc(GL_GREATER,0.1);
   glEnable(GL_TEXTURE_2D);
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   //  glBlendFunc(GL_SRC_ALPHA, GL_ZERO);
-  //  glDepthFunc(GL_ALWAYS);    
-  //  glDepthFunc(GL_LEQUAL);
   screenRatio = (GLfloat)SCREEN_WIDTH/(GLfloat)SCREEN_HEIGHT;
 
   pngLoad(&tilesTexture, TILES);	/******************** /image init ***********************/
@@ -1955,9 +1956,10 @@ static void draw(){
   glTexCoord2f(0.0,1.0); glVertex3f(-1.0,1.0,-1.01);
   glEnd();
   glTranslatef(translateX,translateY,translateZ);
-  glDepthFunc(GL_GEQUAL);
+  //  glDepthFunc(GL_LESS);
+  //  glDepthFunc(GL_ALWAYS);
   drawBoard();
-  glDepthFunc(GL_ALWAYS);
+  //  glDepthFunc(GL_ALWAYS);
 
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
@@ -1966,7 +1968,7 @@ static void draw(){
   glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
   drawUI();
   glFlush();
-  SDL_GL_SwapBuffers ();	
+  SDL_GL_SwapBuffers();
 }
 PyObject * pyExit;
 int musicChannel = -2;
