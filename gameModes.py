@@ -13,7 +13,6 @@
 #report game state(to look for cheaters/bugs)
 
 #client:
-#fix save/load from summoner changes
 #it's very slow/sluggish sometimes
 #need to show turn changing better
 #make flags bigger
@@ -605,20 +604,21 @@ class playMode(tiledGameMode):
 				number = 1
 		return number
 	def onDraw(self,deltaTicks):
+		gameLogic.aStarSearch.keepAlive()
 		if(self.playerMissing):
 			gameMode.onDraw(self,deltaTicks)
 		else:
 			if(not self.doFocus):
 				for unit in gameLogic.slidingUnits:
 					unit.slide(deltaTicks)
-			if(gameLogic.aStarSearch.searchComplete):
-				with gameLogic.aStarSearch.aStarLock:
-					gameLogic.playModeNode.movePath = []
-					for node in gameLogic.aStarSearch.movePath:
-						gameLogic.playModeNode.movePath.append(node)
-						node.onMovePath = True
-					gameLogic.aStarSearch.searchComplete = False
-					gameLogic.aStarSearch.movePath = []
+#			if(gameLogic.aStarSearch.searchComplete):
+#				with gameLogic.aStarSearch.aStarLock:
+#					gameLogic.playModeNode.movePath = []
+#					for node in gameLogic.aStarSearch.movePath:
+#						gameLogic.playModeNode.movePath.append(node)
+#						node.onMovePath = True
+#					gameLogic.aStarSearch.searchComplete = False
+#					gameLogic.aStarSearch.movePath = []
 			if(gameLogic.aStarSearch.parentPipe.poll()):
 				for node in gameLogic.playModeNode.movePath:
 					node.onMovePath = False
@@ -635,6 +635,7 @@ class playMode(tiledGameMode):
 					self.nextUnit.move()
 				else:
 					gameLogic.aStarSearch.search(self.nextUnit.gotoNode,self.nextUnit.node,self.nextUnit.unitType.canFly,self.nextUnit.unitType.canSwim)
+				
 #			with client.commandLock:
 			if(self.timeToMove <= 0 and self.nextUnit != None and self.nextUnit.isControlled()):
 				gameState.getClient().sendCommand("skip")

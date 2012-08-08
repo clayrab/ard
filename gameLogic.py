@@ -749,6 +749,7 @@ class aStarThread():
 		self.searchComplete = False
 		self.parentPipe,self.childPipe = Pipe()
 		self.queue = None
+		self.keepAliveTime = time.clock()
 #		self.doneSearching = True
 		self.aStarLock = threading.RLock()
 #		self.searchCompleteLock = threading.RLock()
@@ -757,6 +758,9 @@ class aStarThread():
 	@staticmethod
 	def runTarget(pipe):
 		while True:
+#			print aStarSearch.keepAliveTime
+			if(time.clock() - aStarSearch.keepAliveTime > 10.0):
+				sys.exit(0)
 			if(pipe.poll()):
 				data = pipe.recv()
 				if(data[0] == "kill"):
@@ -770,6 +774,8 @@ class aStarThread():
 				elif(data[0] == "unitRemove"):
 					aStarSearch.map.nodes[data[2]][data[1]].unit = False
 #					aStarSearch.map.nodes[data[4]][data[3]].unit = True
+				elif(data[0] == "keepalive"):
+					aStarSearch.keepAliveTime = time.clock()
 				else:
 					if(not(aStarSearch.endNode == aStarSearch.map.nodes[data[3]][data[2]] and aStarSearch.startNode == aStarSearch.map.nodes[data[1]][data[0]])):
 						aStarSearch.movePath = []
@@ -779,11 +785,15 @@ class aStarThread():
 						aStarSearch.endNode = aStarSearch.map.nodes[data[3]][data[2]]
 						aStarSearch.startNode = aStarSearch.map.nodes[data[1]][data[0]]
 						aStarSearch.openNodes.append(aStarSearch.startNode)
+						aStarSearch.aStarSearchRecurse()
 			else:
 				aStarSearch.aStarSearchRecurse()
         @staticmethod
         def search(startNode,endNode,canFly,canSwim):
 		aStarSearch.parentPipe.send([startNode.xPos,startNode.yPos,endNode.xPos,endNode.yPos,canFly,canSwim])
+	@staticmethod
+	def keepAlive():
+		aStarSearch.parentPipe.send(["keepalive"])
 	def resetNodes(self):
 		for node in self.openNodes:
 			node.closed = False
