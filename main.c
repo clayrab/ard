@@ -568,6 +568,8 @@ PyObject * pyCursorIndex;
 PyObject * pyPlayerStartValue;
 PyObject * pyIsOnMovePath;
 PyObject * pyIsVisible;
+PyObject * pySelectionBoxScale;
+double selectionBoxScale;
 long longName;
 long longValue;
 long longRoadValue;
@@ -624,11 +626,14 @@ void drawUnits(){
 	}else{//(isNextUnit == 1 && isVisible)
 	  glColor3f(1.0,1.0,10);
 	}
+	pySelectionBoxScale = PyObject_GetAttrString(gameMode,"selectionBoxScale");//New reference
+	selectionBoxScale = PyFloat_AsDouble(pySelectionBoxScale);
+	Py_DECREF(pySelectionBoxScale);
 	glBindTexture(GL_TEXTURE_2D, texturesArray[SELECTION_BOX_INDEX]);
 	glPushMatrix();
 	//    glDepthFunc(GL_EQUAL);
 	glTranslatef(0.0,0.0,0.1);
-	glScalef(2.0,2.0,0.0);
+	glScalef(selectionBoxScale,selectionBoxScale,0.0);
 	glCallList(selectionBoxList);
 	//    glDepthFunc(GL_GEQUAL);
 	glPopMatrix();

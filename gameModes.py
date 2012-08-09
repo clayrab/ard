@@ -304,6 +304,9 @@ class tiledGameMode(gameMode):
 		gameMode.__init__(self)
 		self.doFocus = 0
 		self.doFocusTemp = 0
+		self.selectionBoxScale = 1.0
+		self.selectionBoxScalePrev = 1.0
+		self.selectionBoxTicks = -10.0
 	def getFocusNextUnit(self):
 		return self.doFocus
 #		self.doFocusTemp = self.doFocus
@@ -318,6 +321,7 @@ class tiledGameMode(gameMode):
 				if(len(self.nextUnit.movePath) > 0):
 					self.nextUnit.move()
 				else:
+					self.selectionBoxTicks = self.ticks
 					self.soundIndeces.append(cDefines.defines["FINGER_CYMBALS_HIT_INDEX"])
 					gameLogic.selectNode(self.nextUnit.node)
 		if(hasattr(gameState.getGameMode(),"mousedOverObject") and hasattr(gameState.getGameMode().mousedOverObject,"toggleCursor")):
@@ -606,6 +610,22 @@ class playMode(tiledGameMode):
 		return number
 	def onDraw(self,deltaTicks):
 		gameLogic.aStarSearch.keepAlive()
+		if(self.ticks - self.selectionBoxTicks < 5000):
+			max = 2.0
+			retVal = 0.0
+			if(self.selectionBoxScale < max*0.1 and self.selectionBoxScalePrev <= self.selectionBoxScale):
+				retVal = self.selectionBoxScale+max*((self.ticks/1000.0-self.previousTicks/1000.0)*100.0*self.ticks/1000.0*self.ticks/1000.0)
+			elif(self.selectionBoxScale < max-max/4000.0 and self.selectionBoxScalePrev <= self.selectionBoxScale):
+				retVal = self.selectionBoxScale+((self.ticks/1000.0-self.previousTicks/1000.0)*(max-self.selectionBoxScale)/0.03)
+			else:
+				retVal = self.selectionBoxScale-((self.ticks/1000.0-self.previousTicks/1000.0)*(self.selectionBoxScale-0.0)/0.3)
+			if(retVal > max):
+				return max
+			self.selectionBoxScalePrev = self.selectionBoxScale
+			self.selectionBoxScale = 1.0 + retVal
+			print self.selectionBoxScale
+		else:
+			self.selectionBoxScale = 1.0
 		if(self.playerMissing):
 			gameMode.onDraw(self,deltaTicks)
 		else:
