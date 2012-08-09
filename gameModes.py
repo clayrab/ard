@@ -13,22 +13,22 @@
 #report game state(to look for cheaters/bugs)
 
 #client:
-#need to show turn changing better
 #make flags bigger
+#use giant flag for nextunit?
+#select box shouldn't be green for uncontrolled nextunit
 #roads? Draw them properly or remove them...
 #handle reconnect... requires ability to save/share game state
 #sound effects
 #mouseover effects
 #show move speed and attack speed
-#select box shouldn't be green for uncontrolled nextunit
 #icons for green and blue wood
 #healing animation
 #blunt/explosion animation
-#start summoning button near unit would be very nice
 #killing host before client not handled well
 #host game then back then try to host game online('try again in 30 secs' is a lie)
 #testing connection timeout
 #handle disconnects gracefully
+#juice
 #ai
 #make edge-scrolling configurable
 #make music/sound volume configurable
