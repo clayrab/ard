@@ -388,9 +388,9 @@ class summonButton(clickableElement):
 		gameState.getClient().sendCommand("startSummoning",str(gameState.getGameMode().selectedNode.xPos) + " " + str(gameState.getGameMode().selectedNode.yPos) + " " + self.unitType.name)
 		if(gameState.getGameMode().selectedNode.unit == gameState.getGameMode().nextUnit):
 			gameState.getClient().sendCommand("chooseNextUnit")
-		elif(gameState.getGameMode().nextUnit != None and gameState.getGameMode().nextUnit.isControlled()):
-			gameLogic.selectNode(gameState.getGameMode().nextUnit.node)
-			gameState.getGameMode().focus(gameState.getGameMode().nextUnit.node)
+#		elif(gameState.getGameMode().nextUnit != None and gameState.getGameMode().nextUnit.isControlled()):
+#			gameLogic.selectNode(gameState.getGameMode().nextUnit.node)
+#			gameState.getGameMode().focus(gameState.getGameMode().nextUnit.node)
 
 class researchButton(clickableElement):
 	def __init__(self,xPos,yPos,unitType):
@@ -400,9 +400,9 @@ class researchButton(clickableElement):
 		gameState.getClient().sendCommand("startResearch",str(gameState.getGameMode().selectedNode.xPos) + " " + str(gameState.getGameMode().selectedNode.yPos) + " " + self.unitType.name)
 		if(gameState.getGameMode().nextUnit == gameState.getGameMode().selectedNode.unit):
 			gameState.getClient().sendCommand("chooseNextUnit")
-		elif(gameState.getGameMode().nextUnit != None and gameState.getGameMode().nextUnit.isControlled()):
-			gameLogic.selectNode(gameState.getGameMode().nextUnit.node)
-			gameState.getGameMode().focus(gameState.getGameMode().nextUnit.node)
+#		elif(gameState.getGameMode().nextUnit != None and gameState.getGameMode().nextUnit.isControlled()):
+#			gameLogic.selectNode(gameState.getGameMode().nextUnit.node)
+#			gameState.getGameMode().focus(gameState.getGameMode().nextUnit.node)
 
 class unitTypeViewer(uiElement):
 	theViewer = None

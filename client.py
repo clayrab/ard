@@ -278,6 +278,7 @@ class Client:
             receivedData = ''
         for command in receivedData.split("|"):
             if(len(command) > 0):
+                print command
                 tokens = command.split(" ",2)
                 if(tokens[0] == "chooseNextUnit"):
                     with commandLock:

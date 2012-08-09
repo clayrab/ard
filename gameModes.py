@@ -501,12 +501,11 @@ class playMode(tiledGameMode):
 				self.firstTurn = False
 			else:
 				if(self.nextUnit.node.visible):
-					if(self.nextUnit.isControlled() and len(self.nextUnit.movePath) > 0):
+					if(self.nextUnit.isControlled() and len(self.nextUnit.movePath) == 0):
 						gameLogic.selectNode(self.nextUnit.node)
 					self.focus(self.nextUnit.node)
 			if(not self.doFocus):
 				self.doFocus = 1#force onDoneFocusing for AI
-#				self.focus(doFocuxself.selectedNode)
 			if(hasattr(gameState.getGameMode().mousedOverObject,"toggleCursor")):
 				gameState.getGameMode().mousedOverObject.toggleCursor()
 		if(self.nextUnit != None and self.nextUnit.isControlled()):
