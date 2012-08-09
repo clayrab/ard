@@ -191,7 +191,7 @@ class Commands:
         node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
         unitType = gameState.theUnitTypes[tokens[2]]
         if(node.unit != None and node.unit.unitType.name == "summoner"):
-            node.unit.queueUnit(gameLogic.unit(unitType,node.unit.player,node.xPos,node.yPos,node))
+            node.unit.queueUnit(gameLogic.unit(unitType,node.unit.player,node))
     @staticmethod
     def cancelQueuedThing(args):
         tokens = args.split(" ")
