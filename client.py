@@ -291,6 +291,7 @@ class Client:
                             for command in self.commandLog:
                                 doCommand(command[0]+"Redo",command[1])
                         self.commandLog = []
+                    print 'commandlock1 exit'
                 else:
                     if(gameState.getPlayerNumber() == SERVER or int(tokens[1]) != gameState.getPlayerNumber() or tokens[0] == "changePlayerNumber"):#skip our own commands, they were executed immediately
                         if(len(tokens) > 2):
@@ -298,9 +299,14 @@ class Client:
 
                             with commandLock:
                                 doCommand(tokens[0],args=tokens[2])
+                            print 'commandlock2 exit'
+
                         else:
+                            print 'commandlock4'
+
                             with commandLock:
                                 doCommand(tokens[0])
+                            print 'commandlock4 exit'
                     else:
                         self.commandLog = self.commandLog[:-1:]
                         #print "commandLog: " + str(self.commandLog)
@@ -320,6 +326,8 @@ class Client:
 #                doCommand(command+"Redo",argsString)
                 else:
                     doCommand(command)
+            print 'commandlock3 exit'
+
         self.socket.send(command + " " + str(gameState.getPlayerNumber()) + " " + argsString + "|")
 
 def startClient(hostIP,hostPort=-1):
