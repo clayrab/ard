@@ -16,6 +16,7 @@
 #make flags bigger
 #use giant flag for nextunit?
 #select box shouldn't be green for uncontrolled nextunit
+#put 'cancel movement' button on summoner screen
 #roads? Draw them properly or remove them...
 #handle reconnect... requires ability to save/share game state
 #sound effects

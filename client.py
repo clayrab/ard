@@ -281,6 +281,7 @@ class Client:
                 print command
                 tokens = command.split(" ",2)
                 if(tokens[0] == "chooseNextUnit"):
+                    print 'commandlock1'
                     with commandLock:
                         if(len(self.commandLog) > 0):
                             for command in self.commandLog:
@@ -293,6 +294,8 @@ class Client:
                 else:
                     if(gameState.getPlayerNumber() == SERVER or int(tokens[1]) != gameState.getPlayerNumber() or tokens[0] == "changePlayerNumber"):#skip our own commands, they were executed immediately
                         if(len(tokens) > 2):
+                            print 'commandlock2'
+
                             with commandLock:
                                 doCommand(tokens[0],args=tokens[2])
                         else:
@@ -306,6 +309,8 @@ class Client:
 
     def sendCommand(self,command,argsString=""):
         if(command != "chooseNextUnit" and command != "changePlayerNumber"):
+            print 'commandlock3'
+
             with commandLock:
                 self.commandLog.append((command,argsString))
                 if(argsString != ""):
