@@ -170,7 +170,7 @@ class Commands:
         tokens = args.split(" ")
         node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
         unitType = gameState.theUnitTypes[tokens[2]]
-        gameState.getGameMode().players[node.unit.player].greenWood = gameState.getGameMode().players[node.unit.player].greenWood - (gameState.[node.unit.player][unitType][0]*unitType.costGreen)
+        gameState.getGameMode().players[node.unit.player].greenWood = gameState.getGameMode().players[node.unit.player].greenWood - (gameState.getGameMode().player[node.unit.player][unitType][0]*unitType.costGreen)
         gameState.getGameMode().players[node.unit.player].blueWood = gameState.getGameMode().players[node.unit.player].blueWood - (gameState.researchProgress[node.unit.player][unitType][0]*unitType.costBlue)
         node.unit.queueUnit(gameLogic.unit(unitType,node.unit.player,node))
         node.unit.isMeditating = True
