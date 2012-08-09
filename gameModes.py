@@ -652,6 +652,9 @@ class playMode(tiledGameMode):
 					node = gameState.getGameMode().map.nodes[arr[1]][arr[0]]
 					gameLogic.playModeNode.movePath.append(node)
 					node.onMovePath = True
+					if(self.selectedNode.unit.gotoNode == gameLogic.playModeNode.movePath[-1] and self.selectedNode == gameLogic.playModeNode.movePath[0]):
+						gameLogic.selectedNode.unit.movePath = gameLogic.playModeNode.movePath
+						gameLogic.selectedNode.unit.gotoNode = None
 			if(self.nextUnit != None and self.nextUnit.gotoNode != None):
 				if(len(gameLogic.playModeNode.movePath) > 0 and gameLogic.playModeNode.movePath[0] in self.nextUnit.node.neighbors and gameLogic.playModeNode.movePath[-1] == self.nextUnit.gotoNode):
 					self.nextUnit.movePath = gameLogic.playModeNode.movePath
@@ -659,7 +662,10 @@ class playMode(tiledGameMode):
 					self.nextUnit.move()
 				else:
 					gameLogic.aStarSearch.search(self.nextUnit.gotoNode,self.nextUnit.node,self.nextUnit.unitType.canFly,self.nextUnit.unitType.canSwim)
+			elif(self.nextUnit != None and len(self.nextUnit.movePath) > 0):
+				self.nextUnit.move()
 				
+
 #			with client.commandLock:
 			if(self.timeToMove <= 0 and self.nextUnit != None and self.nextUnit.isControlled()):
 				gameState.getClient().sendCommand("skip")

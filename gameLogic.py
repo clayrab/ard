@@ -1064,10 +1064,12 @@ def selectNode(node):
 			for pathNode in gameState.getGameMode().selectedNode.unit.movePath:
 				pathNode.onMovePath = False
 	if(node != None):
+		node.selected = True
 		if(node.unit != None and len(node.unit.movePath) > 0):
 			for pathNode in node.unit.movePath:
 				pathNode.onMovePath = True
-		node.selected = True
+		if(node.unit != None and node.unit.gotoNode != None):
+			node.unit.gotoNode.onMovePath = True
 	if(gameState.getGameMode().selectedNode != node and hasattr(gameState.getGameMode(),"gotoMode") and gameState.getGameMode().gotoMode):
 		gameState.getGameMode().gotoMode = False		
 	gameState.getGameMode().selectedNode = node
