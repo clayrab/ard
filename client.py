@@ -253,6 +253,7 @@ class Commands:
 
 commandLock = threading.Lock()
 def doCommand(commandName,args=None):
+    print commandName + ":" + args
     commandFunc = getattr(Commands,commandName)
     if(commandFunc != None):
         if(args != None and args != ''):

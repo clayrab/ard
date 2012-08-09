@@ -131,11 +131,10 @@ def startGame():
     with serverLock:
         global server
         server.stopAcceptingConnections()
-#todo: just send these thru the client...?
-        for player in gameState.getPlayers():
-            if(player != None):
-                player.dispatchCommand("startGame -1")
-                player.dispatchCommand("chooseNextUnit -1")
+    for player in gameState.getPlayers():
+        if(player != None):
+            player.dispatchCommand("startGame -1")
+            player.dispatchCommand("chooseNextUnit -1")
 
 serverStarted = False        
 def shutdownServer():
@@ -146,13 +145,6 @@ def shutdownServer():
         if(server != None):
             server.stopAcceptingConnections()
         serverStarted = False
-    
-#        gameState.resetPlayers()
-#    with serverLock:
-#        global server
-#        if(server != None):
-#            server.shutdown()
-    return
 
 def startServer(serverIP,port=0):
     with serverLock:
