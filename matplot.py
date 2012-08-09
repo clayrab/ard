@@ -23,17 +23,16 @@ def easing2(index):
 velocity = 0.0
 def easing3(index):
     max = 100.0
-#    if(x[index+1]-x[index] < 0.1):#2 frames/sec! can't draw nice curves anymore...
-#        return y[index]
     retVal = 0.0
     if(y[index] < max*0.1 and y[index-1] <= y[index]):
-        retVal = y[index]+max*((x[index+1]-x[index])*100.0*x[index+1]*x[index+1])
+        retVal = y[index]+max*((x[index+1]-x[index])*0.0001*pow(x[index+1],1))
     elif(y[index] < max-max/4000.0 and y[index-1] <= y[index]):
-        retVal = y[index]+((x[index+1]-x[index])*(max-y[index])/0.03)
-#    elif(y[index] > max*0.9):
-#        return y[index]-max*((x[index+1]-x[index])*2.0*pow(x[index+1]-1.40,2))        
+#        retVal = y[index]+((x[index+1]-x[index])*(max-y[index])/0.03)
+        retVal = y[index]+((x[index+1]-x[index])*(max-y[index])/30.0)
     else:
-        retVal = y[index]-((x[index+1]-x[index])*(y[index]-0.0)/0.3)
+        retVal = y[index]-((x[index+1]-x[index])*(y[index]-0.0)/200.0)
+#    else:
+#        retVal = y[index]
     if(retVal > max):
         return max
     return retVal
@@ -45,9 +44,9 @@ x = [0.0]
 y = [0.0]
 v = [0.0]
 index = 0
-while(x[index]<2.0):
+while(x[index]<2000.0):
     timePassed = random.random()*000.2#about 10 frames/sec
-    timePassed = random.random()*0.02#about 100 frames/sec
+    timePassed = random.random()*20.0#about 100 frames/sec
     x.append(x[index]+timePassed)
 #    y.append(x[index+1])
 #    y[index]=y[index-1]+easing1(x[index],x[index-1])

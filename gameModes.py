@@ -262,11 +262,11 @@ class gameMode:
 					if(self.mousedOverObject.name != name):
 						self.mousedOverObject = self.elementsDict[name]
 						if(hasattr(self.elementsDict[name],"onMouseOver")):
-							self.elementsDict[name].onMouseOver()
+							self.mousedOverObject.onMouseOver()
 				else:
 					self.mousedOverObject = self.elementsDict[name]
 					if(hasattr(self.elementsDict[name],"onMouseOver")):
-						self.elementsDict[name].onMouseOver()
+						self.mousedOverObject.onMouseOver()
 
 	def setMouseTextPosition(self,position):
 		self.mouseTextPosition = position
@@ -304,8 +304,8 @@ class tiledGameMode(gameMode):
 		gameMode.__init__(self)
 		self.doFocus = 0
 		self.doFocusTemp = 0
-		self.selectionBoxScale = 1.0
-		self.selectionBoxScalePrev = 1.0
+		self.selectionBoxScale = 0.0
+		self.selectionBoxScalePrev = 0.0
 		self.selectionBoxTicks = -10.0
 	def getFocusNextUnit(self):
 		return self.doFocus
@@ -318,15 +318,16 @@ class tiledGameMode(gameMode):
                         self.nextUnit.ai.takeTurn()
 		if(hasattr(self,"nextUnit")):
 			if(self.nextUnit != None and self.nextUnit.isControlled()):
+				gameLogic.selectNode(self.nextUnit.node)#can be because AI just went and now it's the player's turn
 				if(len(self.nextUnit.movePath) > 0):
 					self.nextUnit.move()
 				else:
 					self.selectionBoxTicks = self.ticks
+					self.selectionBoxScale = 0.0
+					self.selectionBoxScalePrev = 0.0
 					self.soundIndeces.append(cDefines.defines["FINGER_CYMBALS_HIT_INDEX"])
-					gameLogic.selectNode(self.nextUnit.node)
 		if(hasattr(gameState.getGameMode(),"mousedOverObject") and hasattr(gameState.getGameMode().mousedOverObject,"toggleCursor")):
 			gameState.getGameMode().mousedOverObject.toggleCursor()
-			
 	def handleRightClick(self,name):
 		if(self.modal == None):
 			rightClickable = False
@@ -489,6 +490,7 @@ class playMode(tiledGameMode):
 			self.nextUnit = random.choice(eligibleUnits)
 			if(self.firstTurn):
 				if(self.nextUnit.isControlled()):
+					gameLogic.selectNode(self.nextUnit.node)
 					self.focus(self.nextUnit.node)
 				else:
 					for unit in self.units:
@@ -498,10 +500,9 @@ class playMode(tiledGameMode):
 							break
 				self.firstTurn = False
 			else:
-#				if(self.autoSelect and self.nextUnit.isControlled()):
-#					self.focus(self.nextUnit.node)
-#				elif(len(self.nextUnit.movePath) > 0 and self.nextUnit.isControlled()):
 				if(self.nextUnit.node.visible):
+					if(self.nextUnit.isControlled() and len(self.nextUnit.movePath) > 0):
+						gameLogic.selectNode(self.nextUnit.node)
 					self.focus(self.nextUnit.node)
 			if(not self.doFocus):
 				self.doFocus = 1#force onDoneFocusing for AI
@@ -541,7 +542,8 @@ class playMode(tiledGameMode):
 		if(keycode == "left shift" or keycode == "right shift"):
 			self.shiftDown = True
 		if(keycode == "space"):
-			if(self.nextUnit != None and self.nextUnit.isControlled()):
+			if(self.nextUnit != None and self.nextUnit.isControlled() and self.selectedNode != self.nextUnit.node):
+				gameLogic.selectNode(self.nextUnit.node)
 				self.focus(self.nextUnit.node)
 			else:
 				if(self.selectedNode != None and self.selectedNode.unit != None and self.selectedNode.unit.unitType.name == "summoner"):
@@ -610,22 +612,23 @@ class playMode(tiledGameMode):
 		return number
 	def onDraw(self,deltaTicks):
 		gameLogic.aStarSearch.keepAlive()
-		if(self.ticks - self.selectionBoxTicks < 5000):
-			max = 2.0
+		if(self.ticks - self.selectionBoxTicks < 2000):
+			max = 1.0
 			retVal = 0.0
 			if(self.selectionBoxScale < max*0.1 and self.selectionBoxScalePrev <= self.selectionBoxScale):
-				retVal = self.selectionBoxScale+max*((self.ticks/1000.0-self.previousTicks/1000.0)*100.0*self.ticks/1000.0*self.ticks/1000.0)
+				retVal = self.selectionBoxScale+max*((self.ticks-self.previousTicks)*0.0001*(self.ticks-self.selectionBoxTicks)*(self.ticks-self.selectionBoxTicks))
 			elif(self.selectionBoxScale < max-max/4000.0 and self.selectionBoxScalePrev <= self.selectionBoxScale):
-				retVal = self.selectionBoxScale+((self.ticks/1000.0-self.previousTicks/1000.0)*(max-self.selectionBoxScale)/0.03)
+				retVal = self.selectionBoxScale+((self.ticks-self.previousTicks)*(max-self.selectionBoxScale)/30.0)
 			else:
-				retVal = self.selectionBoxScale-((self.ticks/1000.0-self.previousTicks/1000.0)*(self.selectionBoxScale-0.0)/0.3)
+				retVal = self.selectionBoxScale-((self.ticks-self.previousTicks)*(self.selectionBoxScale-0.0)/200.0)
+#			else:
+#				retVal = 0.0
 			if(retVal > max):
-				return max
+				retVal = max
 			self.selectionBoxScalePrev = self.selectionBoxScale
-			self.selectionBoxScale = 1.0 + retVal
-			print self.selectionBoxScale
+			self.selectionBoxScale = retVal
 		else:
-			self.selectionBoxScale = 1.0
+			self.selectionBoxScale = 0.0
 		if(self.playerMissing):
 			gameMode.onDraw(self,deltaTicks)
 		else:

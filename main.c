@@ -624,8 +624,9 @@ void drawUnits(){
 	}else if(isSelected == 1){
 	  glColor3f(0.0,0.65,0.0);
 	}else{//(isNextUnit == 1 && isVisible)
-	  glColor3f(1.0,1.0,10);
+	  glColor3f(1.0,1.0,1.0);
 	}
+	glColor3f(1.0,1.0,1.0);
 	pySelectionBoxScale = PyObject_GetAttrString(gameMode,"selectionBoxScale");//New reference
 	selectionBoxScale = PyFloat_AsDouble(pySelectionBoxScale);
 	Py_DECREF(pySelectionBoxScale);
@@ -633,7 +634,7 @@ void drawUnits(){
 	glPushMatrix();
 	//    glDepthFunc(GL_EQUAL);
 	glTranslatef(0.0,0.0,0.1);
-	glScalef(selectionBoxScale,selectionBoxScale,0.0);
+	glScalef(selectionBoxScale+1.0,selectionBoxScale+1.0,0.0);
 	glCallList(selectionBoxList);
 	//    glDepthFunc(GL_GEQUAL);
 	glPopMatrix();
