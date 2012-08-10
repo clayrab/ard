@@ -33,6 +33,9 @@
 #ai
 #make edge-scrolling configurable
 #make music/sound volume configurable
+#make screen resolution configurable
+#fix save/load UI
+#make summoned units appear in neighbors, not randomly far away
 #it's very slow/sluggish sometimes. aStar now kills itself if no keepalives are sent... hoping this helps.
 #render less nodes by clipping off edges. do this for picking just around the mouse too.
 
@@ -283,6 +286,7 @@ class gameMode:
 			self.maxTranslateZ = transZ
 		self.map.translateZ = transZ
 	def onDraw(self,deltaTicks):
+		gameLogic.aStarSearch.keepAlive()
 		if(self.scrolledDistance != 0.0):
 			self.map.translateZ = self.map.translateZ + self.scrolledDistance*deltaTicks
 			if(self.map.translateZ < (1.0-cDefines.defines['maxZoom'])):
@@ -320,9 +324,10 @@ class tiledGameMode(gameMode):
 		if(hasattr(self,"nextUnit")):
 			if(self.nextUnit != None and self.nextUnit.isControlled()):
 				gameLogic.selectNode(self.nextUnit.node)#can be because AI just went and now it's the player's turn
-				if(len(self.nextUnit.movePath) > 0):
-					self.nextUnit.move()
-				else:
+#				if(len(self.nextUnit.movePath) > 0):
+#					self.nextUnit.move()
+#else:
+				if(len(self.nextUnit.movePath) == 0):
 					self.selectionBoxTicks = self.ticks
 					self.selectionBoxScale = 0.0
 					self.selectionBoxScalePrev = 0.0
@@ -545,6 +550,8 @@ class playMode(tiledGameMode):
 			if(self.nextUnit != None and self.nextUnit.isControlled() and self.selectedNode != self.nextUnit.node):
 				gameLogic.selectNode(self.nextUnit.node)
 				self.focus(self.nextUnit.node)
+			elif(self.nextUnit != None and self.nextUnit.isControlled()):
+				self.focus(self.nextUnit.node)				
 			else:
 				if(self.selectedNode != None and self.selectedNode.unit != None and self.selectedNode.unit.unitType.name == "summoner"):
 					selectNext = False
@@ -571,7 +578,7 @@ class playMode(tiledGameMode):
 				self.autoSelectCheckBox.onClick()
 			elif(keycode == "g" or keycode == "G"):
 				if(not self.gotoMode):
-					if(self.selectedNode != None and self.selectedNode.unit != None and self.selectedNode.unit.gotoNode == None):
+					if(self.selectedNode != None and self.selectedNode.unit != None):
 						self.gotoMode = True
 				else:
 						self.gotoMode = False
@@ -611,7 +618,6 @@ class playMode(tiledGameMode):
 				number = 1
 		return number
 	def onDraw(self,deltaTicks):
-		gameLogic.aStarSearch.keepAlive()
 		if(self.ticks - self.selectionBoxTicks < 2000):
 			max = 1.0
 			retVal = 0.0
@@ -652,25 +658,25 @@ class playMode(tiledGameMode):
 					node = gameState.getGameMode().map.nodes[arr[1]][arr[0]]
 					gameLogic.playModeNode.movePath.append(node)
 					node.onMovePath = True
-					if(self.selectedNode.unit.gotoNode == gameLogic.playModeNode.movePath[-1] and self.selectedNode == gameLogic.playModeNode.movePath[0]):
-						gameLogic.selectedNode.unit.movePath = gameLogic.playModeNode.movePath
-						gameLogic.selectedNode.unit.gotoNode = None
-			if(self.nextUnit != None and self.nextUnit.gotoNode != None):
-				if(len(gameLogic.playModeNode.movePath) > 0 and gameLogic.playModeNode.movePath[0] in self.nextUnit.node.neighbors and gameLogic.playModeNode.movePath[-1] == self.nextUnit.gotoNode):
-					self.nextUnit.movePath = gameLogic.playModeNode.movePath
-					self.nextUnit.gotoNode = None
+#					if(self.selectedNode.unit.gotoNode == gameLogic.playModeNode.movePath[-1] and self.selectedNode.neighbors.count(gameLogic.playModeNode.movePath[0]) > 0):
+#						self.selectedNode.unit.movePath = gameLogic.playModeNode.movePath
+#						self.selectedNode.unit.gotoNode = None
+#			if(self.nextUnit != None and len(gameLogic.slidingUnits) == 0):
+			if(self.nextUnit != None):
+				if(self.nextUnit.gotoNode != None):
+					if(len(gameLogic.playModeNode.movePath) > 0 and gameLogic.playModeNode.movePath[0] in self.nextUnit.node.neighbors and gameLogic.playModeNode.movePath[-1] == self.nextUnit.gotoNode):
+						self.nextUnit.movePath = gameLogic.playModeNode.movePath
+						self.nextUnit.gotoNode = None
+					else:
+						gameLogic.aStarSearch.search(self.nextUnit.gotoNode,self.nextUnit.node,self.nextUnit.unitType.canFly,self.nextUnit.unitType.canSwim)
+				elif(len(self.nextUnit.movePath) > 0 and self.nextUnit.movePath[0].unit == None and len(gameLogic.slidingUnits) == 0):
 					self.nextUnit.move()
-				else:
-					gameLogic.aStarSearch.search(self.nextUnit.gotoNode,self.nextUnit.node,self.nextUnit.unitType.canFly,self.nextUnit.unitType.canSwim)
-			elif(self.nextUnit != None and len(self.nextUnit.movePath) > 0):
-				self.nextUnit.move()
-				
-
+					self.nextUnit == None#prevents this block from firing again
 #			with client.commandLock:
 			if(self.timeToMove <= 0 and self.nextUnit != None and self.nextUnit.isControlled()):
 				gameState.getClient().sendCommand("skip")
 				gameState.getClient().sendCommand("chooseNextUnit")
-				self.nextUnit = None#prevents this block from firing twice
+				self.nextUnit = None#prevents this block from firing again
 			if(self.players[self.getPlayerNumber()] != None):
 				self.greenWoodUIElem.text = str(int(math.floor(self.players[self.getPlayerNumber()].greenWood)))
 				self.blueWoodUIElem.text = str(int(math.floor(self.players[self.getPlayerNumber()].blueWood)))

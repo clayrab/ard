@@ -336,7 +336,7 @@ void drawUnit(){
 
   xPositionUnit = PyFloat_AsDouble(pyXPositionUnit);
   yPositionUnit = PyFloat_AsDouble(pyYPositionUnit);
-  glTranslatef(xPositionUnit,yPositionUnit,0.1);
+  glTranslatef(xPositionUnit,yPositionUnit,0.2);
   updatePosition();
 
   pyUnitTextureIndex = PyObject_GetAttrString(pyUnitType,"textureIndex");
@@ -355,7 +355,6 @@ void drawUnit(){
   glColor3f(1.0,1.0,1.0);
   glBindTexture(GL_TEXTURE_2D, texturesArray[unitTextureIndex]);
   glCallList(unitList);
-  
   glPushMatrix();
 
   //  glPushMatrix();
@@ -382,10 +381,8 @@ void drawUnit(){
 
   if(playerNumber == 1){
     glColor3f(1.0,0.0,0.0);//red
-    glColor3f(0.23,0.133,0.055);//brown
   }else if(playerNumber == 2){
     glColor3f(0.0,0.0,1.0);//blue
-    glColor3f(0.0,1.0,1.0);//teal
   }else if(playerNumber == 3){
     glColor3f(1.0,1.0,0.0);//yellow
   }else if(playerNumber == 4){
@@ -594,12 +591,21 @@ void drawUnits(){
     nodeIterator = PyObject_GetIter(row);
     while(node = PyIter_Next(nodeIterator)) {
       pyUnit = PyObject_GetAttrString(node,"unit");
+      isNextUnit = 0;
+      nextUnit = PyObject_GetAttrString(gameMode,"nextUnit");
+      if(pyUnit != NULL && pyUnit != Py_None){
+	if(pyUnit == nextUnit){
+	  isNextUnit = 1;
+	}
+      }
+      if(nextUnit != NULL){
+      	Py_DECREF(nextUnit);
+      }
       pyFire = PyObject_GetAttrString(node,"fire");
       pyIce = PyObject_GetAttrString(node,"ice");
       pyIsVisible = PyObject_GetAttrString(node,"visible");//New reference
       isVisible = PyLong_AsLong(pyIsVisible);
       Py_DECREF(pyIsVisible);
-
       pyIsSelected = PyObject_GetAttrString(node,"selected");//New reference
       isSelected = PyLong_AsLong(pyIsSelected);
       Py_DECREF(pyIsSelected);
@@ -618,6 +624,7 @@ void drawUnits(){
       }
       glPushMatrix();
       glTranslatef(xPosition,yPosition,0.0);
+
       if(isSelected == 1 || (isNextUnit == 1 && isVisible)){
 	if(isSelected == 1 && (isNextUnit == 1 && isVisible)){
 	  glColor3f(0.0,1.0,0.0);
@@ -633,7 +640,7 @@ void drawUnits(){
 	glBindTexture(GL_TEXTURE_2D, texturesArray[SELECTION_BOX_INDEX]);
 	glPushMatrix();
 	//    glDepthFunc(GL_EQUAL);
-	glTranslatef(0.0,0.0,0.1);
+	glTranslatef(0.0,0.0,0.2);
 	glScalef(selectionBoxScale+1.0,selectionBoxScale+1.0,0.0);
 	glCallList(selectionBoxList);
 	//    glDepthFunc(GL_GEQUAL);
@@ -705,13 +712,6 @@ void drawTiles(){
       pyIsVisible = PyObject_GetAttrString(node,"visible");//New reference
       isVisible = PyLong_AsLong(pyIsVisible);
       Py_DECREF(pyIsVisible);
-      isNextUnit = 0;
-      nextUnit = PyObject_GetAttrString(gameMode,"nextUnit");
-      if(pyUnit != NULL && pyUnit != Py_None){
-	if(pyUnit == nextUnit){
-	  isNextUnit = 1;
-	}
-      }
       longName = PyLong_AsLong(nodeName);
       longValue = PyLong_AsLong(nodeValue);
       longRoadValue = PyLong_AsLong(roadValue);
@@ -726,9 +726,6 @@ void drawTiles(){
       Py_DECREF(pyIsOnMovePath);
       if(pyUnit != NULL){
 	Py_DECREF(pyUnit);
-      }
-      if(nextUnit != NULL){
-      	Py_DECREF(nextUnit);
       }
       Py_DECREF(node);
 
@@ -1631,7 +1628,7 @@ static void handleInput(){
 	Py_DECREF(pyObj);
       }
       printPyStackTrace();
-      /*      if(mouseX == 0){
+      if(mouseX == 0){
 	moveRight = -1;
       }else if(mouseX >= SCREEN_WIDTH-1){
 	moveRight = 1;
@@ -1644,7 +1641,7 @@ static void handleInput(){
 	moveUp = -1;
       }else{
 	moveUp = 0;
-	}*/
+      }
       break;
     case SDL_MOUSEBUTTONDOWN:
       if(event.button.button == SDL_BUTTON_WHEELUP){

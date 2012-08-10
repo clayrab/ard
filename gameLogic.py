@@ -229,12 +229,11 @@ class unit:
 			self.xPosDraw = xPos
 			self.yPosDraw = yPos
 		else:
-			if(not self in slidingUnits):
+			if(self.node.visible and not self in slidingUnits):
 				slidingUnits.append(self)
 			self.xPos = xPos
 			self.yPos = yPos
 	def slide(self,deltaTicks):
-		
 		if(self.yPosDraw == self.yPos):
 			if(self.xPosDraw > self.xPos):
 				self.xPosDraw = self.xPosDraw - (0.010*UNIT_SLIDE_SPEED*deltaTicks)
@@ -333,7 +332,7 @@ class unit:
 		aStarSearch.parentPipe.send(["unitRemove",self.node.xPos,self.node.yPos])
 		if(node.visible):
 			aStarSearch.parentPipe.send(["unitAdd",node.xPos,node.yPos])
-#			gameState.getGameMode().focus(node)
+			gameState.getGameMode().focus(node)
 		self.node.unit = None
 		if(gameState.getGameMode().selectedNode == self.node):
 			selectNode(self.node)
@@ -609,7 +608,7 @@ class playModeNode(node):
 							gameState.getGameMode().selectedNode.unit.movePath.append(self)
 						else:
 							gameState.getGameMode().selectedNode.unit.gotoNode = self
-							self.onMovePath = True
+							gameState.getGameMode().selectedNode.unit.gotoNode.onMovePath = True
 							gameState.getGameMode().gotoMode = False
 					else:
 						gameState.getGameMode().selectedNode.unit.gotoNode = None
@@ -760,7 +759,8 @@ class aStarThread():
 	def runTarget(pipe):
 		while True:
 #			print aStarSearch.keepAliveTime
-			if(time.clock() - aStarSearch.keepAliveTime > 10.0):
+			if(time.clock() - aStarSearch.keepAliveTime > 30.0):
+				print 'no keepalives sent, exiting.'
 				sys.exit(0)
 			if(pipe.poll()):
 				data = pipe.recv()
