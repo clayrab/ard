@@ -367,17 +367,20 @@ void drawUnit(){
   glVertex3f(-.35, 0.8, -0.001);
   glEnd();
 
+  glColor3f(1.0,1.0,1.0);
+  glBindTexture(GL_TEXTURE_2D, texturesArray[unitTextureIndex]);
+  //  glTranslatef(0.0,0.0,0.0);
+  glCallList(unitList);
 
   //  glPushMatrix();
   //  glTranslatef(-0.1,-0.78,0.0);
-
   glPushMatrix();
   if(isNextUnit){
-    glTranslatef(-0.60,0.90,-0.11);
-    glScalef(2.0,2.0,1.0);
+    glTranslatef(-0.60,0.90,0.0);
+    glScalef(2.0,2.0,0.0);
   }else{
     glScalef(1.2,1.2,0.0);
-    glTranslatef(-0.15,0.20,0.0);
+    glTranslatef(-0.18,0.20,0.0);
   }
   glBindTexture(GL_TEXTURE_2D, texturesArray[FLAG_POLE_INDEX]);
   glBegin(GL_QUADS);
@@ -386,15 +389,6 @@ void drawUnit(){
   glTexCoord2f(1.0,1.0); glVertex3f(0.95, .25, 0.0);
   glTexCoord2f(0.0,1.0); glVertex3f(0.5, .25, 0.0);
   glEnd();
-
-  glPushMatrix();
-  glBindTexture(GL_TEXTURE_2D, texturesArray[FLAG_TOP_INDEX]);
-  while(flagBits != 0){
-    flagBits = flagBits >> 2;
-    glTranslatef(0.0,0.16,0.0);
-    glCallList(flagList);
-  }
-  glPopMatrix();
 
   if(playerNumber == 0){
     glColor3f(1.0,0.0,0.0);//red
@@ -423,11 +417,6 @@ void drawUnit(){
   }
   glColor3f(1.0, 1.0, 1.0);
   glPopMatrix();
-
-  glColor3f(1.0,1.0,1.0);
-  glBindTexture(GL_TEXTURE_2D, texturesArray[unitTextureIndex]);
-  //  glTranslatef(0.0,0.0,0.0);
-  glCallList(unitList);
 
   
   while (pyDamageTime = PyIter_Next(pyRecentDamageIter)) {
@@ -588,6 +577,7 @@ long unitPlayer;
 long playerStartValue;
 long isOnMovePath;
 void drawUnits(){
+  glDepthFunc(GL_LESS);
   rowNumber = -1;
   mapIterator = PyObject_CallMethod(theMap,"getIterator",NULL);
   pyPolarity = PyObject_GetAttrString(theMap,"polarity");
@@ -1526,35 +1516,35 @@ static void initGL (){
   glNewList(unitList,GL_COMPILE);    
   glBegin(GL_QUADS);
   glTexCoord2f(0.0,0.0);
-  glVertex3f(-0.75, -0.75, -0.1);
+  glVertex3f(-0.75, -0.75, 0.0);
   glTexCoord2f(1.0,0.0);
-  glVertex3f(0.75, -0.75, -0.1);
+  glVertex3f(0.75, -0.75, 0.0);
   glTexCoord2f(1.0,1.0);
-  glVertex3f(0.75, 0.75, -0.1);
+  glVertex3f(0.75, 0.75, 0.0);
   glTexCoord2f(0.0,1.0);
-  glVertex3f(-0.75, 0.75, -0.1);
+  glVertex3f(-0.75, 0.75, 0.0);
   glEnd();
   glEndList();
 
   glNewList(healthBarList,GL_COMPILE);    
   glBegin(GL_QUADS);
   glTexCoord2f(0.0,0.0);
-  glVertex3f(-.35, 0.9, -0.001);
+  glVertex3f(-.35, 0.9, 0.0);
   glTexCoord2f(1.0,0.0);
-  glVertex3f(.35, 0.9, -0.001);
+  glVertex3f(.35, 0.9, 0.0);
   glTexCoord2f(1.0,1.0);
-  glVertex3f(.35, 0.8, -0.001);
+  glVertex3f(.35, 0.8, 0.0);
   glTexCoord2f(0.0,1.0);
-  glVertex3f(-.35, 0.8, -0.001);
+  glVertex3f(-.35, 0.8, 0.0);
   glEnd();
   glEndList();
 
   glNewList(flagList,GL_COMPILE);
   glBegin(GL_QUADS);
-  glTexCoord2f(0.0,0.0); glVertex3f(0.5, -0.1, -0.1);
-  glTexCoord2f(1.0,0.0); glVertex3f(0.95, -0.1, -0.1);
-  glTexCoord2f(1.0,1.0); glVertex3f(0.95, 0.1, -0.1);
-  glTexCoord2f(0.0,1.0); glVertex3f(0.5, 0.1, -0.1);
+  glTexCoord2f(0.0,0.0); glVertex3f(0.5, -0.1, 0.0);
+  glTexCoord2f(1.0,0.0); glVertex3f(0.95, -0.1, 0.0);
+  glTexCoord2f(1.0,1.0); glVertex3f(0.95, 0.1, 0.0);
+  glTexCoord2f(0.0,1.0); glVertex3f(0.5, 0.1, 0.0);
   glEnd();
   glEndList();
 
