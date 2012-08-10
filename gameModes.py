@@ -672,7 +672,7 @@ class playMode(tiledGameMode):
 				elif(len(self.nextUnit.movePath) > 0 and self.nextUnit.movePath[0].unit == None and len(gameLogic.slidingUnits) == 0 and self.nextUnit.isControlled()):
 					print 'move'
 					self.nextUnit.move()
-					self.nextUnit == None#prevents this block from firing again
+					self.nextUnit = None#prevents this block from firing again
 #			with client.commandLock:
 			if(self.timeToMove <= 0 and self.nextUnit != None and self.nextUnit.isControlled()):
 				gameState.getClient().sendCommand("skip")
