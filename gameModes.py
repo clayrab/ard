@@ -669,7 +669,8 @@ class playMode(tiledGameMode):
 						self.nextUnit.gotoNode = None
 					else:
 						gameLogic.aStarSearch.search(self.nextUnit.gotoNode,self.nextUnit.node,self.nextUnit.unitType.canFly,self.nextUnit.unitType.canSwim)
-				elif(len(self.nextUnit.movePath) > 0 and self.nextUnit.movePath[0].unit == None and len(gameLogic.slidingUnits) == 0):
+				elif(len(self.nextUnit.movePath) > 0 and self.nextUnit.movePath[0].unit == None and len(gameLogic.slidingUnits) == 0 and self.nextUnit.isControlled()):
+					print 'move'
 					self.nextUnit.move()
 					self.nextUnit == None#prevents this block from firing again
 #			with client.commandLock:
