@@ -336,7 +336,7 @@ void drawUnit(){
 
   xPositionUnit = PyFloat_AsDouble(pyXPositionUnit);
   yPositionUnit = PyFloat_AsDouble(pyYPositionUnit);
-  glTranslatef(xPositionUnit,yPositionUnit,0.2);
+  //  glTranslatef(xPositionUnit,yPositionUnit,0.0);
   updatePosition();
 
   pyUnitTextureIndex = PyObject_GetAttrString(pyUnitType,"textureIndex");
@@ -352,61 +352,6 @@ void drawUnit(){
   pyRecentDamage = PyObject_GetAttrString(pyUnit,"recentDamage");
   pyRecentDamageIter = PyObject_GetIter(pyRecentDamage);
 
-  glColor3f(1.0,1.0,1.0);
-  glBindTexture(GL_TEXTURE_2D, texturesArray[unitTextureIndex]);
-  glCallList(unitList);
-  glPushMatrix();
-
-  //  glPushMatrix();
-  //  glTranslatef(-0.1,-0.78,0.0);
-
-  glBindTexture(GL_TEXTURE_2D, texturesArray[FLAG_POLE_INDEX]);
-  glBegin(GL_QUADS);
-  glTexCoord2f(0.0,0.0); glVertex3f(0.5, -0.75, -0.1);
-  glTexCoord2f(1.0,0.0); glVertex3f(0.95, -0.75, -0.1);
-  glTexCoord2f(1.0,1.0); glVertex3f(0.95, .25, -0.1);
-  glTexCoord2f(0.0,1.0); glVertex3f(0.5, .25, -0.1);
-  glEnd();
-
-  //  level = 16;
-  flagBits = level;
-  glPushMatrix();
-  glBindTexture(GL_TEXTURE_2D, texturesArray[FLAG_TOP_INDEX]);
-  while(flagBits != 0){
-    flagBits = flagBits >> 2;
-    glTranslatef(0.0,0.16,0.0);
-    glCallList(flagList);
-  }
-  glPopMatrix();
-
-  if(playerNumber == 1){
-    glColor3f(1.0,0.0,0.0);//red
-  }else if(playerNumber == 2){
-    glColor3f(0.0,0.0,1.0);//blue
-  }else if(playerNumber == 3){
-    glColor3f(1.0,1.0,0.0);//yellow
-  }else if(playerNumber == 4){
-    glColor3f(0.0,1.0,0.0);//green
-  }else if(playerNumber == 5){
-    glColor3f(1.0,0.5,0.0);//orange
-  }else if(playerNumber == 6){
-    glColor3f(0.5,0.0,1.0);//purple/pink
-  }else if(playerNumber == 7){
-    glColor3f(0.0,1.0,1.0);//teal
-  }else if(playerNumber == 8){
-    glColor3f(0.23,0.133,0.055);//brown
-  }
-  //  level = 255;
-  flagBits = level;
-  while(flagBits != 0){
-    glBindTexture(GL_TEXTURE_2D, texturesArray[FLAG_INDEX0+(flagBits&3)]);
-    flagBits = flagBits >> 2;
-    glTranslatef(0.0,0.16,0.0);
-    glCallList(flagList);
-  }
-  glColor3f(1.0, 1.0, 1.0);
-  glPopMatrix();
-
   glBindTexture(GL_TEXTURE_2D, texturesArray[HEALTH_BAR_INDEX]);
   glCallList(healthBarList);
   healthBarLength = 0.7*PyFloat_AsDouble(pyHealth)/PyFloat_AsDouble(pyMaxHealth);
@@ -421,6 +366,69 @@ void drawUnit(){
   glTexCoord2f(0.0,1.0);
   glVertex3f(-.35, 0.8, -0.001);
   glEnd();
+
+
+  //  glPushMatrix();
+  //  glTranslatef(-0.1,-0.78,0.0);
+
+  glPushMatrix();
+  if(isNextUnit){
+    glTranslatef(-0.60,0.90,-0.11);
+    glScalef(2.0,2.0,1.0);
+  }else{
+    glScalef(1.2,1.2,0.0);
+    glTranslatef(-0.15,0.20,0.0);
+  }
+  glBindTexture(GL_TEXTURE_2D, texturesArray[FLAG_POLE_INDEX]);
+  glBegin(GL_QUADS);
+  glTexCoord2f(0.0,0.0); glVertex3f(0.5, -0.75, 0.0);
+  glTexCoord2f(1.0,0.0); glVertex3f(0.95, -0.75, 0.0);
+  glTexCoord2f(1.0,1.0); glVertex3f(0.95, .25, 0.0);
+  glTexCoord2f(0.0,1.0); glVertex3f(0.5, .25, 0.0);
+  glEnd();
+
+  glPushMatrix();
+  glBindTexture(GL_TEXTURE_2D, texturesArray[FLAG_TOP_INDEX]);
+  while(flagBits != 0){
+    flagBits = flagBits >> 2;
+    glTranslatef(0.0,0.16,0.0);
+    glCallList(flagList);
+  }
+  glPopMatrix();
+
+  if(playerNumber == 0){
+    glColor3f(1.0,0.0,0.0);//red
+  }else if(playerNumber == 1){
+    glColor3f(0.0,0.0,1.0);//blue
+  }else if(playerNumber == 2){
+    glColor3f(1.0,1.0,0.0);//yellow
+  }else if(playerNumber == 3){
+    glColor3f(0.0,1.0,0.0);//green
+  }else if(playerNumber == 4){
+    glColor3f(1.0,0.5,0.0);//orange
+  }else if(playerNumber == 5){
+    glColor3f(0.5,0.0,1.0);//purple/pink
+  }else if(playerNumber == 6){
+    glColor3f(0.0,1.0,1.0);//teal
+  }else if(playerNumber == 7){
+    glColor3f(0.23,0.133,0.055);//brown
+  }
+
+  flagBits = level;
+  while(flagBits != 0){
+    glBindTexture(GL_TEXTURE_2D, texturesArray[FLAG_INDEX0+(flagBits&3)]);
+    flagBits = flagBits >> 2;
+    glTranslatef(0.0,0.16,0.0);
+    glCallList(flagList);
+  }
+  glColor3f(1.0, 1.0, 1.0);
+  glPopMatrix();
+
+  glColor3f(1.0,1.0,1.0);
+  glBindTexture(GL_TEXTURE_2D, texturesArray[unitTextureIndex]);
+  //  glTranslatef(0.0,0.0,0.0);
+  glCallList(unitList);
+
   
   while (pyDamageTime = PyIter_Next(pyRecentDamageIter)) {
     damageTime = PyLong_AsLong(pyDamageTime);
@@ -611,9 +619,35 @@ void drawUnits(){
       Py_DECREF(pyIsSelected);
       xPosition = translateTilesXToPositionX(colNumber,rowNumber);
       yPosition = translateTilesYToPositionY(rowNumber);
+
       colNumber = colNumber - 1;
+      glPushMatrix();
+      glTranslatef(xPosition,yPosition,0.0);
+
+      //
+      if(isSelected == 1){
+      /*	if(isSelected == 1 && (isNextUnit == 1 && isVisible)){
+	  glColor3f(0.0,1.0,0.0);
+	}else if(isSelected == 1){
+	  glColor3f(0.0,0.65,0.0);
+	}else{//(isNextUnit == 1 && isVisible)
+	  glColor3f(1.0,1.0,1.0);
+	  }*/
+	glColor3f(1.0,1.0,1.0);
+	pySelectionBoxScale = PyObject_GetAttrString(gameMode,"selectionBoxScale");//New reference
+	selectionBoxScale = PyFloat_AsDouble(pySelectionBoxScale);
+	Py_DECREF(pySelectionBoxScale);
+	glBindTexture(GL_TEXTURE_2D, texturesArray[SELECTION_BOX_INDEX]);
+	glPushMatrix();
+	glTranslatef(0.0,0.0,0.0);
+	glScalef(selectionBoxScale+1.0,selectionBoxScale+1.0,0.0);
+	glCallList(selectionBoxList);
+	glPopMatrix();
+      }
+
       if(pyUnit != NULL && pyUnit != Py_None && isVisible){
 	glPushMatrix();
+	glTranslatef(0.0,0.0,0.3);
 	drawUnit();
 	glPopMatrix();
 	//	glBindTexture(GL_TEXTURE_2D, texturesArray[CITY_SANS_TREE_INDEX]);
@@ -622,30 +656,12 @@ void drawUnits(){
       }else{
 	//	glBindTexture(GL_TEXTURE_2D, texturesArray[CITY_INDEX]);
       }
-      glPushMatrix();
-      glTranslatef(xPosition,yPosition,0.0);
 
-      if(isSelected == 1 || (isNextUnit == 1 && isVisible)){
-	if(isSelected == 1 && (isNextUnit == 1 && isVisible)){
-	  glColor3f(0.0,1.0,0.0);
-	}else if(isSelected == 1){
-	  glColor3f(0.0,0.65,0.0);
-	}else{//(isNextUnit == 1 && isVisible)
-	  glColor3f(1.0,1.0,1.0);
-	}
-	glColor3f(1.0,1.0,1.0);
-	pySelectionBoxScale = PyObject_GetAttrString(gameMode,"selectionBoxScale");//New reference
-	selectionBoxScale = PyFloat_AsDouble(pySelectionBoxScale);
-	Py_DECREF(pySelectionBoxScale);
-	glBindTexture(GL_TEXTURE_2D, texturesArray[SELECTION_BOX_INDEX]);
-	glPushMatrix();
-	//    glDepthFunc(GL_EQUAL);
-	glTranslatef(0.0,0.0,0.2);
-	glScalef(selectionBoxScale+1.0,selectionBoxScale+1.0,0.0);
-	glCallList(selectionBoxList);
-	//    glDepthFunc(GL_GEQUAL);
-	glPopMatrix();
-      }
+
+
+      glPopMatrix();
+
+
       glBindTexture(GL_TEXTURE_2D, texturesArray[CITY_INDEX]);
       cityName = "";//TODO: REMOVE ME
       pyCity = PyObject_GetAttrString(node,"city");
@@ -676,7 +692,6 @@ void drawUnits(){
       if(pyUnit != NULL){
 	Py_DECREF(pyUnit);
       }
-      glPopMatrix();
     }
   }
   
@@ -927,14 +942,11 @@ void calculateTranslation(){
 }
 
 drawBoard(){
+  glDepthFunc(GL_LEQUAL);
   glClear(GL_DEPTH_BUFFER_BIT);		 
   if(theMap != Py_None && theMap != NULL){
-
     drawTiles();
-    //  glClear(GL_DEPTH_BUFFER_BIT);		 
-    //    glDepthFunc(GL_GREATER);
     drawUnits();
-    //    glDepthFunc(GL_LEQUAL);
   }
 }
 
@@ -1201,6 +1213,7 @@ char frameRate[20];
 PyObject * pyShowCursor;
 int showCursor = 0;
 void drawUI(){
+  glDepthFunc(GL_ALWAYS);
   pyObj = PyObject_CallMethod(gameMode,"getUIElementsIterator",NULL);
   pyShowCursor = PyObject_GetAttrString(gameMode, "showCursor");//New reference
   showCursor = PyLong_AsLong(pyShowCursor);
@@ -1272,9 +1285,9 @@ static void initGL (){
   //glClearColor(1.0, 1.0, 1.0, 1.0); //sets screen clear color
   //glClearColor(123.0/255.0,126.0/255.0,125.0/255.0,1.0);//grey that matches the UI...
   glEnable(GL_ALPHA_TEST);
-  glClearDepth(1);
+  glClearDepth(1);//default
   glEnable(GL_DEPTH_TEST);
-  glDepthRange(0,1);
+  glDepthRange(0,1);//default
   glDepthFunc(GL_LEQUAL);    
   //  glAlphaFunc(GL_GREATER,0.1);//clear area around the fonts will not write to the z-buffer
   glAlphaFunc(GL_GREATER,0.1);
@@ -1959,11 +1972,7 @@ static void draw(){
   glTexCoord2f(0.0,1.0); glVertex3f(-1.0,1.0,-1.01);
   glEnd();
   glTranslatef(translateX,translateY,translateZ);
-  //  glDepthFunc(GL_LESS);
-  //  glDepthFunc(GL_ALWAYS);
   drawBoard();
-  //  glDepthFunc(GL_ALWAYS);
-
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
   glMatrixMode(GL_MODELVIEW);

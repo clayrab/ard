@@ -1,6 +1,6 @@
-#define maxZoom 100.0
-#define minZoom 1.0
-#define initZoom 20.0
+#define maxZoom 80.0
+#define minZoom 15.0
+#define initZoom 16.0
 
 #define zoomSpeed 6.0//lower is faster
 #define focusSpeedMax 0.10//lower is faster

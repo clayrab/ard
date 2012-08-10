@@ -178,7 +178,6 @@ class Commands:
         if(gameState.getGameMode().selectedNode == node and hasattr(uiElements.viewer.theViewer,"isSummonerViewer")):
             uiElements.viewer.theViewer.destroy()
             uiElements.viewer.theViewer = uiElements.summonerViewer(node)
-            
     @staticmethod
     def startSummoningUndo(args):
         tokens = args.split(" ")
@@ -232,6 +231,7 @@ class Commands:
         node.unit.queueResearch(unitType)
         gameState.getGameMode().players[node.unit.player].greenWood = gameState.getGameMode().players[node.unit.player].greenWood - unitType.researchCostGreen
         gameState.getGameMode().players[node.unit.player].blueWood = gameState.getGameMode().players[node.unit.player].blueWood - unitType.researchCostBlue
+        node.unit.isMeditating = True
         if(gameState.getGameMode().selectedNode == node and hasattr(uiElements.viewer.theViewer,"isSummonerViewer")):
             uiElements.viewer.theViewer.destroy()
             uiElements.viewer.theViewer = uiElements.summonerViewer(node)

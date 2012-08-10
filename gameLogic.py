@@ -448,10 +448,10 @@ class unit:
 #		if(self.node.unit != None and self.node.unit.unitType.name == "summoner" and self.node.unit.isMeditating):
 		if(self.researching):
 			if(self.researchUnitType != None):
-				gameState.getResearchProgress()[self.researchUnitType][1] = gameState.getResearchProgress()[self.researchUnitType][1] + 1
-				if(gameState.getResearchProgress()[self.researchUnitType][1] >= self.researchUnitType.researchTime):
-					gameState.getResearchProgress()[self.researchUnitType][0] = gameState.getResearchProgress()[self.researchUnitType][0] + 1
-					gameState.getResearchProgress()[self.researchUnitType][1] = 0
+				gameState.researchProgress[self.player][self.researchUnitType][1] = gameState.getResearchProgress()[self.researchUnitType][1] + 1
+				if(gameState.researchProgress[self.player][self.researchUnitType][1] >= self.researchUnitType.researchTime):
+					gameState.researchProgress[self.player][self.researchUnitType][0] = gameState.getResearchProgress()[self.researchUnitType][0] + 1
+					gameState.researchProgress[self.player][self.researchUnitType][1] = 0
 #						self.node.unit.waiting = False#wake up summoner
 					self.researching = False
 					self.researchUnitType = None

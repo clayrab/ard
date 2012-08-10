@@ -291,8 +291,8 @@ class gameMode:
 			self.map.translateZ = self.map.translateZ + self.scrolledDistance*deltaTicks
 			if(self.map.translateZ < (1.0-cDefines.defines['maxZoom'])):
 				self.map.translateZ = 1.0-cDefines.defines['maxZoom']
-			if(self.map.translateZ > (-10.0-cDefines.defines['minZoom'])):
-				self.map.translateZ = -10.0-cDefines.defines['minZoom']
+			if(self.map.translateZ > (-1.0-cDefines.defines['minZoom'])):
+				self.map.translateZ = -1.0-cDefines.defines['minZoom']
 			if(self.map.translateZ < self.maxTranslateZ):
 				self.map.translateZ = self.maxTranslateZ
 		self.scrolledDistance = 0.0
