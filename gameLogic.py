@@ -612,9 +612,9 @@ class playModeNode(node):
 							gameState.getGameMode().gotoMode = False
 					else:
 						gameState.getGameMode().selectedNode.unit.gotoNode = None
-					if(gameState.getGameMode().selectedNode.unit == gameState.getGameMode().nextUnit):
-						if(len(gameState.getGameMode().selectedNode.unit.movePath) > 0 ):
-							gameState.getGameMode().selectedNode.unit.move()
+#					if(gameState.getGameMode().selectedNode.unit == gameState.getGameMode().nextUnit):
+#						if(len(gameState.getGameMode().selectedNode.unit.movePath) > 0 ):
+#							gameState.getGameMode().selectedNode.unit.move()
 			else:
 				selectNode(self)
 	def toggleCursor(self):
