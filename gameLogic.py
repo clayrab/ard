@@ -214,7 +214,7 @@ class unit:
 		if(level != None):
 			self.level = level
 		else:
-			self.level = gameState.getResearchProgress()[self.unitType][0]
+			self.level = gameState.researchProgress[self.player][self.unitType][0]
 		self.health = float(self.unitType.health*self.level)
 #		self.gatheringNode = None
 		self.isMeditating = False
