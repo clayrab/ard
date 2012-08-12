@@ -21,6 +21,8 @@
 #include "defines.c"
 
 float focusSpeed = 0.0;
+float focusSpeedX = 0.0;
+float focusSpeedY = 0.0;
 
 float screenRatio;
 static SDL_Surface *gScreen;
@@ -352,8 +354,6 @@ void drawUnit(){
   pyRecentDamage = PyObject_GetAttrString(pyUnit,"recentDamage");
   pyRecentDamageIter = PyObject_GetIter(pyRecentDamage);
 
-  glBindTexture(GL_TEXTURE_2D, texturesArray[HEALTH_BAR_INDEX]);
-  glCallList(healthBarList);
   healthBarLength = 0.7*PyFloat_AsDouble(pyHealth)/PyFloat_AsDouble(pyMaxHealth);
   glColor3f(1.0, 0.0, 0.0);
   glBegin(GL_QUADS);
@@ -366,6 +366,8 @@ void drawUnit(){
   glTexCoord2f(0.0,1.0);
   glVertex3f(-.35, 0.8, -0.001);
   glEnd();
+  glBindTexture(GL_TEXTURE_2D, texturesArray[HEALTH_BAR_INDEX]);
+  glCallList(healthBarList);
 
   glColor3f(1.0,1.0,1.0);
   glBindTexture(GL_TEXTURE_2D, texturesArray[unitTextureIndex]);
@@ -612,55 +614,47 @@ void drawUnits(){
 
       colNumber = colNumber - 1;
       glPushMatrix();
-      glTranslatef(xPosition,yPosition,0.0);
+      glTranslatef(xPosition,yPosition,0.1);
 
-      //
+      //      glDepthFunc(GL_LEQUAL);
+      //      glDepthFunc(GL_LESS);
+
+      if(pyUnit != NULL && pyUnit != Py_None && isVisible){
+	glPushMatrix();
+	drawUnit();
+	glPopMatrix();
+	//	glBindTexture(GL_TEXTURE_2D, texturesArray[CITY_SANS_TREE_INDEX]);
+      }else if(pyUnit != NULL && pyUnit != Py_None){
+	updatePosition();
+	//      }else{
+	//
+      }
+
+      glBindTexture(GL_TEXTURE_2D, texturesArray[CITY_INDEX]);
+      cityName = "";//TODO: REMOVE ME
+      pyCity = PyObject_GetAttrString(node,"city");
+      if(pyCity != Py_None){
+	glCallList(unitList);
+	pyCityName = PyObject_GetAttrString(pyCity,"name");
+	cityName = PyString_AsString(pyCityName);
+	Py_DECREF(pyCityName);
+      }
+      Py_DECREF(pyCity);
+
       if(isSelected == 1){
-      /*	if(isSelected == 1 && (isNextUnit == 1 && isVisible)){
-	  glColor3f(0.0,1.0,0.0);
-	}else if(isSelected == 1){
-	  glColor3f(0.0,0.65,0.0);
-	}else{//(isNextUnit == 1 && isVisible)
-	  glColor3f(1.0,1.0,1.0);
-	  }*/
 	glColor3f(1.0,1.0,1.0);
 	pySelectionBoxScale = PyObject_GetAttrString(gameMode,"selectionBoxScale");//New reference
 	selectionBoxScale = PyFloat_AsDouble(pySelectionBoxScale);
 	Py_DECREF(pySelectionBoxScale);
 	glBindTexture(GL_TEXTURE_2D, texturesArray[SELECTION_BOX_INDEX]);
 	glPushMatrix();
-	glTranslatef(0.0,0.0,0.0);
+	//	glTranslatef(0.0,0.0,selectionBoxScale*3.0);
 	glScalef(selectionBoxScale+1.0,selectionBoxScale+1.0,0.0);
 	glCallList(selectionBoxList);
 	glPopMatrix();
       }
 
-      if(pyUnit != NULL && pyUnit != Py_None && isVisible){
-	glPushMatrix();
-	glTranslatef(0.0,0.0,0.3);
-	drawUnit();
-	glPopMatrix();
-	//	glBindTexture(GL_TEXTURE_2D, texturesArray[CITY_SANS_TREE_INDEX]);
-      }else if(pyUnit != NULL && pyUnit != Py_None){
-	updatePosition();
-      }else{
-	//	glBindTexture(GL_TEXTURE_2D, texturesArray[CITY_INDEX]);
-      }
-
-
-
       glPopMatrix();
-
-
-      glBindTexture(GL_TEXTURE_2D, texturesArray[CITY_INDEX]);
-      cityName = "";//TODO: REMOVE ME
-      pyCity = PyObject_GetAttrString(node,"city");
-      if(pyCity != Py_None){
-	pyCityName = PyObject_GetAttrString(pyCity,"name");
-	cityName = PyString_AsString(pyCityName);
-	Py_DECREF(pyCityName);
-      }
-      Py_DECREF(pyCity);
 
       if(cityName[0]!=0){
 	glColor3f(1.0f, 1.0f, 1.0f);
@@ -880,23 +874,42 @@ void calculateTranslation(){
     //    translateX = translateX-((translateX+focusXPos)/focusSpeedMax);
     //    translateY = translateY-((translateY+focusYPos)/focusSpeedMax);
     if(focusSpeed < focusSpeedMax){
-      focusSpeed = focusSpeed + 0.0001*deltaTicks;
+      focusSpeed = focusSpeed + 0.001*deltaTicks;
     }
-    if(translateX < -focusXPos){
-      translateX = translateX + focusSpeed*deltaTicks;
-      if(translateX > -focusXPos){translateX = -focusXPos;}
+    //    focusSpeed = 0.0001*deltaTicks;
+    //this block points the focus toward the focus point
+    if(fabs(translateX-(-focusXPos)) > fabs(translateY-(-focusYPos)) && fabs(translateX-(-focusXPos)) != 0.0){
+      focusSpeedX = focusSpeed;
+      focusSpeedY = focusSpeed*fabs((translateY+focusYPos)/(translateX+focusXPos));
+    }else if(fabs(translateY-(-focusYPos)) > fabs(translateX-(-focusXPos)) && fabs(translateY-(-focusYPos)) != 0.0){
+      focusSpeedX = focusSpeed*fabs((translateX+focusXPos)/(translateY+focusYPos));
+      focusSpeedY = focusSpeed;
     }else{
-      translateX = translateX - focusSpeed*deltaTicks;
-      if(translateX < -focusXPos){translateX = -focusXPos;}
+	focusSpeedX = focusSpeed;
+	focusSpeedY = focusSpeed;
     }
-    if(translateY < -focusYPos){
-      translateY = translateY + focusSpeed*deltaTicks;
-      if(translateY > -focusYPos){translateY = -focusYPos;}
-    }else{
-      translateY = translateY - focusSpeed*deltaTicks;
-      if(translateY < -focusYPos){translateY = -focusYPos;}
+    printf("%f\t%f\t%f\t%f\n",focusSpeedX,focusSpeedY,fabs(translateX-(-focusXPos)),fabs(translateY-(-focusYPos)));
+    //these lines make focusspeed consistent rather than faster on diagonals
+    focusSpeedX = focusSpeedX/(focusSpeedX + focusSpeedY);
+    focusSpeedY = focusSpeedY/(focusSpeedX + focusSpeedY);
+
+      
+      if(translateX < -focusXPos){
+	translateX = translateX + focusSpeedX*deltaTicks;
+	if(translateX > -focusXPos){translateX = -focusXPos;}
+      }else{
+	translateX = translateX - focusSpeedX*deltaTicks;
+	if(translateX < -focusXPos){translateX = -focusXPos;}
+      }
+      if(translateY < -focusYPos){
+	translateY = translateY + focusSpeedY*deltaTicks;
+	if(translateY > -focusYPos){translateY = -focusYPos;}
+      }else{
+	translateY = translateY - focusSpeedY*deltaTicks;
+	if(translateY < -focusYPos){translateY = -focusYPos;}
+      }
     }
-   }
+
   //The following code will adjust translateX/Y so that no off-map area is shown
    //printf("%f\t%f\t%f\n",translateX,mapRightOffset,convertedBottomLeftX);
    if(translateX - mapRightOffset < convertedTopRightX){
@@ -1275,15 +1288,17 @@ static void initGL (){
   //glClearColor(1.0, 1.0, 1.0, 1.0); //sets screen clear color
   //glClearColor(123.0/255.0,126.0/255.0,125.0/255.0,1.0);//grey that matches the UI...
   glEnable(GL_ALPHA_TEST);
+    glAlphaFunc(GL_GREATER,0.01);
   glClearDepth(1);//default
   glEnable(GL_DEPTH_TEST);
   glDepthRange(0,1);//default
   glDepthFunc(GL_LEQUAL);    
   //  glAlphaFunc(GL_GREATER,0.1);//clear area around the fonts will not write to the z-buffer
-  glAlphaFunc(GL_GREATER,0.1);
   glEnable(GL_TEXTURE_2D);
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_DST_ALPHA);
+
   //  glBlendFunc(GL_SRC_ALPHA, GL_ZERO);
   screenRatio = (GLfloat)SCREEN_WIDTH/(GLfloat)SCREEN_HEIGHT;
 

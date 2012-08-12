@@ -13,9 +13,8 @@
 #report game state(to look for cheaters/bugs)
 
 #client:
-#make flags bigger
-#use giant flag for nextunit?
-#select box shouldn't be green for uncontrolled nextunit
+#'start gathering' button for stones
+#rename gatherer?
 #put 'cancel movement' button on summoner screen
 #roads? Draw them properly or remove them...
 #handle reconnect... requires ability to save/share game state

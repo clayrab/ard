@@ -312,23 +312,18 @@ class unit:
 			selectNode(self.node)
 			gameState.getGameMode().doFocus = 1
 		else:
-			gameState.getClient().sendCommand("moveTo",str(self.movePath[0].xPos) + " " + str(self.movePath[0].yPos))
+			node = self.movePath[0]
 			self.movePath = self.movePath[1:]
+			gameState.getClient().sendCommand("moveTo",str(node.xPos) + " " + str(node.yPos))
 			gameState.getClient().sendCommand("chooseNextUnit")
 	def moveTo(self,node):
 #		self.waiting = False
 #		self.gatheringNode = None
-		node.onMovePath = False
+		self.onMovePath = False
 		for neighb in self.node.getNeighbors(5):
 			neighb.stopViewing(self)
 		for neighb in node.getNeighbors(5):
 			neighb.startViewing(self)
-#it seems that this is now dealt with in the move method
-#		if(node.unit != None and self.node != node):
-#			if(node.unit.player == self.player):#moved onto own unit, cancel movepath
-#				if(len(self.movePath) > 0):
-#					self.movePath = []
-#		else:
 		aStarSearch.parentPipe.send(["unitRemove",self.node.xPos,self.node.yPos])
 		if(node.visible):
 			aStarSearch.parentPipe.send(["unitAdd",node.xPos,node.yPos])
@@ -338,15 +333,6 @@ class unit:
 			selectNode(self.node)
 		self.node = node
 		node.unit = self
-#		if(node.city != None and node.unit.unitType.name == "gatherer"):
-#			node.city.player = node.unit.player
-#			gameState.reevalAvailableUnitTypes()
-#		for neighbor in node.neighbors:
-#			if(neighbor.unit != None and neighbor.unit.player != self.player):
-#				self.movePath = []
-#				break
-#			if(node.unit.gatheringNode == node):
-#				self.waiting = True
 		self.movementPoints = self.movementPoints + INITIATIVE_ACTION_DEPLETION
 #		if(gameState.getGameMode().nextUnit.ai == None):
 		gameState.getGameMode().gotoMode = False
