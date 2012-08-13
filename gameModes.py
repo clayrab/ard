@@ -133,9 +133,8 @@ class gameMode:
 		self.map = None
 		self.cities = []
 		self.selectedNode = None
-		self.selBoxScale = 0.0
 		self.selectionBoxScale = 0.0
-		self.selBoxScalePrev = 0.0
+		self.selectionBoxScalePrev = 0.0
 		self.selectionBoxTicks = -10.0
 		self.elementWithFocus = None
 		self.resortElems = True
@@ -218,7 +217,8 @@ class gameMode:
 					self.elementWithFocus.onLeftClickUp()
 	def handleKeyDown(self,keycode):
 		if(keycode == "p"):
-			pdb.set_trace()
+			print 'asdf'
+#			pdb.set_trace()
 		if(keycode == "escape"):
 			if(self.modal == None):
 				for name,elem in self.elementsDict.iteritems():
@@ -333,8 +333,8 @@ class tiledGameMode(gameMode):
 				gameLogic.selectNode(self.nextUnit.node)#can be because AI just went and now it's the player's turn
 				if(len(self.nextUnit.movePath) == 0):
 					self.selectionBoxTicks = self.ticks
-					self.selBoxScale = 0.0
-					self.selBoxScalePrev = 0.0
+					self.selectionBoxScale = 0.0
+					self.selectionBoxScalePrev = 0.0
 					self.soundIndeces.append(cDefines.defines["FINGER_CYMBALS_HIT_INDEX"])
 		if(hasattr(gameState.getGameMode(),"mousedOverObject") and hasattr(gameState.getGameMode().mousedOverObject,"toggleCursor")):
 			gameState.getGameMode().mousedOverObject.toggleCursor()
@@ -630,20 +630,20 @@ class playMode(tiledGameMode):
 		if(self.ticks - self.selectionBoxTicks < 2000):
 			max = 1.0
 			retVal = 0.0
-			if(self.selBoxScale < max*0.1 and self.selBoxScalePrev <= self.selBoxScale):
-				retVal = self.selBoxScale+max*((self.ticks-self.previousTicks)*0.0001*(self.ticks-self.selectionBoxTicks)*(self.ticks-self.selectionBoxTicks))
-			elif(self.selBoxScale < max-max/4000.0 and self.selBoxScalePrev <= self.selBoxScale):
-				retVal = self.selBoxScale+((self.ticks-self.previousTicks)*(max-self.selBoxScale)/30.0)
+			if(self.selectionBoxScale < max*0.1 and self.selectionBoxScalePrev <= self.selectionBoxScale):
+				retVal = self.selectionBoxScale+max*((self.ticks-self.previousTicks)*0.0001*(self.ticks-self.selectionBoxTicks)*(self.ticks-self.selectionBoxTicks))
+			elif(self.selectionBoxScale < max-max/4000.0 and self.selectionBoxScalePrev <= self.selectionBoxScale):
+				retVal = self.selectionBoxScale+((self.ticks-self.previousTicks)*(max-self.selectionBoxScale)/30.0)
 			else:
-				retVal = self.selBoxScale-((self.ticks-self.previousTicks)*(self.selBoxScale-0.0)/200.0)
+				retVal = self.selectionBoxScale-((self.ticks-self.previousTicks)*(self.selectionBoxScale-0.0)/200.0)
 #			else:
 #				retVal = 0.0
 			if(retVal > max):
 				retVal = max
-			self.selBoxScalePrev = self.selBoxScale
-			self.selBoxScale = retVal
+			self.selectionBoxScalePrev = self.selectionBoxScale
+			self.selectionBoxScale = retVal
 		else:
-			self.selBoxScale = 0.0
+			self.selectionBoxScale = 0.0
 		if(self.playerMissing):
 			gameMode.onDraw(self,deltaTicks)
 		else:
@@ -793,7 +793,8 @@ class textBasedMenuMode(gameMode):
 		return
 	def keyDown(self,keycode):
 		if(keycode == "p"):
-			pdb.set_trace()
+			print 'asdf'
+#			pdb.set_trace()
 		if(keycode == "up" or keycode == "down"):
 			self.soundIndeces.append(cDefines.defines["FINGER_CYMBALS_HIT_INDEX"])
 		if(keycode == "up"):

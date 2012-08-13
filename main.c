@@ -586,14 +586,12 @@ void drawSelectionBox(){
   node = PyObject_GetAttrString(gameMode,"selectedNode");
   if(node != NULL && node != Py_None){
     pyXPosition = PyObject_GetAttrString(node,"xPos");
-    printPyStackTrace();
     colNumber = 0-PyLong_AsLong(pyXPosition);
     pyYPosition = PyObject_GetAttrString(node,"yPos");
-    printPyStackTrace();
     rowNumber = PyLong_AsLong(pyYPosition);
     xPosition = translateTilesXToPositionX(colNumber,rowNumber);
     yPosition = translateTilesYToPositionY(rowNumber);
-    pySelectionBoxScale = PyObject_GetAttrString(gameMode,"selBoxScale");
+    pySelectionBoxScale = PyObject_GetAttrString(gameMode,"selectionBoxScale");
     selectionBoxScale = PyFloat_AsDouble(pySelectionBoxScale);
     Py_DECREF(pySelectionBoxScale);
 
@@ -632,23 +630,17 @@ void drawCities(){
 }
 void drawUnits(){
   glDepthFunc(GL_LEQUAL);
-  //  mapIterator = PyObject_CallMethod(theMap,"getIterator",NULL);
-  pyPolarity = PyObject_GetAttrString(theMap,"polarity");
-  mapPolarity = PyLong_AsLong(pyPolarity);
-  rowIterator = PyObject_GetIter(mapIterator);
   pyUnits = PyObject_GetAttrString(gameMode,"units");
   pyUnitsIter = PyObject_CallMethod(pyUnits,"__iter__",NULL);
   if(pyUnitsIter != NULL && pyUnitsIter != Py_None){
     while(pyUnit = PyIter_Next(pyUnitsIter)){
-      //      colNumber = 0;
-      //      rowNumber = 1;
       node = PyObject_GetAttrString(pyUnit,"node");
-      //      pyUnit = PyObject_GetAttrString(node,"unit");
       pyXPosition = PyObject_GetAttrString(node,"xPos");
       colNumber = 0-PyLong_AsLong(pyXPosition);
       pyYPosition = PyObject_GetAttrString(node,"yPos");
       rowNumber = PyLong_AsLong(pyYPosition);
-      //printf("%d\n",rowNumber);
+      xPosition = translateTilesXToPositionX(colNumber,rowNumber);
+      yPosition = translateTilesYToPositionY(rowNumber);
       isNextUnit = 0;
       nextUnit = PyObject_GetAttrString(gameMode,"nextUnit");
       if(pyUnit == nextUnit){
@@ -662,10 +654,7 @@ void drawUnits(){
       pyIsVisible = PyObject_GetAttrString(node,"visible");//New reference
       isVisible = PyLong_AsLong(pyIsVisible);
       Py_DECREF(pyIsVisible);
-      xPosition = translateTilesXToPositionX(colNumber,rowNumber);
-      yPosition = translateTilesYToPositionY(rowNumber);
 
-      colNumber = colNumber - 1;
       glPushMatrix();
       glTranslatef(xPosition,yPosition,0.1);
 
@@ -676,15 +665,17 @@ void drawUnits(){
       }else{
 	updatePosition();
       }
-
       glPopMatrix();
-
       if(pyFire != NULL && pyFire != Py_None && isVisible){
 	drawFire();
       }  
-      //      Py_DECREF(pyUnit);
-      
+      Py_DECREF(node);
+      Py_DECREF(pyUnit);      
     }
+    Py_DECREF(pyUnitsIter);
+  }
+  if(pyUnits != NULL && pyUnits != Py_None){
+    Py_DECREF(pyUnits);
   }
 }						
 void drawTiles(){
@@ -737,7 +728,6 @@ void drawTiles(){
       glTranslatef(xPosition,yPosition,0.0);
 
       drawTile(colNumber,rowNumber,longName,longValue,longRoadValue,cityName,isOnMovePath,playerStartValue,cursorIndex);
-
       glTranslatef(0.0,0.0,0.03);
 
       glPopMatrix();
@@ -807,7 +797,6 @@ void calculateTranslation(){
     glReadPixels( 8*SCREEN_WIDTH/16, SCREEN_HEIGHT/2, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &mapDepthTest2 );
     glReadPixels( 9*SCREEN_WIDTH/16, SCREEN_HEIGHT/2, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &mapDepthTest3 );    
   }
-  //  printf("%f %f %f\n",mapDepthTest1,mapDepthTest2,mapDepthTest3);
   if(mapDepthTest1 == mapDepthTest2 || mapDepthTest1 == mapDepthTest3){
     mapDepth = mapDepthTest1;
   }else if(mapDepthTest2 == mapDepthTest3){
@@ -949,7 +938,7 @@ void calculateTranslation(){
   }
 }
 
-drawBoard(){
+void drawBoard(){
   glDepthFunc(GL_LEQUAL);
   glClear(GL_DEPTH_BUFFER_BIT);		 
   if(theMap != Py_None && theMap != NULL){
@@ -1179,7 +1168,6 @@ void drawUIElement(PyObject * uiElement){
 	    glPopMatrix();
 	    pyObj = PyObject_CallMethod(uiElement,"addLine","i",wordWidth);
 	    Py_DECREF(pyObj);
-	    //	    printf("%s\n",queuedText);
 	  }
 	  Py_DECREF(pyQueuedText);
 	}
@@ -1974,7 +1962,6 @@ static void draw(){
   glGetIntegerv(GL_VIEWPORT,viewport);
   gluPerspective(45.0f,(float)viewport[2]/(float)viewport[3],minZoom,maxZoom);
   glMatrixMode(GL_MODELVIEW);
-
   glLoadIdentity();
   glColor3f(0.0,0.0,0.0);
   glBegin(GL_QUADS);
@@ -2081,11 +2068,9 @@ int main(int argc, char **argv){
   }
   int * value;
   //  SDL_GL_GetAttribute(SDL_GL_DEPTH_SIZE,value);
-  //  printf("depth size: %d\n",*value);
   SDL_ShowCursor(0);
   initGL();
   const GLubyte * glVersion = glGetString(GL_VERSION);
-  //  printf("OpenGL Version: %s\n",glVersion);
   initPython();
   initFonts();
   //SDL_EnableUNICODE(1);
