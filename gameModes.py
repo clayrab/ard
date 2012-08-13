@@ -110,6 +110,7 @@ import client
 import gameFindClient
 import server
 from textureFunctions import texWidth, texHeight, texIndex
+import pdb
 
 version = 0.1
 maxTimeToMove = 40000
@@ -130,6 +131,12 @@ class gameMode:
 	def __init__(self,args=[]):
 		self.elementsDict = {}
 		self.map = None
+		self.cities = []
+		self.selectedNode = None
+		self.selBoxScale = 0.0
+		self.selectionBoxScale = 0.0
+		self.selBoxScalePrev = 0.0
+		self.selectionBoxTicks = -10.0
 		self.elementWithFocus = None
 		self.resortElems = True
 		self.mouseTextPosition = -1
@@ -146,6 +153,8 @@ class gameMode:
 		self.restartMusic = False
 		self.showCursor = True
 		uiElements.viewer.theViewer = None
+	def __dealloc__(self):
+		print '**** dealloc gamemode ****'
 	def getRestartMusic(self):
 		temp = self.restartMusic
 		self.restartMusic = False
@@ -208,6 +217,8 @@ class gameMode:
 				elif(hasattr(self.elementWithFocus,"onLeftClickUp")):
 					self.elementWithFocus.onLeftClickUp()
 	def handleKeyDown(self,keycode):
+		if(keycode == "p"):
+			pdb.set_trace()
 		if(keycode == "escape"):
 			if(self.modal == None):
 				for name,elem in self.elementsDict.iteritems():
@@ -308,9 +319,6 @@ class tiledGameMode(gameMode):
 		gameMode.__init__(self)
 		self.doFocus = 0
 		self.doFocusTemp = 0
-		self.selectionBoxScale = 0.0
-		self.selectionBoxScalePrev = 0.0
-		self.selectionBoxTicks = -10.0
 	def getFocusNextUnit(self):
 		return self.doFocus
 #		self.doFocusTemp = self.doFocus
@@ -323,13 +331,10 @@ class tiledGameMode(gameMode):
 		if(hasattr(self,"nextUnit")):
 			if(self.nextUnit != None and self.nextUnit.isControlled()):
 				gameLogic.selectNode(self.nextUnit.node)#can be because AI just went and now it's the player's turn
-#				if(len(self.nextUnit.movePath) > 0):
-#					self.nextUnit.move()
-#else:
 				if(len(self.nextUnit.movePath) == 0):
 					self.selectionBoxTicks = self.ticks
-					self.selectionBoxScale = 0.0
-					self.selectionBoxScalePrev = 0.0
+					self.selBoxScale = 0.0
+					self.selBoxScalePrev = 0.0
 					self.soundIndeces.append(cDefines.defines["FINGER_CYMBALS_HIT_INDEX"])
 		if(hasattr(gameState.getGameMode(),"mousedOverObject") and hasattr(gameState.getGameMode().mousedOverObject,"toggleCursor")):
 			gameState.getGameMode().mousedOverObject.toggleCursor()
@@ -366,7 +371,6 @@ class playMode(tiledGameMode):
 		self.summoners = []
 		self.elementalEffects = []
 		self.nextUnit = None
-		self.selectedNode = None
 		self.shiftDown = False
 		self.focusing = False
 		self.blueWoodUIElem = None
@@ -542,7 +546,7 @@ class playMode(tiledGameMode):
 				columnCount = columnCount + 1
 				if(node.playerStartValue != 0):
 					node.addUnit(gameLogic.unit(gameState.theUnitTypes["summoner"],node.playerStartValue-1,node,1))
-					for x in range(0,20):
+					for x in range(0,5):
 						    node.addUnit(gameLogic.unit(gameState.theUnitTypes["gatherer"],node.playerStartValue-1,node,1))
 
 #					node.addFire(gameLogic.fire(node))
@@ -626,20 +630,20 @@ class playMode(tiledGameMode):
 		if(self.ticks - self.selectionBoxTicks < 2000):
 			max = 1.0
 			retVal = 0.0
-			if(self.selectionBoxScale < max*0.1 and self.selectionBoxScalePrev <= self.selectionBoxScale):
-				retVal = self.selectionBoxScale+max*((self.ticks-self.previousTicks)*0.0001*(self.ticks-self.selectionBoxTicks)*(self.ticks-self.selectionBoxTicks))
-			elif(self.selectionBoxScale < max-max/4000.0 and self.selectionBoxScalePrev <= self.selectionBoxScale):
-				retVal = self.selectionBoxScale+((self.ticks-self.previousTicks)*(max-self.selectionBoxScale)/30.0)
+			if(self.selBoxScale < max*0.1 and self.selBoxScalePrev <= self.selBoxScale):
+				retVal = self.selBoxScale+max*((self.ticks-self.previousTicks)*0.0001*(self.ticks-self.selectionBoxTicks)*(self.ticks-self.selectionBoxTicks))
+			elif(self.selBoxScale < max-max/4000.0 and self.selBoxScalePrev <= self.selBoxScale):
+				retVal = self.selBoxScale+((self.ticks-self.previousTicks)*(max-self.selBoxScale)/30.0)
 			else:
-				retVal = self.selectionBoxScale-((self.ticks-self.previousTicks)*(self.selectionBoxScale-0.0)/200.0)
+				retVal = self.selBoxScale-((self.ticks-self.previousTicks)*(self.selBoxScale-0.0)/200.0)
 #			else:
 #				retVal = 0.0
 			if(retVal > max):
 				retVal = max
-			self.selectionBoxScalePrev = self.selectionBoxScale
-			self.selectionBoxScale = retVal
+			self.selBoxScalePrev = self.selBoxScale
+			self.selBoxScale = retVal
 		else:
-			self.selectionBoxScale = 0.0
+			self.selBoxScale = 0.0
 		if(self.playerMissing):
 			gameMode.onDraw(self,deltaTicks)
 		else:
@@ -788,6 +792,8 @@ class textBasedMenuMode(gameMode):
 	def setFocus(self,elem):
 		return
 	def keyDown(self,keycode):
+		if(keycode == "p"):
+			pdb.set_trace()
 		if(keycode == "up" or keycode == "down"):
 			self.soundIndeces.append(cDefines.defines["FINGER_CYMBALS_HIT_INDEX"])
 		if(keycode == "up"):
@@ -821,6 +827,8 @@ class textBasedMenuMode(gameMode):
 #				self.elementWithFocus.onKeyDown(keycode)
 
 class newGameScreenMode(textBasedMenuMode):
+	def __dealloc__(self):
+		print '**** dealloc gamemode ****'
 	def addUIElements(self):
 		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])
 		uiElements.uiElement(-0.5*texWidth("TITLE"),0.65,textureIndex=texIndex("TITLE"),width=texWidth("TITLE"),height=texHeight("TITLE"))

@@ -7,6 +7,8 @@ import threading
 import server
 import json
 
+#class gameState:
+	
 mapDatas = []
 mapDatas.append([])
 mapDatas.append([])

@@ -460,6 +460,7 @@ class city:
 #		self.unitTypes.append(gameState.theUnitTypes["gatherer"])	
 #		self.unitTypes.extend(unitTypes)
 		self.player = 0
+		gameState.getGameMode().cities.append(self)
 
 class node:
 	def __init__(self,xPos,yPos,tileValue=cDefines.defines['GRASS_TILE_INDEX'],roadValue=0,city=None,playerStartValue=0):
@@ -1065,7 +1066,7 @@ def selectNode(node):
 				pathNode.onMovePath = True
 		if(node.unit != None and node.unit.gotoNode != None):
 			node.unit.gotoNode.onMovePath = True
-	if(gameState.getGameMode().selectedNode != node and hasattr(gameState.getGameMode(),"gotoMode") and gameState.getGameMode().gotoMode):
+	if(gameState.getGameMode().selectedNode != None and gameState.getGameMode().selectedNode != node and hasattr(gameState.getGameMode(),"gotoMode") and gameState.getGameMode().gotoMode):
 		gameState.getGameMode().gotoMode = False		
 	gameState.getGameMode().selectedNode = node
 	if(uiElements.viewer.theViewer != None):

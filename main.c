@@ -293,7 +293,6 @@ float translateTilesYToPositionY(int tileY){
 
 
 int isNextUnit;
-PyObject * pyUnit;
 PyObject * pyFire;
 PyObject * pyIce;
 long isVisible;
@@ -325,6 +324,7 @@ PyObject * pyIsSelected;
 double xPositionUnit;
 double yPositionUnit;
 long isSelected;
+PyObject * pyUnit;
 void updatePosition(){
  if(xPositionUnit != xPosition){
     pyObj = PyObject_CallMethod(pyUnit,"setPosition","(ff)",xPosition,yPosition);
@@ -561,7 +561,6 @@ PyObject * nodeIterator;
 PyObject * nodeName;
 PyObject * nodeValue;
 PyObject * roadValue;
-PyObject * pyCity;
 PyObject * pyCursorIndex;
 PyObject * pyPlayerStartValue;
 PyObject * pyIsOnMovePath;
@@ -572,31 +571,79 @@ long longName;
 long longValue;
 long longRoadValue;
 long cursorIndex;
-PyObject * pyCityName;
 char * cityName;
 PyObject * nextUnit;
-//PyObject * unit;
 PyObject * pyUnitPlayer;
 long unitPlayer;
 long playerStartValue;
 long isOnMovePath;
 PyObject * pyUnits;
 PyObject *pyUnitsIter;
-PyObject * unit;
+PyObject * pyCities;
+PyObject *pyCitiesIter;
+PyObject * city;
+void drawSelectionBox(){
+  node = PyObject_GetAttrString(gameMode,"selectedNode");
+  if(node != NULL && node != Py_None){
+    pyXPosition = PyObject_GetAttrString(node,"xPos");
+    printPyStackTrace();
+    colNumber = 0-PyLong_AsLong(pyXPosition);
+    pyYPosition = PyObject_GetAttrString(node,"yPos");
+    printPyStackTrace();
+    rowNumber = PyLong_AsLong(pyYPosition);
+    xPosition = translateTilesXToPositionX(colNumber,rowNumber);
+    yPosition = translateTilesYToPositionY(rowNumber);
+    pySelectionBoxScale = PyObject_GetAttrString(gameMode,"selBoxScale");
+    selectionBoxScale = PyFloat_AsDouble(pySelectionBoxScale);
+    Py_DECREF(pySelectionBoxScale);
+
+    glColor3f(1.0,1.0,1.0);
+    glBindTexture(GL_TEXTURE_2D, texturesArray[SELECTION_BOX_INDEX]);
+    glPushMatrix();
+    glTranslatef(xPosition,yPosition,0.0);
+    glScalef(selectionBoxScale+1.0,selectionBoxScale+1.0,0.0);
+    glCallList(selectionBoxList);
+    glPopMatrix();
+  }
+}
+void drawCities(){
+  pyCities = PyObject_GetAttrString(gameMode,"cities");
+  pyCitiesIter = PyObject_CallMethod(pyCities,"__iter__",NULL);
+  if(pyCitiesIter != NULL && pyCitiesIter != Py_None){
+    while(city = PyIter_Next(pyCitiesIter)){
+      node = PyObject_GetAttrString(city,"node");
+      pyXPosition = PyObject_GetAttrString(node,"xPos");
+      colNumber = 0-PyLong_AsLong(pyXPosition);
+      pyYPosition = PyObject_GetAttrString(node,"yPos");
+      rowNumber = PyLong_AsLong(pyYPosition);
+      xPosition = translateTilesXToPositionX(colNumber,rowNumber);
+      yPosition = translateTilesYToPositionY(rowNumber);
+
+      glPushMatrix();
+      glTranslatef(xPosition,yPosition,0.1);
+
+      glBindTexture(GL_TEXTURE_2D, texturesArray[CITY_INDEX]);
+      glCallList(unitList);
+      glPopMatrix();
+      //      Py_DECREF(city);
+      Py_DECREF(node);
+    }
+  }
+}
 void drawUnits(){
   glDepthFunc(GL_LEQUAL);
-  mapIterator = PyObject_CallMethod(theMap,"getIterator",NULL);
+  //  mapIterator = PyObject_CallMethod(theMap,"getIterator",NULL);
   pyPolarity = PyObject_GetAttrString(theMap,"polarity");
   mapPolarity = PyLong_AsLong(pyPolarity);
   rowIterator = PyObject_GetIter(mapIterator);
   pyUnits = PyObject_GetAttrString(gameMode,"units");
   pyUnitsIter = PyObject_CallMethod(pyUnits,"__iter__",NULL);
   if(pyUnitsIter != NULL && pyUnitsIter != Py_None){
-    while(unit = PyIter_Next(pyUnitsIter)){
-      colNumber = 0;
-      rowNumber = 1;
-      node = PyObject_GetAttrString(unit,"node");
-      pyUnit = PyObject_GetAttrString(node,"unit");
+    while(pyUnit = PyIter_Next(pyUnitsIter)){
+      //      colNumber = 0;
+      //      rowNumber = 1;
+      node = PyObject_GetAttrString(pyUnit,"node");
+      //      pyUnit = PyObject_GetAttrString(node,"unit");
       pyXPosition = PyObject_GetAttrString(node,"xPos");
       colNumber = 0-PyLong_AsLong(pyXPosition);
       pyYPosition = PyObject_GetAttrString(node,"yPos");
@@ -604,10 +651,8 @@ void drawUnits(){
       //printf("%d\n",rowNumber);
       isNextUnit = 0;
       nextUnit = PyObject_GetAttrString(gameMode,"nextUnit");
-      if(pyUnit != NULL && pyUnit != Py_None){
-	if(pyUnit == nextUnit){
-	  isNextUnit = 1;
-	}
+      if(pyUnit == nextUnit){
+	isNextUnit = 1;
       }
       if(nextUnit != NULL){
       	Py_DECREF(nextUnit);
@@ -617,9 +662,6 @@ void drawUnits(){
       pyIsVisible = PyObject_GetAttrString(node,"visible");//New reference
       isVisible = PyLong_AsLong(pyIsVisible);
       Py_DECREF(pyIsVisible);
-      pyIsSelected = PyObject_GetAttrString(node,"selected");//New reference
-      isSelected = PyLong_AsLong(pyIsSelected);
-      Py_DECREF(pyIsSelected);
       xPosition = translateTilesXToPositionX(colNumber,rowNumber);
       yPosition = translateTilesYToPositionY(rowNumber);
 
@@ -627,61 +669,21 @@ void drawUnits(){
       glPushMatrix();
       glTranslatef(xPosition,yPosition,0.1);
 
-      if(isSelected == 1){
-	glColor3f(1.0,1.0,1.0);
-	pySelectionBoxScale = PyObject_GetAttrString(gameMode,"selectionBoxScale");//New reference
-	selectionBoxScale = PyFloat_AsDouble(pySelectionBoxScale);
-	Py_DECREF(pySelectionBoxScale);
-	glBindTexture(GL_TEXTURE_2D, texturesArray[SELECTION_BOX_INDEX]);
-	glPushMatrix();
-	//	glTranslatef(0.0,0.0,selectionBoxScale*3.0);
-	glScalef(selectionBoxScale+1.0,selectionBoxScale+1.0,0.0);
-	glCallList(selectionBoxList);
-	glPopMatrix();
-      }
-
-
-      if(pyUnit != NULL && pyUnit != Py_None && isVisible){
+      if(isVisible){
 	glPushMatrix();
 	drawUnit();
 	glPopMatrix();
-      }else if(pyUnit != NULL && pyUnit != Py_None){
+      }else{
 	updatePosition();
       }
-      glBindTexture(GL_TEXTURE_2D, texturesArray[CITY_INDEX]);
-      cityName = "";//TODO: REMOVE ME
-      pyCity = PyObject_GetAttrString(node,"city");
-      if(pyCity != Py_None){
-	glCallList(unitList);
-	pyCityName = PyObject_GetAttrString(pyCity,"name");
-	cityName = PyString_AsString(pyCityName);
-	Py_DECREF(pyCityName);
-      }
-      Py_DECREF(pyCity);
-
 
       glPopMatrix();
 
-      if(cityName[0]!=0){
-	glColor3f(1.0f, 1.0f, 1.0f);
-	glBegin(GL_QUADS);
-	glTexCoord2f(0.0,0.0);
-	glVertex3f(-0.3, -0.3, 0.0);
-	glTexCoord2f(1.0,0.0);
-	glVertex3f(0.3, -0.3, 0.0);
-	glTexCoord2f(1.0,1.0);
-	glVertex3f(0.3, 0.3, 0.0);
-	glTexCoord2f(0.0,1.0);
-	glVertex3f(-0.3, 0.3, 0.0);
-	glEnd();
-	glEndList();
-      }
       if(pyFire != NULL && pyFire != Py_None && isVisible){
 	drawFire();
       }  
-      if(pyUnit != NULL){
-	Py_DECREF(pyUnit);
-      }
+      //      Py_DECREF(pyUnit);
+      
     }
   }
 }						
@@ -711,7 +713,6 @@ void drawTiles(){
       roadValue = PyObject_GetAttrString(node,"roadValue");
       pyCursorIndex = PyObject_GetAttrString(node,"cursorIndex");//New reference
       pyPlayerStartValue = PyObject_GetAttrString(node,"playerStartValue");//New reference                                 
-      pyUnit = PyObject_GetAttrString(node,"unit");
       pyIsOnMovePath = PyObject_GetAttrString(node,"onMovePath");//New reference
       pyIsVisible = PyObject_GetAttrString(node,"visible");//New reference
       isVisible = PyLong_AsLong(pyIsVisible);
@@ -728,16 +729,17 @@ void drawTiles(){
       Py_DECREF(pyCursorIndex);
       Py_DECREF(pyPlayerStartValue);
       Py_DECREF(pyIsOnMovePath);
-      if(pyUnit != NULL){
-	Py_DECREF(pyUnit);
-      }
       Py_DECREF(node);
 
       xPosition = translateTilesXToPositionX(colNumber,rowNumber);
       yPosition = translateTilesYToPositionY(rowNumber);
       glPushMatrix();
       glTranslatef(xPosition,yPosition,0.0);
+
       drawTile(colNumber,rowNumber,longName,longValue,longRoadValue,cityName,isOnMovePath,playerStartValue,cursorIndex);
+
+      glTranslatef(0.0,0.0,0.03);
+
       glPopMatrix();
       colNumber = colNumber - 1;
     }
@@ -778,7 +780,6 @@ void calculateTranslation(){
        && translateY > convertedBottomLeftY+2.0
        && (translateZ < translateZPrev)){
       translateZ = translateZPrev;
-
       pyObj = PyObject_CallMethod(gameMode,"setMaxTranslateZ","f",translateZ);//New reference
       Py_DECREF(pyObj);
     }
@@ -876,9 +877,9 @@ void calculateTranslation(){
     translateXPrev = translateX;
     translateYPrev = translateY;
     if(focusSpeed < focusSpeedMax){
-      focusSpeed = focusSpeed + 0.01*deltaTicks;
+      focusSpeed = focusSpeed + 0.0001*deltaTicks;
     }
-        focusSpeed = .0500;
+    //focusSpeed = .0500;
     //this block points the focus toward the focus point
     if(fabs(translateX-(-focusXPos)) > fabs(translateY-(-focusYPos)) && fabs(translateX-(-focusXPos)) != 0.0){
       focusSpeedX = focusSpeed;
@@ -893,8 +894,8 @@ void calculateTranslation(){
     //printf("%f\t%f\t%f\t%f\n",focusSpeedX,focusSpeedY,fabs(translateX-(-focusXPos)),fabs(translateY-(-focusYPos)));
     //these lines roughly make focusspeed consistent rather than faster on diagonals
     if(focusSpeedX > 0.5*focusSpeed || focusSpeedY > 0.5*focusSpeed){
-      focusSpeedX = focusSpeed*focusSpeedX/(focusSpeedX + focusSpeedY);
-      focusSpeedY = focusSpeed*focusSpeedY/(focusSpeedX + focusSpeedY);
+      focusSpeedX = focusSpeedX*focusSpeed/(focusSpeedX + focusSpeedY);
+      focusSpeedY = focusSpeedY*focusSpeed/(focusSpeedX + focusSpeedY);
     }
     //    printf("?? %f\t%f\t%f\t%f\n",focusSpeedX,focusSpeedY,fabs(translateX-(-focusXPos)),fabs(translateY-(-focusYPos)));
     
@@ -953,7 +954,9 @@ drawBoard(){
   glClear(GL_DEPTH_BUFFER_BIT);		 
   if(theMap != Py_None && theMap != NULL){
     drawTiles();
+    drawSelectionBox();
     drawUnits();
+    drawCities();
   }
 }
 
@@ -1174,8 +1177,8 @@ void drawUIElement(PyObject * uiElement){
 	    glScalef(textSize,textSize,0.0);
 	    wordWidth = findWordWidth(fontIndex,queuedText,xPosition+width);
 	    glPopMatrix();
-	    pyDecrementMe = PyObject_CallMethod(uiElement,"addLine","i",wordWidth);
-	    
+	    pyObj = PyObject_CallMethod(uiElement,"addLine","i",wordWidth);
+	    Py_DECREF(pyObj);
 	    //	    printf("%s\n",queuedText);
 	  }
 	  Py_DECREF(pyQueuedText);
@@ -1290,7 +1293,7 @@ static void initGL (){
   //glClearColor(1.0, 1.0, 1.0, 1.0); //sets screen clear color
   //glClearColor(123.0/255.0,126.0/255.0,125.0/255.0,1.0);//grey that matches the UI...
   glEnable(GL_ALPHA_TEST);
-    glAlphaFunc(GL_GREATER,0.01);
+  glAlphaFunc(GL_GREATER,0.01);
   glClearDepth(1);//default
   glEnable(GL_DEPTH_TEST);
   glDepthRange(0,1);//default
@@ -1611,6 +1614,7 @@ static void handleInput(){
     if(doFocus){
       isFocusing = 1;
     }
+    //    Py_DECREF(pyClickScroll);
   }
   if(previousMousedoverName != selectedName){
     if(PyObject_HasAttrString(gameMode,"handleMouseOver")){
@@ -1690,7 +1694,8 @@ static void handleInput(){
       printPyStackTrace();
       if(event.button.button == SDL_BUTTON_RIGHT){
 	//	clickScroll = 1;
-	PyObject_CallMethod(gameMode,"handleRightClick","i",selectedName);//New reference
+	pyObj = PyObject_CallMethod(gameMode,"handleRightClick","i",selectedName);//New reference
+	  Py_DECREF(pyObj);
       }
       break;
     case SDL_MOUSEBUTTONUP:
@@ -1700,7 +1705,7 @@ static void handleInput(){
       if(event.button.button == SDL_BUTTON_LEFT){
 	if(PyObject_HasAttrString(gameMode,"handleLeftClickUp")){
 	  pyObj = PyObject_CallMethod(gameMode,"handleLeftClickUp","i",selectedName);//New reference
-	  printPyStackTrace();
+	  //	  printPyStackTrace();
 	  Py_DECREF(pyObj);
 	}
 	leftButtonDown = 0;
@@ -1708,7 +1713,7 @@ static void handleInput(){
       if(event.button.button == SDL_BUTTON_RIGHT){
 	if(PyObject_HasAttrString(gameMode,"handleRightClickUp")){
 	  pyObj = PyObject_CallMethod(gameMode,"handleRightClickUp","i",selectedName);//New reference
-	  printPyStackTrace();
+	  //	  printPyStackTrace();
 	  Py_DECREF(pyObj);
 	}
       }
@@ -1839,7 +1844,7 @@ static void handleInput(){
 	}
 	if(PyObject_HasAttrString(gameMode,"handleKeyDown")){	
 	  pyObj = PyObject_CallMethod(gameMode,"handleKeyDown","s",keyArray); 
-	  printPyStackTrace();
+	  //	  printPyStackTrace();
 	  Py_DECREF(pyObj);
 	}
       }
@@ -1895,7 +1900,7 @@ Uint32 chooseNextTimeStart;
 static void draw(){
   if(PyObject_HasAttrString(gameMode,"chooseNextDelayed")){
     pyChooseNextDelayed = PyObject_CallMethod(gameMode,"getChooseNextDelayed",NULL);//New reference
-    printPyStackTrace();
+    //    printPyStackTrace();
     Py_DECREF(pyChooseNextDelayed);
     if(pyChooseNextDelayed == Py_True){
       chooseNextTimeStart = SDL_GetTicks();
@@ -1905,13 +1910,13 @@ static void draw(){
   if(chooseNextDelayed && ((SDL_GetTicks() - chooseNextTimeStart) > AUTO_CHOOSE_NEXT_DELAY)){
     chooseNextDelayed = 0;
     pyObj = PyObject_CallMethod(gameMode,"sendChooseNextUnit",NULL);//New reference
-    printPyStackTrace();
+    //    printPyStackTrace();
     Py_DECREF(pyObj);
   }
   PyObject_SetAttrString(gameMode,"ticks",PyLong_FromLong(SDL_GetTicks()));
   if(PyObject_HasAttrString(gameMode,"onDraw")){
     pyObj = PyObject_CallMethod(gameMode,"onDraw","i",deltaTicks);//New reference
-    printPyStackTrace();
+    //    printPyStackTrace();
     Py_DECREF(pyObj);
   }
 
@@ -1998,15 +2003,17 @@ static void mainLoop (){
     gameMode = PyObject_CallMethod(gameState,"getGameMode",NULL);
     pyObj = PyObject_CallMethod(gameMode, "getRestartMusic",NULL);//New reference
     restartMusic = PyLong_AsLong(pyObj);
+    Py_DECREF(pyObj);
     /*if(!Mix_PlayingMusic() || restartMusic){
+      Py_DECREF(pyObj);
       pyObj = PyObject_CallMethod(gameMode,"getMusic",NULL);
       soundIndex = PyLong_AsLong(pyObj);
       Mix_PlayMusic(musicArray[soundIndex], 0);
-      Py_DECREF(pyObj);
       }*/
     pyObj = PyObject_CallMethod(gameMode,"getSound",NULL);
     while(pyObj != Py_None && pyObj != NULL){
       soundIndex = PyLong_AsLong(pyObj);
+      Py_DECREF(pyObj);
       Mix_PlayChannel(-1, soundArray[soundIndex], 0);
       pyObj = PyObject_CallMethod(gameMode,"getSound",NULL);
       Py_DECREF(pyObj);
@@ -2021,7 +2028,7 @@ static void mainLoop (){
     handleInput();
     draw();
     
-    if(PyObject_HasAttrString(gameMode,"map")){
+    if(theMap != NULL && theMap != Py_None){
       Py_DECREF(theMap);
     }
     Py_DECREF(gameMode);
