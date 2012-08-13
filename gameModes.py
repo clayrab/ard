@@ -410,6 +410,10 @@ class playMode(tiledGameMode):
 			return unit.movementPoints
 	def orderUnits(self):
 		self.units.sort(key=self.unitComparater)
+	def unitDrawingComparater(self,unit):
+		return -unit.node.yPos
+	def orderUnitsForDrawing(self):
+		self.units.sort(key=self.unitDrawingComparater)
 	def chooseNextUnit(self):
 		winner = None
 		for player in self.players:
@@ -520,6 +524,7 @@ class playMode(tiledGameMode):
 				self.timeToMove = maxTimeToMove
 		else:
 			self.waitingElem.hidden = False
+		self.orderUnitsForDrawing()
 #		if(gameState.getGameMode().selectedNode != None and uiElements.viewer.theViewer != None):
 #			if(hasattr(uiElements.viewer.theViewer,"isCityViewer")):
 #				uiElements.viewer.theViewer.destroy()
@@ -537,7 +542,8 @@ class playMode(tiledGameMode):
 				columnCount = columnCount + 1
 				if(node.playerStartValue != 0):
 					node.addUnit(gameLogic.unit(gameState.theUnitTypes["summoner"],node.playerStartValue-1,node,1))
-					node.addUnit(gameLogic.unit(gameState.theUnitTypes["gatherer"],node.playerStartValue-1,node,1))
+					for x in range(0,20):
+						    node.addUnit(gameLogic.unit(gameState.theUnitTypes["gatherer"],node.playerStartValue-1,node,1))
 
 #					node.addFire(gameLogic.fire(node))
 #					node.addIce(gameLogic.ice(node))
@@ -709,12 +715,12 @@ class playMode(tiledGameMode):
 		for unit in self.units:
 			if(unit.node.visible):
 				gameLogic.aStarSearch.parentPipe.send(["unitAdd",unit.node.xPos,unit.node.yPos])
-		self.orderUnits()
+#		self.orderUnits()
 	def restartGame(self):
 		for unit in self.units:
 			if(unit.node.visible):
 				gameLogic.aStarSearch.parentPipe.send(["unitAdd",unit.node.xPos,unit.node.yPos])
-		self.orderUnits()
+#		self.orderUnits()
 
 class mapEditorMode(tiledGameMode):	
 	def __init__(self,args):

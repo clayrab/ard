@@ -369,11 +369,6 @@ void drawUnit(){
   glBindTexture(GL_TEXTURE_2D, texturesArray[HEALTH_BAR_INDEX]);
   glCallList(healthBarList);
 
-  glColor3f(1.0,1.0,1.0);
-  glBindTexture(GL_TEXTURE_2D, texturesArray[unitTextureIndex]);
-  //  glTranslatef(0.0,0.0,0.0);
-  glCallList(unitList);
-
   //  glPushMatrix();
   //  glTranslatef(-0.1,-0.78,0.0);
   glPushMatrix();
@@ -384,6 +379,7 @@ void drawUnit(){
     glScalef(1.2,1.2,0.0);
     glTranslatef(-0.18,0.20,0.0);
   }
+
   glBindTexture(GL_TEXTURE_2D, texturesArray[FLAG_POLE_INDEX]);
   glBegin(GL_QUADS);
   glTexCoord2f(0.0,0.0); glVertex3f(0.5, -0.75, 0.0);
@@ -420,6 +416,10 @@ void drawUnit(){
   glColor3f(1.0, 1.0, 1.0);
   glPopMatrix();
 
+  glColor3f(1.0,1.0,1.0);
+  glBindTexture(GL_TEXTURE_2D, texturesArray[unitTextureIndex]);
+  //  glTranslatef(0.0,0.0,0.0);
+  glCallList(unitList);
   
   while (pyDamageTime = PyIter_Next(pyRecentDamageIter)) {
     damageTime = PyLong_AsLong(pyDamageTime);
@@ -554,7 +554,9 @@ void drawTilesText(){
 int rowNumber;
 PyObject * node;
 PyObject * row;
-int colNumber = 0;
+PyObject * pyXPosition;
+PyObject * pyYPosition;
+int colNumber;
 PyObject * nodeIterator;
 PyObject * nodeName;
 PyObject * nodeValue;
@@ -578,19 +580,28 @@ PyObject * pyUnitPlayer;
 long unitPlayer;
 long playerStartValue;
 long isOnMovePath;
+PyObject * pyUnits;
+PyObject *pyUnitsIter;
+PyObject * unit;
 void drawUnits(){
-  glDepthFunc(GL_LESS);
-  rowNumber = -1;
+  glDepthFunc(GL_LEQUAL);
   mapIterator = PyObject_CallMethod(theMap,"getIterator",NULL);
   pyPolarity = PyObject_GetAttrString(theMap,"polarity");
   mapPolarity = PyLong_AsLong(pyPolarity);
   rowIterator = PyObject_GetIter(mapIterator);
-  while (row = PyIter_Next(rowIterator)) {
-    colNumber = 0;
-    rowNumber = rowNumber + 1;
-    nodeIterator = PyObject_GetIter(row);
-    while(node = PyIter_Next(nodeIterator)) {
+  pyUnits = PyObject_GetAttrString(gameMode,"units");
+  pyUnitsIter = PyObject_CallMethod(pyUnits,"__iter__",NULL);
+  if(pyUnitsIter != NULL && pyUnitsIter != Py_None){
+    while(unit = PyIter_Next(pyUnitsIter)){
+      colNumber = 0;
+      rowNumber = 1;
+      node = PyObject_GetAttrString(unit,"node");
       pyUnit = PyObject_GetAttrString(node,"unit");
+      pyXPosition = PyObject_GetAttrString(node,"xPos");
+      colNumber = 0-PyLong_AsLong(pyXPosition);
+      pyYPosition = PyObject_GetAttrString(node,"yPos");
+      rowNumber = PyLong_AsLong(pyYPosition);
+      //printf("%d\n",rowNumber);
       isNextUnit = 0;
       nextUnit = PyObject_GetAttrString(gameMode,"nextUnit");
       if(pyUnit != NULL && pyUnit != Py_None){
@@ -616,31 +627,6 @@ void drawUnits(){
       glPushMatrix();
       glTranslatef(xPosition,yPosition,0.1);
 
-      //      glDepthFunc(GL_LEQUAL);
-      //      glDepthFunc(GL_LESS);
-
-      if(pyUnit != NULL && pyUnit != Py_None && isVisible){
-	glPushMatrix();
-	drawUnit();
-	glPopMatrix();
-	//	glBindTexture(GL_TEXTURE_2D, texturesArray[CITY_SANS_TREE_INDEX]);
-      }else if(pyUnit != NULL && pyUnit != Py_None){
-	updatePosition();
-	//      }else{
-	//
-      }
-
-      glBindTexture(GL_TEXTURE_2D, texturesArray[CITY_INDEX]);
-      cityName = "";//TODO: REMOVE ME
-      pyCity = PyObject_GetAttrString(node,"city");
-      if(pyCity != Py_None){
-	glCallList(unitList);
-	pyCityName = PyObject_GetAttrString(pyCity,"name");
-	cityName = PyString_AsString(pyCityName);
-	Py_DECREF(pyCityName);
-      }
-      Py_DECREF(pyCity);
-
       if(isSelected == 1){
 	glColor3f(1.0,1.0,1.0);
 	pySelectionBoxScale = PyObject_GetAttrString(gameMode,"selectionBoxScale");//New reference
@@ -653,6 +639,26 @@ void drawUnits(){
 	glCallList(selectionBoxList);
 	glPopMatrix();
       }
+
+
+      if(pyUnit != NULL && pyUnit != Py_None && isVisible){
+	glPushMatrix();
+	drawUnit();
+	glPopMatrix();
+      }else if(pyUnit != NULL && pyUnit != Py_None){
+	updatePosition();
+      }
+      glBindTexture(GL_TEXTURE_2D, texturesArray[CITY_INDEX]);
+      cityName = "";//TODO: REMOVE ME
+      pyCity = PyObject_GetAttrString(node,"city");
+      if(pyCity != Py_None){
+	glCallList(unitList);
+	pyCityName = PyObject_GetAttrString(pyCity,"name");
+	cityName = PyString_AsString(pyCityName);
+	Py_DECREF(pyCityName);
+      }
+      Py_DECREF(pyCity);
+
 
       glPopMatrix();
 
@@ -678,7 +684,6 @@ void drawUnits(){
       }
     }
   }
-  
 }						
 void drawTiles(){
   rowNumber = -1;
@@ -870,13 +875,10 @@ void calculateTranslation(){
     }
     translateXPrev = translateX;
     translateYPrev = translateY;
-    //old autofocus lines(slows down exponentially)
-    //    translateX = translateX-((translateX+focusXPos)/focusSpeedMax);
-    //    translateY = translateY-((translateY+focusYPos)/focusSpeedMax);
     if(focusSpeed < focusSpeedMax){
-      focusSpeed = focusSpeed + 0.001*deltaTicks;
+      focusSpeed = focusSpeed + 0.01*deltaTicks;
     }
-    //    focusSpeed = 0.0001*deltaTicks;
+        focusSpeed = .0500;
     //this block points the focus toward the focus point
     if(fabs(translateX-(-focusXPos)) > fabs(translateY-(-focusYPos)) && fabs(translateX-(-focusXPos)) != 0.0){
       focusSpeedX = focusSpeed;
@@ -885,15 +887,17 @@ void calculateTranslation(){
       focusSpeedX = focusSpeed*fabs((translateX+focusXPos)/(translateY+focusYPos));
       focusSpeedY = focusSpeed;
     }else{
-	focusSpeedX = focusSpeed;
-	focusSpeedY = focusSpeed;
+      focusSpeedX = focusSpeed;
+      focusSpeedY = focusSpeed;
     }
-    printf("%f\t%f\t%f\t%f\n",focusSpeedX,focusSpeedY,fabs(translateX-(-focusXPos)),fabs(translateY-(-focusYPos)));
-    //these lines make focusspeed consistent rather than faster on diagonals
-    focusSpeedX = focusSpeedX/(focusSpeedX + focusSpeedY);
-    focusSpeedY = focusSpeedY/(focusSpeedX + focusSpeedY);
-
-      
+    //printf("%f\t%f\t%f\t%f\n",focusSpeedX,focusSpeedY,fabs(translateX-(-focusXPos)),fabs(translateY-(-focusYPos)));
+    //these lines roughly make focusspeed consistent rather than faster on diagonals
+    if(focusSpeedX > 0.5*focusSpeed || focusSpeedY > 0.5*focusSpeed){
+      focusSpeedX = focusSpeed*focusSpeedX/(focusSpeedX + focusSpeedY);
+      focusSpeedY = focusSpeed*focusSpeedY/(focusSpeedX + focusSpeedY);
+    }
+    //    printf("?? %f\t%f\t%f\t%f\n",focusSpeedX,focusSpeedY,fabs(translateX-(-focusXPos)),fabs(translateY-(-focusYPos)));
+    
       if(translateX < -focusXPos){
 	translateX = translateX + focusSpeedX*deltaTicks;
 	if(translateX > -focusXPos){translateX = -focusXPos;}
@@ -985,8 +989,6 @@ void drawTileSelect(double xPos, double yPos, int name, long tileType, long sele
 }
 int isNode;
 unsigned int red[1],green[1],blue[1];
-PyObject * pyXPosition;
-PyObject * pyYPosition;
 PyObject * pyWidth;
 PyObject * pyHeight;
 PyObject * pyHidden;

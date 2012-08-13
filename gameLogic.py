@@ -514,14 +514,23 @@ class node:
 				aStarSearch.parentPipe.send(["unitAdd",self.xPos,self.yPos])
 			if(theUnit.unitType.name == "summoner"):
 				gameState.getGameMode().summoners.append(theUnit)
-#			if(gameState.getPlayerNumber() == (self.playerStartValue-1) or gameState.getPlayerNumber() == -2):
 			if(theUnit.isOwnTeam()):
 				for neighb in self.getNeighbors(5):
 					neighb.startViewing(self.unit)
-#			if(self.city != None and self.unit.unitType.name == ""):
-#				self.city.player = self.unit.player
 		else:
-			(random.choice(self.neighbors)).addUnit(theUnit)
+			hasEmptyNeighbor = False
+			for neighb in self.neighbors:
+				if(neighb.unit == None and neighb.tileValue != cDefines.defines['MOUNTAIN_TILE_INDEX']):
+					hasEmptyNeighbor = True
+					break
+			if(hasEmptyNeighbor):
+				randNeighb = random.choice(self.neighbors)
+#				while(randNeighb.unit != None or randNeighb.tileValue == cDefines.defines['MOUNTAIN_TILE_INDEX']):
+				while(not(randNeighb.unit == None and randNeighb.tileValue != cDefines.defines['MOUNTAIN_TILE_INDEX'])):
+					randNeighb = random.choice(self.neighbors)
+				randNeighb.addUnit(theUnit)
+			else:		
+				(random.choice(self.neighbors)).addUnit(theUnit)
 	def onRightClick(self):
 		gameState.getGameMode().clickScroll = True
 
