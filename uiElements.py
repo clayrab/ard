@@ -501,7 +501,7 @@ class unitViewer(viewer):
 			if(self.node.unit == gameState.getGameMode().nextUnit and self.node.unit.isControlled()):
 				self.names.append(skipButton(self.xPosition+0.310,height).name)
 				height = height + 0.085
-			if(self.node.unit == gameState.getGameMode().nextUnit and self.node.unit.unitType.name == "gatherer" and (self.node.tileValue == cDefines.defines['RED_FOREST_TILE_INDEX'] or self.node.tileValue == cDefines.defines['BLUE_FOREST_TILE_INDEX'] or self.node.city != None) or True):
+			if(self.node.unit == gameState.getGameMode().nextUnit and self.node.unit.unitType.name == "gatherer" and (self.node.tileValue == cDefines.defines['RED_FOREST_TILE_INDEX'] or self.node.tileValue == cDefines.defines['BLUE_FOREST_TILE_INDEX'] or self.node.city != None)):
 				self.names.append(startGatheringButton(self.xPosition+0.262,height).name)
 
 class cityViewer(viewer):
@@ -749,12 +749,12 @@ class buildUnitElem(scrollableElement):
 		self.names.append(uiElement(self.xPosition,self.yPosition,textureIndex=texIndex("UNIT_UI_BACK"),height=texHeight("UNIT_UI_BACK"),width=texWidth("UNIT_UI_BACK")).name)
 		self.names.append(unitTypeViewerButton(self.xPosition+0.009,self.yPosition-0.026,self.unitType,textureIndex=self.unitType.textureIndex,height=0.07,width=0.07).name)
 		self.names.append(uiElement(self.xPosition+0.085,self.yPosition-0.05,text=self.unitType.name+"("+str(gameState.getResearchProgress()[self.unitType][0])+")",textSize=0.0005,textColor="ee ee ee",fontIndex=2).name)
-		self.names.append(uiElement(self.xPosition+0.085,self.yPosition-0.071,textureIndex=texIndex("RED_WOOD_ICON"),width=texWidth("RED_WOOD_ICON"),height=texHeight("RED_WOOD_ICON")).name)
-		self.names.append(uiElement(self.xPosition+0.108,self.yPosition-0.094,text=str(gameState.getResearchProgress()[self.unitType][0]*self.unitType.costGreen),textSize=0.00034,textColor="ee ee ee",fontIndex=0).name)
-		self.names.append(uiElement(self.xPosition+0.151,self.yPosition-0.071,textureIndex=texIndex("BLUE_WOOD_ICON"),width=texWidth("BLUE_WOOD_ICON"),height=texHeight("BLUE_WOOD_ICON")).name)
-		self.names.append(uiElement(self.xPosition+0.174,self.yPosition-0.094,text=str(gameState.getResearchProgress()[self.unitType][0]*self.unitType.costBlue),textSize=0.00034,textColor="ee ee ee",fontIndex=0).name)
-		self.names.append(uiElement(self.xPosition+0.221,self.yPosition-0.071,textureIndex=texIndex("TIME_ICON"),width=texWidth("TIME_ICON"),height=texHeight("TIME_ICON")).name)
-		self.names.append(uiElement(self.xPosition+0.244,self.yPosition-0.094,text=str(self.unitType.buildTime),textSize=0.00034,textColor="ee ee ee",fontIndex=0).name)
+		self.names.append(uiElement(self.xPosition+0.085,self.yPosition-0.071,textureIndex=texIndex("RED_WOOD_ICON"),width=texWidth("RED_WOOD_ICON")/4.0,height=texHeight("RED_WOOD_ICON")/4.0).name)
+		self.names.append(uiElement(self.xPosition+0.106,self.yPosition-0.092,text=str(gameState.getResearchProgress()[self.unitType][0]*self.unitType.costGreen),textSize=0.00038,textColor="ee ee ee",fontIndex=0).name)
+		self.names.append(uiElement(self.xPosition+0.151,self.yPosition-0.071,textureIndex=texIndex("BLUE_WOOD_ICON"),width=texWidth("BLUE_WOOD_ICON")/4.0,height=texHeight("BLUE_WOOD_ICON")/4.0).name)
+		self.names.append(uiElement(self.xPosition+0.172,self.yPosition-0.092,text=str(gameState.getResearchProgress()[self.unitType][0]*self.unitType.costBlue),textSize=0.00038,textColor="ee ee ee",fontIndex=0).name)
+		self.names.append(uiElement(self.xPosition+0.221,self.yPosition-0.071,textureIndex=texIndex("TIME_ICON"),width=texWidth("TIME_ICON")/4.0,height=texHeight("TIME_ICON")/4.0).name)
+		self.names.append(uiElement(self.xPosition+0.242,self.yPosition-0.092,text=str(self.unitType.buildTime),textSize=0.00038,textColor="ee ee ee",fontIndex=0).name)
 		if(gameState.getGameMode().selectedNode.unit != None and gameState.getGameMode().selectedNode.unit.isControlled() and gameState.getGameMode().players[gameState.getGameMode().getPlayerNumber()].redWood >= (gameState.getResearchProgress()[self.unitType][0]*self.unitType.costGreen) and gameState.getGameMode().players[gameState.getGameMode().getPlayerNumber()].blueWood >= (gameState.getResearchProgress()[unitType][0]*self.unitType.costBlue)):
 #		if(gameState.getGameMode().selectedNode.unit != None and gameState.getGameMode().selectedNode.unit.isMeditating and gameState.getGameMode().selectedNode.unit.isControlled()):
 			self.names.append(summonButton(self.xPosition+0.293,self.yPosition-0.068,self.unitType).name)
@@ -767,12 +767,12 @@ class researchUnitElem(scrollableElement):
 		self.names.append(uiElement(self.xPosition,self.yPosition,textureIndex=texIndex("UNIT_UI_BACK"),height=texHeight("UNIT_UI_BACK"),width=texWidth("UNIT_UI_BACK")).name)
 		self.names.append(unitTypeViewerButton(self.xPosition+23.0/cDefines.defines["SCREEN_WIDTH"],self.yPosition-23.0/cDefines.defines["SCREEN_HEIGHT"],self.unitType,textureIndex=self.unitType.textureIndex,height=70.0/cDefines.defines["SCREEN_HEIGHT"],width=70.0/cDefines.defines["SCREEN_WIDTH"]).name)
 		self.names.append(uiElement(self.xPosition+0.085,self.yPosition-0.05,text=self.unitType.name+" lv "+ str(gameState.getResearchProgress()[self.unitType][0]+1),textSize=0.0005,textColor="ee ee ee",fontIndex=2).name)
-		self.names.append(uiElement(self.xPosition+0.085,self.yPosition-0.071,textureIndex=texIndex("RED_WOOD_ICON"),width=texWidth("RED_WOOD_ICON"),height=texHeight("RED_WOOD_ICON")).name)
-		self.names.append(uiElement(self.xPosition+0.108,self.yPosition-0.094,text=str(self.unitType.researchCostGreen),textSize=0.00034,textColor="ee ee ee",fontIndex=0).name)
-		self.names.append(uiElement(self.xPosition+0.151,self.yPosition-0.071,textureIndex=texIndex("BLUE_WOOD_ICON"),width=texWidth("BLUE_WOOD_ICON"),height=texHeight("BLUE_WOOD_ICON")).name)
-		self.names.append(uiElement(self.xPosition+0.174,self.yPosition-0.094,text=str(self.unitType.researchCostBlue),textSize=0.00034,textColor="ee ee ee",fontIndex=0).name)
-		self.names.append(uiElement(self.xPosition+0.221,self.yPosition-0.071,textureIndex=texIndex("TIME_ICON"),width=texWidth("TIME_ICON"),height=texHeight("TIME_ICON")).name)
-		self.names.append(uiElement(self.xPosition+0.244,self.yPosition-0.094,text=str(self.unitType.buildTime),textSize=0.00034,textColor="ee ee ee",fontIndex=0).name)
+		self.names.append(uiElement(self.xPosition+0.085,self.yPosition-0.071,textureIndex=texIndex("RED_WOOD_ICON"),width=texWidth("RED_WOOD_ICON")/4.0,height=texHeight("RED_WOOD_ICON")/4.0).name)
+		self.names.append(uiElement(self.xPosition+0.106,self.yPosition-0.092,text=str(self.unitType.researchCostGreen),textSize=0.00038,textColor="ee ee ee",fontIndex=0).name)
+		self.names.append(uiElement(self.xPosition+0.151,self.yPosition-0.071,textureIndex=texIndex("BLUE_WOOD_ICON"),width=texWidth("BLUE_WOOD_ICON")/4.0,height=texHeight("BLUE_WOOD_ICON")/4.0).name)
+		self.names.append(uiElement(self.xPosition+0.172,self.yPosition-0.092,text=str(self.unitType.researchCostBlue),textSize=0.00038,textColor="ee ee ee",fontIndex=0).name)
+		self.names.append(uiElement(self.xPosition+0.221,self.yPosition-0.071,textureIndex=texIndex("TIME_ICON"),width=texWidth("TIME_ICON")/4.0,height=texHeight("TIME_ICON")/4.0).name)
+		self.names.append(uiElement(self.xPosition+0.242,self.yPosition-0.092,text=str(self.unitType.buildTime),textSize=0.00038,textColor="ee ee ee",fontIndex=0).name)
 		if(gameState.getGameMode().selectedNode.unit != None and gameState.getGameMode().selectedNode.unit.isControlled() and gameState.getGameMode().players[gameState.getGameMode().selectedNode.unit.player].redWood >= self.unitType.researchCostGreen and gameState.getGameMode().players[gameState.getGameMode().selectedNode.unit.player].blueWood >= self.unitType.researchCostBlue):
 #		if(gameState.getGameMode().selectedNode.unit != None and gameState.getGameMode().selectedNode.unit.isMeditating and gameState.getGameMode().selectedNode.unit.isControlled()):
 			self.names.append(researchButton(self.xPosition+0.293,self.yPosition-0.068,self.unitType).name)

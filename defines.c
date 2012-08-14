@@ -457,8 +457,8 @@
 #define BLUE_WOOD_ICON_INDEX 93
 
 #define TIME_ICON "assets/timeIcon.png"
-#define TIME_ICON_HEIGHT 16
-#define TIME_ICON_WIDTH 16
+#define TIME_ICON_HEIGHT 64
+#define TIME_ICON_WIDTH 64
 #define TIME_ICON_INDEX 94
 
 #define RESEARCH_BUTTON "assets/researchButton.png"

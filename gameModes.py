@@ -702,14 +702,10 @@ class playMode(tiledGameMode):
 		self.players = gameState.getPlayers()
 #		uiElements.uiElement(0.718,-0.932,textureIndex=texIndex("CHECKBOXES_BACKGROUND"),width=texWidth("CHECKBOXES_BACKGROUND"),height=texHeight("CHECKBOXES_BACKGROUND"))
 #		self.autoSelectCheckBox = uiElements.autoSelectCheckBox(0.735,-0.94)
-
-
-		uiElements.uiElement(0.395,0.985,textureIndex=texIndex("RED_WOOD_ICON"),width=texWidth("RED_WOOD_ICON")/2.0,height=texHeight("RED_WOOD_ICON")/2.0)
+		uiElements.uiElement(0.395,0.985,textureIndex=texIndex("TIME_ICON"),width=texWidth("TIME_ICON")/2.0,height=texHeight("TIME_ICON")/2.0)
 		self.timeToMoveElem = uiElements.uiElement(0.439,0.942,text="",textSize=0.0007)
-
 		uiElements.uiElement(0.595,0.985,textureIndex=texIndex("RED_WOOD_ICON"),width=texWidth("RED_WOOD_ICON")/2.0,height=texHeight("RED_WOOD_ICON")/2.0)
 		self.redWoodUIElem = uiElements.uiElement(0.639,0.942,text=str(self.players[0].redWood),textSize=0.0007)
-
 		uiElements.uiElement(0.755,0.985,textureIndex=texIndex("BLUE_WOOD_ICON"),width=texWidth("BLUE_WOOD_ICON")/2.0,height=texHeight("BLUE_WOOD_ICON")/2.0)
 		self.blueWoodUIElem = uiElements.uiElement(0.799,0.942,text=str(self.players[0].blueWood),textSize=0.0007)
 

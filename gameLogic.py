@@ -26,8 +26,8 @@ from multiprocessing import Process, Queue, Pipe
 #unitBuildSpeed = 0.1
 STARTING_RED_WOOD = 250.0
 STARTING_BLUE_WOOD = 0.0
-STARTING_RED_WOOD = 8000.0
-STARTING_BLUE_WOOD = 8000.0
+#STARTING_RED_WOOD = 8000.0
+#STARTING_BLUE_WOOD = 8000.0
 INITIATIVE_ACTION_DEPLETION = 100.0
 RESOURCE_COLLECTION_RATE = 0.15
 #at RESOURCE_COLLECTION_RATE = 0.15 one gatherer will gather 15 green wood per 100 'ticks'(i.e. the build time of a gatherer)
