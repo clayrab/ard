@@ -540,7 +540,7 @@ class summonerViewer(viewer):
 		viewer.__init__(self,-0.983,0.983,node,width=texWidth("SUMMON_VIEWER_BACKGROUND"),height=texHeight("SUMMON_VIEWER_BACKGROUND"),textureIndex=texIndex("SUMMON_VIEWER_BACKGROUND"))
 		self.node = node
 		self.isSummonerViewer = True
-		self.names.append(summonerUnitsDisplay(self.xPosition+0.012,self.yPosition-0.172,gameState.getAvailableUnitTypes(),node.unit,buildUnitElem).name)
+		self.names.append(summonerUnitsDisplay(self.xPosition+0.012,self.yPosition-0.158,gameState.getAvailableUnitTypes(),node.unit,buildUnitElem).name)
 		researchableUnitTypes = []
 		for unitType in gameState.getResearchProgress():
 			if(unitType.name != "gatherer"):
@@ -713,8 +713,8 @@ class scrollPadElement(uiElement):
 		self.bottomOffset = bottomOffset
 		self.rightOffset = rightOffset
 		self.scrollableElement = scrollableElement
-		self.numScrollableElements = len(self.scrollableElement.textFieldElements) - self.scrollableElement.numFields
-#		self.numScrollableElements = len(self.scrollableElement.textFields) - self.scrollableElement.numFields
+		self.numScrollablePositions = len(self.scrollableElement.textFieldElements) - self.scrollableElement.numFields
+#		self.numScrollablePositions = len(self.scrollableElement.textFields) - self.scrollableElement.numFields
 		self.totalScrollableHeight = self.scrollableElement.height - self.topOffset - self.bottomOffset - self.height
 	def onLeftClickDown(self):
 		self.scrolling = True
@@ -723,17 +723,18 @@ class scrollPadElement(uiElement):
 	def onLeftClickUp(self):
 		self.scrolling = False
 	def onMouseMovement(self):
-		if(self.scrolling):
+		if(self.scrolling and self.numScrollablePositions > 0):
 			self.yPosition = self.initYPos-(2.0*(gameState.getGameMode().mouseY-self.initMouseYPos)/cDefines.defines['SCREEN_HEIGHT'])
 			if(self.yPosition > self.scrollableElement.yPosition - self.topOffset):
 				self.yPosition = self.scrollableElement.yPosition - self.topOffset
 			elif(self.yPosition < self.scrollableElement.yPosition - self.scrollableElement.height + self.height + self.bottomOffset):
 				self.yPosition = self.scrollableElement.yPosition - self.scrollableElement.height + self.height + self.bottomOffset
 				
-			self.scrollableElement.scrollPosition = int((self.numScrollableElements)*(self.scrollableElement.yPosition-self.topOffset-self.yPosition)/self.totalScrollableHeight)
+			self.scrollableElement.scrollPosition = int((self.numScrollablePositions)*(self.scrollableElement.yPosition-self.topOffset-self.yPosition)/self.totalScrollableHeight)
 			self.scrollableElement.hideAndShowTextFields()
 	def setScrollPosition(self,scrollPos):
-		self.yPosition = 0.0-((self.totalScrollableHeight*scrollPos/(self.numScrollableElements))+self.topOffset-self.scrollableElement.yPosition)
+		if(self.numScrollablePositions > 0):
+			self.yPosition = 0.0-((self.totalScrollableHeight*scrollPos/(self.numScrollablePositions))+self.topOffset-self.scrollableElement.yPosition)
 
 class scrollableElement(uiElement):
 	def setYPosition(self,yPos):
@@ -877,21 +878,22 @@ class scrollableTextFieldsElement(uiElement):
 			self.names.append(textFieldElem.name)
 			self.textFieldElements.append(textFieldElem)
 		self.hideAndShowTextFields()
-		if(len(self.textFields) <= self.numFields):
-			self.scrollPadElem = None
-		else:
-			self.scrollPadElem = scrollPadElement(self.xPosition + self.width - texWidth(self.scrollPadTex),self.yPosition,scrollableElement=self,width=texWidth(self.scrollPadTex),height=texHeight(self.scrollPadTex),textureIndex=texIndex(self.scrollPadTex),hidden=True)
-			self.scrollPadElem.onScrollUp = self.onScrollUp
-			self.scrollPadElem.onScrollDown = self.onScrollDown
-			self.names.append(self.scrollPadElem.name)
-			self.scrollPadElem.setScrollPosition(self.scrollPosition)
+		self.scrollPadElem = scrollPadElement(self.xPosition + self.width - texWidth(self.scrollPadTex),self.yPosition,scrollableElement=self,width=texWidth(self.scrollPadTex),height=texHeight(self.scrollPadTex),textureIndex=texIndex(self.scrollPadTex),hidden=True)
+
+#			self.scrollPadElem = None
+#		else:
+#			self.scrollPadElem = scrollPadElement(self.xPosition + self.width - texWidth(self.scrollPadTex),self.yPosition,scrollableElement=self,width=texWidth(self.scrollPadTex),height=texHeight(self.scrollPadTex),textureIndex=texIndex(self.scrollPadTex),hidden=True)
+#		if(len(self.textFields) > self.numFields):
+		self.scrollPadElem.onScrollUp = self.onScrollUp
+		self.scrollPadElem.onScrollDown = self.onScrollDown
+		self.names.append(self.scrollPadElem.name)
+		self.scrollPadElem.setScrollPosition(self.scrollPosition)
 	def hideAndShowTextFields(self):
 		count = 0
 		yPosOffset = 0-self.yPositionOffset
 		for textFieldElement in self.textFieldElements:
-			count = count + 1
 			textFieldElement.setYPosition(self.yPosition+yPosOffset)
-			if(not self.hidden and count < self.numFields + self.scrollPosition + 1 and count > self.scrollPosition - 1):
+			if(not self.hidden and count < self.numFields + self.scrollPosition and count > self.scrollPosition - 1):
 				yPosOffset = yPosOffset - self.lineHeight
 				textFieldElement.hidden = False
 				for name in textFieldElement.names:
@@ -900,6 +902,7 @@ class scrollableTextFieldsElement(uiElement):
 				textFieldElement.hidden = True
 				for name in textFieldElement.names:
 					gameState.getGameMode().elementsDict[name].hidden = True
+			count = count + 1
 	def onScrollUp(self):
 		if(self.scrollPadElem != None):
 			self.scrollPosition = self.scrollPosition - self.scrollSpeed
@@ -925,7 +928,7 @@ class scrollableTextFieldsElement(uiElement):
 
 class summonerUnitsDisplay(scrollableTextFieldsElement):
 	def __init__(self,xPos,yPos,unitTypes,summoner,unitElemClass):
-		scrollableTextFieldsElement.__init__(self,xPos,yPos,[],xPositionOffset=0.01,yPositionOffset=0.035,lineHeight=0.127,numFields=4,scrollPadTex="SCROLL_BAR")
+		scrollableTextFieldsElement.__init__(self,xPos,yPos,[],height=texHeight("QUEUE_BORDER")-0.015,width=texWidth("QUEUE_BORDER"),xPositionOffset=0.01,yPositionOffset=0.014,lineHeight=0.127,numFields=4,scrollPadTex="SCROLL_BAR")
 		self.unitTypes = unitTypes
 		self.summoner = summoner
 		index = 0
@@ -954,8 +957,8 @@ class chatDisplay(scrollableTextFieldsElement):
 				self.currentText = ""
 			self.textFields.append(" ".join(wordTokens[:wordLength]))
 			self.redraw()
-			if(self.scrollPadElem != None and self.scrollPosition <= self.scrollPadElem.numScrollableElements):
-				self.scrollPosition = self.scrollPadElem.numScrollableElements+1
+			if(self.scrollPadElem != None and self.scrollPosition <= self.scrollPadElem.numScrollablePositions):
+				self.scrollPosition = self.scrollPadElem.numScrollablePositions+1
 				self.redraw()
 	def addText(self,text):
 		self.textQueue.put(text)

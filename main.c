@@ -866,7 +866,7 @@ void calculateTranslation(){
     translateXPrev = translateX;
     translateYPrev = translateY;
     if(focusSpeed < focusSpeedMax){
-      focusSpeed = focusSpeed + 0.0001*deltaTicks;
+      focusSpeed = focusSpeed + 0.0003*deltaTicks;
     }
     //focusSpeed = .0500;
     //this block points the focus toward the focus point

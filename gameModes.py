@@ -34,7 +34,6 @@
 #make music/sound volume configurable
 #make screen resolution configurable
 #fix save/load UI
-#make summoned units appear in neighbors, not randomly far away
 #it's very slow/sluggish sometimes. aStar now kills itself if no keepalives are sent... hoping this helps.
 #render less nodes by clipping off edges. do this for picking just around the mouse too.
 
