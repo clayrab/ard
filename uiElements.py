@@ -540,12 +540,12 @@ class summonerViewer(viewer):
 		viewer.__init__(self,-0.983,0.983,node,width=texWidth("SUMMON_VIEWER_BACKGROUND"),height=texHeight("SUMMON_VIEWER_BACKGROUND"),textureIndex=texIndex("SUMMON_VIEWER_BACKGROUND"))
 		self.node = node
 		self.isSummonerViewer = True
-		self.names.append(summonerUnitsDisplay(self.xPosition+0.012,self.yPosition-0.158,gameState.getAvailableUnitTypes(),node.unit,buildUnitElem).name)
+		self.names.append(summonerUnitsDisplay(self.xPosition+0.012,self.yPosition-0.150,gameState.getAvailableUnitTypes(),node.unit,buildUnitElem).name)
 		researchableUnitTypes = []
 		for unitType in gameState.getResearchProgress():
 			if(unitType.name != "gatherer"):
 				researchableUnitTypes.append(unitType)
-		self.names.append(summonerUnitsDisplay(self.xPosition+0.012,self.yPosition-0.758,researchableUnitTypes,node.unit,researchUnitElem).name)
+		self.names.append(summonerUnitsDisplay(self.xPosition+0.012,self.yPosition-0.738,researchableUnitTypes,node.unit,researchUnitElem).name)
 		queuedThings = []
 		if(self.node.unit.researching):
 			queuedThings.append(self.node.unit.researchUnitType)
@@ -554,7 +554,7 @@ class summonerViewer(viewer):
 		for thing in self.node.unit.buildQueue:
 			queuedThings.append(thing)
 		queuedThingElem.firstThing = True
-		self.names.append(summonerUnitsDisplay(self.xPosition+0.012,self.yPosition-1.344,queuedThings,node.unit,queuedThingElem).name)
+		self.names.append(summonerUnitsDisplay(self.xPosition+0.012,self.yPosition-1.324,queuedThings,node.unit,queuedThingElem).name)
 		self.names.append(skipButton(-0.618,-0.922).name)
 		
 class unitTypeResearchViewer(uiElement):
@@ -729,8 +729,7 @@ class scrollPadElement(uiElement):
 				self.yPosition = self.scrollableElement.yPosition - self.topOffset
 			elif(self.yPosition < self.scrollableElement.yPosition - self.scrollableElement.height + self.height + self.bottomOffset):
 				self.yPosition = self.scrollableElement.yPosition - self.scrollableElement.height + self.height + self.bottomOffset
-				
-			self.scrollableElement.scrollPosition = int((self.numScrollablePositions)*(self.scrollableElement.yPosition-self.topOffset-self.yPosition)/self.totalScrollableHeight)
+			self.scrollableElement.scrollPosition = int(float(self.numScrollablePositions)*(self.scrollableElement.yPosition-self.topOffset-self.yPosition+0.001)/self.totalScrollableHeight)
 			self.scrollableElement.hideAndShowTextFields()
 	def setScrollPosition(self,scrollPos):
 		if(self.numScrollablePositions > 0):
