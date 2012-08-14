@@ -428,15 +428,15 @@ class unitTypeViewer(uiElement):
 		if(self.unitType.canFly):
 			self.names.append(uiElement(self.xPosition+0.022,self.yPosition-0.332,text="flying",textSize=0.0005,textColor="ee ed 9b").name)
 		self.names.append(uiElement(self.xPosition+0.022,self.yPosition-0.412,text="red wood cost",textSize=0.0005,textColor="ee ed 9b").name)
-		self.names.append(uiElement(self.xPosition+0.370,self.yPosition-0.412,text=str(self.unitType.costGreen),textSize=0.0005,textColor="ee ed 9b").name)
+		self.names.append(uiElement(self.xPosition+0.370,self.yPosition-0.412,text=str(self.unitType.costRed),textSize=0.0005,textColor="ee ed 9b").name)
 		self.names.append(uiElement(self.xPosition+0.022,self.yPosition-0.452,text="blue wood cost",textSize=0.0005,textColor="ee ed 9b").name)
 		self.names.append(uiElement(self.xPosition+0.370,self.yPosition-0.452,text=str(self.unitType.costBlue),textSize=0.0005,textColor="ee ed 9b").name)
 		self.names.append(uiElement(self.xPosition+0.022,self.yPosition-0.492,text="build time",textSize=0.0005,textColor="ee ed 9b").name)
 		self.names.append(uiElement(self.xPosition+0.370,self.yPosition-0.492,text=str(self.unitType.buildTime),textSize=0.0005,textColor="ee ed 9b").name)
 
-		if(self.unitType.researchCostGreen > 0):
+		if(self.unitType.researchCostRed > 0):
 			self.names.append(uiElement(self.xPosition+0.022,self.yPosition-0.572,text="red wood level cost",textSize=0.0005,textColor="ee ed 9b").name)
-			self.names.append(uiElement(self.xPosition+0.370,self.yPosition-0.572,text=str(self.unitType.researchCostGreen),textSize=0.0005,textColor="ee ed 9b").name)
+			self.names.append(uiElement(self.xPosition+0.370,self.yPosition-0.572,text=str(self.unitType.researchCostRed),textSize=0.0005,textColor="ee ed 9b").name)
 			self.names.append(uiElement(self.xPosition+0.022,self.yPosition-0.612,text="red wood level cost",textSize=0.0005,textColor="ee ed 9b").name)
 			self.names.append(uiElement(self.xPosition+0.370,self.yPosition-0.612,text=str(self.unitType.researchCostBlue),textSize=0.0005,textColor="ee ed 9b").name)
 			self.names.append(uiElement(self.xPosition+0.022,self.yPosition-0.652,text="level research time",textSize=0.0005,textColor="ee ed 9b").name)
@@ -518,7 +518,7 @@ class cityViewer(viewer):
 			self.names.append(uiElement(self.xPosition+0.1,height-0.030,text=unitType.name,textSize=0.00055,textColor="ee ee ee",fontIndex=2).name)
 
 			self.names.append(uiElement(self.xPosition+0.1,height-0.042,textureIndex=texIndex("RED_WOOD_ICON"),width=texWidth("RED_WOOD_ICON"),height=texHeight("RED_WOOD_ICON")).name)
-			self.names.append(uiElement(self.xPosition+0.123,height-0.065,text=str(unitType.costGreen),textSize=0.00040,textColor="ee ee ee",fontIndex=0).name)
+			self.names.append(uiElement(self.xPosition+0.123,height-0.065,text=str(unitType.costRed),textSize=0.00040,textColor="ee ee ee",fontIndex=0).name)
 			self.names.append(uiElement(self.xPosition+0.175,height-0.042,textureIndex=texIndex("BLUE_WOOD_ICON"),width=texWidth("BLUE_WOOD_ICON"),height=texHeight("BLUE_WOOD_ICON")).name)
 			self.names.append(uiElement(self.xPosition+0.198,height-0.065,text=str(unitType.costBlue),textSize=0.00040,textColor="ee ee ee",fontIndex=0).name)
 			self.names.append(uiElement(self.xPosition+0.250,height-0.042,textureIndex=texIndex("TIME_ICON"),width=texWidth("TIME_ICON"),height=texHeight("TIME_ICON")).name)
@@ -654,7 +654,7 @@ class cityEditor(uiElement):
 		height = 0.56
 		for unitType in self.city.unitTypes:
 			self.names.append(uiElement(-0.95,height,text=unitType.name,textSize=0.0005).name)
-			self.names.append(uiElement(-0.75,height,text=str(unitType.costGreen),textSize=0.0005).name)
+			self.names.append(uiElement(-0.75,height,text=str(unitType.costRed),textSize=0.0005).name)
 			if(unitType.name != "summoner" and unitType.name != "gatherer"):
 				self.names.append(removeUnitTypeButton(-0.97,height+0.03,unitType,textureIndex=texIndex("REMOVE_BUTTON_SMALL"),width=texWidth("REMOVE_BUTTON_SMALL"),height=texHeight("REMOVE_BUTTON_SMALL")).name)
 			height = height - 0.04
@@ -750,12 +750,12 @@ class buildUnitElem(scrollableElement):
 		self.names.append(unitTypeViewerButton(self.xPosition+0.009,self.yPosition-0.026,self.unitType,textureIndex=self.unitType.textureIndex,height=0.07,width=0.07).name)
 		self.names.append(uiElement(self.xPosition+0.085,self.yPosition-0.05,text=self.unitType.name+"("+str(gameState.getResearchProgress()[self.unitType][0])+")",textSize=0.0005,textColor="ee ee ee",fontIndex=2).name)
 		self.names.append(uiElement(self.xPosition+0.085,self.yPosition-0.071,textureIndex=texIndex("RED_WOOD_ICON"),width=texWidth("RED_WOOD_ICON")/4.0,height=texHeight("RED_WOOD_ICON")/4.0).name)
-		self.names.append(uiElement(self.xPosition+0.106,self.yPosition-0.092,text=str(gameState.getResearchProgress()[self.unitType][0]*self.unitType.costGreen),textSize=0.00038,textColor="ee ee ee",fontIndex=0).name)
+		self.names.append(uiElement(self.xPosition+0.106,self.yPosition-0.092,text=str(gameState.getResearchProgress()[self.unitType][0]*self.unitType.costRed),textSize=0.00038,textColor="ee ee ee",fontIndex=0).name)
 		self.names.append(uiElement(self.xPosition+0.151,self.yPosition-0.071,textureIndex=texIndex("BLUE_WOOD_ICON"),width=texWidth("BLUE_WOOD_ICON")/4.0,height=texHeight("BLUE_WOOD_ICON")/4.0).name)
 		self.names.append(uiElement(self.xPosition+0.172,self.yPosition-0.092,text=str(gameState.getResearchProgress()[self.unitType][0]*self.unitType.costBlue),textSize=0.00038,textColor="ee ee ee",fontIndex=0).name)
 		self.names.append(uiElement(self.xPosition+0.221,self.yPosition-0.071,textureIndex=texIndex("TIME_ICON"),width=texWidth("TIME_ICON")/4.0,height=texHeight("TIME_ICON")/4.0).name)
 		self.names.append(uiElement(self.xPosition+0.242,self.yPosition-0.092,text=str(self.unitType.buildTime),textSize=0.00038,textColor="ee ee ee",fontIndex=0).name)
-		if(gameState.getGameMode().selectedNode.unit != None and gameState.getGameMode().selectedNode.unit.isControlled() and gameState.getGameMode().players[gameState.getGameMode().getPlayerNumber()].redWood >= (gameState.getResearchProgress()[self.unitType][0]*self.unitType.costGreen) and gameState.getGameMode().players[gameState.getGameMode().getPlayerNumber()].blueWood >= (gameState.getResearchProgress()[unitType][0]*self.unitType.costBlue)):
+		if(gameState.getGameMode().selectedNode.unit != None and gameState.getGameMode().selectedNode.unit.isControlled() and gameState.getGameMode().players[gameState.getGameMode().getPlayerNumber()].redWood >= (gameState.getResearchProgress()[self.unitType][0]*self.unitType.costRed) and gameState.getGameMode().players[gameState.getGameMode().getPlayerNumber()].blueWood >= (gameState.getResearchProgress()[unitType][0]*self.unitType.costBlue)):
 #		if(gameState.getGameMode().selectedNode.unit != None and gameState.getGameMode().selectedNode.unit.isMeditating and gameState.getGameMode().selectedNode.unit.isControlled()):
 			self.names.append(summonButton(self.xPosition+0.293,self.yPosition-0.068,self.unitType).name)
 
@@ -768,12 +768,12 @@ class researchUnitElem(scrollableElement):
 		self.names.append(unitTypeViewerButton(self.xPosition+23.0/cDefines.defines["SCREEN_WIDTH"],self.yPosition-23.0/cDefines.defines["SCREEN_HEIGHT"],self.unitType,textureIndex=self.unitType.textureIndex,height=70.0/cDefines.defines["SCREEN_HEIGHT"],width=70.0/cDefines.defines["SCREEN_WIDTH"]).name)
 		self.names.append(uiElement(self.xPosition+0.085,self.yPosition-0.05,text=self.unitType.name+" lv "+ str(gameState.getResearchProgress()[self.unitType][0]+1),textSize=0.0005,textColor="ee ee ee",fontIndex=2).name)
 		self.names.append(uiElement(self.xPosition+0.085,self.yPosition-0.071,textureIndex=texIndex("RED_WOOD_ICON"),width=texWidth("RED_WOOD_ICON")/4.0,height=texHeight("RED_WOOD_ICON")/4.0).name)
-		self.names.append(uiElement(self.xPosition+0.106,self.yPosition-0.092,text=str(self.unitType.researchCostGreen),textSize=0.00038,textColor="ee ee ee",fontIndex=0).name)
+		self.names.append(uiElement(self.xPosition+0.106,self.yPosition-0.092,text=str(self.unitType.researchCostRed),textSize=0.00038,textColor="ee ee ee",fontIndex=0).name)
 		self.names.append(uiElement(self.xPosition+0.151,self.yPosition-0.071,textureIndex=texIndex("BLUE_WOOD_ICON"),width=texWidth("BLUE_WOOD_ICON")/4.0,height=texHeight("BLUE_WOOD_ICON")/4.0).name)
 		self.names.append(uiElement(self.xPosition+0.172,self.yPosition-0.092,text=str(self.unitType.researchCostBlue),textSize=0.00038,textColor="ee ee ee",fontIndex=0).name)
 		self.names.append(uiElement(self.xPosition+0.221,self.yPosition-0.071,textureIndex=texIndex("TIME_ICON"),width=texWidth("TIME_ICON")/4.0,height=texHeight("TIME_ICON")/4.0).name)
 		self.names.append(uiElement(self.xPosition+0.242,self.yPosition-0.092,text=str(self.unitType.buildTime),textSize=0.00038,textColor="ee ee ee",fontIndex=0).name)
-		if(gameState.getGameMode().selectedNode.unit != None and gameState.getGameMode().selectedNode.unit.isControlled() and gameState.getGameMode().players[gameState.getGameMode().selectedNode.unit.player].redWood >= self.unitType.researchCostGreen and gameState.getGameMode().players[gameState.getGameMode().selectedNode.unit.player].blueWood >= self.unitType.researchCostBlue):
+		if(gameState.getGameMode().selectedNode.unit != None and gameState.getGameMode().selectedNode.unit.isControlled() and gameState.getGameMode().players[gameState.getGameMode().selectedNode.unit.player].redWood >= self.unitType.researchCostRed and gameState.getGameMode().players[gameState.getGameMode().selectedNode.unit.player].blueWood >= self.unitType.researchCostBlue):
 #		if(gameState.getGameMode().selectedNode.unit != None and gameState.getGameMode().selectedNode.unit.isMeditating and gameState.getGameMode().selectedNode.unit.isControlled()):
 			self.names.append(researchButton(self.xPosition+0.293,self.yPosition-0.068,self.unitType).name)
 

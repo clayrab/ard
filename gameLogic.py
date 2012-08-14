@@ -102,7 +102,7 @@ class AIPlayer(Player):
 			
 		gameState.getClient().sendCommand("chooseNextUnit")
 class unitType:
-	def __init__(self,name,textureIndex,movementSpeed,attackSpeed,attackPower,armor,range,health,canFly,canSwim,costGreen,costBlue,buildTime,movementSpeedBonus,researchCostGreen,researchCostBlue,researchTime,canAttackGround=False):
+	def __init__(self,name,textureIndex,movementSpeed,attackSpeed,attackPower,armor,range,health,canFly,canSwim,costRed,costBlue,buildTime,movementSpeedBonus,researchCostRed,researchCostBlue,researchTime,canAttackGround=False):
 		self.name = name
 		self.textureIndex = textureIndex
 		self.movementSpeed = movementSpeed
@@ -113,13 +113,13 @@ class unitType:
 		self.health = health
 		self.canFly = canFly
 		self.canSwim = canSwim
-		self.costGreen = costGreen
+		self.costRed = costRed
 		self.costBlue = costBlue
 		self.buildTime = buildTime
 		self.movementSpeedBonus = movementSpeedBonus
 #		self.armorBonus = armorBonus
 #		self.attackPowerBonus = attackPowerBonus
-		self.researchCostGreen = researchCostGreen
+		self.researchCostRed = researchCostRed
 		self.researchCostBlue = researchCostBlue
 		self.researchTime = researchTime
 		self.canAttackGround = canAttackGround

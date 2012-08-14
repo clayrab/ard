@@ -170,7 +170,7 @@ class Commands:
         tokens = args.split(" ")
         node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
         unitType = gameState.theUnitTypes[tokens[2]]
-        gameState.getGameMode().players[node.unit.player].redWood = gameState.getGameMode().players[node.unit.player].redWood - (gameState.researchProgress[node.unit.player][unitType][0]*unitType.costGreen)
+        gameState.getGameMode().players[node.unit.player].redWood = gameState.getGameMode().players[node.unit.player].redWood - (gameState.researchProgress[node.unit.player][unitType][0]*unitType.costRed)
         
         gameState.getGameMode().players[node.unit.player].blueWood = gameState.getGameMode().players[node.unit.player].blueWood - (gameState.researchProgress[node.unit.player][unitType][0]*unitType.costBlue)
         node.unit.queueUnit(gameLogic.unit(unitType,node.unit.player,node))
@@ -201,10 +201,10 @@ class Commands:
             cancelledQueuedThing = node.unit.buildQueue.pop(index-1)
             node.unit.cancelledUnits.append((cancelledQueuedThing,index,))
             if(hasattr(cancelledQueuedThing,"unitType")):#unit
-                gameState.getGameMode().players[node.unit.player].redWood = gameState.getGameMode().players[node.unit.player].redWood + cancelledQueuedThing.unitType.costGreen
+                gameState.getGameMode().players[node.unit.player].redWood = gameState.getGameMode().players[node.unit.player].redWood + cancelledQueuedThing.unitType.costRed
                 gameState.getGameMode().players[node.unit.player].blueWood = gameState.getGameMode().players[node.unit.player].blueWood + cancelledQueuedThing.unitType.costBlue
             else:#unittype
-                gameState.getGameMode().players[node.unit.player].redWood = gameState.getGameMode().players[node.unit.player].redWood + cancelledQueuedThing.researchCostGreen
+                gameState.getGameMode().players[node.unit.player].redWood = gameState.getGameMode().players[node.unit.player].redWood + cancelledQueuedThing.researchCostRed
                 gameState.getGameMode().players[node.unit.player].blueWood = gameState.getGameMode().players[node.unit.player].blueWood + cancelledQueuedThing.researchCostBlue
         if(gameState.getGameMode().selectedNode == node and hasattr(uiElements.viewer.theViewer,"isSummonerViewer")):
             uiElements.viewer.theViewer.destroy()
@@ -229,7 +229,7 @@ class Commands:
         node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
         unitType = gameState.theUnitTypes[tokens[2]]
         node.unit.queueResearch(unitType)
-        gameState.getGameMode().players[node.unit.player].redWood = gameState.getGameMode().players[node.unit.player].redWood - unitType.researchCostGreen
+        gameState.getGameMode().players[node.unit.player].redWood = gameState.getGameMode().players[node.unit.player].redWood - unitType.researchCostRed
         gameState.getGameMode().players[node.unit.player].blueWood = gameState.getGameMode().players[node.unit.player].blueWood - unitType.researchCostBlue
         node.unit.isMeditating = True
         if(gameState.getGameMode().selectedNode == node and hasattr(uiElements.viewer.theViewer,"isSummonerViewer")):

@@ -13,9 +13,15 @@
 #report game state(to look for cheaters/bugs)
 
 #client:
-#make time/wood numbers bigger
-#show move speed and attack speed
-#icons for green and blue wood
+#change greenwoood to redwood in units/*
+#change spacebar behavior as it relates to summoners
+#fix framerate issue
+#health loss was not showing
+#bug with movepath going straight into a friendly unit
+#dmg numbers showing up for ban but not me
+#add attack sound
+#show move initiative and attack initiative
+#
 #roads? Draw them properly or remove them...
 #handle reconnect... requires ability to save/share game state
 #sound effects
