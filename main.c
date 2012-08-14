@@ -1281,7 +1281,7 @@ static void initGL (){
   //glClearColor(1.0, 1.0, 1.0, 1.0); //sets screen clear color
   //glClearColor(123.0/255.0,126.0/255.0,125.0/255.0,1.0);//grey that matches the UI...
   glEnable(GL_ALPHA_TEST);
-  glAlphaFunc(GL_GREATER,0.01);
+  //  glAlphaFunc(GL_GREATER,0.1);
   glClearDepth(1);//default
   glEnable(GL_DEPTH_TEST);
   glDepthRange(0,1);//default
@@ -1380,14 +1380,14 @@ static void initGL (){
   pngLoad(&texturesArray[BUILD_BUTTON_INDEX],BUILD_BUTTON);
   pngLoad(&texturesArray[UI_CITY_BACKGROUND_INDEX],UI_CITY_BACKGROUND);
   pngLoad(&texturesArray[UI_UNIT_BACKGROUND_INDEX],UI_UNIT_BACKGROUND);
-  pngLoad(&texturesArray[START_SUMMONING_BUTTON_INDEX],START_SUMMONING_BUTTON);
+  pngLoad(&texturesArray[MEDITATE_BUTTON_INDEX],MEDITATE_BUTTON);
   pngLoad(&texturesArray[MOVE_BUTTON_INDEX],MOVE_BUTTON);
   pngLoad(&texturesArray[GREY_PEDESTAL_INDEX],GREY_PEDESTAL);
   pngLoad(&texturesArray[CANCEL_MOVEMENT_BUTTON_INDEX],CANCEL_MOVEMENT_BUTTON);
   pngLoad(&texturesArray[SKIP_BUTTON_INDEX],SKIP_BUTTON);
   pngLoad(&texturesArray[START_GATHERING_BUTTON_INDEX],START_GATHERING_BUTTON);
   pngLoad(&texturesArray[BUILD_BORDER_INDEX],BUILD_BORDER);
-  pngLoad(&texturesArray[GREEN_WOOD_ICON_INDEX],GREEN_WOOD_ICON);
+  pngLoad(&texturesArray[RED_WOOD_ICON_INDEX],RED_WOOD_ICON);
   pngLoad(&texturesArray[BLUE_WOOD_ICON_INDEX],BLUE_WOOD_ICON);
   pngLoad(&texturesArray[TIME_ICON_INDEX],TIME_ICON);
   pngLoad(&texturesArray[RESEARCH_BUTTON_INDEX],RESEARCH_BUTTON);

@@ -5,7 +5,7 @@
 #define zoomSpeed 6.0//lower is faster
 #define focusSpeedMax 0.0500
 
-#define FULL_SCREEN 0
+#define FULL_SCREEN 1
 
 //#define SCREEN_WIDTH 1280
 //#define SCREEN_HEIGHT 960
@@ -411,10 +411,10 @@
 #define UI_UNIT_BACKGROUND_WIDTH 358
 #define UI_UNIT_BACKGROUND_INDEX 84
 
-#define START_SUMMONING_BUTTON "assets/startSummoningButton.png"
-#define START_SUMMONING_BUTTON_HEIGHT 27
-#define START_SUMMONING_BUTTON_WIDTH 147
-#define START_SUMMONING_BUTTON_INDEX 85
+#define MEDITATE_BUTTON "assets/meditateButton.png"
+#define MEDITATE_BUTTON_HEIGHT 40
+#define MEDITATE_BUTTON_WIDTH 136
+#define MEDITATE_BUTTON_INDEX 85
 
 #define MOVE_BUTTON "assets/moveButton.png"
 #define MOVE_BUTTON_HEIGHT 27
@@ -446,14 +446,14 @@
 #define BUILD_BORDER_WIDTH 342
 #define BUILD_BORDER_INDEX 91
 
-#define GREEN_WOOD_ICON "assets/greenWoodIcon.png"
-#define GREEN_WOOD_ICON_HEIGHT 16
-#define GREEN_WOOD_ICON_WIDTH 16
-#define GREEN_WOOD_ICON_INDEX 92
+#define RED_WOOD_ICON "assets/redWoodIcon.png"
+#define RED_WOOD_ICON_HEIGHT 64
+#define RED_WOOD_ICON_WIDTH 64
+#define RED_WOOD_ICON_INDEX 92
 
 #define BLUE_WOOD_ICON "assets/blueWoodIcon.png"
-#define BLUE_WOOD_ICON_HEIGHT 16
-#define BLUE_WOOD_ICON_WIDTH 16
+#define BLUE_WOOD_ICON_HEIGHT 64
+#define BLUE_WOOD_ICON_WIDTH 64
 #define BLUE_WOOD_ICON_INDEX 93
 
 #define TIME_ICON "assets/timeIcon.png"
@@ -549,6 +549,7 @@
 #define CHECK_MARK_CHECKED_WIDTH 26
 #define CHECK_MARK_CHECKED_INDEX 114
 
+//DEPRECATED
 #define CHECKBOXES_BACKGROUND "assets/checkBoxesBackground.png"
 #define CHECKBOXES_BACKGROUND_HEIGHT 34
 #define CHECKBOXES_BACKGROUND_WIDTH 222

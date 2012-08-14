@@ -24,10 +24,10 @@ from multiprocessing import Process, Queue, Pipe
 
 #researchBuildTime = 100
 #unitBuildSpeed = 0.1
-STARTING_GREEN_WOOD = 250.0
+STARTING_RED_WOOD = 250.0
 STARTING_BLUE_WOOD = 0.0
-#STARTING_GREEN_WOOD = 2000.0
-#STARTING_BLUE_WOOD = 1000.0
+STARTING_RED_WOOD = 8000.0
+STARTING_BLUE_WOOD = 8000.0
 INITIATIVE_ACTION_DEPLETION = 100.0
 RESOURCE_COLLECTION_RATE = 0.15
 #at RESOURCE_COLLECTION_RATE = 0.15 one gatherer will gather 15 green wood per 100 'ticks'(i.e. the build time of a gatherer)
@@ -55,7 +55,7 @@ class Player:
 		self.userName = userName
 		self.playerNumber = playerNumber
 		self.isOwnPlayer = False
-		self.greenWood = STARTING_GREEN_WOOD
+		self.redWood = STARTING_RED_WOOD
 		self.blueWood = STARTING_BLUE_WOOD
 		self.hasSummoners = True
 		self.team = (self.playerNumber)/gameState.getTeamSize()
@@ -66,8 +66,8 @@ class NetworkPlayer(Player):
 		Player.__init__(self,playerNumber,userName,None)
 		if(player != None):
 			self.isOwnPlayer = player.isOwnPlayer
-			self.greenWood = player.greenWood
-			self.greenWood = player.greenWood
+			self.redWood = player.redWood
+			self.blueWood = player.blueWood
 			self.team = player.team
 	def dispatchCommand(self,command):
 		try:
@@ -1128,7 +1128,7 @@ def loadGame(saveName):
 					player = gameState.addPlayer(playerNumber=int(tokens[0]),userName=tokens[1],requestHandler=None)
 #					player = gameState.getPlayers()[int(tokens[0])]
 				player.isOwnPlayer = True if tokens[2]=="True" else False
-				player.greenWood = float(tokens[3])
+				player.redWood = float(tokens[3])
 				player.blueWood = float(tokens[4])
 				player.team = int(tokens[5])
 				for researchProgressToken in tokens[7:]:
@@ -1196,7 +1196,7 @@ def saveGame(saveName):
 			lines.append(str(player.playerNumber)+"|")
 			lines.append(str(player.userName)+"|")
 			lines.append(str(player.isOwnPlayer)+"|")
-			lines.append(str(player.greenWood)+"|")
+			lines.append(str(player.redWood)+"|")
 			lines.append(str(player.blueWood)+"|")
 			lines.append(str(player.team)+"|")
 			lines.append(str(player.isAI)+"|")

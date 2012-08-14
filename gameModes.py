@@ -13,15 +13,13 @@
 #report game state(to look for cheaters/bugs)
 
 #client:
-#'start gathering' button for stones
-#rename gatherer?
-#put 'cancel movement' button on summoner screen
+#make time/wood numbers bigger
+#show move speed and attack speed
+#icons for green and blue wood
 #roads? Draw them properly or remove them...
 #handle reconnect... requires ability to save/share game state
 #sound effects
 #mouseover effects
-#show move speed and attack speed
-#icons for green and blue wood
 #healing animation
 #blunt/explosion animation
 #killing host before client not handled well
@@ -36,6 +34,7 @@
 #fix save/load UI
 #it's very slow/sluggish sometimes. aStar now kills itself if no keepalives are sent... hoping this helps.
 #render less nodes by clipping off edges. do this for picking just around the mouse too.
+#rename gatherer
 
 #BUGS
 #deprecate costOfOwnership
@@ -373,7 +372,7 @@ class playMode(tiledGameMode):
 		self.shiftDown = False
 		self.focusing = False
 		self.blueWoodUIElem = None
-		self.greenWoodUIElem = None
+		self.redWoodUIElem = None
 		self.players = []
 		self.focusXPos = 0.0
 		self.focusYPos = 0.0
@@ -384,7 +383,7 @@ class playMode(tiledGameMode):
 		self.previousTicks = 0
 		self.timeToMove = maxTimeToMove
 		self.firstTurn = True
-		self.autoSelect = True
+#		self.autoSelect = True
 		self.gotoMode = False
 		self.playerMissing = False
 		self.missingPlayers = []
@@ -448,7 +447,7 @@ class playMode(tiledGameMode):
 			for unit in self.units:
 				if(unit.unitType.name == "gatherer" and unit.isMeditating and (unit.node.tileValue == cDefines.defines['RED_FOREST_TILE_INDEX'] or unit.node.tileValue == cDefines.defines['BLUE_FOREST_TILE_INDEX'])):
 					if(unit.node.tileValue == cDefines.defines['RED_FOREST_TILE_INDEX']):
-						self.players[unit.player].greenWood = self.players[unit.player].greenWood + gameLogic.RESOURCE_COLLECTION_RATE
+						self.players[unit.player].redWood = self.players[unit.player].redWood + gameLogic.RESOURCE_COLLECTION_RATE
 					elif(unit.node.tileValue == cDefines.defines['BLUE_FOREST_TILE_INDEX']):
 						self.players[unit.player].blueWood = self.players[unit.player].blueWood + gameLogic.RESOURCE_COLLECTION_RATE
 				if(unit.attackPoints > 0.0):
@@ -582,8 +581,8 @@ class playMode(tiledGameMode):
 		else:
 			if(keycode == "`"):
 				self.clickScroll = True
-			elif(keycode == "a" or keycode == "A"):
-				self.autoSelectCheckBox.onClick()
+#			elif(keycode == "a" or keycode == "A"):
+#				self.autoSelectCheckBox.onClick()
 			elif(keycode == "g" or keycode == "G"):
 				if(not self.gotoMode):
 					if(self.selectedNode != None and self.selectedNode.unit != None):
@@ -687,7 +686,7 @@ class playMode(tiledGameMode):
 				gameState.getClient().sendCommand("chooseNextUnit")
 				self.nextUnit = None#prevents this block from firing again
 			if(self.players[self.getPlayerNumber()] != None):
-				self.greenWoodUIElem.text = str(int(math.floor(self.players[self.getPlayerNumber()].greenWood)))
+				self.redWoodUIElem.text = str(int(math.floor(self.players[self.getPlayerNumber()].redWood)))
 				self.blueWoodUIElem.text = str(int(math.floor(self.players[self.getPlayerNumber()].blueWood)))
 			if(self.previousTicks != 0 and self.nextUnit != None and self.nextUnit.isControlled()):
 				self.timeToMove = self.timeToMove - (self.ticks - self.previousTicks)
@@ -701,14 +700,19 @@ class playMode(tiledGameMode):
 			gameMode.onDraw(self,deltaTicks)
 	def addUIElements(self):
 		self.players = gameState.getPlayers()
-		uiElements.uiElement(0.718,-0.932,textureIndex=texIndex("CHECKBOXES_BACKGROUND"),width=texWidth("CHECKBOXES_BACKGROUND"),height=texHeight("CHECKBOXES_BACKGROUND"))
-		self.autoSelectCheckBox = uiElements.autoSelectCheckBox(0.735,-0.94)
-		uiElements.uiElement(0.535,0.980,textureIndex=texIndex("TIME_ICON"),width=texWidth("TIME_ICON"),height=texHeight("TIME_ICON"))
-		self.timeToMoveElem = uiElements.uiElement(0.559,0.957,text="",textSize=0.00045)
-		uiElements.uiElement(0.655,0.980,textureIndex=texIndex("GREEN_WOOD_ICON"),width=texWidth("GREEN_WOOD_ICON"),height=texHeight("GREEN_WOOD_ICON"))
-		self.greenWoodUIElem = uiElements.uiElement(0.679,0.957,text=str(self.players[0].greenWood),textSize=0.00045)
-		uiElements.uiElement(0.775,0.980,textureIndex=texIndex("BLUE_WOOD_ICON"),width=texWidth("BLUE_WOOD_ICON"),height=texHeight("BLUE_WOOD_ICON"))
-		self.blueWoodUIElem = uiElements.uiElement(0.799,0.957,text=str(self.players[0].blueWood),textSize=0.00045)
+#		uiElements.uiElement(0.718,-0.932,textureIndex=texIndex("CHECKBOXES_BACKGROUND"),width=texWidth("CHECKBOXES_BACKGROUND"),height=texHeight("CHECKBOXES_BACKGROUND"))
+#		self.autoSelectCheckBox = uiElements.autoSelectCheckBox(0.735,-0.94)
+
+
+		uiElements.uiElement(0.395,0.985,textureIndex=texIndex("RED_WOOD_ICON"),width=texWidth("RED_WOOD_ICON")/2.0,height=texHeight("RED_WOOD_ICON")/2.0)
+		self.timeToMoveElem = uiElements.uiElement(0.439,0.942,text="",textSize=0.0007)
+
+		uiElements.uiElement(0.595,0.985,textureIndex=texIndex("RED_WOOD_ICON"),width=texWidth("RED_WOOD_ICON")/2.0,height=texHeight("RED_WOOD_ICON")/2.0)
+		self.redWoodUIElem = uiElements.uiElement(0.639,0.942,text=str(self.players[0].redWood),textSize=0.0007)
+
+		uiElements.uiElement(0.755,0.985,textureIndex=texIndex("BLUE_WOOD_ICON"),width=texWidth("BLUE_WOOD_ICON")/2.0,height=texHeight("BLUE_WOOD_ICON")/2.0)
+		self.blueWoodUIElem = uiElements.uiElement(0.799,0.942,text=str(self.players[0].blueWood),textSize=0.0007)
+
 		self.waitingElem = uiElements.uiElement(-0.2,0.93,text="waiting for another player",textColor="ee ed 9b",textSize=0.00055,hidden=True)
 		self.chatDisplay = uiElements.inGameChatDisplay(0.556,0.82)
 		uiElements.openMenuButton(0.99-texWidth("MENU_BUTTON"),0.99)
