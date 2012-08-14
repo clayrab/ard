@@ -494,17 +494,13 @@ class unitViewer(viewer):
 		if(self.node.unit.isMeditating):
 			self.names.append(uiElement(self.xPosition+0.022,self.yPosition-0.450,text="meditating",textSize=0.00055,textColor="ee ed 9b").name)
 		else:
-			height = self.yPosition-0.450
-#			if(self.node.city != None and self.node.unit.unitType.name == "summoner" and not self.node.unit.isMeditating):
-#				self.names.append(startSummoningButton(self.xPosition+0.022,height).name)
-#				height = height - 0.055
-
-			if(len(self.node.unit.movePath) > 0):
-				self.names.append(cancelMovementButton(self.xPosition+0.022,height).name)
-				height = height - 0.055
-			if(self.node.unit == gameState.getGameMode().nextUnit and (gameState.getPlayerNumber() == self.node.unit.player or gameState.getPlayerNumber() == -2)):
-				self.names.append(skipButton(self.xPosition+0.022,height).name)
-				height = height - 0.055
+			height = self.yPosition-1.870
+			if(len(self.node.unit.movePath) > 0 and self.node.unit.isControlled()):
+				self.names.append(cancelMovementButton(self.xPosition+0.126,height).name)
+				height = height + 0.085
+			if(self.node.unit == gameState.getGameMode().nextUnit and self.node.unit.isControlled()):
+				self.names.append(skipButton(self.xPosition+0.310,height).name)
+				height = height + 0.085
 			if(self.node.unit == gameState.getGameMode().nextUnit and self.node.unit.unitType.name == "gatherer" and (self.node.tileValue == cDefines.defines['RED_FOREST_TILE_INDEX'] or self.node.tileValue == cDefines.defines['BLUE_FOREST_TILE_INDEX'] or self.node.city != None)):
 				self.names.append(startGatheringButton(self.xPosition+0.022,height).name)
 				height = height - 0.055		
@@ -555,7 +551,8 @@ class summonerViewer(viewer):
 			queuedThings.append(thing)
 		queuedThingElem.firstThing = True
 		self.names.append(summonerUnitsDisplay(self.xPosition+0.012,self.yPosition-1.324,queuedThings,node.unit,queuedThingElem).name)
-		self.names.append(skipButton(-0.618,-0.922).name)
+		if(gameState.getGameMode().nextUnit == self.node.unit and self.node.unit.isControlled()):
+			self.names.append(skipButton(-0.673,-0.887).name)
 		
 class unitTypeResearchViewer(uiElement):
 	theUnitTypeResearchViewer = None
