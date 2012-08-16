@@ -41,7 +41,7 @@ FIRE_VITALITIY_SPREAD_EFFECT = 0.9
 FIRE_VITALITIY_LIVE_EFFECT = 0.01
 FIRE_ATTACK_POWER = 3.0
 ICE_SPEED = 10
-UNIT_SLIDE_SPEED = 2.00
+UNIT_SLIDE_SPEED = 2.20
 class MODES:
 	MOVE_MODE = 0
 	ATTACK_MODE = 1
@@ -192,7 +192,6 @@ class fire:
 			gameState.getGameMode().elementalEffects.remove(self)
 			self.node.fire = None
 
-slidingUnits = []	
 class unit:
 	def __init__(self,unitType,player,node,level=None):
 		self.unitType = unitType
@@ -228,8 +227,8 @@ class unit:
 			self.xPosDraw = xPos
 			self.yPosDraw = yPos
 		else:
-			if(self.node.visible and not self in slidingUnits):
-				slidingUnits.append(self)
+#			if(self.node.visible):
+#				gameState.getGameMode().animationQueue.put((self,))
 			self.xPos = xPos
 			self.yPos = yPos
 	def slide(self,deltaTicks):
@@ -259,8 +258,6 @@ class unit:
 				self.yPosDraw = self.yPosDraw + (0.00806*UNIT_SLIDE_SPEED*deltaTicks)
 				if(self.yPosDraw > self.yPos):
 					self.yPosDraw = self.yPos
-		if(self.xPosDraw == self.xPos and self.yPosDraw == self.yPos):
-			slidingUnits.remove(self)
 	def stringify(self):
 		retStr = ""
 		retStr = retStr + self.unitType.name+"|"
@@ -309,15 +306,13 @@ class unit:
 		if(self.movePath[0].unit != None):#ran into unit
 			self.movePath = []
 			selectNode(self.node)
-			gameState.getGameMode().doFocus = 1
+#			gameState.getGameMode().doFocus = 1
 		else:
 			node = self.movePath[0]
 			self.movePath = self.movePath[1:]
 			gameState.getClient().sendCommand("moveTo",str(node.xPos) + " " + str(node.yPos))
 			gameState.getClient().sendCommand("chooseNextUnit")
 	def moveTo(self,node):
-#		self.waiting = False
-#		self.gatheringNode = None
 		self.onMovePath = False
 		for neighb in self.node.getNeighbors(5):
 			neighb.stopViewing(self)
@@ -326,17 +321,13 @@ class unit:
 		aStarSearch.parentPipe.send(["unitRemove",self.node.xPos,self.node.yPos])
 		if(node.visible):
 			aStarSearch.parentPipe.send(["unitAdd",node.xPos,node.yPos])
-#			if(not self.isControlled()):
-#				gameState.getGameMode().focus(node)
+			gameState.getGameMode().animationQueue.put((node.xPos,node.yPos,))
+			gameState.getGameMode().animationQueue.put((self,))
 		self.node.unit = None
-#		if(gameState.getGameMode().selectedNode == self.node and self.node.unit.isControlled()):
-#			selectNode(self.node)
 		self.node = node
 		node.unit = self
 		self.movementPoints = self.movementPoints + INITIATIVE_ACTION_DEPLETION
-#		if(gameState.getGameMode().nextUnit.ai == None):
 		gameState.getGameMode().gotoMode = False
-#		selectNode(node)
 	def heal(self,node):
 		gameState.getClient().sendCommand("healTo",str(node.xPos) + " " + str(node.yPos))
 		gameState.getClient().sendCommand("chooseNextUnit")
@@ -549,7 +540,8 @@ class playModeNode(node):
 #		self.aStarKnownCost = 0.0
 #		self.aStarHeuristicCost = 0.0
 #		self.aStarParent = None
-		self.visible = False
+#		self.visible = False
+		self.visible = True
 		self.viewingUnits = []
 		self.fire = None
 		self.ice = None
@@ -586,7 +578,8 @@ class playModeNode(node):
 		if(unit in self.viewingUnits):
 			self.viewingUnits.remove(unit)
 		if(len(self.viewingUnits) <= 0):
-			self.visible = False
+#			self.visible = False
+			self.visible = True
 	def onLeftClickDown(self):
 		if(gameState.getGameMode().doFocus == 0):
 			if(playModeNode.mode == MODES.ATTACK_MODE):
@@ -757,7 +750,7 @@ class aStarThread():
 		while True:
 #			print aStarSearch.keepAliveTime
 			if(time.clock() - aStarSearch.keepAliveTime > 30.0):
-				print 'no keepalives sent, exiting.'
+				print 'no keepalives sent, exiting.\n'
 				sys.exit(0)
 			if(pipe.poll()):
 				data = pipe.recv()

@@ -22,7 +22,7 @@ unitBuildTimes = ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","
 class uiElement:
 #	focusedElem = None
 #	@staticmethod
-#	def setFocused(elem):
+#	def setFocusedElemed(elem):
 #		if(uiElement.focusedElem != None):
 #			uiElement.focusedElem.focused = False
 #		uiElement.focusedElem = elem
@@ -242,7 +242,7 @@ class textInputElement(uiElement):
                                 self.recalculateText = -1
 			
 	def onClick(self):
-#		uiElement.setFocused(self)
+#		uiElement.setFocusedElemed(self)
 		if(gameState.getGameMode().mouseTextPosition >=0):
 			self.cursorPosition = gameState.getGameMode().mouseTextPosition
 		else:
@@ -1332,9 +1332,9 @@ class loginInputElement(textInputElement):
 			for index,elem in enumerate(textInputElement.elements):
 				if(elem.focused):
 					if(index >= len(textInputElement.elements)-1):
-						gameState.getGameMode().setFocus(textInputElement.elements[0])
+						gameState.getGameMode().setFocusedElem(textInputElement.elements[0])
 					else:
-						gameState.getGameMode().setFocus(textInputElement.elements[index+1])
+						gameState.getGameMode().setFocusedElem(textInputElement.elements[index+1])
 					break
 		elif(keycode == "space"):
 			return
@@ -1581,7 +1581,7 @@ class newMapNameInputElement(textInputElement):
 		self.gameMode = gameMode
 	def onKeyDown(self,keycode):
 		if(keycode == "tab"):
-			gameState.getGameMode().setFocus(gameState.getGameMode().mapPlayerCountInputElement)
+			gameState.getGameMode().setFocusedElem(gameState.getGameMode().mapPlayerCountInputElement)
 		else:
 			if(keycode != "return"):
 				textInputElement.onKeyDown(self,keycode)
@@ -1592,7 +1592,7 @@ class newMapPlayerCountInputElement(textInputElement):
 		self.gameMode = gameMode
 	def onKeyDown(self,keycode):
 		if(keycode == "tab"):
-			gameState.getGameMode().setFocus(gameState.getGameMode().mapNameInputElement)
+			gameState.getGameMode().setFocusedElem(gameState.getGameMode().mapNameInputElement)
 		else:
 			if(keycode == "0" or keycode == "1" or keycode == "2" or keycode == "3" or keycode == "4" or keycode == "5" or keycode == "6" or keycode == "7" or keycode == "8" or keycode == "9" or keycode == "backspace"):
 				textInputElement.onKeyDown(self,keycode)
