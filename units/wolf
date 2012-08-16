@@ -7,10 +7,10 @@
 "health":25,
 "canFly":0,
 "canSwim":0,
-"costGreen":30,
+"costRed":30,
 "costBlue":10,
 "buildTime":50,
 "movementSpeedBonus":0,
-"researchCostGreen":60,
+"researchCostRed":60,
 "researchCostBlue":10,
 "researchTime":100}

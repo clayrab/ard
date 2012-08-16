@@ -5,7 +5,7 @@
 #define zoomSpeed 6.0//lower is faster
 #define focusSpeedMax 0.0500
 
-#define FULL_SCREEN 1
+#define FULL_SCREEN 0
 
 //#define SCREEN_WIDTH 1280
 //#define SCREEN_HEIGHT 960
@@ -682,7 +682,7 @@
 #define MOUNTAIN_MOVE_COST 999999.0
 #define WATER_MOVE_COST 4.0
 
-#define SIN60 0.8660
+#define SIN60 0.86602540378
 #define COS60 0.5
 
 #define BUFSIZE 512

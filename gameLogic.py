@@ -41,7 +41,7 @@ FIRE_VITALITIY_SPREAD_EFFECT = 0.9
 FIRE_VITALITIY_LIVE_EFFECT = 0.01
 FIRE_ATTACK_POWER = 3.0
 ICE_SPEED = 10
-UNIT_SLIDE_SPEED = 3.0
+UNIT_SLIDE_SPEED = 2.00
 class MODES:
 	MOVE_MODE = 0
 	ATTACK_MODE = 1
@@ -99,7 +99,6 @@ class AIPlayer(Player):
 			gameState.getClient().sendCommand("moveTo",str(moveToNode.xPos) + " " + str(moveToNode.yPos))
 		else:
 			gameState.getClient().sendCommand("skip")
-			
 		gameState.getClient().sendCommand("chooseNextUnit")
 class unitType:
 	def __init__(self,name,textureIndex,movementSpeed,attackSpeed,attackPower,armor,range,health,canFly,canSwim,costRed,costBlue,buildTime,movementSpeedBonus,researchCostRed,researchCostBlue,researchTime,canAttackGround=False):
@@ -327,16 +326,17 @@ class unit:
 		aStarSearch.parentPipe.send(["unitRemove",self.node.xPos,self.node.yPos])
 		if(node.visible):
 			aStarSearch.parentPipe.send(["unitAdd",node.xPos,node.yPos])
-			gameState.getGameMode().focus(node)
+#			if(not self.isControlled()):
+#				gameState.getGameMode().focus(node)
 		self.node.unit = None
-		if(gameState.getGameMode().selectedNode == self.node):
-			selectNode(self.node)
+#		if(gameState.getGameMode().selectedNode == self.node and self.node.unit.isControlled()):
+#			selectNode(self.node)
 		self.node = node
 		node.unit = self
 		self.movementPoints = self.movementPoints + INITIATIVE_ACTION_DEPLETION
 #		if(gameState.getGameMode().nextUnit.ai == None):
 		gameState.getGameMode().gotoMode = False
-		selectNode(node)
+#		selectNode(node)
 	def heal(self,node):
 		gameState.getClient().sendCommand("healTo",str(node.xPos) + " " + str(node.yPos))
 		gameState.getClient().sendCommand("chooseNextUnit")
@@ -347,7 +347,7 @@ class unit:
 		if(node.unit.health > node.unit.getMaxHealth()):
 			node.unit.health = node.unit.getMaxHealth()
 		gameState.getGameMode().gotoMode = False
-		selectNode(None)
+#		selectNode(None)
 	def attack(self,node):
 		gameState.getClient().sendCommand("attackTo",str(node.xPos) + " " + str(node.yPos))
 		gameState.getClient().sendCommand("chooseNextUnit")
@@ -594,7 +594,7 @@ class playModeNode(node):
 			elif(playModeNode.mode == MODES.HEAL_MODE):
 				gameState.getGameMode().nextUnit.heal(self)
 			elif(playModeNode.mode == MODES.MOVE_MODE):
-				if(gameState.getGameMode().selectedNode != None and gameState.getGameMode().selectedNode.unit != None):
+				if(gameState.getGameMode().selectedNode != None and gameState.getGameMode().selectedNode.unit != None and (self.tileValue != cDefines.defines['MOUNTAIN_TILE_INDEX'] or (self.tileValue == cDefines.defines['MOUNTAIN_TILE_INDEX'] and gameState.getGameMode().selectedNode.unit.unitType.canFly))):
 					if(len(gameState.getGameMode().selectedNode.unit.movePath) > 0):
 						for node in gameState.getGameMode().selectedNode.unit.movePath:
 							node.onMovePath = False
@@ -633,7 +633,7 @@ class playModeNode(node):
 				self.unit != None and not self.unit.isOwnTeam(),#5
 				gameState.getGameMode().selectedNode.unit.unitType.name == "white mage",#6
 				gameState.getGameMode().selectedNode != None and self == gameState.getGameMode().selectedNode,#7
-				self.tileValue == cDefines.defines['MOUNTAIN_TILE_INDEX'],#8
+				self.tileValue == cDefines.defines['MOUNTAIN_TILE_INDEX'],#8(8 and 9 are deprecated)
 				gameState.getGameMode().selectedNode.unit.unitType.canFly,#9
 				playModeNode.isNeighbor,#10
 				gameState.getGameMode().shiftDown,#11
@@ -648,7 +648,8 @@ class playModeNode(node):
 			elif(state[1:7] == (True,True,True,True,False,True)):
 				self.cursorIndex = cDefines.defines['CURSOR_HEAL_INDEX']
 				playModeNode.mode = MODES.HEAL_MODE
-			elif(((not state[4]) and ( (state[2] and state[12]) or (state[1] and state[2] and state[10] and (not state[11])) ) and ( (not state[8]) or (state[6:8] == (True,True)) ) )):
+#			elif(((not state[4]) and ( (state[2] and state[12]) or (state[1] and state[2] and state[10] and (not state[11])) ) and ( (not state[8]) or (state[6:8] == (True,True)) ) )):
+			elif(((not state[4]) and ( (state[2] and state[12]) or (state[1] and state[2] and state[10] and (not state[11])) ) )):
 				#is neighbor or gotoMode and not a mountain or is mountain and canFly
 				self.cursorIndex = cDefines.defines['CURSOR_MOVE_INDEX']
 				playModeNode.mode = MODES.MOVE_MODE

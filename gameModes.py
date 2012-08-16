@@ -13,10 +13,9 @@
 #report game state(to look for cheaters/bugs)
 
 #client:
-#change greenwoood to redwood in units/*
-#change spacebar behavior as it relates to summoners
-#fix framerate issue
-#health loss was not showing
+#make an 'animation queue' that includes unit sliding and focusing. When animation queue is complete, check for nextUnit control and focus on unit. onDraw should be the 'keeper of state' which doles out what is being animated and what is being selected.
+#control focusSpeed from python, use a nicer curve
+#health loss not showing
 #bug with movepath going straight into a friendly unit
 #dmg numbers showing up for ban but not me
 #add attack sound
@@ -38,9 +37,10 @@
 #make music/sound volume configurable
 #make screen resolution configurable
 #fix save/load UI
-#it's very slow/sluggish sometimes. aStar now kills itself if no keepalives are sent... hoping this helps.
-#render less nodes by clipping off edges. do this for picking just around the mouse too.
 #rename gatherer
+#change spacebar behavior as it relates to summoners?
+#fix framerate issue(may have fixed this, with glReadPixel fix, but saw bad framerate again...)
+#render less nodes by clipping off edges. do this for picking just around the mouse too?
 
 #BUGS
 #deprecate costOfOwnership
@@ -517,9 +517,9 @@ class playMode(tiledGameMode):
 							break
 				self.firstTurn = False
 			else:
-				if(self.nextUnit.node.visible):
-					if(self.nextUnit.isControlled() and len(self.nextUnit.movePath) == 0):
-						gameLogic.selectNode(self.nextUnit.node)
+#				if(self.nextUnit.isControlled() and len(self.nextUnit.movePath) == 0):
+				if(self.nextUnit.isControlled()):
+#					gameLogic.selectNode(self.nextUnit.node)
 					self.focus(self.nextUnit.node)
 			if(not self.doFocus):
 				self.doFocus = 1#force onDoneFocusing for AI
@@ -533,13 +533,6 @@ class playMode(tiledGameMode):
 		else:
 			self.waitingElem.hidden = False
 		self.orderUnitsForDrawing()
-#		if(gameState.getGameMode().selectedNode != None and uiElements.viewer.theViewer != None):
-#			if(hasattr(uiElements.viewer.theViewer,"isCityViewer")):
-#				uiElements.viewer.theViewer.destroy()
-#				uiElements.viewer.theViewer = uiElements.cityViewer(gameState.getGameMode().selectedNode)
-#			elif(gameState.getGameMode().selectedNode.unit != None):
-#				uiElements.viewer.theViewer.destroy()
-#				uiElements.viewer.theViewer = uiElements.unitViewer(gameState.getGameMode().selectedNode)
 	def loadSummoners(self):
 		rowCount = 0
 		columnCount = 0
@@ -651,9 +644,9 @@ class playMode(tiledGameMode):
 		if(self.playerMissing):
 			gameMode.onDraw(self,deltaTicks)
 		else:
-			if(not self.doFocus):
-				for unit in gameLogic.slidingUnits:
-					unit.slide(deltaTicks)
+#			if(not self.doFocus):
+			for unit in gameLogic.slidingUnits:
+				unit.slide(deltaTicks)
 #			if(gameLogic.aStarSearch.searchComplete):
 #				with gameLogic.aStarSearch.aStarLock:
 #					gameLogic.playModeNode.movePath = []
@@ -682,7 +675,7 @@ class playMode(tiledGameMode):
 						self.nextUnit.gotoNode = None
 					else:
 						gameLogic.aStarSearch.search(self.nextUnit.gotoNode,self.nextUnit.node,self.nextUnit.unitType.canFly,self.nextUnit.unitType.canSwim)
-				elif(len(self.nextUnit.movePath) > 0 and self.nextUnit.movePath[0].unit == None and len(gameLogic.slidingUnits) == 0 and self.nextUnit.isControlled()):
+				elif(len(self.nextUnit.movePath) > 0 and self.nextUnit.movePath[0].unit == None and len(gameLogic.slidingUnits) == 0 and self.nextUnit.isControlled() and not self.doFocus):
 					print 'move'
 					self.nextUnit.move()
 					self.nextUnit = None#prevents this block from firing again

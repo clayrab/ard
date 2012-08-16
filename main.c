@@ -29,7 +29,7 @@ static SDL_Surface *gScreen;
 
 int clickScroll = 0;
 long doFocus = 0;
-double focusXPos, focusYPos;
+double focusXPos, focusYPos, focusTilesXPos, focusTilesYPos;
 PyObject * pyFocusXPos;
 PyObject * pyFocusYPos;
 int isFocusing = 0;
@@ -41,6 +41,11 @@ int moveUp = 0;
 int moveRight = 0;
 int currentTick = 0;
 int deltaTicks = 0;
+int testTicks = 0;
+int testTicks2 = 0;
+int testTicks3 = 0;
+int testTicks4 = 0;
+int testTicks5 = 0;
 int avgDeltaTicks = 0;
 int totalDeltaTicksDataPoints = 0;
 
@@ -55,7 +60,7 @@ float translateZ = 0.0-initZoom;
 float translateXPrev = 0.0;
 float translateYPrev = 0.0;
 float translateZPrev = 0.0-initZoom;
-//float translateZPrev2 = 0.0;
+float translateZPrev2 = 0.0;
 float scrollSpeed = 0.10;
 
 PyObject * pyPolarity;
@@ -339,6 +344,7 @@ void drawUnit(){
   xPositionUnit = PyFloat_AsDouble(pyXPositionUnit);
   yPositionUnit = PyFloat_AsDouble(pyYPositionUnit);
   //  glTranslatef(xPositionUnit,yPositionUnit,0.0);
+  glTranslatef(xPositionUnit,yPositionUnit,0.1);
   updatePosition();
 
   pyUnitTextureIndex = PyObject_GetAttrString(pyUnitType,"textureIndex");
@@ -623,7 +629,7 @@ void drawCities(){
       glBindTexture(GL_TEXTURE_2D, texturesArray[CITY_INDEX]);
       glCallList(unitList);
       glPopMatrix();
-      //      Py_DECREF(city);
+      Py_DECREF(city);
       Py_DECREF(node);
     }
   }
@@ -656,8 +662,6 @@ void drawUnits(){
       Py_DECREF(pyIsVisible);
 
       glPushMatrix();
-      glTranslatef(xPosition,yPosition,0.1);
-
       if(isVisible){
 	glPushMatrix();
 	drawUnit();
@@ -683,10 +687,10 @@ void drawTiles(){
   if(PyObject_HasAttrString(gameMode,"focusXPos")){
     pyFocusXPos = PyObject_GetAttrString(gameMode,"focusXPos");
     pyFocusYPos = PyObject_GetAttrString(gameMode,"focusYPos");
-    focusXPos = PyLong_AsLong(pyFocusXPos);
-    focusYPos = PyLong_AsLong(pyFocusYPos);
-    focusXPos = translateTilesXToPositionX(0.0-focusXPos,focusYPos);
-    focusYPos = translateTilesYToPositionY(focusYPos);
+    focusTilesXPos = PyLong_AsLong(pyFocusXPos);
+    focusTilesYPos = PyLong_AsLong(pyFocusYPos);
+    focusXPos = translateTilesXToPositionX(0.0-focusTilesXPos,focusTilesYPos);
+    focusYPos = translateTilesYToPositionY(focusTilesYPos);
     Py_DECREF(pyFocusXPos);
     Py_DECREF(pyFocusYPos);
   }
@@ -699,6 +703,9 @@ void drawTiles(){
     rowNumber = rowNumber + 1;
     nodeIterator = PyObject_GetIter(row);
     while(node = PyIter_Next(nodeIterator)) {
+      xPosition = translateTilesXToPositionX(colNumber,rowNumber);
+      yPosition = translateTilesYToPositionY(rowNumber);
+      
       nodeName = PyObject_GetAttrString(node,"name");
       nodeValue = PyObject_CallMethod(node,"getValue",NULL);
       roadValue = PyObject_GetAttrString(node,"roadValue");
@@ -722,8 +729,6 @@ void drawTiles(){
       Py_DECREF(pyIsOnMovePath);
       Py_DECREF(node);
 
-      xPosition = translateTilesXToPositionX(colNumber,rowNumber);
-      yPosition = translateTilesYToPositionY(rowNumber);
       glPushMatrix();
       glTranslatef(xPosition,yPosition,0.0);
 
@@ -755,6 +760,8 @@ float mapRightOffset;
 float mapTopOffset;
 int frameNumber = 0;
 void calculateTranslation(){
+  printf("****** a:    \t%d\n",SDL_GetTicks() - testTicks5); testTicks5 = SDL_GetTicks(); 
+
   pyMapWidth = PyObject_CallMethod(theMap,"getWidth",NULL);//New reference
   pyMapHeight = PyObject_CallMethod(theMap,"getHeight",NULL);//New reference
   mapWidth = PyLong_AsLong(pyMapWidth);
@@ -762,8 +769,11 @@ void calculateTranslation(){
   frameNumber++;
   glPushMatrix();
   if(theMap != Py_None && theMap != NULL){
+    Py_DECREF(pyMapWidth);
+    Py_DECREF(pyMapHeight);
     pyTranslateZ = PyObject_GetAttrString(theMap,"translateZ");
     translateZ = PyFloat_AsDouble(pyTranslateZ);
+    Py_DECREF(pyTranslateZ);
     if(translateX - mapRightOffset < convertedTopRightX
        && translateX - (2.0*SIN60) > convertedBottomLeftX
        && translateY < convertedTopRightY - mapTopOffset
@@ -784,6 +794,8 @@ void calculateTranslation(){
   glTexCoord2f(0.0,1.0); glVertex3f(-1000.0,1000.0,0.0);
   glEnd();
   glPopMatrix();
+  printf("****** b:    \t%d\n",SDL_GetTicks() - testTicks5); testTicks5 = SDL_GetTicks(); 
+  if(translateZ != translateZPrev2){
   if(PyObject_HasAttrString(gameMode,"gameRoomMode")){
     glReadPixels( 7*SCREEN_WIDTH/16, SCREEN_HEIGHT/2, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &mapDepthTest1 );
     glReadPixels( 8*SCREEN_WIDTH/16, SCREEN_HEIGHT/2, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &mapDepthTest2 );
@@ -797,6 +809,9 @@ void calculateTranslation(){
     glReadPixels( 8*SCREEN_WIDTH/16, SCREEN_HEIGHT/2, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &mapDepthTest2 );
     glReadPixels( 9*SCREEN_WIDTH/16, SCREEN_HEIGHT/2, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &mapDepthTest3 );    
   }
+  translateZPrev2 = translateZ;
+  }
+  printf("****** c1:    \t%d\n",SDL_GetTicks() - testTicks5); testTicks5 = SDL_GetTicks(); 
   if(mapDepthTest1 == mapDepthTest2 || mapDepthTest1 == mapDepthTest3){
     mapDepth = mapDepthTest1;
   }else if(mapDepthTest2 == mapDepthTest3){
@@ -804,6 +819,8 @@ void calculateTranslation(){
   }else{
     printf("mapdepth not found%d\n",1);
   }
+  printf("****** c:    \t%d\n",SDL_GetTicks() - testTicks5); testTicks5 = SDL_GetTicks(); 
+
   if(PyObject_HasAttrString(gameMode,"gameRoomMode")){
     convertWindowCoordsToViewportCoords(60.0*SCREEN_WIDTH/SCREEN_BASE_WIDTH,SCREEN_HEIGHT,translateZ,&convertedBottomLeftX,&convertedBottomLeftY,&convertedBottomLeftZ);
     convertWindowCoordsToViewportCoords(1551.5*SCREEN_WIDTH/SCREEN_BASE_WIDTH,0.0,translateZ,&convertedTopRightX,&convertedTopRightY,&convertedTopRightZ);
@@ -817,6 +834,7 @@ void calculateTranslation(){
   mouseMapPosXPrevious = mouseMapPosX;
   mouseMapPosYPrevious = mouseMapPosY;
   convertWindowCoordsToViewportCoords(mouseX,mouseY,translateZ,&mouseMapPosX,&mouseMapPosY,&mouseMapPosZ);  
+  printf("****** d:    \t%d\n",SDL_GetTicks() - testTicks5); testTicks5 = SDL_GetTicks(); 
   if(translateZ > translateZPrev){
     translateX = translateX + mouseMapPosX - mouseMapPosXPrevious;
     translateY = translateY + mouseMapPosY - mouseMapPosYPrevious;
@@ -849,6 +867,7 @@ void calculateTranslation(){
       translateY += scrollSpeed*deltaTicks;
     }
   }
+  printf("****** e:    \t%d\n",SDL_GetTicks() - testTicks5); testTicks5 = SDL_GetTicks(); 
    if(isFocusing){
     //printf("%f %f %f %f\n",translateXPrev,translateX,translateYPrev,translateY);
     if((considerDoneFocusing == 1) && abs(50.0*(translateXPrev - translateX)) == 0 && abs(50.0*(translateYPrev - translateY)) == 0){//this indicates the auto-scrolling code is not allowing us to move any more
@@ -866,7 +885,7 @@ void calculateTranslation(){
     translateXPrev = translateX;
     translateYPrev = translateY;
     if(focusSpeed < focusSpeedMax){
-      focusSpeed = focusSpeed + 0.0003*deltaTicks;
+      focusSpeed = focusSpeed + 0.00010*deltaTicks;
     }
     //focusSpeed = .0500;
     //this block points the focus toward the focus point
@@ -903,6 +922,7 @@ void calculateTranslation(){
 	if(translateY < -focusYPos){translateY = -focusYPos;}
       }
     }
+  printf("****** f:    \t%d\n",SDL_GetTicks() - testTicks5); testTicks5 = SDL_GetTicks(); 
 
   //The following code will adjust translateX/Y so that no off-map area is shown
    //printf("%f\t%f\t%f\n",translateX,mapRightOffset,convertedBottomLeftX);
@@ -920,32 +940,34 @@ void calculateTranslation(){
     }
    }
    if(translateY < convertedTopRightY - mapTopOffset){
-    translateY = convertedTopRightY - mapTopOffset;
-    if(translateY > convertedBottomLeftY+2.0){
-      //prevents shaking issue that occurs when the map is slightly larger than viewable area
-      translateY = (convertedTopRightY-mapTopOffset+convertedBottomLeftY+2.0)/2.0;
-    }
-  }else if(translateY > convertedBottomLeftY+2.0){
-    translateY = convertedBottomLeftY+2.0;
-    if(translateY < convertedTopRightY - mapTopOffset){
-      //prevents shaking issue that occurs when the map is slightly larger than viewable area
-      translateY = (convertedTopRightY-mapTopOffset+convertedBottomLeftY+2.0)/2.0;
-    }
+     translateY = convertedTopRightY - mapTopOffset;
+     if(translateY > convertedBottomLeftY+2.0){
+       //prevents shaking issue that occurs when the map is slightly larger than viewable area
+       translateY = (convertedTopRightY-mapTopOffset+convertedBottomLeftY+2.0)/2.0;
+     }
+   }else if(translateY > convertedBottomLeftY+2.0){
+     translateY = convertedBottomLeftY+2.0;
+     if(translateY < convertedTopRightY - mapTopOffset){
+       //prevents shaking issue that occurs when the map is slightly larger than viewable area
+       translateY = (convertedTopRightY-mapTopOffset+convertedBottomLeftY+2.0)/2.0;
+     }
    }
-  if(theMap != Py_None && theMap != NULL){
-    Py_DECREF(pyMapWidth);
-    Py_DECREF(pyMapHeight);
-  }
+  printf("****** g:    \t%d\n",SDL_GetTicks() - testTicks5); testTicks5 = SDL_GetTicks(); 
 }
 
 void drawBoard(){
   glDepthFunc(GL_LEQUAL);
   glClear(GL_DEPTH_BUFFER_BIT);		 
   if(theMap != Py_None && theMap != NULL){
+    printf("** other:          \t%d\n",SDL_GetTicks() - testTicks3); testTicks3 = SDL_GetTicks(); 
     drawTiles();
+    printf("** drawTiles:      \t%d\n",SDL_GetTicks() - testTicks3); testTicks3 = SDL_GetTicks(); 
     drawSelectionBox();
+    printf("** drawSelectionBox:\t%d\n",SDL_GetTicks() - testTicks3); testTicks3 = SDL_GetTicks(); 
     drawUnits();
+    printf("** drawUnits:      \t%d\n",SDL_GetTicks() - testTicks3); testTicks3 = SDL_GetTicks(); 
     drawCities();
+    printf("** drawCities:      \t%d\n",SDL_GetTicks() - testTicks3); testTicks3 = SDL_GetTicks(); 
   }
 }
 
@@ -1886,6 +1908,7 @@ PyObject * pyChooseNextDelayed;
 int chooseNextDelayed;
 Uint32 chooseNextTimeStart;
 static void draw(){
+
   if(PyObject_HasAttrString(gameMode,"chooseNextDelayed")){
     pyChooseNextDelayed = PyObject_CallMethod(gameMode,"getChooseNextDelayed",NULL);//New reference
     //    printPyStackTrace();
@@ -1908,6 +1931,8 @@ static void draw(){
     Py_DECREF(pyObj);
   }
 
+  printf("**** other:      \t%d\n",SDL_GetTicks() - testTicks2); testTicks2 = SDL_GetTicks(); 
+
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		 
   glSelectBuffer(BUFSIZE,selectBuf);//glSelectBuffer must be issued before selection mode is enabled, and it must not be issued while the rendering mode is GL_SELECT.
 
@@ -1922,7 +1947,9 @@ static void draw(){
   glLoadIdentity();
   glTranslatef(translateX,translateY,translateZ);
   glRenderMode(GL_SELECT);
+  printf("**** selecta:      \t%d\n",SDL_GetTicks() - testTicks2); testTicks2 = SDL_GetTicks(); 
   drawBoard();
+  printf("**** selectb:      \t%d\n",SDL_GetTicks() - testTicks2); testTicks2 = SDL_GetTicks(); 
 
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
@@ -1933,7 +1960,9 @@ static void draw(){
   glLoadIdentity();
 
   hitsCnt = glRenderMode(GL_RENDER);
+  printf("**** selectc:      \t%d\n",SDL_GetTicks() - testTicks2); testTicks2 = SDL_GetTicks(); 
   processTheHits(hitsCnt,selectBuf);
+  printf("**** selectd:      \t%d\n",SDL_GetTicks() - testTicks2); testTicks2 = SDL_GetTicks(); 
   selectedNodeName = selectedName;
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		 
@@ -1942,10 +1971,14 @@ static void draw(){
 
   drawUI();
   hitsCnt = glRenderMode(GL_RENDER);
+  printf("**** selecte:      \t%d\n",SDL_GetTicks() - testTicks2); testTicks2 = SDL_GetTicks(); 
   processTheHits(hitsCnt,selectBuf);
+  printf("**** selectf:      \t%d\n",SDL_GetTicks() - testTicks2); testTicks2 = SDL_GetTicks(); 
   if(selectedName == -1){
     selectedName = selectedNodeName;
   }
+  printf("**** selectg:      \t%d\n",SDL_GetTicks() - testTicks2); testTicks2 = SDL_GetTicks(); 
+  printf("****** other1:    \t%d\n",SDL_GetTicks() - testTicks4); testTicks4 = SDL_GetTicks(); 
 
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
@@ -1956,11 +1989,14 @@ static void draw(){
   calculateTranslation();
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		
   drawBackground();
+  printf("****** other1a:    \t%d\n",SDL_GetTicks() - testTicks4); testTicks4 = SDL_GetTicks(); 
   doViewport();
+  printf("****** other1b:    \t%d\n",SDL_GetTicks() - testTicks4); testTicks4 = SDL_GetTicks(); 
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
   glGetIntegerv(GL_VIEWPORT,viewport);
   gluPerspective(45.0f,(float)viewport[2]/(float)viewport[3],minZoom,maxZoom);
+  printf("****** other1c:    \t%d\n",SDL_GetTicks() - testTicks4); testTicks4 = SDL_GetTicks(); 
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
   glColor3f(0.0,0.0,0.0);
@@ -1971,15 +2007,20 @@ static void draw(){
   glTexCoord2f(0.0,1.0); glVertex3f(-1.0,1.0,-1.01);
   glEnd();
   glTranslatef(translateX,translateY,translateZ);
+  printf("****** other2:    \t%d\n",SDL_GetTicks() - testTicks4); testTicks4 = SDL_GetTicks(); 
   drawBoard();
+  printf("****** drawBoard:\t%d\n",SDL_GetTicks() - testTicks4); testTicks4 = SDL_GetTicks(); 
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
   glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+  printf("****** other3:    \t%d\n",SDL_GetTicks() - testTicks4); testTicks4 = SDL_GetTicks(); 
   drawUI();
+  printf("****** drawUI:   \t%d\n",SDL_GetTicks() - testTicks4); testTicks4 = SDL_GetTicks(); 
   glFlush();
   SDL_GL_SwapBuffers();
+  printf("**** render:      \t%d\n",SDL_GetTicks() - testTicks2); testTicks2 = SDL_GetTicks(); 
 }
 PyObject * pyExit;
 int musicChannel = -2;
@@ -2011,9 +2052,13 @@ static void mainLoop (){
     pyExit = PyObject_GetAttrString(gameMode,"exit");
     done = (pyExit == Py_True);
     deltaTicks = SDL_GetTicks()-currentTick;
+    printf("deltaticks: %d\n",deltaTicks);
     currentTick = SDL_GetTicks();
+    printf("**** other:      \t%d\n",SDL_GetTicks() - testTicks); testTicks = SDL_GetTicks(); 
     handleInput();
+    printf("**** handleInput:\t%d\n",SDL_GetTicks() - testTicks); testTicks = SDL_GetTicks(); 
     draw();
+    printf("**** draw:       \t%d\n",SDL_GetTicks() - testTicks); testTicks = SDL_GetTicks(); 
     
     if(theMap != NULL && theMap != Py_None){
       Py_DECREF(theMap);
