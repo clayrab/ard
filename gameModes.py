@@ -13,10 +13,11 @@
 #report game state(to look for cheaters/bugs)
 
 #client:
-#make an 'animation queue' that includes unit sliding and focusing. When animation queue is complete, check for nextUnit control and focus on unit. onDraw should be the 'keeper of state' which doles out what is being animated and what is being selected.
-#reconcile animationQueue.put and auto .move()
+#move game login into background thread.
+#rewrite testTicks stuff to call a function so i can turn it off in one place.
 #control focusSpeed from python, use a nicer curve
 #health loss not showing
+#make health bar a lot bigger
 #bug with movepath going straight into a friendly unit
 #dmg numbers showing up for ban but not me
 #add attack sound
@@ -674,11 +675,8 @@ class playMode(tiledGameMode):
 					else:
 						gameLogic.aStarSearch.search(self.nextUnit.gotoNode,self.nextUnit.node,self.nextUnit.unitType.canFly,self.nextUnit.unitType.canSwim)
 				elif(len(self.nextUnit.movePath) > 0 and self.nextUnit.movePath[0].unit == None and self.nextUnit.isControlled()):
-					print self.nextUnit
-					print 'move'
 					self.nextUnit.move()
 					self.nextUnit = None#prevents this block from firing again
-#			with client.commandLock:
 			if(self.timeToMove <= 0 and self.nextUnit != None and self.nextUnit.isControlled()):
 				gameState.getClient().sendCommand("skip")
 				gameState.getClient().sendCommand("chooseNextUnit")

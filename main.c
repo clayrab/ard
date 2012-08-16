@@ -41,11 +41,11 @@ int moveUp = 0;
 int moveRight = 0;
 int currentTick = 0;
 int deltaTicks = 0;
-//int testTicks = 0;
-//int testTicks2 = 0;
-//int testTicks3 = 0;
-//int testTicks4 = 0;
-//int testTicks5 = 0;
+int testTicks = 0;
+int testTicks2 = 0;
+int testTicks3 = 0;
+int testTicks4 = 0;
+int testTicks5 = 0;
 int avgDeltaTicks = 0;
 int totalDeltaTicksDataPoints = 0;
 
@@ -434,7 +434,6 @@ void drawUnit(){
       glBindTexture(GL_TEXTURE_2D, texturesArray[SLASH_ANIMATION_INDEX]);
       glColor3f(1.0, 1.0, 1.0);
       float frameNumber = (((currentTick-damageTime)*SLASH_ANIMATION_FRAME_COUNT)/200)%SLASH_ANIMATION_FRAME_COUNT;
-	  
       glBegin(GL_QUADS);	
       glTexCoord2f(1.0,(SLASH_ANIMATION_FRAME_COUNT-frameNumber-1)/SLASH_ANIMATION_FRAME_COUNT); glVertex3f(0.5,-0.5,0.0);
       glTexCoord2f(0.0,(SLASH_ANIMATION_FRAME_COUNT-frameNumber-1)/SLASH_ANIMATION_FRAME_COUNT); glVertex3f(-0.5,-0.5,0.0);
