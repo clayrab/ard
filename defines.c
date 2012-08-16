@@ -5,7 +5,7 @@
 #define zoomSpeed 6.0//lower is faster
 #define focusSpeedMax 0.0500
 
-#define FULL_SCREEN 0
+#define FULL_SCREEN 1
 
 //#define SCREEN_WIDTH 1280
 //#define SCREEN_HEIGHT 960
