@@ -181,6 +181,8 @@ class gameMode:
 		self.mouseX = mouseX
 		self.mouseY = mouseY
 		if(self.elementsDict.has_key(name)):
+			if(hasattr(self.elementsDict[name],"cursorIndex")):
+				gameState.cursorIndex = self.elementsDict[name].cursorIndex
 			if(hasattr(self.elementsDict[name],"onMouseMovement")):
 				self.elementsDict[name].onMouseMovement()
 			elif(hasattr(self.elementWithFocus,"onMouseMovement")):
@@ -780,8 +782,8 @@ class textBasedMenuMode(gameMode):
 		gameMode.__init__(self,args)
 	def handleMouseOver(self,name,isLeftMouseDown):
 		return
-	def handleMouseMovement(self,name,mouseX,mouseY):
-		return
+#	def handleMouseMovement(self,name,mouseX,mouseY):
+#		return
 	def setFocusedElem(self,elem):
 		return
 	def keyDown(self,keycode):

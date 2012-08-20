@@ -464,7 +464,7 @@ class node:
 		self.playerStartValue = playerStartValue
 		self.selected = False
 		self.onMovePath = False
-		self.cursorIndex = -1
+#		self.cursorIndex = -1
 		gameState.getGameMode().elementsDict[self.name] = self
 		self.neighbors = []
 		self.unit = None
@@ -614,7 +614,7 @@ class playModeNode(node):
 			for node in gameState.getGameMode().selectedNode.unit.movePath:
 				node.onMovePath = True
 		if(gameState.getGameMode().doFocus == 1 or gameState.getGameMode().selectedNode == None or gameState.getGameMode().selectedNode.unit == None or gameState.getGameMode().selectedNode.unit.isMeditating or not gameState.getGameMode().selectedNode.unit.isControlled()):
-			self.cursorIndex = cDefines.defines['CURSOR_POINTER_INDEX']
+			gameState.cursorIndex = cDefines.defines['CURSOR_POINTER_INDEX']
 			playModeNode.mode = MODES.SELECT_MODE
 		else:
 			state = (
@@ -633,23 +633,23 @@ class playModeNode(node):
 				gameState.getGameMode().gotoMode,#12
 				)
 			if((not state[0]) or state[7]):
-				self.cursorIndex = cDefines.defines['CURSOR_POINTER_INDEX']
+				gameState.cursorIndex = cDefines.defines['CURSOR_POINTER_INDEX']
 				playModeNode.mode = MODES.SELECT_MODE
 			elif(state[1:7] == (True,True,True,True,True,False)):
-				self.cursorIndex = cDefines.defines['CURSOR_ATTACK_INDEX']
+				gameState.cursorIndex = cDefines.defines['CURSOR_ATTACK_INDEX']
 				playModeNode.mode = MODES.ATTACK_MODE
 			elif(state[1:7] == (True,True,True,True,False,True)):
-				self.cursorIndex = cDefines.defines['CURSOR_HEAL_INDEX']
+				gameState.cursorIndex = cDefines.defines['CURSOR_HEAL_INDEX']
 				playModeNode.mode = MODES.HEAL_MODE
 #			elif(((not state[4]) and ( (state[2] and state[12]) or (state[1] and state[2] and state[10] and (not state[11])) ) and ( (not state[8]) or (state[6:8] == (True,True)) ) )):
 			elif(((not state[4]) and ( (state[2] and state[12]) or (state[1] and state[2] and state[10] and (not state[11])) ) )):
 				#is neighbor or gotoMode and not a mountain or is mountain and canFly
-				self.cursorIndex = cDefines.defines['CURSOR_MOVE_INDEX']
+				gameState.cursorIndex = cDefines.defines['CURSOR_MOVE_INDEX']
 				playModeNode.mode = MODES.MOVE_MODE
 				self.onMovePath = True
 				aStarSearch.search(self,gameState.getGameMode().selectedNode,gameState.getGameMode().selectedNode.unit.unitType.canFly,gameState.getGameMode().selectedNode.unit.unitType.canSwim)
 			else:
-				self.cursorIndex = cDefines.defines['CURSOR_POINTER_INDEX']
+				gameState.cursorIndex = cDefines.defines['CURSOR_POINTER_INDEX']
 				playModeNode.mode = MODES.SELECT_MODE
 	def getNeighbors(self,distance):
 		neighbs = []

@@ -261,7 +261,6 @@ double selectionBoxScale;
 long longName;
 long longValue;
 long longRoadValue;
-long cursorIndex;
 char * cityName;
 PyObject * nextUnit;
 PyObject * pyUnitPlayer;
@@ -289,7 +288,7 @@ struct node{
   char playerStartValue;
   char selected;
   char onMovePath;
-  char cursorIndex;
+  //  char cursorIndex;
   char visible;
 }nodeStruct;
 
@@ -303,9 +302,6 @@ struct map{
 struct map * theMapp;
 
 void loadMap(){
-  pyObj = PyObject_GetAttrString(gameState,"cursorIndex");
-  printf("cursorIndex: %ld\n",PyLong_AsLong(pyObj));
-  Py_DECREF(pyObj);
   
   theMapp = &mapStruct;  
   mapIterator = PyObject_CallMethod(theMap,"getIterator",NULL);  
@@ -598,7 +594,7 @@ void drawUnit(){
 }
 float shading;
 char playerStartVal[2];
-void drawTile(uint tilesXIndex, uint tilesYIndex, long name, long tileValue, long roadValue,char * cityName, long isOnMovePath,long playerStartValue, long cursorIndex){
+void drawTile(uint tilesXIndex, uint tilesYIndex, long name, long tileValue, long roadValue,char * cityName, long isOnMovePath,long playerStartValue){
   textureVertices = vertexArrays[tileValue];
   shading = 1.0;
   if(!isVisible){
@@ -606,9 +602,9 @@ void drawTile(uint tilesXIndex, uint tilesYIndex, long name, long tileValue, lon
   }
   if(name == selectedName){// && !clickScroll){
     shading = shading - 0.3;
-    if(cursorIndex >= 0){
-      theCursorIndex = (int)cursorIndex;
-    }
+    //    if(cursorIndex >= 0){
+    //      theCursorIndex = (int)cursorIndex;
+    //    }
   }
   glColor3f(shading,shading,shading);
   glPushName(name);
@@ -816,7 +812,7 @@ void drawTiles(){
       pyNodeName = PyObject_GetAttrString(pyNode,"name");
       pyNodeValue = PyObject_CallMethod(pyNode,"getValue",NULL);
       pyRoadValue = PyObject_GetAttrString(pyNode,"roadValue");
-      pyCursorIndex = PyObject_GetAttrString(pyNode,"cursorIndex");//New reference
+      //      pyCursorIndex = PyObject_GetAttrString(pyNode,"cursorIndex");//New reference
       pyPlayerStartValue = PyObject_GetAttrString(pyNode,"playerStartValue");//New reference                                 
       pyIsOnMovePath = PyObject_GetAttrString(pyNode,"onMovePath");//New reference
       pyIsVisible = PyObject_GetAttrString(pyNode,"visible");//New reference
@@ -825,13 +821,13 @@ void drawTiles(){
       longName = PyLong_AsLong(pyNodeName);
       longValue = PyLong_AsLong(pyNodeValue);
       longRoadValue = PyLong_AsLong(pyRoadValue);
-      cursorIndex = PyLong_AsLong(pyCursorIndex);
+      //      cursorIndex = PyLong_AsLong(pyCursorIndex);
       playerStartValue = PyLong_AsLong(pyPlayerStartValue);
       isOnMovePath = PyLong_AsLong(pyIsOnMovePath);
       Py_DECREF(pyNodeName);
       Py_DECREF(pyNodeValue);
       Py_DECREF(pyRoadValue);
-      Py_DECREF(pyCursorIndex);
+      //      Py_DECREF(pyCursorIndex);
       Py_DECREF(pyPlayerStartValue);
       Py_DECREF(pyIsOnMovePath);
       Py_DECREF(pyNode);
@@ -839,7 +835,7 @@ void drawTiles(){
       glPushMatrix();
       glTranslatef(xPosition,yPosition,0.0);
 
-      drawTile(colNumber,rowNumber,longName,longValue,longRoadValue,cityName,isOnMovePath,playerStartValue,cursorIndex);
+      drawTile(colNumber,rowNumber,longName,longValue,longRoadValue,cityName,isOnMovePath,playerStartValue);
       glTranslatef(0.0,0.0,0.03);
 
       glPopMatrix();
@@ -1139,7 +1135,7 @@ double height;
 int hidden;
 long name;
 long textureIndex;
-long cursorIndex;
+//long cursorIndex;
 char * text;
 int wordWidth;
 char * queuedText;
@@ -1169,7 +1165,7 @@ void drawUIElement(PyObject * uiElement){
     pyHidden = PyObject_GetAttrString(uiElement,"hidden");
     pyName = PyObject_GetAttrString(uiElement,"name");
     pyTextureIndex = PyObject_GetAttrString(uiElement,"textureIndex");
-    pyCursorIndex = PyObject_GetAttrString(uiElement,"cursorIndex");
+    //    pyCursorIndex = PyObject_GetAttrString(uiElement,"cursorIndex");
     pyText = PyObject_GetAttrString(uiElement,"text");
     pyTextColor = PyObject_GetAttrString(uiElement,"textColor");
     pyTextSize = PyObject_GetAttrString(uiElement,"textSize");
@@ -1190,7 +1186,7 @@ void drawUIElement(PyObject * uiElement){
     hidden = pyHidden==Py_True;
     name = PyLong_AsLong(pyName);
     textureIndex = PyLong_AsLong(pyTextureIndex);
-    cursorIndex = PyLong_AsLong(pyCursorIndex);
+    //    cursorIndex = PyLong_AsLong(pyCursorIndex);
     text = PyString_AsString(pyText);
     textColor = PyString_AsString(pyTextColor);
     textSize = PyFloat_AsDouble(pyTextSize);
@@ -1215,7 +1211,7 @@ void drawUIElement(PyObject * uiElement){
     Py_DECREF(pyHidden);
     Py_DECREF(pyName);
     Py_DECREF(pyTextureIndex);
-    Py_DECREF(pyCursorIndex);
+    //    Py_DECREF(pyCursorIndex);
     Py_DECREF(pyText);
     Py_DECREF(pyTextColor);
     Py_DECREF(pyTextSize);
@@ -1322,9 +1318,9 @@ void drawUIElement(PyObject * uiElement){
 	}
       }
       Py_DECREF(uiElement);
-      if(name == selectedName && cursorIndex >= 0){
-	theCursorIndex = cursorIndex;
-      }
+      //      if(name == selectedName && cursorIndex >= 0){
+      //	theCursorIndex = cursorIndex;
+      //      }
     }
   }
 }
@@ -2008,6 +2004,10 @@ PyObject * pyChooseNextDelayed;
 int chooseNextDelayed;
 Uint32 chooseNextTimeStart;
 static void draw(){
+  theCursorIndex = -1;
+  pyCursorIndex = PyObject_GetAttrString(gameState,"cursorIndex");
+  theCursorIndex = PyLong_AsLong(pyCursorIndex);
+  Py_DECREF(pyCursorIndex);
 
   if(PyObject_HasAttrString(gameMode,"chooseNextDelayed")){
     pyChooseNextDelayed = PyObject_CallMethod(gameMode,"getChooseNextDelayed",NULL);//New reference
@@ -2037,7 +2037,6 @@ static void draw(){
   glSelectBuffer(BUFSIZE,selectBuf);//glSelectBuffer must be issued before selection mode is enabled, and it must not be issued while the rendering mode is GL_SELECT.
 
   doViewport();
-  theCursorIndex = -1;
   glGetIntegerv(GL_VIEWPORT,viewport);
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
