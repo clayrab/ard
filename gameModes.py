@@ -22,6 +22,7 @@
 #dmg numbers showing up for ban but not me
 #add attack sound
 #show move initiative and attack initiative
+#unify fire and ice into unit(i.e. change vitality to 'health'
 #
 #roads? Draw them properly or remove them...
 #handle reconnect... requires ability to save/share game state
@@ -157,7 +158,6 @@ class gameMode:
 		self.musicIndeces = [cDefines.defines["OMAR_1_INDEX"]]
 		self.musicIndex = -1
 		self.restartMusic = False
-		self.showCursor = True
 		self.animationQueue = Queue.Queue()
 		self.currentAnimation = None
 		uiElements.viewer.theViewer = None
@@ -778,7 +778,6 @@ class mapEditorMode(tiledGameMode):
 class textBasedMenuMode(gameMode):
 	def __init__(self,args):
 		gameMode.__init__(self,args)
-#		self.showCursor = False
 	def handleMouseOver(self,name,isLeftMouseDown):
 		return
 	def handleMouseMovement(self,name,mouseX,mouseY):

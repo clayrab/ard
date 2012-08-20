@@ -41,7 +41,7 @@ int moveUp = 0;
 int moveRight = 0;
 int currentTick = 0;
 int deltaTicks = 0;
-int testTicks = 0;
+int testTicks1 = 0;
 int testTicks2 = 0;
 int testTicks3 = 0;
 int testTicks4 = 0;
@@ -65,6 +65,8 @@ float scrollSpeed = 0.10;
 
 PyObject * pyPolarity;
 long mapPolarity;
+PyObject * pyLoaded;
+long mapLoaded;
 
 GLdouble convertedBottomLeftX,convertedBottomLeftY,convertedBottomLeftZ;
 GLdouble convertedTopRightX,convertedTopRightY,convertedTopRightZ;
@@ -222,7 +224,148 @@ float textureHexVertices[6][2] = {
   {1.0,0.25},
   {0.5,0.0}
 };
+
+
+float returnVal;
+float translateTilesXToPositionX(int tileX,int tileY){
+  //return (float)tilesX*-(1.9*SIN60);
+  returnVal = (float)tileX*-(2.0*SIN60);
+  if(abs(tileY)%2 == mapPolarity){
+    returnVal += SIN60;
+  }
+  return returnVal;
+}
+float translateTilesYToPositionY(int tileY){
+  return (float)(tileY*1.5);
+}
+
+int rowNumber;
+PyObject * pyNode;
+PyObject * row;
+PyObject * pyXPosition;
+PyObject * pyYPosition;
+double xPosition;
+double yPosition;
+int colNumber;
+PyObject * nodeIterator;
+PyObject * pyNodeName;
+PyObject * pyNodeValue;
+PyObject * pyRoadValue;
+PyObject * pyCursorIndex;
+PyObject * pyPlayerStartValue;
+PyObject * pyIsOnMovePath;
+PyObject * pyIsVisible;
+long isVisible;
+PyObject * pySelectionBoxScale;
+double selectionBoxScale;
+long longName;
+long longValue;
+long longRoadValue;
+long cursorIndex;
+char * cityName;
+PyObject * nextUnit;
+PyObject * pyUnitPlayer;
+long unitPlayer;
+long playerStartValue;
+long isOnMovePath;
+PyObject * pyUnits;
+PyObject *pyUnitsIter;
+PyObject * pyCities;
+PyObject *pyCitiesIter;
+PyObject * city;
+
+struct unit{
+}unitStruct;
+struct node{
+  struct unit * unit;
+  long name;
+  float xPos;
+  float yPos;
+  char xIndex;
+  char yIndex;
+  char tileValue;
+  //  char pyRoadValue;
+  char city;
+  char playerStartValue;
+  char selected;
+  char onMovePath;
+  char cursorIndex;
+  char visible;
+}nodeStruct;
+
+struct map{
+  struct node * nodes;
+  int polarity;
+  int height;
+  int width;
+  int size;
+}mapStruct;
+struct map * theMapp;
+
+void loadMap(){
+  pyObj = PyObject_GetAttrString(gameState,"cursorIndex");
+  printf("cursorIndex: %ld\n",PyLong_AsLong(pyObj));
+  Py_DECREF(pyObj);
+  
+  theMapp = &mapStruct;  
+  mapIterator = PyObject_CallMethod(theMap,"getIterator",NULL);  
+  pyPolarity = PyObject_GetAttrString(theMap,"polarity");
+  mapPolarity = PyLong_AsLong(pyPolarity);
+  Py_DECREF(pyPolarity);
+  rowIterator = PyObject_GetIter(mapIterator);
+  pyMapWidth = PyObject_CallMethod(theMap,"getWidth",NULL);//New reference
+  theMapp->width = PyLong_AsLong(pyMapWidth);
+  Py_DECREF(pyMapWidth);
+  pyMapHeight = PyObject_CallMethod(theMap,"getHeight",NULL);//New reference
+  theMapp->height = PyLong_AsLong(pyMapHeight);
+  Py_DECREF(pyMapHeight);
+  theMapp->size = theMapp->width*theMapp->height;
+  theMapp->nodes = malloc(theMapp->size*sizeof(nodeStruct));
+  int nodesIndex = 0;
+  while (row = PyIter_Next(rowIterator)) {
+    colNumber = 0;
+    rowNumber = rowNumber + 1;
+    nodeIterator = PyObject_GetIter(row);
+    while(pyNode = PyIter_Next(nodeIterator)) {
+      struct node * theNode = (&(theMapp->nodes[nodesIndex]));
+      theNode->xIndex = colNumber;
+      theNode->yIndex = rowNumber;
+      xPosition = translateTilesXToPositionX(colNumber,rowNumber);
+      yPosition = translateTilesYToPositionY(rowNumber);
+      theNode->xPos = xPosition;
+      theNode->yPos = yPosition;
+      pyNodeName = PyObject_GetAttrString(pyNode,"name");
+      theNode->name = PyLong_AsLong(pyNodeName);
+      Py_DECREF(pyNodeName);
+      pyNodeValue = PyObject_GetAttrString(pyNode,"tileValue");
+      theNode->tileValue = PyLong_AsLong(pyNodeValue);      
+      Py_DECREF(pyNodeValue);
+      pyPlayerStartValue = PyObject_GetAttrString(pyNode,"playerStartValue");
+      theNode->playerStartValue = PyLong_AsLong(pyPlayerStartValue);
+      Py_DECREF(pyPlayerStartValue);
+      pyIsVisible = PyObject_GetAttrString(pyNode,"visible");//New reference
+      theNode->visible = PyLong_AsLong(pyIsVisible);
+      Py_DECREF(pyIsVisible);
+      pyIsOnMovePath = PyObject_GetAttrString(pyNode,"onMovePath");//New reference
+      theNode->onMovePath = PyLong_AsLong(pyIsOnMovePath);
+      Py_DECREF(pyIsOnMovePath);
+      nodesIndex++;
+      colNumber = colNumber - 1;
+    }
+    Py_DECREF(row);
+    Py_DECREF(nodeIterator);
+  }
+  Py_DECREF(rowIterator); 
+  Py_DECREF(mapIterator);
+}
+
+
 /**************************** mouse hover object selection ********************************/
+void testTicks(char * label, long ticksCounter){
+  printf("%s:\t%ld\n",label,SDL_GetTicks() - ticksCounter); ticksCounter = SDL_GetTicks(); 
+//  printf("****** a:    \t%d\n",SDL_GetTicks() - testTicks5); testTicks5 = SDL_GetTicks(); 
+
+}
 GLuint *bufferPtr,*ptrNames, numberOfNames;
 int count;
 int nameValue;
@@ -283,24 +426,11 @@ void convertWindowCoordsToViewportCoords(int x, int y, float z, GLdouble* posX, 
 /**************************** /mouse hover object selection ********************************/
 
 /************************************* drawing subroutines ***************************************/
-float returnVal;
-float translateTilesXToPositionX(int tileX,int tileY){
-  //return (float)tilesX*-(1.9*SIN60);
-  returnVal = (float)tileX*-(2.0*SIN60);
-  if(abs(tileY)%2 == mapPolarity){
-    returnVal += SIN60;
-  }
-  return returnVal;
-}
-float translateTilesYToPositionY(int tileY){
-  return (float)(tileY*1.5);
-}
 
 
 int isNextUnit;
 PyObject * pyFire;
 PyObject * pyIce;
-long isVisible;
 void drawIce(){
   glBindTexture(GL_TEXTURE_2D, texturesArray[ICE_INDEX]);
   glCallList(unitList);
@@ -321,8 +451,6 @@ void drawFire(){
   glPopMatrix();
   
 }
-double xPosition;
-double yPosition;
 PyObject * pyXPositionUnit;
 PyObject * pyYPositionUnit;
 PyObject * pyIsSelected;
@@ -340,7 +468,6 @@ void drawUnit(){
   //  Py_DECREF(pyUnitType);
   pyXPositionUnit = PyObject_GetAttrString(pyUnit,"xPosDraw");
   pyYPositionUnit = PyObject_GetAttrString(pyUnit,"yPosDraw");
-
   xPositionUnit = PyFloat_AsDouble(pyXPositionUnit);
   yPositionUnit = PyFloat_AsDouble(pyYPositionUnit);
   //  glTranslatef(xPositionUnit,yPositionUnit,0.0);
@@ -556,43 +683,12 @@ void drawTilesText(){
   }
   unitNamesCount = 0;*/
 }
-int rowNumber;
-PyObject * node;
-PyObject * row;
-PyObject * pyXPosition;
-PyObject * pyYPosition;
-int colNumber;
-PyObject * nodeIterator;
-PyObject * nodeName;
-PyObject * nodeValue;
-PyObject * roadValue;
-PyObject * pyCursorIndex;
-PyObject * pyPlayerStartValue;
-PyObject * pyIsOnMovePath;
-PyObject * pyIsVisible;
-PyObject * pySelectionBoxScale;
-double selectionBoxScale;
-long longName;
-long longValue;
-long longRoadValue;
-long cursorIndex;
-char * cityName;
-PyObject * nextUnit;
-PyObject * pyUnitPlayer;
-long unitPlayer;
-long playerStartValue;
-long isOnMovePath;
-PyObject * pyUnits;
-PyObject *pyUnitsIter;
-PyObject * pyCities;
-PyObject *pyCitiesIter;
-PyObject * city;
 void drawSelectionBox(){
-  node = PyObject_GetAttrString(gameMode,"selectedNode");
-  if(node != NULL && node != Py_None){
-    pyXPosition = PyObject_GetAttrString(node,"xPos");
+  pyNode = PyObject_GetAttrString(gameMode,"selectedNode");
+  if(pyNode != NULL && pyNode != Py_None){
+    pyXPosition = PyObject_GetAttrString(pyNode,"xPos");
     colNumber = 0-PyLong_AsLong(pyXPosition);
-    pyYPosition = PyObject_GetAttrString(node,"yPos");
+    pyYPosition = PyObject_GetAttrString(pyNode,"yPos");
     rowNumber = PyLong_AsLong(pyYPosition);
     xPosition = translateTilesXToPositionX(colNumber,rowNumber);
     yPosition = translateTilesYToPositionY(rowNumber);
@@ -614,10 +710,10 @@ void drawCities(){
   pyCitiesIter = PyObject_CallMethod(pyCities,"__iter__",NULL);
   if(pyCitiesIter != NULL && pyCitiesIter != Py_None){
     while(city = PyIter_Next(pyCitiesIter)){
-      node = PyObject_GetAttrString(city,"node");
-      pyXPosition = PyObject_GetAttrString(node,"xPos");
+      pyNode = PyObject_GetAttrString(city,"node");
+      pyXPosition = PyObject_GetAttrString(pyNode,"xPos");
       colNumber = 0-PyLong_AsLong(pyXPosition);
-      pyYPosition = PyObject_GetAttrString(node,"yPos");
+      pyYPosition = PyObject_GetAttrString(pyNode,"yPos");
       rowNumber = PyLong_AsLong(pyYPosition);
       xPosition = translateTilesXToPositionX(colNumber,rowNumber);
       yPosition = translateTilesYToPositionY(rowNumber);
@@ -629,7 +725,7 @@ void drawCities(){
       glCallList(unitList);
       glPopMatrix();
       Py_DECREF(city);
-      Py_DECREF(node);
+      Py_DECREF(pyNode);
     }
   }
 }
@@ -639,10 +735,10 @@ void drawUnits(){
   pyUnitsIter = PyObject_CallMethod(pyUnits,"__iter__",NULL);
   if(pyUnitsIter != NULL && pyUnitsIter != Py_None){
     while(pyUnit = PyIter_Next(pyUnitsIter)){
-      node = PyObject_GetAttrString(pyUnit,"node");
-      pyXPosition = PyObject_GetAttrString(node,"xPos");
+      pyNode = PyObject_GetAttrString(pyUnit,"node");
+      pyXPosition = PyObject_GetAttrString(pyNode,"xPos");
       colNumber = 0-PyLong_AsLong(pyXPosition);
-      pyYPosition = PyObject_GetAttrString(node,"yPos");
+      pyYPosition = PyObject_GetAttrString(pyNode,"yPos");
       rowNumber = PyLong_AsLong(pyYPosition);
       xPosition = translateTilesXToPositionX(colNumber,rowNumber);
       yPosition = translateTilesYToPositionY(rowNumber);
@@ -654,9 +750,9 @@ void drawUnits(){
       if(nextUnit != NULL){
       	Py_DECREF(nextUnit);
       }
-      pyFire = PyObject_GetAttrString(node,"fire");
-      pyIce = PyObject_GetAttrString(node,"ice");
-      pyIsVisible = PyObject_GetAttrString(node,"visible");//New reference
+      pyFire = PyObject_GetAttrString(pyNode,"fire");
+      pyIce = PyObject_GetAttrString(pyNode,"ice");
+      pyIsVisible = PyObject_GetAttrString(pyNode,"visible");//New reference
       isVisible = PyLong_AsLong(pyIsVisible);
       Py_DECREF(pyIsVisible);
 
@@ -672,7 +768,7 @@ void drawUnits(){
       if(pyFire != NULL && pyFire != Py_None && isVisible){
 	drawFire();
       }  
-      Py_DECREF(node);
+      Py_DECREF(pyNode);
       Py_DECREF(pyUnit);      
     }
     Py_DECREF(pyUnitsIter);
@@ -693,7 +789,19 @@ void drawTiles(){
     Py_DECREF(pyFocusXPos);
     Py_DECREF(pyFocusYPos);
   }
-  mapIterator = PyObject_CallMethod(theMap,"getIterator",NULL);
+  pyLoaded = PyObject_CallMethod(theMap,"getLoaded",NULL);
+  mapLoaded = PyLong_AsLong(pyLoaded);
+  if(mapLoaded){
+    loadMap();
+  }
+  //  printf("*********************************: %d\n",theMapp->size);
+  int index;
+  for(index = 0;index < theMapp->size;index++){
+    struct node * theNode = &(theMapp->nodes[index]);
+    //    printf("xIndex: %d\n",theNode->xIndex);
+  }
+  Py_DECREF(pyLoaded);
+  mapIterator = PyObject_CallMethod(theMap,"getIterator",NULL);  
   pyPolarity = PyObject_GetAttrString(theMap,"polarity");
   mapPolarity = PyLong_AsLong(pyPolarity);
   rowIterator = PyObject_GetIter(mapIterator);
@@ -701,32 +809,32 @@ void drawTiles(){
     colNumber = 0;
     rowNumber = rowNumber + 1;
     nodeIterator = PyObject_GetIter(row);
-    while(node = PyIter_Next(nodeIterator)) {
+    while(pyNode = PyIter_Next(nodeIterator)) {
       xPosition = translateTilesXToPositionX(colNumber,rowNumber);
       yPosition = translateTilesYToPositionY(rowNumber);
       
-      nodeName = PyObject_GetAttrString(node,"name");
-      nodeValue = PyObject_CallMethod(node,"getValue",NULL);
-      roadValue = PyObject_GetAttrString(node,"roadValue");
-      pyCursorIndex = PyObject_GetAttrString(node,"cursorIndex");//New reference
-      pyPlayerStartValue = PyObject_GetAttrString(node,"playerStartValue");//New reference                                 
-      pyIsOnMovePath = PyObject_GetAttrString(node,"onMovePath");//New reference
-      pyIsVisible = PyObject_GetAttrString(node,"visible");//New reference
+      pyNodeName = PyObject_GetAttrString(pyNode,"name");
+      pyNodeValue = PyObject_CallMethod(pyNode,"getValue",NULL);
+      pyRoadValue = PyObject_GetAttrString(pyNode,"roadValue");
+      pyCursorIndex = PyObject_GetAttrString(pyNode,"cursorIndex");//New reference
+      pyPlayerStartValue = PyObject_GetAttrString(pyNode,"playerStartValue");//New reference                                 
+      pyIsOnMovePath = PyObject_GetAttrString(pyNode,"onMovePath");//New reference
+      pyIsVisible = PyObject_GetAttrString(pyNode,"visible");//New reference
       isVisible = PyLong_AsLong(pyIsVisible);
       Py_DECREF(pyIsVisible);
-      longName = PyLong_AsLong(nodeName);
-      longValue = PyLong_AsLong(nodeValue);
-      longRoadValue = PyLong_AsLong(roadValue);
+      longName = PyLong_AsLong(pyNodeName);
+      longValue = PyLong_AsLong(pyNodeValue);
+      longRoadValue = PyLong_AsLong(pyRoadValue);
       cursorIndex = PyLong_AsLong(pyCursorIndex);
       playerStartValue = PyLong_AsLong(pyPlayerStartValue);
       isOnMovePath = PyLong_AsLong(pyIsOnMovePath);
-      Py_DECREF(nodeName);
-      Py_DECREF(nodeValue);
-      Py_DECREF(roadValue);
+      Py_DECREF(pyNodeName);
+      Py_DECREF(pyNodeValue);
+      Py_DECREF(pyRoadValue);
       Py_DECREF(pyCursorIndex);
       Py_DECREF(pyPlayerStartValue);
       Py_DECREF(pyIsOnMovePath);
-      Py_DECREF(node);
+      Py_DECREF(pyNode);
 
       glPushMatrix();
       glTranslatef(xPosition,yPosition,0.0);
@@ -759,7 +867,6 @@ float mapRightOffset;
 float mapTopOffset;
 int frameNumber = 0;
 void calculateTranslation(){
-//  printf("****** a:    \t%d\n",SDL_GetTicks() - testTicks5); testTicks5 = SDL_GetTicks(); 
 
   pyMapWidth = PyObject_CallMethod(theMap,"getWidth",NULL);//New reference
   pyMapHeight = PyObject_CallMethod(theMap,"getHeight",NULL);//New reference
@@ -793,7 +900,6 @@ void calculateTranslation(){
   glTexCoord2f(0.0,1.0); glVertex3f(-1000.0,1000.0,0.0);
   glEnd();
   glPopMatrix();
-//  printf("****** b:    \t%d\n",SDL_GetTicks() - testTicks5); testTicks5 = SDL_GetTicks(); 
   if(translateZ != translateZPrev2){
   if(PyObject_HasAttrString(gameMode,"gameRoomMode")){
     glReadPixels( 7*SCREEN_WIDTH/16, SCREEN_HEIGHT/2, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &mapDepthTest1 );
@@ -1227,14 +1333,9 @@ float yPos;
 float pointerWidth;
 float pointerHeight;
 char frameRate[20];
-PyObject * pyShowCursor;
-int showCursor = 0;
 void drawUI(){
   glDepthFunc(GL_ALWAYS);
   pyObj = PyObject_CallMethod(gameMode,"getUIElementsIterator",NULL);
-  pyShowCursor = PyObject_GetAttrString(gameMode, "showCursor");//New reference
-  showCursor = PyLong_AsLong(pyShowCursor);
-  Py_DECREF(pyShowCursor);
   if(pyObj != NULL){
     UIElementsIterator = PyObject_GetIter(pyObj);//New reference
     while (uiElement = PyIter_Next(UIElementsIterator)) {
@@ -1244,7 +1345,7 @@ void drawUI(){
     Py_DECREF(pyObj);
   }
   glGetIntegerv(GL_RENDER_MODE,&bufRenderMode);
-  if(bufRenderMode==GL_RENDER && showCursor){//need to hide the cursor during GL_SELECT
+  if(bufRenderMode==GL_RENDER){//need to hide the cursor during GL_SELECT
     /*draw cursor*/
     glPushMatrix();
     glLoadIdentity();
