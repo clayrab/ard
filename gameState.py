@@ -215,3 +215,6 @@ def reevalAvailableUnitTypes():
 					researchProgress[unit.player][unitType] = [1,0]
 global cursorIndex
 cursorIndex = -2
+
+global movePath
+movePath = []

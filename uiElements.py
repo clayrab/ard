@@ -348,8 +348,9 @@ class cancelMovementButton(clickableElement):
 	def __init__(self,xPos,yPos):
 		clickableElement.__init__(self,xPos,yPos,height=texHeight('CANCEL_MOVEMENT_BUTTON'),width=texWidth('CANCEL_MOVEMENT_BUTTON'),textureIndex=texIndex('CANCEL_MOVEMENT_BUTTON'))
 	def onClick(self):
-		for pathNode in gameState.getGameMode().selectedNode.unit.movePath:
-			pathNode.onMovePath = False
+		gameState.movePath = []
+#		for pathNode in gameState.getGameMode().selectedNode.unit.movePath:
+#			pathNode.onMovePath = False
 		gameState.getGameMode().selectedNode.unit.movePath = []
 #		if(gameState.getGameMode().nextUnit != None and gameState.getGameMode().nextUnit.isControlled()):
 #			gameLogic.selectNode(gameState.getGameMode().nextUnit.node)

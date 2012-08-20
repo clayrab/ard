@@ -648,14 +648,16 @@ class playMode(tiledGameMode):
 			else:
 				self.selectionBoxScale = 0.0
 			if(gameLogic.aStarSearch.parentPipe.poll()):
-				for node in gameLogic.playModeNode.movePath:
-					node.onMovePath = False
-				gameLogic.playModeNode.movePath = []
+#				for node in gameLogic.playModeNode.movePath:
+#					node.onMovePath = False
+#				gameLogic.playModeNode.movePath = []
+				gameState.movePath = []
 				data = gameLogic.aStarSearch.parentPipe.recv()
 				for arr in data:
 					node = gameState.getGameMode().map.nodes[arr[1]][arr[0]]
 					gameLogic.playModeNode.movePath.append(node)
-					node.onMovePath = True
+					gameState.movePath.append(node)
+#					node.onMovePath = True
 			if(self.currentAnimation == None):
 				if(not self.animationQueue.empty()):
 					self.currentAnimation = self.animationQueue.get()
