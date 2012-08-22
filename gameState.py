@@ -6,6 +6,7 @@ import gameLogic
 import threading
 import server
 import json
+import Queue
 
 #class gameState:
 	
@@ -218,3 +219,6 @@ cursorIndex = -2
 
 global movePath
 movePath = []
+
+global animQueue
+animQueue = Queue.Queue()

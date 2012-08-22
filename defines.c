@@ -27,6 +27,14 @@
 
 #define AUTO_CHOOSE_NEXT_DELAY 1500
 
+#define MAP_POSITION_FULL 0
+#define MAP_POSITION_LEFT 1
+#define MAP_POSITION_RIGHT 2
+
+#define ANIMATION_UNIT_SLIDE 0
+#define ANIMATION_AUTO_FOCUS 1
+#define ANIMATION_DAMAGE 2
+
 #define TILES "assets/tiles2.png"
 #define UI "assets/UI.png"
 #define TILE_SELECT_BOX "assets/tileSelect.png"

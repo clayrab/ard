@@ -6,7 +6,7 @@
 #		self.nextName = self.nextName + 1
 #		return self.nextName
 
-nextName = 500#going to use the first 500 names for text
+nextName = 5000#going to use the first 5000 names for text
 def getNextName():
     global nextName
     nextName = nextName + 1

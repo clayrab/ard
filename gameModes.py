@@ -13,6 +13,19 @@
 #report game state(to look for cheaters/bugs)
 
 #client:
+#
+#unit position, health, add/remove
+#node visiblity
+#text left and right char position
+#
+#zooming can just be handled in C? 
+#
+#animation control is going to have to change. Py should just send animations to the c and c should fire an onDoneAnimating event. autofocus, sliding units, damaging units, selection box animation.
+#
+#refactor uiElement drawing. refactor unit drawing. make callback list in C. make changes list in python. 
+#
+#
+#replace PyObject_CallMethod with PyObject_CallMethodObjArgs where possible
 #move game login into background thread.
 #rewrite testTicks stuff to call a function so i can turn it off in one place.
 #control focusSpeed from python, use a nicer curve
@@ -116,6 +129,7 @@ import uiElements
 import client
 import gameFindClient
 import server
+import animations
 import Queue
 from textureFunctions import texWidth, texHeight, texIndex
 import pdb
@@ -159,7 +173,7 @@ class gameMode:
 		self.musicIndex = -1
 		self.restartMusic = False
 		self.animationQueue = Queue.Queue()
-		self.currentAnimation = None
+#		self.currentAnimation = None
 		uiElements.viewer.theViewer = None
 	def __dealloc__(self):
 		print '**** dealloc gamemode ****'
@@ -306,7 +320,7 @@ class gameMode:
 		if(transZ > self.maxTranslateZ):
 			self.maxTranslateZ = transZ
 		self.map.translateZ = transZ
-	def onDraw(self,deltaTicks):
+	def onDraw(self,deltaTicks,isAnimating):
 		gameLogic.aStarSearch.keepAlive()
 		if(self.scrolledDistance != 0.0):
 			self.map.translateZ = self.map.translateZ + self.scrolledDistance*deltaTicks
@@ -330,12 +344,20 @@ class tiledGameMode(gameMode):
 		gameMode.__init__(self)
 		self.doFocus = 0
 		self.doFocusTemp = 0
+		self.focused = False
+	def focus(self):
+		self.focused = True
+		self.animationQueue.put((int(len(self.map.nodes[0])/2),int(len(self.map.nodes)/2),))
+		gameState.animQueue.put(animations.autoFocusAnimation(int(len(self.map.nodes[0])/2),int(len(self.map.nodes)/2)))
+		
 	def getFocusNextUnit(self):
 		return self.doFocus
 #		self.doFocusTemp = self.doFocus
 #		self.doFocus = 0
 #		return self.doFocusTemp
-	def onDoneFocusing(self):
+	def onDoneAnimating(self):
+		return
+		print 'on done animating'
 		if(hasattr(self,"nextUnit") and self.nextUnit != None and self.nextUnit.isControlled() and len(self.nextUnit.movePath) == 0 and self.animationQueue.empty()):
 			self.soundIndeces.append(cDefines.defines["FINGER_CYMBALS_HIT_INDEX"])
 			gameLogic.selectNode(self.nextUnit.node)
@@ -343,7 +365,21 @@ class tiledGameMode(gameMode):
 				self.selectionBoxTicks = self.ticks
 				self.selectionBoxScale = 0.0
 				self.selectionBoxScalePrev = 0.0
-		self.currentAnimation = None
+
+#			if(self.nextUnit != None and self.currentAnimation == None):
+				#merge this block into onDoneFocusing and rename to onDoneAnimating
+#				if(self.nextUnit.gotoNode != None):
+#					if(len(gameLogic.playModeNode.movePath) > 0 and gameLogic.playModeNode.movePath[0] in self.nextUnit.node.neighbors and gameLogic.playModeNode.movePath[-1] == self.nextUnit.gotoNode):
+#						self.nextUnit.movePath = gameLogic.playModeNode.movePath
+#						self.nextUnit.gotoNode = None
+#					else:
+#						gameLogic.aStarSearch.search(self.nextUnit.gotoNode,self.nextUnit.node,self.nextUnit.unitType.canFly,self.nextUnit.unitType.canSwim)
+#				elif(len(self.nextUnit.movePath) > 0 and self.nextUnit.movePath[0].unit == None and self.nextUnit.isControlled()):
+#					self.nextUnit.move()
+#					self.nextUnit = None#prevents this block from firing again
+
+
+#		self.currentAnimation = None
 		self.doFocus = 0
 		if(hasattr(self,"mousedOverObject") and hasattr(gameState.getGameMode().mousedOverObject,"toggleCursor")):
 			self.mousedOverObject.toggleCursor()
@@ -380,6 +416,7 @@ class playMode(tiledGameMode):
 		self.summoners = []
 		self.elementalEffects = []
 		self.nextUnit = None
+		self.selectedNextUnit = False
 		self.shiftDown = False
 		self.focusing = False
 		self.blueWoodUIElem = None
@@ -402,6 +439,7 @@ class playMode(tiledGameMode):
 		self.restartMusic = True
 	def focus(self,node):
 		self.animationQueue.put((node.xPos,node.yPos,))
+		gameState.animQueue.put(animations.autoFocusAnimation(node.xPos,node.yPos))
 	def getChooseNextDelayed(self):
 		if(self.chooseNextDelayed):
 			retVal = self.chooseNextDelayed
@@ -426,6 +464,7 @@ class playMode(tiledGameMode):
 	def orderUnitsForDrawing(self):
 		self.units.sort(key=self.unitDrawingComparater)
 	def chooseNextUnit(self):
+		self.selectedNextUnit = False
 		winner = None
 		for player in self.players:
 			if(player != None):
@@ -503,13 +542,14 @@ class playMode(tiledGameMode):
 			for unit in self.units:#add movementpoints to each unit
 				#unit.movementPoints = unit.movementPoints + (gameLogic.INITIATIVE_ACTION_DEPLETION/5.0)
 				unit.skip()
-			if(gameState.getPlayerNumber() <= 1):
+			if(gameState.getPlayerNumber() == 0):
 				self.chooseNextDelayed = True
 			self.nextUnit = None
 		else:
 			self.nextUnit = random.choice(eligibleUnits)
 		if(self.nextUnit != None and self.nextUnit.isControlled()):
 			self.animationQueue.put((self.nextUnit.node.xPos,self.nextUnit.node.yPos,))
+			gameState.animQueue.put(animations.autoFocusAnimation(self.nextUnit.node.xPos,self.nextUnit.node.yPos))
 			self.waitingElem.hidden = True
 			self.timeToMove = self.timeToMove + 5000
 			if(self.timeToMove > maxTimeToMove):
@@ -558,7 +598,8 @@ class playMode(tiledGameMode):
 		if(keycode == "left shift" or keycode == "right shift"):
 			self.shiftDown = True
 		if(keycode == "space"):
-			if(self.nextUnit != None and self.nextUnit.isControlled() and self.selectedNode != self.nextUnit.node):
+			if(self.nextUnit != None and self.nextUnit.isControlled()):
+				print 'space'
 				gameLogic.selectNode(self.nextUnit.node)
 				self.focus(self.nextUnit.node)
 			elif(self.nextUnit != None and self.nextUnit.isControlled()):
@@ -628,10 +669,22 @@ class playMode(tiledGameMode):
 			else:
 				number = 1
 		return number
-	def onDraw(self,deltaTicks):
-		if(self.playerMissing):
-			gameMode.onDraw(self,deltaTicks)
-		else:
+	def onDraw(self,deltaTicks,isAnimating):
+		gameMode.onDraw(self,deltaTicks,isAnimating)
+		if((not isAnimating) and self.nextUnit != None and self.nextUnit.ai != None):
+			self.nextUnit.ai.takeTurn()
+		if((not isAnimating) and gameState.animQueue.empty() and self.nextUnit != None and not self.selectedNextUnit and self.nextUnit.isControlled() and len(self.nextUnit.movePath) == 0 and self.selectedNode != self.nextUnit.node):
+			self.selectedNextUnit = True
+			self.soundIndeces.append(cDefines.defines["FINGER_CYMBALS_HIT_INDEX"])
+			gameLogic.selectNode(self.nextUnit.node)
+			if(len(self.nextUnit.movePath) == 0):
+				self.selectionBoxTicks = self.ticks
+				self.selectionBoxScale = 0.0
+				self.selectionBoxScalePrev = 0.0
+
+#		if(self.playerMissing):
+#			gameMode.onDraw(self,deltaTicks,isAnimating)
+		if(not self.playerMissing):
 			if(self.ticks - self.selectionBoxTicks < 2000):
 				max = 1.0
 				retVal = 0.0
@@ -658,29 +711,18 @@ class playMode(tiledGameMode):
 					gameLogic.playModeNode.movePath.append(node)
 					gameState.movePath.append(node)
 #					node.onMovePath = True
-			if(self.currentAnimation == None):
-				if(not self.animationQueue.empty()):
-					self.currentAnimation = self.animationQueue.get()
-					if(len(self.currentAnimation) == 2):#focus position
-						self.focusXPos = self.currentAnimation[0]
-						self.focusYPos = self.currentAnimation[1]
-						self.doFocus = 1
-			if(self.currentAnimation != None and len(self.currentAnimation) == 1):#sliding unit
-				self.currentAnimation[0].slide(deltaTicks)
-				if(self.currentAnimation[0].xPosDraw == self.currentAnimation[0].xPos and self.currentAnimation[0].yPosDraw == self.currentAnimation[0].yPos):
-					self.currentAnimation = None
-			if(self.nextUnit != None and self.currentAnimation == None):
-				if(self.nextUnit != None and self.nextUnit.ai != None):
-					self.nextUnit.ai.takeTurn()
+			if(self.nextUnit != None and self.nextUnit.isControlled()):
 				if(self.nextUnit.gotoNode != None):
 					if(len(gameLogic.playModeNode.movePath) > 0 and gameLogic.playModeNode.movePath[0] in self.nextUnit.node.neighbors and gameLogic.playModeNode.movePath[-1] == self.nextUnit.gotoNode):
 						self.nextUnit.movePath = gameLogic.playModeNode.movePath
 						self.nextUnit.gotoNode = None
 					else:
 						gameLogic.aStarSearch.search(self.nextUnit.gotoNode,self.nextUnit.node,self.nextUnit.unitType.canFly,self.nextUnit.unitType.canSwim)
-				elif(len(self.nextUnit.movePath) > 0 and self.nextUnit.movePath[0].unit == None and self.nextUnit.isControlled()):
+				elif(len(self.nextUnit.movePath) > 0 and self.nextUnit.movePath[0].unit == None):
 					self.nextUnit.move()
 					self.nextUnit = None#prevents this block from firing again
+
+
 			if(self.timeToMove <= 0 and self.nextUnit != None and self.nextUnit.isControlled()):
 				gameState.getClient().sendCommand("skip")
 				gameState.getClient().sendCommand("chooseNextUnit")
@@ -697,7 +739,6 @@ class playMode(tiledGameMode):
 #					elem.hidden = True
 				self.chatDisplay.hidden = True
 				self.chatDisplay.hideAndShowTextFields()
-			gameMode.onDraw(self,deltaTicks)
 	def addUIElements(self):
 		self.players = gameState.getPlayers()
 #		uiElements.uiElement(0.718,-0.932,textureIndex=texIndex("CHECKBOXES_BACKGROUND"),width=texWidth("CHECKBOXES_BACKGROUND"),height=texHeight("CHECKBOXES_BACKGROUND"))
@@ -953,8 +994,6 @@ class gameRoomMode(tiledGameMode):
 		self.playerElements[player.playerNumber-1].text = player.playerName
 		self.playerElements[player.playerNumber-1].textColor = "FF FF FF"
 		self.playerElements[player.playerNumber-1].mouseOverColor = "FF FF FF"
-	def focus(self):
-		self.animationQueue.put((int(len(self.map.nodes[0])/2),int(len(self.map.nodes)/2),))
 	def removePlayer(self,playerName):
 		previousElem = None
 		self.playerElements[len(self.playerElements)-1].text = "empty"
@@ -1043,6 +1082,7 @@ class createGameMode(tiledGameMode):
 		self.backgroundImageIndex = texIndex("CREATE_GAME_BACKGROUND")
 		self.selectedNode = None
 	def setMap(self,mapName):
+		print "mapname: " + mapName
 		gameState.setMapName(mapName)
 		if(self.map != None):
 			self.map = gameLogic.mapp(gameLogic.mapViewNode,self.map.translateZ)
@@ -1058,9 +1098,8 @@ class createGameMode(tiledGameMode):
 		for mapData in gameState.getMapDatas()[gameState.getTeamSize()-1]:
 			gameState.getGameMode().mapSelector.textFields.append(uiElements.mapSelect(-0.93,0.0,gameState.getGameMode().mapSelector,mapData.name))
 		gameState.getGameMode().mapSelector.redraw()
-#		self.focusXPos = int(len(self.map.nodes[0])/2)
-#		self.focusYPos = int(len(self.map.nodes)/2)
-#		self.doFocus = 1
+		self.focus()
+
 	def addUIElements(self):
 		self.mapNameField = uiElements.uiElement(-1.0+texWidth("CREATE_GAME_BACKGROUND_LEFT"),0.85,fontIndex=3,textColor="ee ed 9b")
 		self.roomNameField = uiElements.textInputElement(0.31,-0.616)

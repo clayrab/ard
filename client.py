@@ -254,7 +254,7 @@ class Commands:
 
 commandLock = threading.Lock()
 def doCommand(commandName,args=None):
-    print commandName + ":" + (args if args!=None else "")
+#    print commandName + ":" + (args if args!=None else "")
     commandFunc = getattr(Commands,commandName)
     if(commandFunc != None):
         if(args != None and args != ''):
@@ -280,7 +280,7 @@ class Client:
             receivedData = ''
         for command in receivedData.split("|"):
             if(len(command) > 0):
-                print command
+#                print command
                 tokens = command.split(" ",2)
                 if(tokens[0] == "chooseNextUnit"):
                     with commandLock:

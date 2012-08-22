@@ -19,6 +19,8 @@
 
 #include "fonts.c"
 #include "defines.c"
+#include "structs.c"
+#include "animQueue.c"
 
 float focusSpeed = 0.0;
 float focusSpeedX = 0.0;
@@ -33,6 +35,9 @@ double focusXPos, focusYPos, focusTilesXPos, focusTilesYPos;
 PyObject * pyFocusXPos;
 PyObject * pyFocusYPos;
 int isFocusing = 0;
+int isSliding = 0;
+int isAnimating = 0;
+int doneAnimatingFired = 0;
 int considerDoneFocusing = 0;
 int leftButtonDown = 0;
 
@@ -273,57 +278,31 @@ PyObject * pyCities;
 PyObject *pyCitiesIter;
 PyObject * city;
 
-struct unit{
-}unitStruct;
-struct node{
-  struct unit * unit;
-  long name;
-  float xPos;
-  float yPos;
-  char xIndex;
-  char yIndex;
-  char tileValue;
-  //  char pyRoadValue;
-  //  char city;
-  char playerStartValue;
-  //  char selected;
-  char onMovePath;
-  //  char cursorIndex;
-  char visible;
-}nodeStruct;
-
-struct map{
-  struct node * nodes;
-  int polarity;
-  int height;
-  int width;
-  int size;
-}mapStruct;
-struct map * theMapp;
+MAP theMapp;
+NODE * theNode;
 
 void loadMap(){
-  
-  theMapp = &mapStruct;  
+  //theMapp = &(MAP);
   mapIterator = PyObject_CallMethod(theMap,"getIterator",NULL);  
   pyPolarity = PyObject_GetAttrString(theMap,"polarity");
   mapPolarity = PyLong_AsLong(pyPolarity);
   Py_DECREF(pyPolarity);
   rowIterator = PyObject_GetIter(mapIterator);
   pyMapWidth = PyObject_CallMethod(theMap,"getWidth",NULL);//New reference
-  theMapp->width = PyLong_AsLong(pyMapWidth);
+  theMapp.width = PyLong_AsLong(pyMapWidth);
   Py_DECREF(pyMapWidth);
   pyMapHeight = PyObject_CallMethod(theMap,"getHeight",NULL);//New reference
-  theMapp->height = PyLong_AsLong(pyMapHeight);
+  theMapp.height = PyLong_AsLong(pyMapHeight);
   Py_DECREF(pyMapHeight);
-  theMapp->size = theMapp->width*theMapp->height;
-  theMapp->nodes = malloc(theMapp->size*sizeof(nodeStruct));
+  theMapp.size = theMapp.width*theMapp.height;
+  theMapp.nodes = malloc(theMapp.size*sizeof(NODE));
   int nodesIndex = 0;
   while (row = PyIter_Next(rowIterator)) {
     colNumber = 0;
     rowNumber = rowNumber + 1;
     nodeIterator = PyObject_GetIter(row);
     while(pyNode = PyIter_Next(nodeIterator)) {
-      struct node * theNode = (&(theMapp->nodes[nodesIndex]));
+      theNode = (&(theMapp.nodes[nodesIndex]));
       theNode->xIndex = colNumber;
       theNode->yIndex = rowNumber;
       xPosition = translateTilesXToPositionX(colNumber,rowNumber);
@@ -387,7 +366,7 @@ void processTheHits(GLint hitsCount, GLuint buffer[]){
 	  selectedName = nameValue;
 	}
       }
-      if(nameValue < 500){
+      if(nameValue < 5000){//first 5000 names are reserved for text
 	pyObj = PyObject_CallMethod(gameMode,"setMouseTextPosition","i",nameValue);
 	Py_DECREF(pyObj);
 	mouseTextPositionSet = 1;
@@ -397,10 +376,10 @@ void processTheHits(GLint hitsCount, GLuint buffer[]){
     count = count + 1;
   }  
   if(!mouseTextPositionSet){
-	pyObj = PyObject_CallMethod(gameMode,"setMouseTextPosition","i",-1);
-	if(pyObj != NULL){
-	  Py_DECREF(pyObj);
-	}
+    pyObj = PyObject_CallMethod(gameMode,"setMouseTextPosition","i",-1);
+    if(pyObj != NULL){
+      Py_DECREF(pyObj);
+    }
   }
 }
 
@@ -454,11 +433,6 @@ double xPositionUnit;
 double yPositionUnit;
 //long isSelected;
 PyObject * pyUnit;
-void updatePosition(){
- if(xPositionUnit != xPosition){
-    pyObj = PyObject_CallMethod(pyUnit,"setPosition","(ff)",xPosition,yPosition);
-  }
-}
 void drawUnit(){
   pyUnitType = PyObject_GetAttrString(pyUnit,"unitType");
   //  Py_DECREF(pyUnitType);
@@ -468,7 +442,7 @@ void drawUnit(){
   yPositionUnit = PyFloat_AsDouble(pyYPositionUnit);
   //  glTranslatef(xPositionUnit,yPositionUnit,0.0);
   glTranslatef(xPositionUnit,yPositionUnit,0.1);
-  updatePosition();
+  //  updatePosition();
 
   pyUnitTextureIndex = PyObject_GetAttrString(pyUnitType,"textureIndex");
   pyName = PyObject_GetAttrString(pyUnitType,"name");
@@ -772,9 +746,9 @@ void drawUnits(){
 	glPushMatrix();
 	drawUnit();
 	glPopMatrix();
-      }else{
-	updatePosition();
-      }
+      }//else{
+	//	updatePosition();
+      //      }
       glPopMatrix();
       if(pyFire != NULL && pyFire != Py_None && isVisible){
 	drawFire();
@@ -790,7 +764,7 @@ void drawUnits(){
 }						
 void drawTiles(){
   rowNumber = -1;
-  if(PyObject_HasAttrString(gameMode,"focusXPos")){
+  /*  if(PyObject_HasAttrString(gameMode,"focusXPos")){
     pyFocusXPos = PyObject_GetAttrString(gameMode,"focusXPos");
     pyFocusYPos = PyObject_GetAttrString(gameMode,"focusYPos");
     focusTilesXPos = PyLong_AsLong(pyFocusXPos);
@@ -799,21 +773,21 @@ void drawTiles(){
     focusYPos = translateTilesYToPositionY(focusTilesYPos);
     Py_DECREF(pyFocusXPos);
     Py_DECREF(pyFocusYPos);
-  }
+    }*/
   pyLoaded = PyObject_CallMethod(theMap,"getLoaded",NULL);
   mapLoaded = PyLong_AsLong(pyLoaded);
   if(mapLoaded){
     loadMap();
   }
   int index;
-  for(index = 0;index < theMapp->size;index++){
-    struct node * theNode = &(theMapp->nodes[index]);
+  for(index = 0;index < theMapp.size;index++){
+    theNode = &(theMapp.nodes[index]);
       glPushMatrix();
       glTranslatef(theNode->xPos,theNode->yPos,0.0);
       //      glTranslatef(0.0,0.0,0.03);
       drawTile(theNode->yIndex,theNode->xIndex,theNode->name,theNode->tileValue,theNode->onMovePath,theNode->playerStartValue);
       glPopMatrix();
-    //printf("xIndex: %d\n",theNode->xIndex);
+    //printf("xIndex: %d\n",theNode.xIndex);
   }
   Py_DECREF(pyLoaded);
 
@@ -939,16 +913,19 @@ void calculateTranslation(){
     }
   }
 //  printf("****** e:    \t%d\n",SDL_GetTicks() - testTicks5); testTicks5 = SDL_GetTicks(); 
-   if(isFocusing){
+/*  if(!isAnimating && !doneAnimatingFired){
+    doneAnimatingFired = 1;
+    if(PyObject_HasAttrString(gameMode,"onDoneAnimating")){
+      pyObj = PyObject_CallMethod(gameMode,"onDoneAnimating",NULL);//New reference
+      printPyStackTrace();
+      Py_DECREF(pyObj);
+    }
+    }*/
+  if(isFocusing){
     //printf("%f %f %f %f\n",translateXPrev,translateX,translateYPrev,translateY);
     if((considerDoneFocusing > 2) && abs(50.0*(translateXPrev - translateX)) == 0.0 && abs(50.0*(translateYPrev - translateY)) == 0.0){//this indicates the auto-scrolling code is not allowing us to move any more
       isFocusing = 0;
       considerDoneFocusing = 0;
-      if(PyObject_HasAttrString(gameMode,"onDoneFocusing")){
-	pyObj = PyObject_CallMethod(gameMode,"onDoneFocusing",NULL);//New reference
-	printPyStackTrace();
-	Py_DECREF(pyObj);
-      }
     }else if(abs(50.0*(translateXPrev - translateX)) == 0.0 && abs(50.0*(translateYPrev - translateY)) == 0.0){//this indicates the auto-scrolling code is not allowing us to move any more
       considerDoneFocusing = considerDoneFocusing + 1;
       focusSpeed = 0.0;
@@ -1283,7 +1260,7 @@ void drawUIElement(PyObject * uiElement){
 	    drawText(text,fontIndex,cursorPosition,xPosition+width,NULL);
 	  }else{
 	    drawText(text,fontIndex,-1,xPosition+width,NULL);
-	  }	    
+	  }
 	  glPopName();
 	  glPopMatrix();
 	}
@@ -1685,14 +1662,14 @@ static void handleInput(){
       clickScroll = pyClickScroll == Py_True;
       Py_DECREF(pyClickScroll);
   }
-  if(PyObject_HasAttrString(gameMode,"getFocusNextUnit")){
+  /*  if(PyObject_HasAttrString(gameMode,"getFocusNextUnit")){
     pyFocusNextUnit = PyObject_CallMethod(gameMode,"getFocusNextUnit",NULL);
     doFocus = PyLong_AsLong(pyFocusNextUnit);
     if(doFocus){
       isFocusing = 1;
     }
     //    Py_DECREF(pyClickScroll);
-  }
+    }*/
   if(previousMousedoverName != selectedName){
     if(PyObject_HasAttrString(gameMode,"handleMouseOver")){
       pyObj = PyObject_CallMethod(gameMode,"handleMouseOver","(ii)",selectedName,leftButtonDown);//New reference
@@ -1974,7 +1951,80 @@ GLint hitsCnt;
 PyObject * pyChooseNextDelayed;
 int chooseNextDelayed;
 Uint32 chooseNextTimeStart;
+PyObject * pyAnimQueue;
+PyObject * pyAnimQueueEmpty;
+PyObject * pyAnim;
+listelement * animQueue = NULL;
+ANIMATION * theAnim;
 static void draw(){
+  PyObject_SetAttrString(gameMode,"ticks",PyLong_FromLong(SDL_GetTicks()));
+  if(PyObject_HasAttrString(gameMode,"onDraw")){
+    pyObj = PyObject_CallMethod(gameMode,"onDraw","(ii)",deltaTicks,isAnimating);//New reference
+    printPyStackTrace();
+    Py_DECREF(pyObj);
+  }
+  pyAnimQueue = PyObject_GetAttrString(gameState,"animQueue");
+  pyAnimQueueEmpty = PyObject_CallMethod(pyAnimQueue,"empty",NULL);
+  //  printf("afg%d\n",1);
+  while(pyAnimQueueEmpty == Py_False){
+    pyAnim = PyObject_CallMethod(pyAnimQueue,"get",NULL);
+    ANIMATION temp;
+    theAnim = &(temp);
+    pyObj = PyObject_GetAttrString(pyAnim,"type");
+    theAnim->type = PyLong_AsLong(pyObj);
+    Py_DECREF(pyObj);
+    pyObj = PyObject_GetAttrString(pyAnim,"xPos");
+    theAnim->xPos = PyFloat_AsDouble(pyObj);
+    Py_DECREF(pyObj);
+    pyObj = PyObject_GetAttrString(pyAnim,"yPos");
+    theAnim->yPos = PyFloat_AsDouble(pyObj);
+    Py_DECREF(pyObj);
+    pyUnit = PyObject_GetAttrString(pyAnim,"unit");
+    if(pyUnit != Py_None){
+      pyUnitType = PyObject_GetAttrString(pyUnit,"unitType");
+      UNIT temp;
+      theAnim->unit = &(temp);
+      pyObj = PyObject_GetAttrString(pyUnit,"xPos");
+      theAnim->unit->xPos = PyLong_AsLong(pyObj);
+      Py_DECREF(pyObj);
+      pyObj = PyObject_GetAttrString(pyUnit,"yPos");
+      theAnim->unit->yPos = PyLong_AsLong(pyObj);
+      Py_DECREF(pyObj);
+      pyObj = PyObject_GetAttrString(pyUnit,"health");
+      theAnim->unit->health = PyLong_AsLong(pyObj);
+      Py_DECREF(pyObj);
+      pyObj = PyObject_GetAttrString(pyUnitType,"health");
+      theAnim->unit->maxHealth = PyLong_AsLong(pyObj);
+      Py_DECREF(pyObj);
+      Py_DECREF(pyUnit);
+    }
+    Py_DECREF(pyAnim);
+    Py_DECREF(pyAnimQueueEmpty);
+    pyAnimQueueEmpty = PyObject_CallMethod(pyAnimQueue,"empty",NULL);
+    animQueue = AddItem(animQueue,theAnim);
+  }
+  Py_DECREF(pyAnimQueue);
+  //  Py_DECREF(pyAnimQueueEmpty);
+  if(animQueue != NULL && !isAnimating){//> 0 items
+    isAnimating = 1;
+    listelement * listpointer;
+    ANIMATION * animation = animQueue->item; 
+    animQueue = RemoveItem(animQueue);
+    if(animation->type == ANIMATION_AUTO_FOCUS){
+      isFocusing = 1;
+      focusXPos = translateTilesXToPositionX(0.0-animation->xPos,animation->yPos);
+      focusYPos = translateTilesYToPositionY(animation->yPos);
+    }else{
+      printf("fs%d\n",1);
+      isAnimating = 0; 
+    }
+  }
+  if(!isFocusing && !isSliding){
+    //      printf("done%d\n",1);
+    isAnimating = 0;
+  }
+
+  //  pyCursorIndex = PyObject_GetAttrString(gameState,"cursorIndex");
   theCursorIndex = -1;
   pyCursorIndex = PyObject_GetAttrString(gameState,"cursorIndex");
   theCursorIndex = PyLong_AsLong(pyCursorIndex);
@@ -1992,12 +2042,6 @@ static void draw(){
   if(chooseNextDelayed && ((SDL_GetTicks() - chooseNextTimeStart) > AUTO_CHOOSE_NEXT_DELAY)){
     chooseNextDelayed = 0;
     pyObj = PyObject_CallMethod(gameMode,"sendChooseNextUnit",NULL);//New reference
-    printPyStackTrace();
-    Py_DECREF(pyObj);
-  }
-  PyObject_SetAttrString(gameMode,"ticks",PyLong_FromLong(SDL_GetTicks()));
-  if(PyObject_HasAttrString(gameMode,"onDraw")){
-    pyObj = PyObject_CallMethod(gameMode,"onDraw","i",deltaTicks);//New reference
     printPyStackTrace();
     Py_DECREF(pyObj);
   }

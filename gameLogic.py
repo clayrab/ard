@@ -13,6 +13,7 @@ import time
 import sys
 import socket
 import ai
+import animations
 
 from multiprocessing import Process, Queue, Pipe
 #import aStar
@@ -47,8 +48,21 @@ class MODES:
 	ATTACK_MODE = 1
 	SELECT_MODE = 2
 	HEAL_MODE = 3
-
+SIN60 = 0.86602540378
+COS60 = 0.5
 cityNames = ["Eshnunna","Tutub","Der","Sippar","Sippar-Amnanum","Kutha","Jemde Nasr","Kish","Babilim","Borsippa","Mashkan-shapir","Dilbat","Nippur","Marad","Adab","Isin","Kisurra","Shuruppak","Bad-tibira","Zabalam","Umma","Girsu","Lagash","Urum","Uruk","Larsa","Ur","Kuara","Eridu","Akshak","Akkad","Urfa","Shanidar cave","Urkesh","Shekhna","Arbid","Harran","Chagar Bazar","Kahat","El Fakhariya","Arslan Tash","Carchemish","Til Barsip","Nabada","Nagar","Telul eth-Thalathat","Tepe Gawra","Tell Arpachiyah","Shibaniba","Tarbisu","Ninua","Qatara","Dur Sharrukin","Tell Shemshara","Arbil","Imgur-Enlil","Nimrud","Emar","Arrapha","Kar-Tukulti-Ninurta","Ashur","Nuzi","al-Fakhar","Terqa","Mari","Haradum","Nerebtum","Agrab","Dur-Kurigalzu","Shaduppum","Seleucia","Ctesiphon","Zenobia","Zalabiye","Hasanlu","Takht-i-Suleiman","Behistun","Godin Tepe","Chogha Mish","Tepe Sialk","Susa","Kabnak","Dur Untash","Pasargadai","Naqsh-e Rustam","Parsa","Anshan","Konar Sandal","Tepe Yahya","Miletus","Sfard","Nicaea","Sapinuwa","Yazilikaya","Alaca Hoyuk","Masat Hoyuk","Hattusa","Ilios","Kanesh","Arslantepe","Sam'al","Beycesultan","Adana","Karatepe","Tarsus","Sultantepe","Attalia","Acre","Adoraim","Alalah","Aleppo","Al-Sinnabra","Aphek","Arad Rabbah","Ashdod","Ashkelon","Baalbek","Batroun","Beersheba","Beth Shean","Bet Shemesh","Bethany","Bet-el","Bezer","Byblos","Capernaum","Dan","Dimashq","Deir Alla","Dhiban","Dor","Ebla","En Gedi","Enfeh","Ekron","Et-Tell","Gath","Gezer","Gibeah","Gilgal Refaim","Gubla","Hamath","Hazor","Hebron","Herodion","Jezreel","Kadesh Barnea","Kedesh","Kumidi","Lachish","Megiddo","Qatna","Qumran","Rabat Amon","Samaria","Sarepta","Sharuhen","Shiloh","Sidon","Tadmor","Tirzah","Tyros","Ugarit","Umm el-Marra"]
+
+
+def translateTilesXToPositionX(tileX,tileY):
+	returnVal = -tileX*-(2.0*SIN60)
+	if(abs(tileY)%2 == gameState.getGameMode().map.polarity):
+		returnVal = returnVal + SIN60
+#	return 0.0
+	return returnVal;
+
+def translateTilesYToPositionY(tileY):
+#	return 0.0
+	return (tileY*1.5);
 
 class Player:
 	def __init__(self,playerNumber,userName,requestHandler,isAI=False):
@@ -192,17 +206,17 @@ class fire:
 			gameState.getGameMode().elementalEffects.remove(self)
 			self.node.fire = None
 
-class unit:
+class unit(object):
 	def __init__(self,unitType,player,node,level=None):
 		self.unitType = unitType
 		self.player = player
 		self.team = (self.player)/gameState.getTeamSize()
 		self.ai = gameState.theAIs[self.player]
-		self.node = node
+		self._node = node
 		self.xPos = 0.0
 		self.yPos = 0.0
-		self.xPosDraw = -100000.0
-		self.yPosDraw = -100000.0
+		self.xPosDraw = 0.0
+		self.yPosDraw = 0.0
 		self.movementPoints = 0
 		self.attackPoints = 0
 		self.buildPoints = self.unitType.buildTime	
@@ -222,7 +236,19 @@ class unit:
 		self.unitBeingBuilt = None
 		self.cancelledUnits = []
 		self.buildQueue = []
+
+	@property
+	def node(self):
+		return self._node
+	@node.setter
+	def node(self,theNode):
+		self.xPos = translateTilesXToPositionX(theNode.xPos,theNode.yPos)
+		self.yPos = translateTilesYToPositionY(theNode.yPos)
+		self.xPosDraw = translateTilesXToPositionX(theNode.xPos,theNode.yPos)
+		self.yPosDraw = translateTilesYToPositionY(theNode.yPos)
+		self._node = theNode
 	def setPosition(self,xPos,yPos):
+		return
 		if(self.xPosDraw == -100000.0):
 			self.xPosDraw = xPos
 			self.yPosDraw = yPos
@@ -324,6 +350,8 @@ class unit:
 			aStarSearch.parentPipe.send(["unitAdd",node.xPos,node.yPos])
 			gameState.getGameMode().animationQueue.put((node.xPos,node.yPos,))
 			gameState.getGameMode().animationQueue.put((self,))
+			gameState.animQueue.put(animations.autoFocusAnimation(node.xPos,node.yPos))
+			gameState.animQueue.put(animations.unitSlideAnimation(self))
 		self.node.unit = None
 		self.node = node
 		node.unit = self
@@ -582,7 +610,7 @@ class playModeNode(node):
 #			self.visible = False
 			self.visible = True
 	def onLeftClickDown(self):
-		if(gameState.getGameMode().doFocus == 0):
+		if(gameState.getGameMode().doFocus == 0 or True):
 			if(playModeNode.mode == MODES.ATTACK_MODE):
 				gameState.getGameMode().nextUnit.attack(self)
 			elif(playModeNode.mode == MODES.HEAL_MODE):
