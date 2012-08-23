@@ -1,10 +1,13 @@
 typedef struct unit{
-  float xPos, yPos, health, maxHealth;
-  char textureIndex;
+  char * id;
+  struct unit * nextUnit;
+  double xPos,yPos,xPosDraw,yPosDraw,health,maxHealth;
+  char textureIndex,isNextUnit;
 }UNIT;
 typedef struct node{
   //  UNIT * unit;
   long name;
+  uint hash;
   float xPos;
   float yPos;
   char xIndex;
@@ -18,7 +21,6 @@ typedef struct node{
   //  char cursorIndex;
   char visible;
 }NODE;
-
 typedef struct map{
   struct node * nodes;
   int polarity;

@@ -23,6 +23,7 @@
 #include "animQueue.c"
 
 float focusSpeed = 0.0;
+float focusTime = 0.0;
 float focusSpeedX = 0.0;
 float focusSpeedY = 0.0;
 
@@ -31,11 +32,13 @@ static SDL_Surface *gScreen;
 
 int clickScroll = 0;
 long doFocus = 0;
-double focusXPos, focusYPos, focusTilesXPos, focusTilesYPos;
+long focusTicks;
+double focusXPos, focusYPos, focusTilesXPos, focusTilesYPos, focusXPosPrev, focusYPosPrev;
 PyObject * pyFocusXPos;
 PyObject * pyFocusYPos;
 int isFocusing = 0;
 int isSliding = 0;
+int slidingTicks;
 int isAnimating = 0;
 int doneAnimatingFired = 0;
 int considerDoneFocusing = 0;
@@ -273,15 +276,79 @@ long unitPlayer;
 long playerStartValue;
 long isOnMovePath;
 PyObject * pyUnits;
-PyObject *pyUnitsIter;
+PyObject * pyUnitsIter;
 PyObject * pyCities;
 PyObject *pyCitiesIter;
 PyObject * city;
-
+PyObject * pyId;
+int nodesIndex = 0;
 MAP theMapp;
 NODE * theNode;
-
+ANIMATION * currentAnim;
+listelement * animQueue = NULL;
+struct unit * theUnits = NULL;//linked list of units
+void loadUnit(struct unit * daUnit,PyObject * pyUnit){
+  pyUnitType = PyObject_GetAttrString(pyUnit,"unitType");
+  pyId = PyObject_GetAttrString(pyUnit,"id");
+  pyObj = PyObject_GetAttrString(pyId,"hex");
+  daUnit->id = malloc(33*sizeof(char));
+  strcpy(daUnit->id,PyString_AsString(pyObj));
+  //  daUnit->id = PyString_AsString(pyObj);
+  Py_DECREF(pyObj);
+  Py_DECREF(pyId);
+  pyXPosition = PyObject_GetAttrString(pyUnit,"xPos");
+  daUnit->xPos = PyFloat_AsDouble(pyXPosition);
+  Py_DECREF(pyXPosition);
+  pyYPosition = PyObject_GetAttrString(pyUnit,"yPos");
+  daUnit->yPos = PyFloat_AsDouble(pyYPosition);
+  Py_DECREF(pyYPosition);
+  pyObj = PyObject_GetAttrString(pyUnit,"health");
+  daUnit->health = PyLong_AsLong(pyObj);
+  Py_DECREF(pyObj);
+  pyObj = PyObject_GetAttrString(pyUnitType,"health");
+  daUnit->maxHealth = PyLong_AsLong(pyObj);
+  Py_DECREF(pyObj);
+  pyObj = PyObject_GetAttrString(pyUnitType,"textureIndex");
+  daUnit->textureIndex = PyLong_AsLong(pyObj);
+  Py_DECREF(pyObj);
+  Py_DECREF(pyUnitType);
+  
+}
+void addUnit(PyObject * pyUnit){
+  UNIT * daUnit = (UNIT *) malloc(sizeof(UNIT));
+  daUnit->nextUnit = theUnits;
+  theUnits = daUnit;
+  loadUnit(daUnit,pyUnit);
+  daUnit->xPosDraw = daUnit->xPos;
+  daUnit->yPosDraw = daUnit->yPos;
+}
+struct unit * daNextUnit;
+char * unitId;
+void updateUnit(PyObject * pyUnit){
+  pyId = PyObject_GetAttrString(pyUnit,"id");
+  pyObj = PyObject_GetAttrString(pyId,"hex");
+  unitId = PyString_AsString(pyObj);
+  Py_DECREF(pyObj);
+  Py_DECREF(pyId);  
+  daNextUnit = theUnits;
+  while(daNextUnit != NULL){
+    if(strcmp(daNextUnit->id,unitId) == 0){
+      loadUnit(daNextUnit,pyUnit);
+      break;
+    }
+    daNextUnit = daNextUnit->nextUnit;
+  }
+  if(daNextUnit->xPos != daNextUnit->xPosDraw){//unit moved
+    ANIMATION * theAnim = malloc(sizeof(ANIMATION));
+    theAnim->type = ANIMATION_UNIT_SLIDE;
+    theAnim->unit = daNextUnit;
+    theAnim->xPos = daNextUnit->xPosDraw;
+    theAnim->yPos = daNextUnit->yPosDraw;
+    animQueue = AddItem(animQueue,theAnim);
+  }
+}
 void loadMap(){
+  printf("loadmap %d\n",1);
   //theMapp = &(MAP);
   mapIterator = PyObject_CallMethod(theMap,"getIterator",NULL);  
   pyPolarity = PyObject_GetAttrString(theMap,"polarity");
@@ -296,7 +363,8 @@ void loadMap(){
   Py_DECREF(pyMapHeight);
   theMapp.size = theMapp.width*theMapp.height;
   theMapp.nodes = malloc(theMapp.size*sizeof(NODE));
-  int nodesIndex = 0;
+  nodesIndex = 0;
+  rowNumber = -1;
   while (row = PyIter_Next(rowIterator)) {
     colNumber = 0;
     rowNumber = rowNumber + 1;
@@ -324,6 +392,10 @@ void loadMap(){
       pyIsOnMovePath = PyObject_GetAttrString(pyNode,"onMovePath");//New reference
       theNode->onMovePath = PyLong_AsLong(pyIsOnMovePath);
       Py_DECREF(pyIsOnMovePath);
+      theNode->hash = 0;
+      theNode->hash += (((4294967296*(2654435761)*theNode->xIndex)+81)%43261);
+      theNode->hash += (((4294967296*(2654435761)*theNode->yIndex)+30)%131071);
+      theNode->hash = theNode->hash%4;
       nodesIndex++;
       colNumber = colNumber - 1;
     }
@@ -336,10 +408,30 @@ void loadMap(){
 
 
 /**************************** mouse hover object selection ********************************/
+//easing functions shamelessly stolen from:
+//http://timotheegroleau.com/Flash/experiments/easing_function_generator.htm
+double ticksPercentage;
+double ts;
+double tc;
+double slidingEasingFunction(int deltaTicks,double startPos,double endPos,int totalTicks){
+  ticksPercentage = ((double)deltaTicks)/((double)totalTicks);
+  ts = ticksPercentage*ticksPercentage;
+  tc = ts*ticksPercentage;
+  //  return startPos+((endPos-startPos)*(0.75*tc*ts + -1.7*ts*ts + -0.9*tc + 2.8*ts + 0.05*ticksPercentage));
+  //  return startPos+((endPos-startPos)*(10.3525*tc*ts + -30.5025*ts*ts + 27.9*tc + -6.8*ts + 0.05*ticksPercentage));
+  //  return startPos+((endPos-startPos)*(10.995*tc*ts + -28.69*ts*ts + 22.395*tc + -3.7*ts));
+  //  return startPos+((endPos-startPos)*(-4.8975*tc*ts + 16.1475*ts*ts + -20.6*tc + 11.3*ts + -0.95*ticksPercentage));
+  //  return startPos+((endPos-startPos)*(-14.6475*tc*ts + 48.7425*ts*ts + -58.29*tc + 27.895*ts + -2.7*ticksPercentage));
+  return startPos+((endPos-startPos)*(-12.0975*tc*ts + 38.5425*ts*ts + -42.99*tc + 17.695*ts + -0.15*ticksPercentage));
+}
+double focusEasingFunction(int deltaTicks,double startPos,double endPos,int totalTicks){
+  ticksPercentage = ((double)deltaTicks)/((double)totalTicks);
+  ts = ticksPercentage*ticksPercentage;
+  tc = ts*ticksPercentage;
+  return startPos+((endPos-startPos)*(4.795*tc*ts + -11.69*ts*ts + 6.995*tc + 0.9*ts));
+}
 void testTicks(char * label, long ticksCounter){
   printf("%s:\t%ld\n",label,SDL_GetTicks() - ticksCounter); ticksCounter = SDL_GetTicks(); 
-//  printf("****** a:    \t%d\n",SDL_GetTicks() - testTicks5); testTicks5 = SDL_GetTicks(); 
-
 }
 GLuint *bufferPtr,*ptrNames, numberOfNames;
 int count;
@@ -390,7 +482,6 @@ GLdouble modelview[16];
 GLdouble projection[16];
 GLfloat winX, winY, winZ, winZOld;
 void convertWindowCoordsToViewportCoords(int x, int y, float z, GLdouble* posX, GLdouble* posY, GLdouble* posZ){
-  //strange things happen with this when zoom/maxZoom is greater than 45...
   glGetDoublev(GL_MODELVIEW_MATRIX,modelview);
   glGetDoublev(GL_PROJECTION_MATRIX,projection);
   glGetIntegerv(GL_VIEWPORT,viewport);//returns four values: the x and y window coordinates of the viewport, followed by its width and height.
@@ -433,31 +524,10 @@ double xPositionUnit;
 double yPositionUnit;
 //long isSelected;
 PyObject * pyUnit;
-void drawUnit(){
-  pyUnitType = PyObject_GetAttrString(pyUnit,"unitType");
-  //  Py_DECREF(pyUnitType);
-  pyXPositionUnit = PyObject_GetAttrString(pyUnit,"xPosDraw");
-  pyYPositionUnit = PyObject_GetAttrString(pyUnit,"yPosDraw");
-  xPositionUnit = PyFloat_AsDouble(pyXPositionUnit);
-  yPositionUnit = PyFloat_AsDouble(pyYPositionUnit);
+void drawUnit(UNIT * daUnit){
   //  glTranslatef(xPositionUnit,yPositionUnit,0.0);
-  glTranslatef(xPositionUnit,yPositionUnit,0.1);
-  //  updatePosition();
-
-  pyUnitTextureIndex = PyObject_GetAttrString(pyUnitType,"textureIndex");
-  pyName = PyObject_GetAttrString(pyUnitType,"name");
-  unitName = PyString_AsString(pyName);
-  pyHealth = PyObject_GetAttrString(pyUnit,"health");
-  pyMaxHealth = PyObject_CallMethod(pyUnit,"getMaxHealth",NULL);
-  pyLevel = PyObject_GetAttrString(pyUnit,"level");
-  level = PyLong_AsLong(pyLevel);  
-  pyPlayerNumber = PyObject_GetAttrString(pyUnit,"player");
-  playerNumber = PyLong_AsLong(pyPlayerNumber);
-  unitTextureIndex = PyLong_AsLong(pyUnitTextureIndex);
-  pyRecentDamage = PyObject_GetAttrString(pyUnit,"recentDamage");
-  pyRecentDamageIter = PyObject_GetIter(pyRecentDamage);
-
-  healthBarLength = 0.7*PyFloat_AsDouble(pyHealth)/PyFloat_AsDouble(pyMaxHealth);
+  glTranslatef(daUnit->xPosDraw,daUnit->yPosDraw,0.1);
+  healthBarLength = 0.7*daUnit->health/daUnit->maxHealth;
   glColor3f(1.0, 0.0, 0.0);
   glBegin(GL_QUADS);
   glTexCoord2f(0.0,0.0);
@@ -472,10 +542,10 @@ void drawUnit(){
   glBindTexture(GL_TEXTURE_2D, texturesArray[HEALTH_BAR_INDEX]);
   glCallList(healthBarList);
 
-  //  glPushMatrix();
-  //  glTranslatef(-0.1,-0.78,0.0);
   glPushMatrix();
-  if(isNextUnit){
+
+  //  if(isNextUnit){
+  if(0){
     glTranslatef(-0.60,0.90,0.0);
     glScalef(2.0,2.0,0.0);
   }else{
@@ -520,11 +590,11 @@ void drawUnit(){
   glPopMatrix();
 
   glColor3f(1.0,1.0,1.0);
-  glBindTexture(GL_TEXTURE_2D, texturesArray[unitTextureIndex]);
+  glBindTexture(GL_TEXTURE_2D, texturesArray[daUnit->textureIndex]);
   //  glTranslatef(0.0,0.0,0.0);
   glCallList(unitList);
   
-  while (pyDamageTime = PyIter_Next(pyRecentDamageIter)) {
+  /*  while (pyDamageTime = PyIter_Next(pyRecentDamageIter)) {
     damageTime = PyLong_AsLong(pyDamageTime);
     if(currentTick-damageTime<200){
       glPushMatrix();
@@ -553,22 +623,12 @@ void drawUnit(){
       glScalef(0.01,0.01,0.0);
       drawText(damageStr,0,-1,-9999.9,NULL);
       glPopMatrix();
-    }
-  }
-
-  Py_DECREF(pyUnitType);
-  Py_DECREF(pyUnitTextureIndex);
-  Py_DECREF(pyName);
-  Py_DECREF(pyLevel);
-  Py_DECREF(pyHealth);
-  Py_DECREF(pyMaxHealth);
-  Py_DECREF(pyPlayerNumber);
-  Py_DECREF(pyXPositionUnit);
-  Py_DECREF(pyYPositionUnit);
+      }
+  }*/
 }
 float shading;
 char playerStartVal[2];
-void drawTile(uint tilesXIndex, uint tilesYIndex, long name, long tileValue, long isOnMovePath,long playerStartValue){
+void drawTile(uint tilesXIndex, uint tilesYIndex, long name, long tileValue, long isOnMovePath,long playerStartValue, long tileHash){
   textureVertices = vertexArrays[tileValue];
   shading = 1.0;
   if(!isVisible){
@@ -582,10 +642,6 @@ void drawTile(uint tilesXIndex, uint tilesYIndex, long name, long tileValue, lon
   }
   glColor3f(shading,shading,shading);
   glPushName(name);
-  uint tileHash=0;
-  tileHash += (((4294967296*(2654435761)*tilesXIndex)+81)%43261);
-  tileHash += (((4294967296*(2654435761)*tilesYIndex)+30)%131071);
-  tileHash = tileHash%4;
   glCallList(tilesLists+(4*tileValue)+tileHash);
   glPopName();
 
@@ -716,81 +772,30 @@ void drawCities(){
 }
 void drawUnits(){
   glDepthFunc(GL_LEQUAL);
-  pyUnits = PyObject_GetAttrString(gameMode,"units");
-  pyUnitsIter = PyObject_CallMethod(pyUnits,"__iter__",NULL);
-  if(pyUnitsIter != NULL && pyUnitsIter != Py_None){
-    while(pyUnit = PyIter_Next(pyUnitsIter)){
-      pyNode = PyObject_GetAttrString(pyUnit,"node");
-      pyXPosition = PyObject_GetAttrString(pyNode,"xPos");
-      colNumber = 0-PyLong_AsLong(pyXPosition);
-      pyYPosition = PyObject_GetAttrString(pyNode,"yPos");
-      rowNumber = PyLong_AsLong(pyYPosition);
-      xPosition = translateTilesXToPositionX(colNumber,rowNumber);
-      yPosition = translateTilesYToPositionY(rowNumber);
-      isNextUnit = 0;
-      nextUnit = PyObject_GetAttrString(gameMode,"nextUnit");
-      if(pyUnit == nextUnit){
-	isNextUnit = 1;
-      }
-      if(nextUnit != NULL){
-      	Py_DECREF(nextUnit);
-      }
-      pyFire = PyObject_GetAttrString(pyNode,"fire");
-      pyIce = PyObject_GetAttrString(pyNode,"ice");
-      pyIsVisible = PyObject_GetAttrString(pyNode,"visible");//New reference
-      isVisible = PyLong_AsLong(pyIsVisible);
-      Py_DECREF(pyIsVisible);
-
-      glPushMatrix();
-      if(isVisible){
-	glPushMatrix();
-	drawUnit();
-	glPopMatrix();
-      }//else{
-	//	updatePosition();
-      //      }
-      glPopMatrix();
-      if(pyFire != NULL && pyFire != Py_None && isVisible){
-	drawFire();
-      }  
-      Py_DECREF(pyNode);
-      Py_DECREF(pyUnit);      
-    }
-    Py_DECREF(pyUnitsIter);
-  }
-  if(pyUnits != NULL && pyUnits != Py_None){
-    Py_DECREF(pyUnits);
+  daNextUnit = theUnits;
+  while(daNextUnit != NULL){
+    glPushMatrix();
+    drawUnit(daNextUnit);
+    glPopMatrix();
+    
+    daNextUnit = daNextUnit->nextUnit;
   }
 }						
-void drawTiles(){
-  rowNumber = -1;
-  /*  if(PyObject_HasAttrString(gameMode,"focusXPos")){
-    pyFocusXPos = PyObject_GetAttrString(gameMode,"focusXPos");
-    pyFocusYPos = PyObject_GetAttrString(gameMode,"focusYPos");
-    focusTilesXPos = PyLong_AsLong(pyFocusXPos);
-    focusTilesYPos = PyLong_AsLong(pyFocusYPos);
-    focusXPos = translateTilesXToPositionX(0.0-focusTilesXPos,focusTilesYPos);
-    focusYPos = translateTilesYToPositionY(focusTilesYPos);
-    Py_DECREF(pyFocusXPos);
-    Py_DECREF(pyFocusYPos);
-    }*/
+int nodeIndex;
+void drawTiles(){  
   pyLoaded = PyObject_CallMethod(theMap,"getLoaded",NULL);
   mapLoaded = PyLong_AsLong(pyLoaded);
   if(mapLoaded){
     loadMap();
   }
-  int index;
-  for(index = 0;index < theMapp.size;index++){
-    theNode = &(theMapp.nodes[index]);
+  for(nodeIndex = 0;nodeIndex < theMapp.size;nodeIndex++){
+    theNode = &(theMapp.nodes[nodeIndex]);
       glPushMatrix();
       glTranslatef(theNode->xPos,theNode->yPos,0.0);
-      //      glTranslatef(0.0,0.0,0.03);
-      drawTile(theNode->yIndex,theNode->xIndex,theNode->name,theNode->tileValue,theNode->onMovePath,theNode->playerStartValue);
+      drawTile(theNode->yIndex,theNode->xIndex,theNode->name,theNode->tileValue,theNode->onMovePath,theNode->playerStartValue,theNode->hash);
       glPopMatrix();
-    //printf("xIndex: %d\n",theNode.xIndex);
   }
   Py_DECREF(pyLoaded);
-
 }
 
 void doViewport(){
@@ -921,6 +926,16 @@ void calculateTranslation(){
       Py_DECREF(pyObj);
     }
     }*/
+  if(isSliding){
+    if(SDL_GetTicks()-slidingTicks < SLIDE_UNIT_TIME){
+      currentAnim->unit->xPosDraw = slidingEasingFunction(SDL_GetTicks()-slidingTicks, currentAnim->xPos,currentAnim->unit->xPos,SLIDE_UNIT_TIME);
+      currentAnim->unit->yPosDraw = slidingEasingFunction(SDL_GetTicks()-slidingTicks, currentAnim->yPos,currentAnim->unit->yPos,SLIDE_UNIT_TIME);
+    }else{
+      currentAnim->unit->xPosDraw = currentAnim->unit->xPos;
+      currentAnim->unit->yPosDraw = currentAnim->unit->yPos;
+      isSliding = 0;
+    }
+  }
   if(isFocusing){
     //printf("%f %f %f %f\n",translateXPrev,translateX,translateYPrev,translateY);
     if((considerDoneFocusing > 2) && abs(50.0*(translateXPrev - translateX)) == 0.0 && abs(50.0*(translateYPrev - translateY)) == 0.0){//this indicates the auto-scrolling code is not allowing us to move any more
@@ -955,7 +970,7 @@ void calculateTranslation(){
     }
     //    printf("?? %f\t%f\t%f\t%f\n",focusSpeedX,focusSpeedY,fabs(translateX-(-focusXPos)),fabs(translateY-(-focusYPos)));
     
-      if(translateX < -focusXPos){
+    /*      if(translateX < -focusXPos){
 	translateX = translateX + focusSpeedX*deltaTicks;
 	if(translateX > -focusXPos){translateX = -focusXPos;}
       }else{
@@ -968,8 +983,16 @@ void calculateTranslation(){
       }else{
 	translateY = translateY - focusSpeedY*deltaTicks;
 	if(translateY < -focusYPos){translateY = -focusYPos;}
-      }
+	}*/
+    if(SDL_GetTicks()-focusTicks < focusTime){
+      translateX = focusEasingFunction(SDL_GetTicks()-focusTicks,focusXPosPrev,-focusXPos,focusTime);
+      translateY = focusEasingFunction(SDL_GetTicks()-focusTicks,focusYPosPrev,-focusYPos,focusTime);
+    }else{
+      translateX = -focusXPos;
+      translateY = -focusYPos;
     }
+  }
+
 //  printf("****** f:    \t%d\n",SDL_GetTicks() - testTicks5); testTicks5 = SDL_GetTicks(); 
 
   //The following code will adjust translateX/Y so that no off-map area is shown
@@ -1951,25 +1974,24 @@ GLint hitsCnt;
 PyObject * pyChooseNextDelayed;
 int chooseNextDelayed;
 Uint32 chooseNextTimeStart;
-PyObject * pyAnimQueue;
-PyObject * pyAnimQueueEmpty;
+PyObject * pyFocusQueue;
+PyObject * pyFocusQueueEmpty;
 PyObject * pyAnim;
-listelement * animQueue = NULL;
 ANIMATION * theAnim;
+PyObject * pyUpdatesQueue;
+PyObject * pyUpdatesQueueEmpty;
+PyObject * pyUpdate;
+long updateType;
 static void draw(){
   PyObject_SetAttrString(gameMode,"ticks",PyLong_FromLong(SDL_GetTicks()));
-  if(PyObject_HasAttrString(gameMode,"onDraw")){
-    pyObj = PyObject_CallMethod(gameMode,"onDraw","(ii)",deltaTicks,isAnimating);//New reference
-    printPyStackTrace();
-    Py_DECREF(pyObj);
-  }
-  pyAnimQueue = PyObject_GetAttrString(gameState,"animQueue");
-  pyAnimQueueEmpty = PyObject_CallMethod(pyAnimQueue,"empty",NULL);
+  pyFocusQueue = PyObject_GetAttrString(gameState,"focusQueue");
+  pyFocusQueueEmpty = PyObject_CallMethod(pyFocusQueue,"empty",NULL);
   //  printf("afg%d\n",1);
-  while(pyAnimQueueEmpty == Py_False){
-    pyAnim = PyObject_CallMethod(pyAnimQueue,"get",NULL);
-    ANIMATION temp;
-    theAnim = &(temp);
+  while(pyFocusQueueEmpty == Py_False){
+    Py_DECREF(pyFocusQueueEmpty);
+    pyAnim = PyObject_CallMethod(pyFocusQueue,"get",NULL);
+    ANIMATION * theAnim = malloc(sizeof(ANIMATION));
+    //    theAnim = &(temp);
     pyObj = PyObject_GetAttrString(pyAnim,"type");
     theAnim->type = PyLong_AsLong(pyObj);
     Py_DECREF(pyObj);
@@ -1979,49 +2001,70 @@ static void draw(){
     pyObj = PyObject_GetAttrString(pyAnim,"yPos");
     theAnim->yPos = PyFloat_AsDouble(pyObj);
     Py_DECREF(pyObj);
-    pyUnit = PyObject_GetAttrString(pyAnim,"unit");
-    if(pyUnit != Py_None){
-      pyUnitType = PyObject_GetAttrString(pyUnit,"unitType");
-      UNIT temp;
-      theAnim->unit = &(temp);
-      pyObj = PyObject_GetAttrString(pyUnit,"xPos");
-      theAnim->unit->xPos = PyLong_AsLong(pyObj);
-      Py_DECREF(pyObj);
-      pyObj = PyObject_GetAttrString(pyUnit,"yPos");
-      theAnim->unit->yPos = PyLong_AsLong(pyObj);
-      Py_DECREF(pyObj);
-      pyObj = PyObject_GetAttrString(pyUnit,"health");
-      theAnim->unit->health = PyLong_AsLong(pyObj);
-      Py_DECREF(pyObj);
-      pyObj = PyObject_GetAttrString(pyUnitType,"health");
-      theAnim->unit->maxHealth = PyLong_AsLong(pyObj);
-      Py_DECREF(pyObj);
-      Py_DECREF(pyUnit);
-    }
     Py_DECREF(pyAnim);
-    Py_DECREF(pyAnimQueueEmpty);
-    pyAnimQueueEmpty = PyObject_CallMethod(pyAnimQueue,"empty",NULL);
+    pyFocusQueueEmpty = PyObject_CallMethod(pyFocusQueue,"empty",NULL);
     animQueue = AddItem(animQueue,theAnim);
   }
-  Py_DECREF(pyAnimQueue);
-  //  Py_DECREF(pyAnimQueueEmpty);
-  if(animQueue != NULL && !isAnimating){//> 0 items
+  Py_DECREF(pyFocusQueue);
+  pyUpdatesQueue = PyObject_GetAttrString(gameState,"rendererUpdateQueue");
+  pyUpdatesQueueEmpty = PyObject_CallMethod(pyUpdatesQueue,"empty",NULL);
+  while(pyUpdatesQueueEmpty == Py_False){
+    Py_DECREF(pyUpdatesQueueEmpty);
+    pyUpdate = PyObject_CallMethod(pyUpdatesQueue,"get",NULL);
+    //    printf("update: %d\n",pyUpdate);
+    pyObj = PyObject_GetAttrString(pyUpdate,"type");
+    updateType = PyLong_AsLong(pyObj);
+    Py_DECREF(pyObj);    
+    if(updateType == RENDERER_CHANGE_UNIT_ADD){
+      pyUnit = PyObject_GetAttrString(pyUpdate,"unit");
+      addUnit(pyUnit);
+      Py_DECREF(pyUnit);
+    }else if(updateType == RENDERER_CHANGE_UNIT_CHANGE){
+      pyUnit = PyObject_GetAttrString(pyUpdate,"unit");
+      updateUnit(pyUnit);
+      Py_DECREF(pyUnit);      
+    }
+    /* if(updateType == RENDERER_CHANGE_UNIT_REMOVE){
+    }else if(updateType == RENDERER_CHANGE_UNIT_CHANGE){
+    }else if(updateType == RENDERER_CHANGE_NODE_CHANGE){
+    }else if(updateType == RENDERER_CHANGE_TEXT_INPUT){
+     }*/
+    Py_DECREF(pyUpdate);
+    
+    pyUpdatesQueueEmpty = PyObject_CallMethod(pyUpdatesQueue,"empty",NULL);
+  }
+  Py_DECREF(pyUpdatesQueue);
+  //  printf("trans %lf\n",translateX);
+  if(animQueue != NULL && !isFocusing && !isSliding){//> 0 items
     isAnimating = 1;
     listelement * listpointer;
-    ANIMATION * animation = animQueue->item; 
+    currentAnim = animQueue->item; 
     animQueue = RemoveItem(animQueue);
-    if(animation->type == ANIMATION_AUTO_FOCUS){
+    if(currentAnim->type == ANIMATION_AUTO_FOCUS){
       isFocusing = 1;
-      focusXPos = translateTilesXToPositionX(0.0-animation->xPos,animation->yPos);
-      focusYPos = translateTilesYToPositionY(animation->yPos);
-    }else{
-      printf("fs%d\n",1);
-      isAnimating = 0; 
+      focusTicks = SDL_GetTicks();
+      focusXPos = translateTilesXToPositionX(0.0-currentAnim->xPos,currentAnim->yPos);
+      focusYPos = translateTilesYToPositionY(currentAnim->yPos);
+      focusXPosPrev = translateX;
+      focusYPosPrev = translateY;
+      focusTime = 20.0*(abs(focusXPosPrev-(-focusXPos))+abs(focusYPosPrev-(-focusYPos)));
+      if(focusTime > AUTO_FOCUS_TIME_MAX){
+	focusTime = AUTO_FOCUS_TIME_MAX;
+      }else if(focusTime < AUTO_FOCUS_TIME_MIN){
+	focusTime = AUTO_FOCUS_TIME_MIN;
+      } 
+    }else if(currentAnim->type == ANIMATION_UNIT_SLIDE){
+      isSliding = 1;
+      slidingTicks = SDL_GetTicks();
     }
   }
-  if(!isFocusing && !isSliding){
-    //      printf("done%d\n",1);
+  if(!isFocusing && !isSliding && isAnimating){
     isAnimating = 0;
+  }
+  if(PyObject_HasAttrString(gameMode,"onDraw")){
+    pyObj = PyObject_CallMethod(gameMode,"onDraw","(ii)",deltaTicks,isAnimating);//New reference
+    printPyStackTrace();
+    Py_DECREF(pyObj);
   }
 
   //  pyCursorIndex = PyObject_GetAttrString(gameState,"cursorIndex");

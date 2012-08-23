@@ -14,7 +14,8 @@ import sys
 import socket
 import ai
 import animations
-
+import rendererUpdates
+import uuid
 from multiprocessing import Process, Queue, Pipe
 #import aStar
 
@@ -208,11 +209,12 @@ class fire:
 
 class unit(object):
 	def __init__(self,unitType,player,node,level=None):
+		self.id = uuid.uuid4()
 		self.unitType = unitType
 		self.player = player
 		self.team = (self.player)/gameState.getTeamSize()
 		self.ai = gameState.theAIs[self.player]
-		self._node = node
+		self._node = None
 		self.xPos = 0.0
 		self.yPos = 0.0
 		self.xPosDraw = 0.0
@@ -244,8 +246,9 @@ class unit(object):
 	def node(self,theNode):
 		self.xPos = translateTilesXToPositionX(theNode.xPos,theNode.yPos)
 		self.yPos = translateTilesYToPositionY(theNode.yPos)
-		self.xPosDraw = translateTilesXToPositionX(theNode.xPos,theNode.yPos)
-		self.yPosDraw = translateTilesYToPositionY(theNode.yPos)
+		if(self._node == None):
+			self.xPosDraw = translateTilesXToPositionX(theNode.xPos,theNode.yPos)
+			self.yPosDraw = translateTilesYToPositionY(theNode.yPos)
 		self._node = theNode
 	def setPosition(self,xPos,yPos):
 		return
@@ -258,6 +261,7 @@ class unit(object):
 			self.xPos = xPos
 			self.yPos = yPos
 	def slide(self,deltaTicks):
+		return
 		if(self.yPosDraw == self.yPos):
 			if(self.xPosDraw > self.xPos):
 				self.xPosDraw = self.xPosDraw - (0.010*UNIT_SLIDE_SPEED*deltaTicks)
@@ -332,7 +336,8 @@ class unit(object):
 		gameState.movePath = []
 		if(self.movePath[0].unit != None):#ran into unit
 			self.movePath = []
-			selectNode(self.node)
+			gameState.getGameMode().focus(self.node)
+#			selectNode(self.node)
 #			gameState.getGameMode().doFocus = 1
 		else:
 			node = self.movePath[0]
@@ -348,13 +353,13 @@ class unit(object):
 		aStarSearch.parentPipe.send(["unitRemove",self.node.xPos,self.node.yPos])
 		if(node.visible):
 			aStarSearch.parentPipe.send(["unitAdd",node.xPos,node.yPos])
-			gameState.getGameMode().animationQueue.put((node.xPos,node.yPos,))
-			gameState.getGameMode().animationQueue.put((self,))
-			gameState.animQueue.put(animations.autoFocusAnimation(node.xPos,node.yPos))
-			gameState.animQueue.put(animations.unitSlideAnimation(self))
+#			gameState.getGameMode().animationQueue.put((node.xPos,node.yPos,))
+#			gameState.getGameMode().animationQueue.put((self,))
+			gameState.focusQueue.put(animations.autoFocusAnimation(node.xPos,node.yPos))
 		self.node.unit = None
 		self.node = node
 		node.unit = self
+		gameState.rendererUpdateQueue.put(rendererUpdates.renderUnitChange(self))
 		self.movementPoints = self.movementPoints + INITIATIVE_ACTION_DEPLETION
 		gameState.getGameMode().gotoMode = False
 	def heal(self,node):
@@ -531,6 +536,7 @@ class node:
 			self.unit = theUnit
 			theUnit.node = self
 			gameState.getGameMode().units.append(theUnit)
+			gameState.rendererUpdateQueue.put(rendererUpdates.renderNewUnit(self.unit))
 			if(self.visible):
 				aStarSearch.parentPipe.send(["unitAdd",self.xPos,self.yPos])
 			if(theUnit.unitType.name == "summoner"):
@@ -618,13 +624,16 @@ class playModeNode(node):
 			elif(playModeNode.mode == MODES.MOVE_MODE):
 				if(gameState.getGameMode().selectedNode != None and gameState.getGameMode().selectedNode.unit != None and (self.tileValue != cDefines.defines['MOUNTAIN_TILE_INDEX'] or (self.tileValue == cDefines.defines['MOUNTAIN_TILE_INDEX'] and gameState.getGameMode().selectedNode.unit.unitType.canFly))):
 					if(len(gameState.getGameMode().selectedNode.unit.movePath) > 0):
+						gameState.getGameMode().selectedNode.unit.gotoNode = None
 						gameState.movePath = gameState.getGameMode().selectedNode.unit.movePath
 #						for node in gameState.getGameMode().selectedNode.unit.movePath:
 #							node.onMovePath = False
 					gameState.getGameMode().selectedNode.unit.movePath = playModeNode.movePath
 					if(len(gameState.getGameMode().selectedNode.unit.movePath) == 0):#movepath wasn't done calculating
 						if(playModeNode.isNeighbor):
+							gameState.getGameMode().selectedNode.unit.gotoNode = None
 							gameState.getGameMode().selectedNode.unit.movePath.append(self)
+							
 						else:
 							gameState.getGameMode().selectedNode.unit.gotoNode = self
 #							gameState.getGameMode().selectedNode.unit.gotoNode.onMovePath = True

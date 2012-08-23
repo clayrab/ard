@@ -220,5 +220,8 @@ cursorIndex = -2
 global movePath
 movePath = []
 
-global animQueue
-animQueue = Queue.Queue()
+global focusQueue
+focusQueue = Queue.Queue()
+
+global rendererUpdateQueue
+rendererUpdateQueue = Queue.Queue()
