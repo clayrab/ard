@@ -18,7 +18,7 @@ typedef struct node{
   //  char city;
   char playerStartValue;
   //  char selected;
-  char onMovePath;
+  //  char onMovePath;
   //  char cursorIndex;
   char visible;
 }NODE;

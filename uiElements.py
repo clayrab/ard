@@ -11,6 +11,7 @@ import client
 import server
 import socket
 from textureFunctions import texWidth, texHeight, texIndex
+import rendererUpdates
 from Queue import Queue
 #print pubKey.decrypt(cipher)
 
@@ -1407,6 +1408,7 @@ class saveNameInput(modalTextInput):
 			textInputElement.onKeyDown(self,str(keycode))
 
 def exitGame():
+	print 'exit'
 	gameState.setGameMode(gameModes.newGameScreenMode)
 	client.stopClient()
 	server.shutdownServer()

@@ -42,7 +42,7 @@
 
 #define ANIMATION_DAMAGE 0
 #define ANIMATION_SELECTION_BOX 1
-int animationTimes[2] = {2000,2000};
+int animationTimes[2] = {4000,2000};
 
 #define RENDERER_CHANGE_UNIT_ADD 0
 #define RENDERER_CHANGE_UNIT_REMOVE 1
@@ -51,6 +51,7 @@ int animationTimes[2] = {2000,2000};
 #define RENDERER_CHANGE_TEXT_INPUT 4
 #define RENDERER_SELECT_NEXT_UNIT 5
 #define RENDERER_FOCUS 6
+#define RENDERER_RESET_UNITS 7
 
 #define TILES "assets/tiles2.png"
 #define UI "assets/UI.png"

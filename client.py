@@ -39,6 +39,12 @@ class Commands:
 #            if(oldUserName == "Player " + str(index+1)):
 #                server.playerUserNames[index] = False
     @staticmethod
+    def changeUserNameUndo(args):
+        return
+    @staticmethod
+    def changeUserNameRedo(args):
+        return
+    @staticmethod
     def setTeamSize(teamSize):
         gameState.setTeamSize(int(teamSize))
         if(hasattr(gameState.getGameMode(),"redrawTeams")):

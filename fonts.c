@@ -92,12 +92,12 @@ void make_dlist(FT_Face face, char charIndex, GLuint list_base, GLuint * tex_bas
 
   glNewList(list_base+(2*charIndex),GL_COMPILE);
   glPushMatrix();
-  glBegin(GL_QUADS);
+  /*  glBegin(GL_QUADS);
   glVertex2f(-4,glyphHeight);
   glVertex2f(-4,0);
   glVertex2f(face->glyph->advance.x>>6,0);
   glVertex2f(bitmap_glyph->left,glyphHeight);
-  glEnd();
+  glEnd();*/
   glTranslatef(bitmap_glyph->left,bitmap_glyph->top-glyphHeight,0);
   glBindTexture(GL_TEXTURE_2D,tex_base[charIndex]);
   glBegin(GL_QUADS);
@@ -294,6 +294,7 @@ void drawChar(int fontIndex,char* str, int strPosition,int cursorPosition){
   /*  if(strPosition == cursorPosition){
     drawCursor();
     }*/
+  //  printf("%s\t%d\n",str,strPosition);
   glPushName(strPosition);
   //  glGetDoublev(GL_MODELVIEW_MATRIX,projMatrix);
   glCallList(list_base+(fontIndex<<8)+(str[strPosition]<<1));

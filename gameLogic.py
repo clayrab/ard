@@ -13,7 +13,6 @@ import time
 import sys
 import socket
 import ai
-import animations
 import rendererUpdates
 import uuid
 from multiprocessing import Process, Queue, Pipe
@@ -355,7 +354,8 @@ class unit(object):
 			aStarSearch.parentPipe.send(["unitAdd",node.xPos,node.yPos])
 #			gameState.getGameMode().animationQueue.put((node.xPos,node.yPos,))
 #			gameState.getGameMode().animationQueue.put((self,))
-			gameState.focusQueue.put(animations.autoFocusAnimation(node.xPos,node.yPos))
+			gameState.rendererUpdateQueue.put(rendererUpdates.renderFocus(node.xPos,node.yPos))
+
 		self.node.unit = None
 		self.node = node
 		node.unit = self
@@ -379,7 +379,7 @@ class unit(object):
 	def attackTo(self,node):
 #		self.waiting = False
 		if(node.unit != None and node.unit.player != self.player):
-			multiplier = 1.0		
+			multiplier = 1
 #			if(self.node.tileValue == cDefines.defines['MOUNTAIN_TILE_INDEX']):
 #				multiplier = multiplier + MOUNTAIN_ATTACK_BONUS_MULTIPLIER
 			damage = ((self.getAttackPower()-node.unit.getArmor())*multiplier)
@@ -388,7 +388,7 @@ class unit(object):
 			if(damage < 1):
 				damage = 1
 			node.unit.health = node.unit.health - damage
-			if(node.unit.health < 0.0):
+			if(node.unit.health <= 0):
 				for neighb in node.getNeighbors(5):
 					neighb.stopViewing(node.unit)
 				gameState.getGameMode().units.remove(node.unit)
@@ -577,8 +577,8 @@ class playModeNode(node):
 #		self.aStarKnownCost = 0.0
 #		self.aStarHeuristicCost = 0.0
 #		self.aStarParent = None
-#		self.visible = False
-		self.visible = True
+		self.visible = False
+#		self.visible = True
 		self.viewingUnits = []
 		self.fire = None
 		self.ice = None
@@ -611,12 +611,15 @@ class playModeNode(node):
 #					node.onMovePath = False
 #				unit.movePath = []
 			self.visible = True
+			gameState.rendererUpdateQueue.put(rendererUpdates.renderNodeChange(self))
+
 	def stopViewing(self,unit):
 		if(unit in self.viewingUnits):
 			self.viewingUnits.remove(unit)
 		if(len(self.viewingUnits) <= 0):
-#			self.visible = False
-			self.visible = True
+			self.visible = False
+			gameState.rendererUpdateQueue.put(rendererUpdates.renderNodeChange(self))
+#			self.visible = True
 	def onLeftClickDown(self):
 		if(gameState.getGameMode().doFocus == 0 or True):
 			if(playModeNode.mode == MODES.ATTACK_MODE):
@@ -1091,9 +1094,9 @@ class mapp:
 		self.numPlayers = numPlayers
 
 def selectNode(node):
-	if(node != None and node.unit != None):
-		node.unit.health = node.unit.health - 2
-		gameState.rendererUpdateQueue.put(rendererUpdates.renderUnitChange(node.unit))
+#	if(node != None and node.unit != None):
+#		node.unit.health = node.unit.health - 2
+#		gameState.rendererUpdateQueue.put(rendererUpdates.renderUnitChange(node.unit))
 	for pnode in playModeNode.movePath:
 		pnode.onMovePath = False
 	playModeNode.movePath = []

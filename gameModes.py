@@ -15,6 +15,8 @@
 #client:
 #
 #unit position, health, add/remove
+#uiElements list in C
+#
 #node visiblity
 #text left and right char position
 #
@@ -129,7 +131,7 @@ import uiElements
 import client
 import gameFindClient
 import server
-import animations
+import rendererUpdates
 import Queue
 from textureFunctions import texWidth, texHeight, texIndex
 import pdb
@@ -175,6 +177,7 @@ class gameMode:
 #		self.animationQueue = Queue.Queue()
 #		self.currentAnimation = None
 		uiElements.viewer.theViewer = None
+		gameState.rendererUpdateQueue.put(rendererUpdates.resetUnits())
 	def __dealloc__(self):
 		print '**** dealloc gamemode ****'
 	def getRestartMusic(self):
@@ -347,7 +350,6 @@ class tiledGameMode(gameMode):
 	def focus(self):
 		self.focused = True
 #		self.animationQueue.put((int(len(self.map.nodes[0])/2),int(len(self.map.nodes)/2),))
-		gameState.focusQueue.put(animations.autoFocusAnimation(int(len(self.map.nodes[0])/2),int(len(self.map.nodes)/2)))
 		gameState.rendererUpdateQueue.put(rendererUpdates.renderFocus(int(len(self.map.nodes[0])/2),int(len(self.map.nodes)/2)))
 		
 	def getFocusNextUnit(self):
@@ -413,7 +415,6 @@ class playMode(tiledGameMode):
 		self.restartMusic = True
 	def focus(self,node):
 #		self.animationQueue.put((node.xPos,node.yPos,))
-		gameState.focusQueue.put(animations.autoFocusAnimation(node.xPos,node.yPos))
 		gameState.rendererUpdateQueue.put(rendererUpdates.renderFocus(node.xPos,node.yPos))
 
 	def getChooseNextDelayed(self):
@@ -525,7 +526,6 @@ class playMode(tiledGameMode):
 			self.nextUnit = random.choice(eligibleUnits)
 		if(self.nextUnit != None and self.nextUnit.isControlled()):
 #			self.animationQueue.put((self.nextUnit.node.xPos,self.nextUnit.node.yPos,))
-			gameState.focusQueue.put(animations.autoFocusAnimation(self.nextUnit.node.xPos,self.nextUnit.node.yPos))
 			gameState.rendererUpdateQueue.put(rendererUpdates.renderFocus(self.nextUnit.node.xPos,self.nextUnit.node.yPos))
 
 			self.waitingElem.hidden = True
@@ -568,7 +568,7 @@ class playMode(tiledGameMode):
 					node.addUnit(gameLogic.unit(gameState.theUnitTypes["summoner"],node.playerStartValue-1,node,1))
 					for x in range(0,0):
 						node.addUnit(gameLogic.unit(gameState.theUnitTypes["gatherer"],node.playerStartValue-1,node,1))
-#					node.addUnit(gameLogic.unit(gameState.theUnitTypes["swordsman"],node.playerStartValue-1,node,1))
+					node.addUnit(gameLogic.unit(gameState.theUnitTypes["swordsman"],node.playerStartValue-1,node,1))
 
 #					node.addFire(gameLogic.fire(node))
 #					node.addIce(gameLogic.ice(node))
@@ -656,7 +656,7 @@ class playMode(tiledGameMode):
 					node = gameState.getGameMode().map.nodes[arr[1]][arr[0]]
 					gameLogic.playModeNode.movePath.append(node)
 					gameState.movePath.append(node)
-			if((not isAnimating) and self.nextUnit != None and gameState.focusQueue.empty() and gameState.rendererUpdateQueue.empty()):
+			if((not isAnimating) and self.nextUnit != None and gameState.rendererUpdateQueue.empty()):
 				if(self.nextUnit.ai != None):
 					self.nextUnit.ai.takeTurn()
 				elif(self.nextUnit.isControlled() and len(self.nextUnit.movePath) == 0 and not self.selectedNextUnit):
@@ -853,9 +853,11 @@ class newGameScreenMode(textBasedMenuMode):
 	def __dealloc__(self):
 		print '**** dealloc gamemode ****'
 	def addUIElements(self):
+
 		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])
 		uiElements.uiElement(-0.5*texWidth("TITLE"),0.65,textureIndex=texIndex("TITLE"),width=texWidth("TITLE"),height=texHeight("TITLE"))
 		uiElements.menuButtonGameModeSelector(-0.18,-0.22,quickPlayMode,text="Quick Play")
+#		uiElements.menuButtonGameModeSelector(-0.18,-0.22,quickPlayMode,text="asdf1asdf")
 		uiElements.menuButtonGameModeSelector(-0.07,-0.34,loadGameMode,text="Load")
 		uiElements.menuButtonGameModeSelector(-0.28,-0.46,joinLANGameScreenMode,text="Join LAN Game")
 		uiElements.menuButtonGameModeSelector(-0.30,-0.58,hostGameMode,text="Host LAN Game")

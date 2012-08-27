@@ -3,7 +3,7 @@ class rendererUpdate(object):
     def __init__(self,type,unit=None,node=None,xPos=0.0,yPos=0.0,health=0.0):
         self.type = type
         self.unit = unit
-        self.node = None
+        self.node = node
         self.xPos = xPos
         self.yPos = yPos
 
@@ -34,5 +34,9 @@ class renderSelectNextUnit(rendererUpdate):
 class renderFocus(rendererUpdate):
     def __init__(self,xPos,yPos):
         rendererUpdate.__init__(self,cDefines.defines["RENDERER_FOCUS"],xPos=xPos,yPos=yPos)
+
+class resetUnits(rendererUpdate):
+    def __init__(self):
+        rendererUpdate.__init__(self,cDefines.defines["RENDERER_RESET_UNITS"])
     
     
