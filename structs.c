@@ -1,7 +1,8 @@
 typedef struct unit{
   char * id;
   struct unit * nextUnit;
-  double xPos,yPos,xPosDraw,yPosDraw,health,maxHealth;
+  double xPos,yPos,xPosDraw,yPosDraw;
+  long health,maxHealth;
   char textureIndex,isNextUnit;
 }UNIT;
 typedef struct node{

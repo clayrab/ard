@@ -229,10 +229,10 @@ class unit(object):
 			self.level = level
 		else:
 			self.level = gameState.researchProgress[self.player][self.unitType][0]
-		self.health = float(self.unitType.health*self.level)
+		self.health = self.unitType.health*self.level
 #		self.gatheringNode = None
 		self.isMeditating = False
-		self.recentDamage = {}
+#		self.recentDamage = {}
 		self.researching = False
 		self.researchUnitType = None
 		self.unitBeingBuilt = None
@@ -383,7 +383,8 @@ class unit(object):
 #			if(self.node.tileValue == cDefines.defines['MOUNTAIN_TILE_INDEX']):
 #				multiplier = multiplier + MOUNTAIN_ATTACK_BONUS_MULTIPLIER
 			damage = ((self.getAttackPower()-node.unit.getArmor())*multiplier)
-			node.unit.recentDamage[gameState.getGameMode().ticks] = str(int(damage))
+#			node.unit.recentDamage[gameState.getGameMode().ticks] = str(int(damage))
+			gameState.rendererUpdateQueue.put(rendererUpdates.renderUnitChange(node.unit))
 			if(damage < 1):
 				damage = 1
 			node.unit.health = node.unit.health - damage
@@ -391,6 +392,7 @@ class unit(object):
 				for neighb in node.getNeighbors(5):
 					neighb.stopViewing(node.unit)
 				gameState.getGameMode().units.remove(node.unit)
+				gameState.rendererUpdateQueue.put(rendererUpdates.renderRemoveUnit(node.unit))
 				if(node.unit.unitType.name == "summoner"):
 					gameState.getGameMode().summoners.remove(node.unit)
 				aStarSearch.parentPipe.send(["unitRemove",node.xPos,node.yPos])
@@ -1089,6 +1091,9 @@ class mapp:
 		self.numPlayers = numPlayers
 
 def selectNode(node):
+	if(node != None and node.unit != None):
+		node.unit.health = node.unit.health - 2
+		gameState.rendererUpdateQueue.put(rendererUpdates.renderUnitChange(node.unit))
 	for pnode in playModeNode.movePath:
 		pnode.onMovePath = False
 	playModeNode.movePath = []

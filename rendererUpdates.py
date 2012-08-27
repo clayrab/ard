@@ -26,3 +26,13 @@ class renderNodeChange(rendererUpdate):
 class renderTextChange(rendererUpdate):
     def __init__(self,unit):
         rendererUpdate.__init__(self,cDefines.defines["RENDERER_CHANGE_TEXT_INPUT"])
+
+class renderSelectNextUnit(rendererUpdate):
+    def __init__(self):
+        rendererUpdate.__init__(self,cDefines.defines["RENDERER_SELECT_NEXT_UNIT"])
+    
+class renderFocus(rendererUpdate):
+    def __init__(self,xPos,yPos):
+        rendererUpdate.__init__(self,cDefines.defines["RENDERER_FOCUS"],xPos=xPos,yPos=yPos)
+    
+    

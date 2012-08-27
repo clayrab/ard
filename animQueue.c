@@ -1,6 +1,8 @@
 typedef struct animation{
+  Uint32 time;
   int type;
   float xPos, yPos;
+  long damage;
   struct unit * unit;
 }ANIMATION;
 //typedef struct animation animation;
