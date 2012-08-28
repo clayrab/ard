@@ -1,9 +1,10 @@
 import cDefines
 class rendererUpdate(object):
-    def __init__(self,type,unit=None,node=None,xPos=0.0,yPos=0.0,health=0.0):
+    def __init__(self,type,unit=None,node=None,uiElement=None,xPos=0.0,yPos=0.0,health=0.0):
         self.type = type
         self.unit = unit
         self.node = node
+        self.uiElement = uiElement
         self.xPos = xPos
         self.yPos = yPos
 
@@ -38,5 +39,21 @@ class renderFocus(rendererUpdate):
 class resetUnits(rendererUpdate):
     def __init__(self):
         rendererUpdate.__init__(self,cDefines.defines["RENDERER_RESET_UNITS"])
+
+class resetUI(rendererUpdate):
+    def __init__(self):
+        rendererUpdate.__init__(self,cDefines.defines["RENDERER_RESET_UI"])
+
+class addUIElem(rendererUpdate):
+    def __init__(self,uiElement):
+        rendererUpdate.__init__(self,cDefines.defines["RENDERER_ADD_UIELEM"],uiElement=uiElement)
+
+class removeUIElem(rendererUpdate):
+    def __init__(self,uiElement):
+        rendererUpdate.__init__(self,cDefines.defines["RENDERER_REMOVE_UIELEM"],uiElement=uiElement)
+
+class updateUIElem(rendererUpdate):
+    def __init__(self,uiElement):
+        rendererUpdate.__init__(self,cDefines.defines["RENDERER_UPDATE_UIELEM"],uiElement=uiElement)
     
     

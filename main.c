@@ -377,6 +377,159 @@ void drawAnimations(){
       drawText(damageStr,0,-1,-9999.9,NULL);
 */
 }
+PyObject * pyWidth;
+PyObject * pyHeight;
+PyObject * pyHidden;
+PyObject * pyName;
+PyObject * pyTextureIndex;
+PyObject * pyCursorIndex;
+PyObject * pyText;
+PyObject * pyQueuedText;
+PyObject * pyRealText;
+PyObject * pyLeftmostCharPosition;
+PyObject * pyRightmostCharPosition;
+PyObject * pyRecalculateText;
+PyObject * pyDecrementMe;
+PyObject * pyTextColor;
+PyObject * pyTextSize;
+PyObject * pyColor;
+PyObject * pyMouseOverColor;
+PyObject * pyTextXPosition;
+PyObject * pyTextYPosition;
+PyObject * pyCursorPosition;
+PyObject * pyFontIndex;
+PyObject * pyFrameLength;
+PyObject * pyFrameCount;
+PyObject * pyIsFocused;
+long name;
+UIELEMENT * uiElements = NULL;
+UIELEMENT * tempUIElem;
+UIELEMENT * nextElement;
+void loadUIElem(PyObject * pyUIElem,UIELEMENT * uiElem){
+    pyXPosition = PyObject_GetAttrString(pyUIElem,"xPosition");
+    pyYPosition = PyObject_GetAttrString(pyUIElem,"yPosition");
+    pyWidth = PyObject_GetAttrString(pyUIElem,"width");
+    pyHeight = PyObject_GetAttrString(pyUIElem,"height");
+    pyHidden = PyObject_GetAttrString(pyUIElem,"hidden");
+    pyName = PyObject_GetAttrString(pyUIElem,"name");
+    pyTextureIndex = PyObject_GetAttrString(pyUIElem,"textureIndex");
+    //    pyCursorIndex = PyObject_GetAttrString(pyUIElem,"cursorIndex");
+    pyText = PyObject_GetAttrString(pyUIElem,"text");
+    pyTextColor = PyObject_GetAttrString(pyUIElem,"textColor");
+    pyTextSize = PyObject_GetAttrString(pyUIElem,"textSize");
+    pyColor = PyObject_GetAttrString(pyUIElem,"color");
+    pyMouseOverColor = PyObject_GetAttrString(pyUIElem,"mouseOverColor");
+    pyTextXPosition = PyObject_GetAttrString(pyUIElem,"textXPos");
+    pyTextYPosition = PyObject_GetAttrString(pyUIElem,"textYPos");
+    pyCursorPosition = PyObject_GetAttrString(pyUIElem,"cursorPosition");
+    pyFontIndex = PyObject_GetAttrString(pyUIElem,"fontIndex");
+    //    pyFrameLength = PyObject_GetAttrString(pyUIElem,"frameLength");
+    // pyFrameCount = PyObject_GetAttrString(pyUIElem,"frameCount");
+    pyIsFocused = PyObject_GetAttrString(pyUIElem,"focused");
+    uiElem->xPosition = PyFloat_AsDouble(pyXPosition);
+    uiElem->yPosition = PyFloat_AsDouble(pyYPosition);
+    
+    uiElem->width = PyFloat_AsDouble(pyWidth);
+    uiElem->height = PyFloat_AsDouble(pyHeight);
+    uiElem->hidden = pyHidden==Py_True;
+    uiElem->name = PyLong_AsLong(pyName);
+    uiElem->textureIndex = PyLong_AsLong(pyTextureIndex);
+    //    cursorIndex = PyLong_AsLong(pyCursorIndex);
+    uiElem->text = PyString_AsString(pyText);
+    uiElem->textColor = PyString_AsString(pyTextColor);
+    uiElem->textSize = PyFloat_AsDouble(pyTextSize);
+    uiElem->color = PyString_AsString(pyColor);
+    if(pyMouseOverColor != Py_None){
+      uiElem->mouseOverColor = PyString_AsString(pyMouseOverColor);
+    }else{
+      uiElem->mouseOverColor = NULL;
+    }
+    uiElem->textXPosition = PyFloat_AsDouble(pyTextXPosition);
+    uiElem->textYPosition = PyFloat_AsDouble(pyTextYPosition);
+    uiElem->cursorPosition = PyFloat_AsDouble(pyCursorPosition);
+    uiElem->fontIndex = PyFloat_AsDouble(pyFontIndex);
+    uiElem->focused = pyIsFocused==Py_True;
+    Py_DECREF(pyXPosition);
+    Py_DECREF(pyYPosition);
+    Py_DECREF(pyWidth);
+    Py_DECREF(pyHeight);
+    Py_DECREF(pyHidden);
+    Py_DECREF(pyName);
+    Py_DECREF(pyTextureIndex);
+    //    Py_DECREF(pyCursorIndex);
+    Py_DECREF(pyText);
+    Py_DECREF(pyTextColor);
+    Py_DECREF(pyTextSize);
+    Py_DECREF(pyColor);
+    if(pyMouseOverColor != Py_None){
+      Py_DECREF(pyMouseOverColor);
+    }
+    Py_DECREF(pyTextXPosition);
+    Py_DECREF(pyTextYPosition);
+    Py_DECREF(pyCursorPosition);
+    Py_DECREF(pyFontIndex);
+    //    Py_DECREF(pyFrameLength);
+    //    Py_DECREF(pyFrameCount);
+    Py_DECREF(pyIsFocused);
+}
+void updateUIElement(PyObject * pyUIElem){
+  pyName = PyObject_GetAttrString(pyUIElem,"name");
+  name = PyLong_AsLong(pyName);
+  Py_DECREF(pyName);
+  nextElement = uiElements->nextElement;
+  while(nextElement != NULL){
+    if(nextElement->name == name){
+      break;
+    }
+    nextElement = nextElement->nextElement;
+  }
+  loadUIElem(pyUIElem,nextElement);
+}
+void removeUIElement(PyObject * pyUIElem){
+  pyName = PyObject_GetAttrString(pyUIElem,"name");
+  name = PyLong_AsLong(pyName);
+  Py_DECREF(pyName);
+  nextElement = uiElements->nextElement;
+  while(nextElement != NULL){
+    if(nextElement->name == name){
+      break;
+    }
+    tempUIElem = nextElement;
+    nextElement = nextElement->nextElement;
+  }
+  tempUIElem->nextElement = nextElement->nextElement;
+  free(nextElement);
+}
+void addUIElement(PyObject * pyUIElem){
+  tempUIElem = (UIELEMENT *)malloc(sizeof(UIELEMENT));
+  if(uiElements == NULL){
+    uiElements = tempUIElem;
+  }else{
+    nextElement = uiElements;
+    while(nextElement->nextElement != NULL){
+      nextElement = nextElement->nextElement;
+    }
+    nextElement->nextElement = tempUIElem;
+  }
+  loadUIElem(pyUIElem,tempUIElem);
+  tempUIElem->nextElement = NULL;
+}
+void resetUIElements(){
+  nextElement = uiElements;
+  while(nextElement != NULL){
+    tempUIElem = nextElement->nextElement;
+    free(tempUIElem);
+    nextElement = tempUIElem;
+  }
+  uiElements = NULL;
+}
+
+
+
+
+
+
+
 void loadUnit(struct unit * daUnit,PyObject * pyUnit){
   pyUnitType = PyObject_GetAttrString(pyUnit,"unitType");
   pyId = PyObject_GetAttrString(pyUnit,"id");
@@ -1201,36 +1354,11 @@ void drawTileSelect(double xPos, double yPos, int name, long tileType, long sele
 }
 int isNode;
 unsigned int red[1],green[1],blue[1];
-PyObject * pyWidth;
-PyObject * pyHeight;
-PyObject * pyHidden;
-PyObject * pyName;
-PyObject * pyTextureIndex;
-PyObject * pyCursorIndex;
-PyObject * pyText;
-PyObject * pyQueuedText;
-PyObject * pyRealText;
-PyObject * pyLeftmostCharPosition;
-PyObject * pyRightmostCharPosition;
-PyObject * pyRecalculateText;
-PyObject * pyDecrementMe;
-PyObject * pyTextColor;
-PyObject * pyTextSize;
-PyObject * pyColor;
-PyObject * pyMouseOverColor;
-PyObject * pyTextXPosition;
-PyObject * pyTextYPosition;
-PyObject * pyCursorPosition;
-PyObject * pyFontIndex;
-PyObject * pyFrameLength;
-PyObject * pyFrameCount;
-PyObject * pyIsFocused;
 //double xPosition;
 //double yPosition;
 double width;
 double height;
 int hidden;
-long name;
 long textureIndex;
 //long cursorIndex;
 char * text;
@@ -1251,8 +1379,77 @@ double fontIndex;
 int frameLength;
 int frameCount;
 int isFocused;
+void drawUIElement(UIELEMENT * uiElement){
+  //  printf("wtf %d\n",uiElement->hidden);
+  if(!uiElement->hidden){
+    //    printf("wtf %d\n",uiElement->textureIndex);
+    if(uiElement->textureIndex > -1){
+      glBindTexture(GL_TEXTURE_2D, texturesArray[uiElement->textureIndex]);
+      if(selectedName == uiElement->name && uiElement->mouseOverColor != NULL){
+	sscanf(uiElement->mouseOverColor,"%X %X %X",red,green,blue);
+      }else{
+	sscanf(uiElement->color,"%X %X %X",red,green,blue);
+      } 
+      glColor3f(*red/255.0, *green/255.0, *blue/255.0);
+      glPushName(uiElement->name);
+      glBegin(GL_QUADS);
+      glTexCoord2f(0.0,1.0); glVertex3f(uiElement->xPosition,uiElement->yPosition,0.0);
+      glTexCoord2f(1.0,1.0); glVertex3f(uiElement->xPosition+uiElement->width,uiElement->yPosition,0.0);
+      glTexCoord2f(1.0,0.0); glVertex3f(uiElement->xPosition+uiElement->width,uiElement->yPosition-uiElement->height,0.0);
+      glTexCoord2f(0.0,0.0); glVertex3f(uiElement->xPosition,uiElement->yPosition-uiElement->height,0.0);
+      glEnd();
+      glPopName();
+    }
+    if((uiElement->text) != NULL){
+      sscanf(uiElement->textColor,"%X %X %X",red,green,blue);
+      glColor3f(*red/255.0, *green/255.0, *blue/255.0);
+      glPushMatrix();
+      glLoadIdentity();
+      glTranslatef(uiElement->xPosition+(uiElement->textXPosition),uiElement->yPosition+(uiElement->textYPosition),0.0);
+      glScalef(uiElement->textSize,uiElement->textSize,0.0);
+      //glTranslatef(0.0,0.0,-10.0);
+      glPushName(uiElement->name);
+      if(uiElement->focused){
+	drawText(uiElement->text,uiElement->fontIndex,uiElement->cursorPosition,uiElement->xPosition+uiElement->width,NULL);
+      }else{
+	drawText(uiElement->text,uiElement->fontIndex,-1,uiElement->xPosition+uiElement->width,NULL);
+      }
+      glPopName();
+      glPopMatrix();
+    }
+    /**/
 
-void drawUIElement(PyObject * uiElement){
+    /*    if(PyObject_HasAttrString(uiElement,"text") && text[0] != 0){
+	  glColor3f(*red/255.0, *green/255.0, *blue/255.0);
+	  if(selectedName == name && mouseOverColor != NULL){
+	    sscanf(mouseOverColor,"%X %X %X",red,green,blue);
+	  }else{
+	    sscanf(textColor,"%X %X %X",red,green,blue);
+	  }
+	  glColor3f(*red/255.0, *green/255.0, *blue/255.0);
+	  glPushMatrix();
+	  glLoadIdentity();
+	  glTranslatef(xPosition+textXPosition,yPosition+textYPosition,0.0);
+	  glScalef(textSize,textSize,0.0);
+	  //glTranslatef(0.0,0.0,-10.0);
+	  glPushName(name);
+	  if(isFocused){
+	    drawText(text,fontIndex,cursorPosition,xPosition+width,NULL);
+	  }else{
+	    drawText(text,fontIndex,-1,xPosition+width,NULL);
+	  }
+	  glPopName();
+	  glPopMatrix();
+	}
+
+    */
+
+  }
+
+
+  
+}
+void _drawUIElement(PyObject * uiElement){
   isNode = PyObject_HasAttrString(uiElement,"tileValue");
   if(!isNode){
     pyXPosition = PyObject_GetAttrString(uiElement,"xPosition");
@@ -1428,11 +1625,16 @@ float pointerHeight;
 char frameRate[20];
 void drawUI(){
   glDepthFunc(GL_ALWAYS);
+  nextElement = uiElements;
+  while(nextElement != NULL){
+    drawUIElement(nextElement);
+    nextElement = nextElement->nextElement;
+  }
   pyObj = PyObject_CallMethod(gameMode,"getUIElementsIterator",NULL);
-  if(pyObj != NULL){
+  if(pyObj != NULL && 0){
     UIElementsIterator = PyObject_GetIter(pyObj);//New reference
     while (uiElement = PyIter_Next(UIElementsIterator)) {
-      drawUIElement(uiElement);
+      _drawUIElement(uiElement);
     }
     Py_DECREF(UIElementsIterator);
     Py_DECREF(pyObj);
@@ -2078,6 +2280,7 @@ PyObject * pyBackgroundImageIndex;
 int backgroundImageIndex;
 void drawBackground(){
   if(PyObject_HasAttrString(gameMode,"backgroundImageIndex")){
+    glColor3f(1.0,1.0,1.0);
     pyBackgroundImageIndex = PyObject_GetAttrString(gameMode, "backgroundImageIndex");//New reference
     backgroundImageIndex = PyLong_AsLong(pyBackgroundImageIndex);
     glMatrixMode(GL_PROJECTION);
@@ -2104,7 +2307,9 @@ ANIMATION * theAnim;
 PyObject * pyUpdatesQueue;
 PyObject * pyUpdatesQueueEmpty;
 PyObject * pyUpdate;
+PyObject * pyUIElement;
 long updateType;
+int doResetUI = 0;
 static void draw(){
   PyObject_SetAttrString(gameMode,"ticks",PyLong_FromLong(SDL_GetTicks()));
   pyUpdatesQueue = PyObject_GetAttrString(gameState,"rendererUpdateQueue");
@@ -2143,7 +2348,18 @@ static void draw(){
       Py_DECREF(pyYPosition);      
       modalAnimQueue = AddItem(modalAnimQueue,theAnim);
     }else if(updateType == RENDERER_RESET_UNITS){
-      resetUnits();
+      //      resetUnits();
+    }else if(updateType == RENDERER_RESET_UI){
+      resetUIElements();
+    }else if(updateType == RENDERER_ADD_UIELEM){
+      pyUIElement = PyObject_GetAttrString(pyUpdate,"uiElement");
+      addUIElement(pyUIElement);
+    }else if(updateType == RENDERER_REMOVE_UIELEM){
+      pyUIElement = PyObject_GetAttrString(pyUpdate,"uiElement");
+      removeUIElement(pyUIElement);
+    }else if(updateType == RENDERER_UPDATE_UIELEM){
+      pyUIElement = PyObject_GetAttrString(pyUpdate,"uiElement");
+      updateUIElement(pyUIElement);
     }
 
     /* if(updateType == RENDERER_CHANGE_UNIT_REMOVE){
@@ -2226,9 +2442,7 @@ static void draw(){
   glLoadIdentity();
   glTranslatef(translateX,translateY,translateZ);
   glRenderMode(GL_SELECT);
-//  printf("**** selecta:      \t%d\n",SDL_GetTicks() - testTicks2); testTicks2 = SDL_GetTicks(); 
   drawBoard();
-//  printf("**** selectb:      \t%d\n",SDL_GetTicks() - testTicks2); testTicks2 = SDL_GetTicks(); 
 
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
@@ -2256,8 +2470,6 @@ static void draw(){
   if(selectedName == -1){
     selectedName = selectedNodeName;
   }
-//  printf("**** selectg:      \t%d\n",SDL_GetTicks() - testTicks2); testTicks2 = SDL_GetTicks(); 
-//  printf("****** other1:    \t%d\n",SDL_GetTicks() - testTicks4); testTicks4 = SDL_GetTicks(); 
 
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
@@ -2268,14 +2480,11 @@ static void draw(){
   calculateTranslation();
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		
   drawBackground();
-//  printf("****** other1a:    \t%d\n",SDL_GetTicks() - testTicks4); testTicks4 = SDL_GetTicks(); 
   doViewport();
-//  printf("****** other1b:    \t%d\n",SDL_GetTicks() - testTicks4); testTicks4 = SDL_GetTicks(); 
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
   glGetIntegerv(GL_VIEWPORT,viewport);
   gluPerspective(45.0f,(float)viewport[2]/(float)viewport[3],minZoom,maxZoom);
-//  printf("****** other1c:    \t%d\n",SDL_GetTicks() - testTicks4); testTicks4 = SDL_GetTicks(); 
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
   glColor3f(0.0,0.0,0.0);

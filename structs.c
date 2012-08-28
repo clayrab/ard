@@ -1,3 +1,16 @@
+typedef struct uiElement{
+  struct uiElement * nextElement;  
+  struct uiElement * childElements;
+  long name;
+  float xPosition,yPosition,width,height,textSize,textXPosition,textYPosition;
+  char textureIndex,hidden,cursorIndex,fontIndex,focused;
+  int cursorPosition;
+  char * text;
+  char * textColor;
+  char * color;
+  char * mouseOverColor;
+  
+}UIELEMENT;
 typedef struct unit{
   char * id;
   struct unit * nextUnit;
@@ -28,4 +41,4 @@ typedef struct map{
   int height;
   int width;
   int size;
-} MAP;
+}MAP;

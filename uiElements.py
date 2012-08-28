@@ -20,7 +20,7 @@ unitCosts = ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","
 startingManas = ["5","10","15","20","30","40","50","60","70","80","90","100"]
 unitBuildTimes = ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20"]
 
-class uiElement:
+class uiElement(object):
 #	focusedElem = None
 #	@staticmethod
 #	def setFocusedElemed(elem):
@@ -35,10 +35,12 @@ class uiElement:
 		self.width = width
 		self.height = height/frameCount
 		self.textureIndex = textureIndex
-		self.hidden=hidden
+		self._hidden=hidden
 		self.cursorIndex=cursorIndex
 		self.text = text
-		self.textColor = textColor
+		self._textColor = textColor
+		if(self._textColor == None):
+			self._textColor = "FF FF FF"
 		self.textSize = textSize
 		self.color = color
 		self.textXPos = textXPos
@@ -48,21 +50,27 @@ class uiElement:
 		self.frameLength = frameLength
 		self.frameCount = frameCount
 		self.focused = False
-#		if(mouseOverColor != None):
 		self.mouseOverColor = mouseOverColor
-#		elif(color != None):
-#			self.mouseOverColor = color
-#		elif(textColor != None):
-#			self.mouseOverColor = textColor
-#		else:
-#			self.mouseOverColor = "FF FF FF"
 		if(self.color == None):
 			self.color = "FF FF FF"
-		if(self.textColor == None):
-			self.textColor = "FF FF FF"
 		self.names = []
 		gameState.getGameMode().elementsDict[self.name] = self
 		gameState.getGameMode().resortElems = True
+		gameState.rendererUpdateQueue.put(rendererUpdates.addUIElem(self))
+	@property
+	def textColor(self): 
+		return self._textColor
+	@textColor.setter
+	def textColor(self,val):
+		gameState.rendererUpdateQueue.put(rendererUpdates.updateUIElem(self))
+		self._textColor = val
+	@property
+	def hidden(self): 
+		return self._hidden
+	@hidden.setter
+	def hidden(self,val):
+		gameState.rendererUpdateQueue.put(rendererUpdates.updateUIElem(self))
+		self._hidden = val
 	def onScrollDown(self):
 		return None
 	def onScrollUp(self):
@@ -72,6 +80,7 @@ class uiElement:
 			for name in self.names:
 				gameState.getGameMode().elementsDict[name].destroy()
 			self.names = []
+		gameState.rendererUpdateQueue.put(rendererUpdates.removeUIElem(self))			
 		del gameState.getGameMode().elementsDict[self.name]
 		gameState.getGameMode().resortElems = True
 

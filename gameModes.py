@@ -14,11 +14,10 @@
 
 #client:
 #
-#unit position, health, add/remove
 #uiElements list in C
-#
-#node visiblity
 #text left and right char position
+#focused/mousedover? etc
+#py strings need to be copied and freed? i.e. unit->id, uiElement->text, etc
 #
 #zooming can just be handled in C? 
 #
@@ -178,6 +177,7 @@ class gameMode:
 #		self.currentAnimation = None
 		uiElements.viewer.theViewer = None
 		gameState.rendererUpdateQueue.put(rendererUpdates.resetUnits())
+		gameState.rendererUpdateQueue.put(rendererUpdates.resetUI())
 	def __dealloc__(self):
 		print '**** dealloc gamemode ****'
 	def getRestartMusic(self):
@@ -853,7 +853,6 @@ class newGameScreenMode(textBasedMenuMode):
 	def __dealloc__(self):
 		print '**** dealloc gamemode ****'
 	def addUIElements(self):
-
 		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])
 		uiElements.uiElement(-0.5*texWidth("TITLE"),0.65,textureIndex=texIndex("TITLE"),width=texWidth("TITLE"),height=texHeight("TITLE"))
 		uiElements.menuButtonGameModeSelector(-0.18,-0.22,quickPlayMode,text="Quick Play")
