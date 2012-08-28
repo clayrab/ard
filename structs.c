@@ -3,13 +3,12 @@ typedef struct uiElement{
   struct uiElement * childElements;
   long name;
   float xPosition,yPosition,width,height,textSize,textXPosition,textYPosition;
-  char textureIndex,hidden,cursorIndex,fontIndex,focused;
-  int cursorPosition;
+  int textureIndex,cursorPosition;
+  char hidden,cursorIndex,fontIndex,focused;
   char * text;
   char * textColor;
   char * color;
   char * mouseOverColor;
-  
 }UIELEMENT;
 typedef struct unit{
   char * id;

@@ -21,17 +21,10 @@ startingManas = ["5","10","15","20","30","40","50","60","70","80","90","100"]
 unitBuildTimes = ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20"]
 
 class uiElement(object):
-#	focusedElem = None
-#	@staticmethod
-#	def setFocusedElemed(elem):
-#		if(uiElement.focusedElem != None):
-#			uiElement.focusedElem.focused = False
-#		uiElement.focusedElem = elem
-#		uiElement.focusedElem.focused = True
 	def __init__(self,xPos,yPos,width=1.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor=None,textSize=0.001,color=None,mouseOverColor=None,textXPos=0.0,textYPos=0.0,cursorPosition=-1,fontIndex=0,frameLength=10,frameCount=1):
 		self.name = nameGenerator.getNextName()
-		self.xPosition = xPos
-		self.yPosition = yPos
+		self._xPosition = xPos
+		self._yPosition = yPos
 		self.width = width
 		self.height = height/frameCount
 		self.textureIndex = textureIndex
@@ -71,6 +64,20 @@ class uiElement(object):
 	def hidden(self,val):
 		gameState.rendererUpdateQueue.put(rendererUpdates.updateUIElem(self))
 		self._hidden = val
+	@property
+	def xPosition(self): 
+		return self._xPosition
+	@xPosition.setter
+	def xPosition(self,val):
+		gameState.rendererUpdateQueue.put(rendererUpdates.updateUIElem(self))
+		self._xPosition = val
+	@property
+	def yPosition(self): 
+		return self._yPosition
+	@yPosition.setter
+	def yPosition(self,val):
+		gameState.rendererUpdateQueue.put(rendererUpdates.updateUIElem(self))
+		self._yPosition = val
 	def onScrollDown(self):
 		return None
 	def onScrollUp(self):
@@ -462,7 +469,7 @@ class unitTypeViewer(uiElement):
 class viewer(uiElement):
 	theViewer = None
 	def __init__(self,xPos,yPos,node,width,height,textureIndex):
-		uiElement.__init__(self,xPos,yPos,width,height,textureIndex)
+		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex)
 		self.node = node
 		self.names = []
 		if(node.unit != None):
@@ -1417,7 +1424,6 @@ class saveNameInput(modalTextInput):
 			textInputElement.onKeyDown(self,str(keycode))
 
 def exitGame():
-	print 'exit'
 	gameState.setGameMode(gameModes.newGameScreenMode)
 	client.stopClient()
 	server.shutdownServer()
