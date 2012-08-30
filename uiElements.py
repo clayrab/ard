@@ -83,6 +83,7 @@ class uiElement(object):
 	def onScrollUp(self):
 		return None
 	def destroy(self):
+		print "destroy " + str(self)
 		if(hasattr(self,"names")):
 			for name in self.names:
 				gameState.getGameMode().elementsDict[name].destroy()
@@ -463,7 +464,9 @@ class unitTypeViewer(uiElement):
 #	self.canSwim = canSwim
 	def destroy(self):
 		unitTypeViewer.theViewer = None
+		print 'arg'
 		uiElement.destroy(self)
+		print 'fuck'
 
 
 class viewer(uiElement):
@@ -486,7 +489,9 @@ class viewer(uiElement):
 			self.names.append(uiElement(xPos+0.335,yPos-0.044,text="stone",textSize=0.00055,textColor="cc cc cc",width=1.0,height=1.0,fontIndex=1).name)
 	def destroy(self):
 		viewer.theViewer = None
+		print 'a'
 		uiElement.destroy(self)
+		print 'b'
 
 class unitViewer(viewer):
 	def __init__(self,node):
@@ -730,9 +735,7 @@ class scrollPadElement(uiElement):
 		self.bottomOffset = bottomOffset
 		self.rightOffset = rightOffset
 		self.scrollableElement = scrollableElement
-		self.numScrollablePositions = len(self.scrollableElement.textFieldElements) - self.scrollableElement.numFields
-#		self.numScrollablePositions = len(self.scrollableElement.textFields) - self.scrollableElement.numFields
-		self.totalScrollableHeight = self.scrollableElement.height - self.topOffset - self.bottomOffset - self.height
+		self.setScrollPosition(0)
 	def onLeftClickDown(self):
 		self.scrolling = True
 		self.initMouseYPos = gameState.getGameMode().mouseY
@@ -749,6 +752,9 @@ class scrollPadElement(uiElement):
 			self.scrollableElement.scrollPosition = int(float(self.numScrollablePositions)*(self.scrollableElement.yPosition-self.topOffset-self.yPosition+0.001)/self.totalScrollableHeight)
 			self.scrollableElement.hideAndShowTextFields()
 	def setScrollPosition(self,scrollPos):
+		self.numScrollablePositions = len(self.scrollableElement.textFieldElements) - self.scrollableElement.numFields
+#		self.numScrollablePositions = len(self.scrollableElement.textFields) - self.scrollableElement.numFields
+		self.totalScrollableHeight = self.scrollableElement.height - self.topOffset - self.bottomOffset - self.height
 		if(self.numScrollablePositions > 0):
 			self.yPosition = 0.0-((self.totalScrollableHeight*scrollPos/(self.numScrollablePositions))+self.topOffset-self.scrollableElement.yPosition)
 
@@ -867,42 +873,46 @@ class scrollableTextFieldsElement(uiElement):
 		self.scrollSpeed = scrollSpeed
 		self.scrollPosition = 0
 		self.textFields = textFields
-		self.scrollPadTex = scrollPadTex
+		self.textFieldElements = []
 		self.names = []
+		self.scrollPadTex = scrollPadTex
+		self.scrollPadElem = scrollPadElement(self.xPosition + self.width - texWidth(self.scrollPadTex),self.yPosition,scrollableElement=self,width=texWidth(self.scrollPadTex),height=texHeight(self.scrollPadTex),textureIndex=texIndex(self.scrollPadTex),hidden=True)
+		self.scrollPadElem.onScrollUp = self.onScrollUp
+		self.scrollPadElem.onScrollDown = self.onScrollDown
+		self.names.append(self.scrollPadElem.name)
 		self.redraw()
 	def redraw(self):
-		self.reset()
+#		self.reset()
 		for field in self.textFields:
 			textFieldElem = None
 			if(hasattr(field,"xPosition")):
+#			if(True):
 				textFieldElem = field
 				textFieldElem.scrollableElement = self
 				textFieldElem.xPosition = self.xPosition+self.xPositionOffset
-				gameState.getGameMode().elementsDict[textFieldElem.name] = textFieldElem
-			else:
-				text = ""
-				if(hasattr(field,"name")):
-					text = field.name
-				else:
-					text=field
-				textFieldElem = scrollingTextElement(self.xPosition+self.xPositionOffset,0.0,self,width=2.0,height=0.1,text=text,textureIndex=-1,textSize=self.textSize,hidden=True)
+#				gameState.getGameMode().elementsDict[textFieldElem.name] = textFieldElem
+#				gameState.rendererUpdateQueue.put(rendererUpdates.addUIElem(textFieldElem))
+#			else:
+#				text = ""
+#				if(hasattr(field,"name")):
+#					text = field.name
+#				else:
+#					text=field
+#				textFieldElem = scrollingTextElement(self.xPosition+self.xPositionOffset,0.0,self,width=2.0,height=0.1,text=text,textureIndex=-1,textSize=self.textSize,hidden=True)
 			textFieldElem.onScrollUp = self.onScrollUp
 			textFieldElem.onScrollDown = self.onScrollDown
 			for name in textFieldElem.names:
 				gameState.getGameMode().elementsDict[name].onScrollUp = self.onScrollUp
 				gameState.getGameMode().elementsDict[name].onScrollDown = self.onScrollDown
-			self.names.append(textFieldElem.name)
+#			self.names.append(textFieldElem.name)
 			self.textFieldElements.append(textFieldElem)
 		self.hideAndShowTextFields()
-		self.scrollPadElem = scrollPadElement(self.xPosition + self.width - texWidth(self.scrollPadTex),self.yPosition,scrollableElement=self,width=texWidth(self.scrollPadTex),height=texHeight(self.scrollPadTex),textureIndex=texIndex(self.scrollPadTex),hidden=True)
+#		self.scrollPadElem = scrollPadElement(self.xPosition + self.width - texWidth(self.scrollPadTex),self.yPosition,scrollableElement=self,width=texWidth(self.scrollPadTex),height=texHeight(self.scrollPadTex),textureIndex=texIndex(self.scrollPadTex),hidden=True)
 
 #			self.scrollPadElem = None
 #		else:
 #			self.scrollPadElem = scrollPadElement(self.xPosition + self.width - texWidth(self.scrollPadTex),self.yPosition,scrollableElement=self,width=texWidth(self.scrollPadTex),height=texHeight(self.scrollPadTex),textureIndex=texIndex(self.scrollPadTex),hidden=True)
 #		if(len(self.textFields) > self.numFields):
-		self.scrollPadElem.onScrollUp = self.onScrollUp
-		self.scrollPadElem.onScrollDown = self.onScrollDown
-		self.names.append(self.scrollPadElem.name)
 		self.scrollPadElem.setScrollPosition(self.scrollPosition)
 	def hideAndShowTextFields(self):
 		count = 0
@@ -934,11 +944,11 @@ class scrollableTextFieldsElement(uiElement):
 			self.hideAndShowTextFields()
 			self.scrollPadElem.setScrollPosition(self.scrollPosition)
 	def reset(self):
-		for name in self.names:
-			#gameState.getGameMode().elementsDict[name].destroy()
-			#it appears this line is no longer needed because uiElement.destroy dels the elem from elementsDict
-			del gameState.getGameMode().elementsDict[name]
-		self.names = []
+#		for name in self.names:
+#			print gameState.getGameMode().elementsDict[name].names
+#			gameState.getGameMode().elementsDict[name].destroy()
+			#del gameState.getGameMode().elementsDict[name]
+#		self.names = []
 #		self.textFields = []
 		self.textFieldElements = []
 
@@ -1261,6 +1271,10 @@ class mapSelector(scrollableTextFieldsElement):
 	def __init__(self,xPos,yPos,textFields,mapField):
 		scrollableTextFieldsElement.__init__(self,xPos,yPos,textFields,width=texWidth("MAP_SELECTOR"),height=texHeight("MAP_SELECTOR"),textureIndex=texIndex("MAP_SELECTOR"),numFields=38,lineHeight=0.036,xPositionOffset=0.015,yPositionOffset=0.045,scrollSpeed=10)
 		self.mapField = mapField
+		for mapData in gameState.getMapDatas()[gameState.getTeamSize()-1]:
+			self.textFields.append(mapSelect(-0.93,0.0,self,mapData.name))
+		self.redraw()
+
 #	def onClick(self,textFieldElem):
 #		server.setMap(textFieldElem.text)
 #		self.mapField.text = textFieldElem.text

@@ -65,6 +65,7 @@ GLfloat mapDepth,mapDepthTest1,mapDepthTest2,mapDepthTest3;
 float translateX = 0.0;
 float translateY = 0.0;
 float translateZ = 0.0-initZoom;
+float maxTranslateZ = 0.0-maxZoom;
 float translateXPrev = 0.0;
 float translateYPrev = 0.0;
 float translateZPrev = 0.0-initZoom;
@@ -109,8 +110,8 @@ PyObject * pyMapWidth;
 PyObject * pyMapHeight;
 //PyObject * pyObj;
 //PyObject * playableMode;
-long mapWidth;
-long mapHeight;
+//long mapWidth;
+//long mapHeight;
 
 GLuint tilesTexture;
 GLdouble mouseMapPosX, mouseMapPosY, mouseMapPosZ;
@@ -320,6 +321,7 @@ PyObject * city;
 PyObject * pyId;
 int nodesIndex = 0;
 MAP theMapp;
+		       //  tempUIElem = (UIELEMENT *)malloc(sizeof(UIELEMENT));
 NODE * theNode;
 ANIMATION * currentAnim;
 ANIMATION * nextAnim;
@@ -486,10 +488,12 @@ void updateUIElement(PyObject * pyUIElem){
   loadUIElem(pyUIElem,nextElement);
 }
 void removeUIElement(PyObject * pyUIElem){
+  printf("removeUIElement%d\n",1);
   pyName = PyObject_GetAttrString(pyUIElem,"name");
   name = PyLong_AsLong(pyName);
   Py_DECREF(pyName);
-  nextElement = uiElements->nextElement;
+  nextElement = uiElements;
+  tempUIElem = NULL;
   while(nextElement != NULL){
     if(nextElement->name == name){
       break;
@@ -497,8 +501,16 @@ void removeUIElement(PyObject * pyUIElem){
     tempUIElem = nextElement;
     nextElement = nextElement->nextElement;
   }
-  tempUIElem->nextElement = nextElement->nextElement;
-  free(nextElement);
+  if(nextElement == NULL){
+    printf("ERROR, TRIED TO REMOVE AN ELEMENT WITH ISN'T BEING DRAWN!%d!!\n",1);
+  }
+  if(tempUIElem != NULL){
+    tempUIElem->nextElement = nextElement->nextElement;
+    free(nextElement);
+  }else{
+    uiElements = nextElement->nextElement;
+    free(nextElement);    
+  }
 }
 void addUIElement(PyObject * pyUIElem){
   tempUIElem = (UIELEMENT *)malloc(sizeof(UIELEMENT));
@@ -515,21 +527,15 @@ void addUIElement(PyObject * pyUIElem){
   tempUIElem->nextElement = NULL;
 }
 void resetUIElements(){
+  printf("resetUIElements%d\n",1);
   nextElement = uiElements;
   while(nextElement != NULL){
     tempUIElem = nextElement->nextElement;
-    free(tempUIElem);
+    free(nextElement);
     nextElement = tempUIElem;
   }
   uiElements = NULL;
 }
-
-
-
-
-
-
-
 void loadUnit(struct unit * daUnit,PyObject * pyUnit){
   pyUnitType = PyObject_GetAttrString(pyUnit,"unitType");
   pyId = PyObject_GetAttrString(pyUnit,"id");
@@ -559,15 +565,14 @@ void loadUnit(struct unit * daUnit,PyObject * pyUnit){
 UNIT * daUnit;
 UNIT * temp;
 resetUnits(){
-   daUnit = theUnits;
-   while(daUnit != NULL){
-     temp = daUnit;
-
-     daUnit = temp->nextUnit;
-   }
-   theUnits = NULL;
-   /*    free(daUnit);
-    }*/
+  printf("resetUnits%d\n",1); 
+  daUnit = theUnits;
+  while(daUnit != NULL){
+    temp = daUnit;
+    free(daUnit);
+    daUnit = temp->nextUnit;
+  }
+  theUnits = NULL;
 }
 void addUnit(PyObject * pyUnit){
   UNIT * daUnit = (UNIT *) malloc(sizeof(UNIT));
@@ -581,6 +586,7 @@ char * unitId;
 struct unit * daNextUnit;
 struct unit * daPrevUnit;
 void removeUnit(PyObject * pyUnit){
+  printf("removeUnit%d\n",1);
   pyId = PyObject_GetAttrString(pyUnit,"id");
   pyObj = PyObject_GetAttrString(pyId,"hex");
   unitId = PyString_AsString(pyObj);
@@ -654,9 +660,7 @@ void loadNode(NODE * theNode, PyObject * pyNode){
 long nodeName;
 void updateNode(PyObject * pyNode){
   pyNodeName = PyObject_GetAttrString(pyNode,"name");
-  //  printf("%d\n",pyNodeName);
   nodeName = PyLong_AsLong(pyNodeName);
-  //  printf("%d\n",nodeName);
   Py_DECREF(pyNodeName);
   for(nodesIndex = 0;nodesIndex < theMapp.size;nodesIndex++){
     theNode = (&(theMapp.nodes[nodesIndex]));
@@ -666,8 +670,19 @@ void updateNode(PyObject * pyNode){
   }
   loadNode(theNode,pyNode);
 }
+void freeMap(){
+  if(theMapp.nodes != NULL){
+    for(nodesIndex = 0;nodesIndex < theMapp.size;nodesIndex++){
+      theNode = (&(theMapp.nodes[nodesIndex]));
+      //      free(theNode);
+    }    
+    //    free(theMapp);
+  }  
+}
 void loadMap(){
   //theMapp = &(MAP);
+  //  freeMap();
+  //  theMapp = (MAP *)malloc(sizeof(MAP));
   mapIterator = PyObject_CallMethod(theMap,"getIterator",NULL);  
   pyPolarity = PyObject_GetAttrString(theMap,"polarity");
   mapPolarity = PyLong_AsLong(pyPolarity);
@@ -808,7 +823,6 @@ PyObject * pyUnit;
 void drawUnit(UNIT * daUnit){
   //  glTranslatef(xPositionUnit,yPositionUnit,0.0);
   glTranslatef(daUnit->xPosDraw,daUnit->yPosDraw,0.0);
-  //  printf("healt: %d\t%d\n",daUnit->health,daUnit->maxHealth);
   healthBarLength = 0.7*(float)daUnit->health/(float)daUnit->maxHealth;
   glBindTexture(GL_TEXTURE_2D, texturesArray[HEALTH_BAR_INDEX]);
   glColor3f(1.0, 1.0, 1.0);
@@ -876,37 +890,6 @@ void drawUnit(UNIT * daUnit){
   //  glTranslatef(0.0,0.0,0.0);
   glCallList(unitList);
   
-  /*  while (pyDamageTime = PyIter_Next(pyRecentDamageIter)) {
-    damageTime = PyLong_AsLong(pyDamageTime);
-    if(currentTick-damageTime<200){
-      glPushMatrix();
-      glBindTexture(GL_TEXTURE_2D, texturesArray[SLASH_ANIMATION_INDEX]);
-      glColor3f(1.0, 1.0, 1.0);
-      float frameNumber = (((currentTick-damageTime)*SLASH_ANIMATION_FRAME_COUNT)/200)%SLASH_ANIMATION_FRAME_COUNT;
-      glBegin(GL_QUADS);	
-      glTexCoord2f(1.0,(SLASH_ANIMATION_FRAME_COUNT-frameNumber-1)/SLASH_ANIMATION_FRAME_COUNT); glVertex3f(0.5,-0.5,0.0);
-      glTexCoord2f(0.0,(SLASH_ANIMATION_FRAME_COUNT-frameNumber-1)/SLASH_ANIMATION_FRAME_COUNT); glVertex3f(-0.5,-0.5,0.0);
-      glTexCoord2f(0.0,(SLASH_ANIMATION_FRAME_COUNT-frameNumber)/SLASH_ANIMATION_FRAME_COUNT); glVertex3f(-0.5,0.5,0.0);
-      glTexCoord2f(1.0,(SLASH_ANIMATION_FRAME_COUNT-frameNumber)/SLASH_ANIMATION_FRAME_COUNT); glVertex3f(0.5,0.5,0.0);
-      glEnd();
-      glPopMatrix();
-    }
-    if(currentTick-damageTime<5000){
-      glPushMatrix();
-      pyDamage = PyObject_GetItem(pyRecentDamage,pyDamageTime);
-      damageStr = PyString_AsString(pyDamage);
-      int c = 0;
-      while(damageStr[c] != 0){
-	glTranslatef(-0.18,0.0,0.0);
-	c++;
-      }
-      glColor4f(1.0, 0.0, 0.0, (5000.0-(currentTick-damageTime))/1000);
-      glTranslatef(0.0,((currentTick-damageTime)*0.0002)-0.7,-0.0001);
-      glScalef(0.01,0.01,0.0);
-      drawText(damageStr,0,-1,-9999.9,NULL);
-      glPopMatrix();
-      }
-  }*/
 }
 float shading;
 char playerStartVal[2];
@@ -932,7 +915,7 @@ void drawTile(NODE * theNode){
   //    glCallList(tilesLists+(4*ROAD_TILE_INDEX));
   //  }
 
-  if(theNode->playerStartValue >= 1 && !PyObject_HasAttrString(gameMode,"units")){
+  if(theNode->playerStartValue >= 1){
     textureVertices = vertexArrays[PLAYER_START_TILE_INDEX];
     glCallList(tilesLists+(4*PLAYER_START_TILE_INDEX));
     sprintf(playerStartVal,"%d",theNode->playerStartValue);
@@ -1071,14 +1054,16 @@ void drawTiles(){
   if(mapLoaded){
     loadMap();
   }
-  for(nodesIndex = 0;nodesIndex < theMapp.size;nodesIndex++){
-    theNode = &(theMapp.nodes[nodesIndex]);
+  if(theMapp.nodes != NULL){
+    for(nodesIndex = 0;nodesIndex < theMapp.size;nodesIndex++){
+      theNode = &(theMapp.nodes[nodesIndex]);
       glPushMatrix();
       glTranslatef(theNode->xPos,theNode->yPos,0.0);
       drawTile(theNode);
       glPopMatrix();
+    }
+    Py_DECREF(pyLoaded);
   }
-  Py_DECREF(pyLoaded);
 }
 
 void doViewport(){
@@ -1096,26 +1081,38 @@ float mapTopOffset;
 int frameNumber = 0;
 void calculateTranslation(){
 
-  pyMapWidth = PyObject_CallMethod(theMap,"getWidth",NULL);//New reference
+  /*  pyMapWidth = PyObject_CallMethod(theMap,"getWidth",NULL);//New reference
   pyMapHeight = PyObject_CallMethod(theMap,"getHeight",NULL);//New reference
   mapWidth = PyLong_AsLong(pyMapWidth);
-  mapHeight = PyLong_AsLong(pyMapHeight);
+  mapHeight = PyLong_AsLong(pyMapHeight);*/
   frameNumber++;
   glPushMatrix();
-  if(theMap != Py_None && theMap != NULL){
-    Py_DECREF(pyMapWidth);
-    Py_DECREF(pyMapHeight);
-    pyTranslateZ = PyObject_GetAttrString(theMap,"translateZ");
-    translateZ = PyFloat_AsDouble(pyTranslateZ);
-    Py_DECREF(pyTranslateZ);
+  if(theMapp.nodes != NULL){
+    //    Py_DECREF(pyMapWidth);
+    //    Py_DECREF(pyMapHeight);
+    /*    pyTranslateZ = PyObject_GetAttrString(theMap,"translateZ");
+	  translateZ = PyFloat_AsDouble(pyTranslateZ);
+	  Py_DECREF(pyTranslateZ);*/
     if(translateX - mapRightOffset < convertedTopRightX
        && translateX - (2.0*SIN60) > convertedBottomLeftX
        && translateY < convertedTopRightY - mapTopOffset
        && translateY > convertedBottomLeftY+2.0
        && (translateZ < translateZPrev)){
       translateZ = translateZPrev;
-      pyObj = PyObject_CallMethod(gameMode,"setMaxTranslateZ","f",translateZ);//New reference
-      Py_DECREF(pyObj);
+      if(translateZ > maxTranslateZ){
+	maxTranslateZ = translateZ;
+      }
+      //      pyObj = PyObject_CallMethod(gameMode,"setMaxTranslateZ","f",translateZ);//New reference
+      //      Py_DECREF(pyObj);
+    }
+    if(translateZ < 1.0 - maxZoom){
+      translateZ = 1.0 - maxZoom;
+    }
+    if(translateZ < maxTranslateZ){
+      translateZ = maxTranslateZ;
+    }
+    if(translateZ > - 1.0 - minZoom){
+      translateZ = - 1.0 - minZoom;
     }
   }
   glTranslatef(translateX,translateY,translateZ);
@@ -1144,7 +1141,6 @@ void calculateTranslation(){
   }
   translateZPrev2 = translateZ;
   }
-//  printf("****** c1:    \t%d\n",SDL_GetTicks() - testTicks5); testTicks5 = SDL_GetTicks(); 
   if(mapDepthTest1 == mapDepthTest2 || mapDepthTest1 == mapDepthTest3){
     mapDepth = mapDepthTest1;
   }else if(mapDepthTest2 == mapDepthTest3){
@@ -1152,7 +1148,6 @@ void calculateTranslation(){
   }else{
     printf("mapdepth not found%d\n",1);
   }
-//  printf("****** c:    \t%d\n",SDL_GetTicks() - testTicks5); testTicks5 = SDL_GetTicks(); 
 
   if(PyObject_HasAttrString(gameMode,"gameRoomMode")){
     convertWindowCoordsToViewportCoords(60.0*SCREEN_WIDTH/SCREEN_BASE_WIDTH,SCREEN_HEIGHT,translateZ,&convertedBottomLeftX,&convertedBottomLeftY,&convertedBottomLeftZ);
@@ -1174,8 +1169,8 @@ void calculateTranslation(){
   }
   translateZPrev = translateZ;
   //  convertWindowCoordsToViewportCoords(mouseX,mouseY,translateZ,&mouseMapPosXNew,&mouseMapPosYNew,&mouseMapPosZNew);
-  mapRightOffset = translateTilesXToPositionX(mapWidth+1,0);
-  mapTopOffset = translateTilesYToPositionY(mapHeight);
+  mapRightOffset = translateTilesXToPositionX(theMapp.width+1,0);
+  mapTopOffset = translateTilesYToPositionY(theMapp.height);
   //printf("screen topright %f,%f\n",convertedTopRightX,convertedTopRightY);
   //printf("screen bottomleft %f,%f\n",convertedBottomLeftX,convertedBottomLeftY);
   //printf("translate %f,%f,%f\n",translateX,translateY,translateZ);
@@ -1200,7 +1195,6 @@ void calculateTranslation(){
       translateY += scrollSpeed*deltaTicks;
     }
   }
-//  printf("****** e:    \t%d\n",SDL_GetTicks() - testTicks5); testTicks5 = SDL_GetTicks(); 
 /*  if(!isAnimating && !doneAnimatingFired){
     doneAnimatingFired = 1;
     if(PyObject_HasAttrString(gameMode,"onDoneAnimating")){
@@ -1220,7 +1214,6 @@ void calculateTranslation(){
     }
   }
   if(isFocusing){
-    //printf("%f %f %f %f\n",translateXPrev,translateX,translateYPrev,translateY);
     if((considerDoneFocusing > 0) && abs(50.0*(translateXPrev - translateX)) == 0.0 && abs(50.0*(translateYPrev - translateY)) == 0.0){//this indicates the auto-scrolling code is not allowing us to move any more
       isFocusing = 0;
       considerDoneFocusing = 0;
@@ -1245,13 +1238,11 @@ void calculateTranslation(){
       focusSpeedX = focusSpeed;
       focusSpeedY = focusSpeed;
     }
-    //printf("%f\t%f\t%f\t%f\n",focusSpeedX,focusSpeedY,fabs(translateX-(-focusXPos)),fabs(translateY-(-focusYPos)));
     //these lines roughly make focusspeed consistent rather than faster on diagonals
     if(focusSpeedX > 0.5*focusSpeed || focusSpeedY > 0.5*focusSpeed){
       focusSpeedX = focusSpeedX*focusSpeed/(focusSpeedX + focusSpeedY);
       focusSpeedY = focusSpeedY*focusSpeed/(focusSpeedX + focusSpeedY);
     }
-    //    printf("?? %f\t%f\t%f\t%f\n",focusSpeedX,focusSpeedY,fabs(translateX-(-focusXPos)),fabs(translateY-(-focusYPos)));
     
     /*      if(translateX < -focusXPos){
 	translateX = translateX + focusSpeedX*deltaTicks;
@@ -1276,10 +1267,8 @@ void calculateTranslation(){
     }
   }
 
-//  printf("****** f:    \t%d\n",SDL_GetTicks() - testTicks5); testTicks5 = SDL_GetTicks(); 
 
   //The following code will adjust translateX/Y so that no off-map area is shown
-   //printf("%f\t%f\t%f\n",translateX,mapRightOffset,convertedBottomLeftX);
    if(translateX - mapRightOffset < convertedTopRightX){
     translateX = convertedTopRightX + mapRightOffset;
     if(translateX - (2.0*SIN60) > convertedBottomLeftX){
@@ -1306,7 +1295,6 @@ void calculateTranslation(){
        translateY = (convertedTopRightY-mapTopOffset+convertedBottomLeftY+2.0)/2.0;
      }
    }
-//  printf("****** g:    \t%d\n",SDL_GetTicks() - testTicks5); testTicks5 = SDL_GetTicks(); 
 }
 
 void drawBoard(){
@@ -1380,9 +1368,7 @@ int frameLength;
 int frameCount;
 int isFocused;
 void drawUIElement(UIELEMENT * uiElement){
-  //  printf("wtf %d\n",uiElement->hidden);
   if(!uiElement->hidden){
-    //    printf("wtf %d\n",uiElement->textureIndex);
     if(uiElement->textureIndex > -1){
       glBindTexture(GL_TEXTURE_2D, texturesArray[uiElement->textureIndex]);
       if(selectedName == uiElement->name && uiElement->mouseOverColor != NULL){
@@ -2073,11 +2059,13 @@ static void handleInput(){
       break;
     case SDL_MOUSEBUTTONDOWN:
       if(event.button.button == SDL_BUTTON_WHEELUP){
+	translateZ = translateZ + ZOOM_SPEED*deltaTicks;
 	if(PyObject_HasAttrString(gameMode,"handleScrollUp")){
 	  pyObj = PyObject_CallMethod(gameMode,"handleScrollUp","i",selectedName);//New reference
 	  Py_DECREF(pyObj);
 	}
       }else if(event.button.button == SDL_BUTTON_WHEELDOWN){
+	translateZ = translateZ - ZOOM_SPEED*deltaTicks;
 	if(PyObject_HasAttrString(gameMode,"handleScrollDown")){
 	  PyObject_CallMethod(gameMode,"handleScrollDown","i",selectedName);//New reference
 	  Py_DECREF(pyObj);
@@ -2099,7 +2087,8 @@ static void handleInput(){
       if(event.button.button == SDL_BUTTON_RIGHT){
 	//	clickScroll = 1;
 	pyObj = PyObject_CallMethod(gameMode,"handleRightClick","i",selectedName);//New reference
-	  Py_DECREF(pyObj);
+	printPyStackTrace();
+	Py_DECREF(pyObj);
       }
       break;
     case SDL_MOUSEBUTTONUP:
@@ -2264,6 +2253,7 @@ static void handleInput(){
 	 || event.key.keysym.sym == SDLK_BACKQUOTE){
 	if(PyObject_HasAttrString(gameMode,"handleKeyUp")){
 	  pyObj = PyObject_CallMethod(gameMode,"handleKeyUp","s",SDL_GetKeyName(event.key.keysym.sym));
+	  printPyStackTrace();
 	  Py_DECREF(pyObj);
 	}
       }
@@ -2317,7 +2307,6 @@ static void draw(){
   while(pyUpdatesQueueEmpty == Py_False){
     Py_DECREF(pyUpdatesQueueEmpty);
     pyUpdate = PyObject_CallMethod(pyUpdatesQueue,"get",NULL);
-    //    printf("update: %d\n",pyUpdate);
     pyObj = PyObject_GetAttrString(pyUpdate,"type");
     updateType = PyLong_AsLong(pyObj);
     Py_DECREF(pyObj);    
@@ -2348,7 +2337,7 @@ static void draw(){
       Py_DECREF(pyYPosition);      
       modalAnimQueue = AddItem(modalAnimQueue,theAnim);
     }else if(updateType == RENDERER_RESET_UNITS){
-      //      resetUnits();
+      resetUnits();
     }else if(updateType == RENDERER_RESET_UI){
       resetUIElements();
     }else if(updateType == RENDERER_ADD_UIELEM){
@@ -2372,7 +2361,6 @@ static void draw(){
     pyUpdatesQueueEmpty = PyObject_CallMethod(pyUpdatesQueue,"empty",NULL);
   }
   Py_DECREF(pyUpdatesQueue);
-  //  printf("%d\t%d\t%d\n",modalAnimQueue != NULL,!isFocusing,!isSliding);
   if(modalAnimQueue != NULL && !isFocusing && !isSliding){//> 0 items
     isAnimating = 1;
     listelement * listpointer;
@@ -2455,7 +2443,6 @@ static void draw(){
   hitsCnt = glRenderMode(GL_RENDER);
 //  printf("**** selectc:      \t%d\n",SDL_GetTicks() - testTicks2); testTicks2 = SDL_GetTicks(); 
   processTheHits(hitsCnt,selectBuf);
-//  printf("**** selectd:      \t%d\n",SDL_GetTicks() - testTicks2); testTicks2 = SDL_GetTicks(); 
   selectedNodeName = selectedName;
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		 
@@ -2464,9 +2451,7 @@ static void draw(){
 
   drawUI();
   hitsCnt = glRenderMode(GL_RENDER);
-//  printf("**** selecte:      \t%d\n",SDL_GetTicks() - testTicks2); testTicks2 = SDL_GetTicks(); 
   processTheHits(hitsCnt,selectBuf);
-//  printf("**** selectf:      \t%d\n",SDL_GetTicks() - testTicks2); testTicks2 = SDL_GetTicks(); 
   if(selectedName == -1){
     selectedName = selectedNodeName;
   }
@@ -2495,21 +2480,16 @@ static void draw(){
   glTexCoord2f(0.0,1.0); glVertex3f(-1.0,1.0,-1.01);
   glEnd();
   glTranslatef(translateX,translateY,translateZ);
-//  printf("****** other2:    \t%d\n",SDL_GetTicks() - testTicks4); testTicks4 = SDL_GetTicks(); 
   drawBoard();
   
-//  printf("****** drawBoard:\t%d\n",SDL_GetTicks() - testTicks4); testTicks4 = SDL_GetTicks(); 
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
   glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-//  printf("****** other3:    \t%d\n",SDL_GetTicks() - testTicks4); testTicks4 = SDL_GetTicks(); 
   drawUI();
-//  printf("****** drawUI:   \t%d\n",SDL_GetTicks() - testTicks4); testTicks4 = SDL_GetTicks(); 
   glFlush();
   SDL_GL_SwapBuffers();
-//  printf("**** render:      \t%d\n",SDL_GetTicks() - testTicks2); testTicks2 = SDL_GetTicks(); 
 }
 PyObject * pyExit;
 int musicChannel = -2;
@@ -2542,12 +2522,8 @@ static void mainLoop (){
     done = (pyExit == Py_True);
     deltaTicks = SDL_GetTicks()-currentTick;
     currentTick = SDL_GetTicks();
-//    printf("**** other:      \t%d\n",SDL_GetTicks() - testTicks); testTicks = SDL_GetTicks(); 
     handleInput();
-//    printf("**** handleInput:\t%d\n",SDL_GetTicks() - testTicks); testTicks = SDL_GetTicks(); 
     draw();
-//    printf("**** draw:       \t%d\n",SDL_GetTicks() - testTicks); testTicks = SDL_GetTicks(); 
-    
     if(theMap != NULL && theMap != Py_None){
       Py_DECREF(theMap);
     }
@@ -2609,6 +2585,8 @@ int main(int argc, char **argv){
   //SDL_EnableUNICODE(1);
   gameModule = PyImport_ImportModule("gameModes");//New reference
   gameState = PyImport_ImportModule("gameState");
+  theMapp.nodes = NULL;
+
   mainLoop();
   Py_DECREF(gameModule);
   Py_DECREF(gameState);

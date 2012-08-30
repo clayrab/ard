@@ -15,6 +15,8 @@
 #client:
 #
 #uiElements list in C
+#don't draw hidden units
+#fix 'nextUnit' big flag in drawUnit()
 #text left and right char position
 #focused/mousedover? etc
 #py strings need to be copied and freed? i.e. unit->id, uiElement->text, etc
@@ -166,7 +168,7 @@ class gameMode:
 		self.mouseX = 0
 		self.mouseY = 0
 		self.scrolledDistance = 0.0
-		self.maxTranslateZ = 0.0-cDefines.defines["maxZoom"]
+#		self.maxTranslateZ = 0.0-cDefines.defines["maxZoom"]
 		self.exit = False
 		self.mousedOverObject = None
 		self.soundIndeces = []
@@ -318,20 +320,20 @@ class gameMode:
 		gameLogic.aStarSearch.parentPipe.send(["kill"])#this causes the thread to quit
 		gameLogic.aStarProcess.terminate()
 		gameLogic.aStarProcess.join()
-	def setMaxTranslateZ(self,transZ):
-		if(transZ > self.maxTranslateZ):
-			self.maxTranslateZ = transZ
-		self.map.translateZ = transZ
+#	def setMaxTranslateZ(self,transZ):
+#		if(transZ > self.maxTranslateZ):
+#			self.maxTranslateZ = transZ
+#		self.map.translateZ = transZ
 	def onDraw(self,deltaTicks,isAnimating):
 		gameLogic.aStarSearch.keepAlive()
-		if(self.scrolledDistance != 0.0):
-			self.map.translateZ = self.map.translateZ + self.scrolledDistance*deltaTicks
-			if(self.map.translateZ < (1.0-cDefines.defines['maxZoom'])):
-				self.map.translateZ = 1.0-cDefines.defines['maxZoom']
-			if(self.map.translateZ > (-1.0-cDefines.defines['minZoom'])):
-				self.map.translateZ = -1.0-cDefines.defines['minZoom']
-			if(self.map.translateZ < self.maxTranslateZ):
-				self.map.translateZ = self.maxTranslateZ
+#		if(self.scrolledDistance != 0.0):
+#			self.map.translateZ = self.map.translateZ + self.scrolledDistance*deltaTicks
+#			if(self.map.translateZ < (1.0-cDefines.defines['maxZoom'])):
+#				self.map.translateZ = 1.0-cDefines.defines['maxZoom']
+#			if(self.map.translateZ > (-1.0-cDefines.defines['minZoom'])):
+#				self.map.translateZ = -1.0-cDefines.defines['minZoom']
+#			if(self.map.translateZ < self.maxTranslateZ):
+#				self.map.translateZ = self.maxTranslateZ
 		self.scrolledDistance = 0.0
 		if(gameState.getClient() != None):
 			if(hasattr(gameState.getClient(),"checkSocket")):
@@ -905,6 +907,7 @@ class joinLANGameScreenMode(gameMode):
 		
 		uiElements.backButton(-0.930,0.9,newGameScreenMode)
 #		uiElements.menuButtonGameModeSelector(-0.07,-0.2,newGameScreenMode,text="Back")
+		uiElements.mapSelector(-0.93,0.813,[],self.mapNameField)
 
 class loginMode(gameMode):
 	def __init__(self,args):
@@ -997,7 +1000,7 @@ class gameRoomMode(tiledGameMode):
 			if(elem.text == playerName):
 				previousElem = elem
 	def setMap(self,mapName):
-		self.maxTranslateZ = 0.0-cDefines.defines["maxZoom"]
+#		self.maxTranslateZ = 0.0-cDefines.defines["maxZoom"]
 		gameState.setMapName(mapName)
 		self.map = gameLogic.mapp(gameLogic.mapViewNode)
 		self.mapNameElem.text = mapName
@@ -1064,25 +1067,22 @@ class createGameMode(tiledGameMode):
 		tiledGameMode.__init__(self)
 		self.createGameMode = True
 #		self.teamSize = 1
-		self.mapSelector = None
+#		self.mapSelector = None
 		self.backgroundImageIndex = texIndex("CREATE_GAME_BACKGROUND")
 		self.selectedNode = None
 	def setMap(self,mapName):
 		gameState.setMapName(mapName)
 		if(self.map != None):
-			self.map = gameLogic.mapp(gameLogic.mapViewNode,self.map.translateZ)
+			self.map = gameLogic.mapp(gameLogic.mapViewNode)
 		else:
-			self.map = gameLogic.mapp(gameLogic.mapViewNode,-50.0)			
-		self.maxTranslateZ = 0.0-cDefines.defines["maxZoom"]
-		if(self.mapSelector != None):
-			self.mapSelector.destroy()
+			self.map = gameLogic.mapp(gameLogic.mapViewNode)			
+#		self.maxTranslateZ = 0.0-cDefines.defines["maxZoom"]
+#		if(self.mapSelector != None):
+#			self.mapSelector.destroy()
 		self.mapNameField.text = mapName
 		if(hasattr(self,"roomNameField")):
 			self.roomNameField.setText(gameState.getOwnUserName() + "'s " + str(gameState.getTeamSize()) + "v" + str(gameState.getTeamSize()))
-		self.mapSelector = uiElements.mapSelector(-0.93,0.813,[],self.mapNameField)
-		for mapData in gameState.getMapDatas()[gameState.getTeamSize()-1]:
-			gameState.getGameMode().mapSelector.textFields.append(uiElements.mapSelect(-0.93,0.0,gameState.getGameMode().mapSelector,mapData.name))
-		gameState.getGameMode().mapSelector.redraw()
+#		self.mapSelector = uiElements.mapSelector(-0.93,0.813,[],self.mapNameField)
 		self.focus()
 
 	def addUIElements(self):
@@ -1090,6 +1090,7 @@ class createGameMode(tiledGameMode):
 		self.roomNameField = uiElements.textInputElement(0.31,-0.616)
 		uiElements.createGameButton(0.717,-0.616)		
 		uiElements.onlineBackButton(-0.930,0.9)
+		uiElements.mapSelector(-0.93,0.813,[],self.mapNameField)
 
 class hostGameMode(createGameMode):
 	def __init__(self,args):
@@ -1127,7 +1128,8 @@ class quickPlayMode(createGameMode):
 		uiElements.backButton(-0.930,0.9,newGameScreenMode)
 		gameState.getGameMode().setMap(gameState.getMapDatas()[0][0].name)
 		uiElements.startGameButton(0.806,-0.616)
-	
+		uiElements.mapSelector(-0.93,0.813,[],self.mapNameField)
+
 class loadGameMode(gameMode):
 	def addUIElements(self):
 		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])

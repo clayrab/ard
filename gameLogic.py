@@ -958,7 +958,7 @@ class mapData:
 		self.teamSize = int(lineTokens[1])/2
 
 class mapp:
-	def __init__(self,nodeType,translateZ=0.0-cDefines.defines['initZoom'],mapName="",ignoreCities=False):
+	def __init__(self,nodeType,mapName="",ignoreCities=False):
 		if(mapName == ""):
 			self.mapName = gameState.getMapName()
 		else:
@@ -966,7 +966,7 @@ class mapp:
 		self.ignoreCities = ignoreCities
 		self.polarity = 0
 		self.nodeType = nodeType
-		self.translateZ = 0.0-cDefines.defines['initZoom']#translateZ
+#		self.translateZ = 0.0-cDefines.defines['initZoom']#translateZ
 		self.load()
 		self.loaded = True
 	def getLoaded(self):
