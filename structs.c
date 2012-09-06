@@ -41,3 +41,8 @@ typedef struct map{
   int width;
   int size;
 }MAP;
+typedef struct movePathNode{
+  struct movePathNode * nextNode;
+  float xPos;
+  float yPos;
+}MOVEPATHNODE;

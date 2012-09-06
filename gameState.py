@@ -220,6 +220,9 @@ cursorIndex = -2
 global movePath
 movePath = []
 
+global aStarPath
+aStarPath = []
+
 global focusQueue
 focusQueue = Queue.Queue()
 

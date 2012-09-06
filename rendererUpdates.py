@@ -55,5 +55,10 @@ class removeUIElem(rendererUpdate):
 class updateUIElem(rendererUpdate):
     def __init__(self,uiElement):
         rendererUpdate.__init__(self,cDefines.defines["RENDERER_UPDATE_UIELEM"],uiElement=uiElement)
-    
-    
+
+class updateMovePath(rendererUpdate):
+    def __init__(self):
+        rendererUpdate.__init__(self,cDefines.defines["RENDERER_RELOAD_MOVEPATH"])
+class updateAStarPath(rendererUpdate):
+    def __init__(self):
+        rendererUpdate.__init__(self,cDefines.defines["RENDERER_RELOAD_ASTARPATH"])

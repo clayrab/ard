@@ -15,6 +15,12 @@
 #client:
 #
 #uiElements list in C
+#backgroundimage
+#cities
+#movepath
+#selectionbox
+#music/sound
+#exit
 #don't draw hidden units
 #fix 'nextUnit' big flag in drawUnit()
 #text left and right char position
@@ -652,29 +658,32 @@ class playMode(tiledGameMode):
 		gameMode.onDraw(self,deltaTicks,isAnimating)
 		if(not self.playerMissing):
 			if(gameLogic.aStarSearch.parentPipe.poll()):
-				gameState.movePath = []
+#				print 'new move path'
+				gameState.aStarPath = []
+				gameLogic.playModeNode.movePath = []
 				data = gameLogic.aStarSearch.parentPipe.recv()
 				for arr in data:
 					node = gameState.getGameMode().map.nodes[arr[1]][arr[0]]
 					gameLogic.playModeNode.movePath.append(node)
-					gameState.movePath.append(node)
+					gameState.aStarPath.append(node)
+					gameState.rendererUpdateQueue.put(rendererUpdates.updateAStarPath())
 			if((not isAnimating) and self.nextUnit != None and gameState.rendererUpdateQueue.empty()):
 				if(self.nextUnit.ai != None):
 					self.nextUnit.ai.takeTurn()
+				elif(self.nextUnit.isControlled() and len(self.nextUnit.movePath) != 0):
+					if(self.nextUnit.gotoNode != None):
+						if((len(gameLogic.playModeNode.movePath) > 0) and (gameLogic.playModeNode.movePath[0] in self.nextUnit.node.neighbors) and (gameLogic.playModeNode.movePath[-1] == self.nextUnit.gotoNode)):
+							self.nextUnit.movePath = gameLogic.playModeNode.movePath
+							self.nextUnit.gotoNode = None
+						else:
+							gameLogic.aStarSearch.search(self.nextUnit.gotoNode,self.nextUnit.node,self.nextUnit.unitType.canFly,self.nextUnit.unitType.canSwim)
+					elif(len(self.nextUnit.movePath) > 0 and self.nextUnit.movementPoints == 0.0):#movementPoints check makes sure that we don't fire twice before chooseNextUnit comes back from server
+						self.nextUnit.move()
 				elif(self.nextUnit.isControlled() and len(self.nextUnit.movePath) == 0 and not self.selectedNextUnit):
 					self.selectedNextUnit = True
 					self.soundIndeces.append(cDefines.defines["FINGER_CYMBALS_HIT_INDEX"])
 					gameLogic.selectNode(self.nextUnit.node)
 					gameState.rendererUpdateQueue.put(rendererUpdates.renderSelectNextUnit())
-
-#					if(len(self.nextUnit.movePath) == 0):
-#						self.selectionBoxTicks = self.ticks
-#						self.selectionBoxScale = 0.0
-#						self.selectionBoxScalePrev = 0.0
-
-
-
-
 					if(self.timeToMove <= 0 and self.nextUnit != None and self.nextUnit.isControlled() and self.nextUnit.movementPoints == 0.0):#movementPoints check makes sure that we don't fire twice before chooseNextUnit comes back from server
 						gameState.getClient().sendCommand("skip")
 						gameState.getClient().sendCommand("chooseNextUnit")
@@ -689,42 +698,6 @@ class playMode(tiledGameMode):
 					if(self.ticks - self.lastChatTicks > 6000):
 						self.chatDisplay.hidden = True
 						self.chatDisplay.hideAndShowTextFields()
-
-
-				elif(self.nextUnit.isControlled() and len(self.nextUnit.movePath) != 0):
-					if(self.nextUnit.gotoNode != None):
-						if((len(gameLogic.playModeNode.movePath) > 0) and (gameLogic.playModeNode.movePath[0] in self.nextUnit.node.neighbors) and (gameLogic.playModeNode.movePath[-1] == self.nextUnit.gotoNode)):
-							self.nextUnit.movePath = gameLogic.playModeNode.movePath
-							self.nextUnit.gotoNode = None
-						else:
-							gameLogic.aStarSearch.search(self.nextUnit.gotoNode,self.nextUnit.node,self.nextUnit.unitType.canFly,self.nextUnit.unitType.canSwim)
-					elif(len(self.nextUnit.movePath) > 0 and self.nextUnit.movementPoints == 0.0):#movementPoints check makes sure that we don't fire twice before chooseNextUnit comes back from server
-						self.nextUnit.move()
-
-
-
-				
-				
-#		if(self.playerMissing):
-#			gameMode.onDraw(self,deltaTicks,isAnimating)
-#			if(self.ticks - self.selectionBoxTicks < 2000):
-#				max = 1.0
-#				retVal = 0.0
-#				if(self.selectionBoxScale < max*0.1 and self.selectionBoxScalePrev <= self.selectionBoxScale):
-#					retVal = self.selectionBoxScale+max*((self.ticks-self.previousTicks)*0.0001*(self.ticks-self.selectionBoxTicks)*(self.ticks-self.selectionBoxTicks))
-#				elif(self.selectionBoxScale < max-max/4000.0 and self.selectionBoxScalePrev <= self.selectionBoxScale):
-#					retVal = self.selectionBoxScale+((self.ticks-self.previousTicks)*(max-self.selectionBoxScale)/30.0)
-#				else:
-#					retVal = self.selectionBoxScale-((self.ticks-self.previousTicks)*(self.selectionBoxScale-0.0)/200.0)
-#				if(retVal > max):
-#					retVal = max
-#				self.selectionBoxScalePrev = self.selectionBoxScale
-#				self.selectionBoxScale = retVal
-#			else:
-#				self.selectionBoxScale = 0.0
-
-
-
 
 	def addUIElements(self):
 		self.players = gameState.getPlayers()

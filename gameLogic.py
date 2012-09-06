@@ -333,6 +333,8 @@ class unit(object):
 #		for node in self.movePath:
 #			node.onMovePath = False
 		gameState.movePath = []
+		gameState.rendererUpdateQueue.put(rendererUpdates.updateMovePath())
+
 		if(self.movePath[0].unit != None):#ran into unit
 			self.movePath = []
 			gameState.getGameMode().focus(self.node)
@@ -499,7 +501,7 @@ class node:
 		self.city = city
 		self.playerStartValue = playerStartValue
 		self.selected = False
-		self.onMovePath = False
+#		self.onMovePath = False
 #		self.cursorIndex = -1
 		gameState.getGameMode().elementsDict[self.name] = self
 		self.neighbors = []
@@ -568,7 +570,7 @@ class playModeNode(node):
 	mode = MODES.SELECT_MODE
 #	openNodes = []
 #	closedNodes = []
-	movePath = []
+#	movePath = []
 #	aStarMap = None
 	def __init__(self,xPos,yPos,tileValue=cDefines.defines['GRASS_TILE_INDEX'],roadValue=0,city=None,playerStartValue=0):
 		node.__init__(self,xPos,yPos,tileValue=tileValue,roadValue=roadValue,city=city,playerStartValue=playerStartValue)
@@ -628,15 +630,21 @@ class playModeNode(node):
 				gameState.getGameMode().nextUnit.heal(self)
 			elif(playModeNode.mode == MODES.MOVE_MODE):
 				if(gameState.getGameMode().selectedNode != None and gameState.getGameMode().selectedNode.unit != None and (self.tileValue != cDefines.defines['MOUNTAIN_TILE_INDEX'] or (self.tileValue == cDefines.defines['MOUNTAIN_TILE_INDEX'] and gameState.getGameMode().selectedNode.unit.unitType.canFly))):
-					if(len(gameState.getGameMode().selectedNode.unit.movePath) > 0):
-						gameState.getGameMode().selectedNode.unit.gotoNode = None
-						gameState.movePath = gameState.getGameMode().selectedNode.unit.movePath
+#					if(len(gameState.getGameMode().selectedNode.unit.movePath) > 0):
+#						gameState.getGameMode().selectedNode.unit.gotoNode = None
+#						gameState.movePath = gameState.getGameMode().selectedNode.unit.movePath
+#						gameState.rendererUpdateQueue.put(rendererUpdates.updateMovePath())
+
 #						for node in gameState.getGameMode().selectedNode.unit.movePath:
 #							node.onMovePath = False
+
+
+					gameState.getGameMode().selectedNode.unit.gotoNode = None
 					gameState.getGameMode().selectedNode.unit.movePath = playModeNode.movePath
-					if(len(gameState.getGameMode().selectedNode.unit.movePath) == 0):#movepath wasn't done calculating
+					if(len(gameState.getGameMode().selectedNode.unit.movePath) == 0):#movepath wasn't done calculating						
 						if(playModeNode.isNeighbor):
 							gameState.getGameMode().selectedNode.unit.gotoNode = None
+							gameState.getGameMode().selectedNode.unit.movePath = []
 							gameState.getGameMode().selectedNode.unit.movePath.append(self)
 							
 						else:
@@ -645,19 +653,16 @@ class playModeNode(node):
 							gameState.getGameMode().gotoMode = False
 					else:
 						gameState.getGameMode().selectedNode.unit.gotoNode = None
-#					if(gameState.getGameMode().selectedNode.unit == gameState.getGameMode().nextUnit):
-#						if(len(gameState.getGameMode().selectedNode.unit.movePath) > 0 ):
-#							gameState.getGameMode().selectedNode.unit.move()
 			else:
 				selectNode(self)
 	def toggleCursor(self):
-#		for node in playModeNode.movePath:
-#			node.onMovePath = False
-		playModeNode.movePath = []
-		gameState.movePath = []
-#		if(gameState.getGameMode().selectedNode != None and gameState.getGameMode().selectedNode.unit != None):
-#			for node in gameState.getGameMode().selectedNode.unit.movePath:
-#				node.onMovePath = True
+#		gameState.movePath = []
+#		if(gameState.getGameMode().selectedNode != None and gameState.getGameMode().selectedNode.unit != None and len(gameState.getGameMode().selectedNode.unit.movePath) != 0):
+#			gameState.movePath = gameState.getGameMode().selectedNode.unit.movePath
+#		gameState.rendererUpdateQueue.put(rendererUpdates.updateMovePath())
+
+
+
 		if(gameState.getGameMode().doFocus == 1 or gameState.getGameMode().selectedNode == None or gameState.getGameMode().selectedNode.unit == None or gameState.getGameMode().selectedNode.unit.isMeditating or not gameState.getGameMode().selectedNode.unit.isControlled()):
 			gameState.cursorIndex = cDefines.defines['CURSOR_POINTER_INDEX']
 			playModeNode.mode = MODES.SELECT_MODE
@@ -1097,8 +1102,8 @@ def selectNode(node):
 #	if(node != None and node.unit != None):
 #		node.unit.health = node.unit.health - 2
 #		gameState.rendererUpdateQueue.put(rendererUpdates.renderUnitChange(node.unit))
-	for pnode in playModeNode.movePath:
-		pnode.onMovePath = False
+#	for pnode in playModeNode.movePath:
+#		pnode.onMovePath = False
 	playModeNode.movePath = []
 	gameState.movePath = []
 	if(gameState.getGameMode().selectedNode != None):
@@ -1110,11 +1115,15 @@ def selectNode(node):
 	if(node != None):
 		node.selected = True
 		if(node.unit != None and len(node.unit.movePath) > 0):
+			print len(node.unit.movePath)
 			gameState.movePath = node.unit.movePath
+			print 'update move patyh'
 #			for pathNode in node.unit.movePath:
 #				pathNode.onMovePath = True
 #		if(node.unit != None and node.unit.gotoNode != None):
 #			node.unit.gotoNode.onMovePath = True
+	print gameState.movePath
+	gameState.rendererUpdateQueue.put(rendererUpdates.updateMovePath())
 	if(gameState.getGameMode().selectedNode != None and gameState.getGameMode().selectedNode != node and hasattr(gameState.getGameMode(),"gotoMode") and gameState.getGameMode().gotoMode):
 		gameState.getGameMode().gotoMode = False		
 	gameState.getGameMode().selectedNode = node

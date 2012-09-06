@@ -320,7 +320,7 @@ PyObject *pyCitiesIter;
 PyObject * city;
 PyObject * pyId;
 int nodesIndex = 0;
-MAP theMapp;
+MAP daMap;
 		       //  tempUIElem = (UIELEMENT *)malloc(sizeof(UIELEMENT));
 NODE * theNode;
 ANIMATION * currentAnim;
@@ -488,7 +488,7 @@ void updateUIElement(PyObject * pyUIElem){
   loadUIElem(pyUIElem,nextElement);
 }
 void removeUIElement(PyObject * pyUIElem){
-  printf("removeUIElement%d\n",1);
+  //  printf("removeUIElement%d\n",1);
   pyName = PyObject_GetAttrString(pyUIElem,"name");
   name = PyLong_AsLong(pyName);
   Py_DECREF(pyName);
@@ -662,8 +662,8 @@ void updateNode(PyObject * pyNode){
   pyNodeName = PyObject_GetAttrString(pyNode,"name");
   nodeName = PyLong_AsLong(pyNodeName);
   Py_DECREF(pyNodeName);
-  for(nodesIndex = 0;nodesIndex < theMapp.size;nodesIndex++){
-    theNode = (&(theMapp.nodes[nodesIndex]));
+  for(nodesIndex = 0;nodesIndex < daMap.size;nodesIndex++){
+    theNode = (&(daMap.nodes[nodesIndex]));
     if(theNode->name == nodeName){
       break;
     }
@@ -671,31 +671,31 @@ void updateNode(PyObject * pyNode){
   loadNode(theNode,pyNode);
 }
 void freeMap(){
-  if(theMapp.nodes != NULL){
-    for(nodesIndex = 0;nodesIndex < theMapp.size;nodesIndex++){
-      theNode = (&(theMapp.nodes[nodesIndex]));
+  if(daMap.nodes != NULL){
+    for(nodesIndex = 0;nodesIndex < daMap.size;nodesIndex++){
+      theNode = (&(daMap.nodes[nodesIndex]));
       //      free(theNode);
     }    
-    //    free(theMapp);
+    //    free(daMap);
   }  
 }
 void loadMap(){
-  //theMapp = &(MAP);
+  //daMap = &(MAP);
   //  freeMap();
-  //  theMapp = (MAP *)malloc(sizeof(MAP));
+  //  daMap = (MAP *)malloc(sizeof(MAP));
   mapIterator = PyObject_CallMethod(theMap,"getIterator",NULL);  
   pyPolarity = PyObject_GetAttrString(theMap,"polarity");
   mapPolarity = PyLong_AsLong(pyPolarity);
   Py_DECREF(pyPolarity);
   rowIterator = PyObject_GetIter(mapIterator);
   pyMapWidth = PyObject_CallMethod(theMap,"getWidth",NULL);//New reference
-  theMapp.width = PyLong_AsLong(pyMapWidth);
+  daMap.width = PyLong_AsLong(pyMapWidth);
   Py_DECREF(pyMapWidth);
   pyMapHeight = PyObject_CallMethod(theMap,"getHeight",NULL);//New reference
-  theMapp.height = PyLong_AsLong(pyMapHeight);
+  daMap.height = PyLong_AsLong(pyMapHeight);
   Py_DECREF(pyMapHeight);
-  theMapp.size = theMapp.width*theMapp.height;
-  theMapp.nodes = malloc(theMapp.size*sizeof(NODE));
+  daMap.size = daMap.width*daMap.height;
+  daMap.nodes = malloc(daMap.size*sizeof(NODE));
   nodesIndex = 0;
   rowNumber = -1;
   while (row = PyIter_Next(rowIterator)) {
@@ -703,7 +703,7 @@ void loadMap(){
     rowNumber = rowNumber + 1;
     nodeIterator = PyObject_GetIter(row);
     while(pyNode = PyIter_Next(nodeIterator)) {
-      theNode = (&(theMapp.nodes[nodesIndex]));
+      theNode = (&(daMap.nodes[nodesIndex]));
       theNode->xIndex = colNumber;
       theNode->yIndex = rowNumber;
       xPosition = translateTilesXToPositionX(colNumber,rowNumber);
@@ -724,6 +724,47 @@ void loadMap(){
   Py_DECREF(rowIterator); 
   Py_DECREF(mapIterator);
 }
+MOVEPATHNODE * movePath = NULL;
+MOVEPATHNODE * aStarPath = NULL;
+MOVEPATHNODE * nextMovePathNode;
+MOVEPATHNODE * tempPathNode;
+addMovePathNode(PyObject * pyNode, MOVEPATHNODE ** path){
+  MOVEPATHNODE * movePathNode = (MOVEPATHNODE *)malloc(sizeof(MOVEPATHNODE));
+  pyXPosition = PyObject_GetAttrString(pyNode,"xPos");
+  colNumber = 0-PyLong_AsLong(pyXPosition);
+  Py_DECREF(pyXPosition);
+  pyYPosition = PyObject_GetAttrString(pyNode,"yPos");
+  rowNumber = PyLong_AsLong(pyYPosition);
+  Py_DECREF(pyYPosition);  
+  movePathNode->xPos = translateTilesXToPositionX(colNumber,rowNumber);
+  movePathNode->yPos = translateTilesYToPositionY(rowNumber);
+  movePathNode->nextNode = *(path);
+  *(path) = movePathNode;
+}
+freeMovePath(MOVEPATHNODE ** path){
+  nextMovePathNode = *(path);
+  while(nextMovePathNode != NULL){
+    tempPathNode = nextMovePathNode;
+    nextMovePathNode = nextMovePathNode->nextNode;
+    free(tempPathNode);
+  }
+  *(path) = NULL;
+}
+PyObject * pyMovePath;
+loadMovePath(PyObject * pyPath,MOVEPATHNODE ** path){
+  freeMovePath(path);
+  nodeIterator = PyObject_CallMethod(pyPath,"__iter__",NULL);
+  while(pyNode = PyIter_Next(nodeIterator)){
+    addMovePathNode(pyNode,path);
+  }
+}
+
+
+
+
+
+
+
 
 
 void testTicks(char * label, long ticksCounter){
@@ -964,19 +1005,13 @@ void drawTilesText(){
   unitNamesCount = 0;*/
 }
 
-PyObject * pyMovePath;
-void drawMovePath(){
-  pyMovePath = PyObject_GetAttrString(gameState,"movePath");
-  nodeIterator = PyObject_CallMethod(pyMovePath,"__iter__",NULL);
-  while(pyNode = PyIter_Next(nodeIterator)){
-    pyXPosition = PyObject_GetAttrString(pyNode,"xPos");
-    colNumber = 0-PyLong_AsLong(pyXPosition);
-    pyYPosition = PyObject_GetAttrString(pyNode,"yPos");
-    rowNumber = PyLong_AsLong(pyYPosition);
-    xPosition = translateTilesXToPositionX(colNumber,rowNumber);
-    yPosition = translateTilesYToPositionY(rowNumber);
+void drawMovePath(MOVEPATHNODE ** path){
+  //  printf("draw move path%d\n",1);
+  nextMovePathNode = *(path);
+  while(nextMovePathNode != NULL){
+    //    printf("draw move path node%d\n",1);
     glPushMatrix();
-    glTranslatef(xPosition,yPosition,0.0);
+    glTranslatef(nextMovePathNode->xPos,nextMovePathNode->yPos,0.0);
     glBindTexture(GL_TEXTURE_2D, texturesArray[WALK_ICON_INDEX]);
     glColor3f(1.0f, 0.0f, 0.0f);
     glBegin(GL_QUADS);
@@ -985,9 +1020,9 @@ void drawMovePath(){
     glTexCoord2f(1.0,1.0); glVertex3f(-0.5,0.5,0.0);
     glTexCoord2f(0.0,1.0); glVertex3f(0.5,0.5,0.0);
     glEnd();
-    glPopMatrix();
+    glPopMatrix();    
+    nextMovePathNode = nextMovePathNode->nextNode;
   }
-  Py_DECREF(pyMovePath);
 }
 void drawSelectionBox(){
   pyNode = PyObject_GetAttrString(gameMode,"selectedNode");
@@ -1049,20 +1084,14 @@ void drawUnits(){
 }						
 int nodesIndex;
 void drawTiles(){  
-  pyLoaded = PyObject_CallMethod(theMap,"getLoaded",NULL);
-  mapLoaded = PyLong_AsLong(pyLoaded);
-  if(mapLoaded){
-    loadMap();
-  }
-  if(theMapp.nodes != NULL){
-    for(nodesIndex = 0;nodesIndex < theMapp.size;nodesIndex++){
-      theNode = &(theMapp.nodes[nodesIndex]);
+  if(daMap.nodes != NULL){
+    for(nodesIndex = 0;nodesIndex < daMap.size;nodesIndex++){
+      theNode = &(daMap.nodes[nodesIndex]);
       glPushMatrix();
       glTranslatef(theNode->xPos,theNode->yPos,0.0);
       drawTile(theNode);
       glPopMatrix();
     }
-    Py_DECREF(pyLoaded);
   }
 }
 
@@ -1080,19 +1109,9 @@ float mapRightOffset;
 float mapTopOffset;
 int frameNumber = 0;
 void calculateTranslation(){
-
-  /*  pyMapWidth = PyObject_CallMethod(theMap,"getWidth",NULL);//New reference
-  pyMapHeight = PyObject_CallMethod(theMap,"getHeight",NULL);//New reference
-  mapWidth = PyLong_AsLong(pyMapWidth);
-  mapHeight = PyLong_AsLong(pyMapHeight);*/
   frameNumber++;
   glPushMatrix();
-  if(theMapp.nodes != NULL){
-    //    Py_DECREF(pyMapWidth);
-    //    Py_DECREF(pyMapHeight);
-    /*    pyTranslateZ = PyObject_GetAttrString(theMap,"translateZ");
-	  translateZ = PyFloat_AsDouble(pyTranslateZ);
-	  Py_DECREF(pyTranslateZ);*/
+  if(daMap.nodes != NULL){
     if(translateX - mapRightOffset < convertedTopRightX
        && translateX - (2.0*SIN60) > convertedBottomLeftX
        && translateY < convertedTopRightY - mapTopOffset
@@ -1102,8 +1121,6 @@ void calculateTranslation(){
       if(translateZ > maxTranslateZ){
 	maxTranslateZ = translateZ;
       }
-      //      pyObj = PyObject_CallMethod(gameMode,"setMaxTranslateZ","f",translateZ);//New reference
-      //      Py_DECREF(pyObj);
     }
     if(translateZ < 1.0 - maxZoom){
       translateZ = 1.0 - maxZoom;
@@ -1169,8 +1186,8 @@ void calculateTranslation(){
   }
   translateZPrev = translateZ;
   //  convertWindowCoordsToViewportCoords(mouseX,mouseY,translateZ,&mouseMapPosXNew,&mouseMapPosYNew,&mouseMapPosZNew);
-  mapRightOffset = translateTilesXToPositionX(theMapp.width+1,0);
-  mapTopOffset = translateTilesYToPositionY(theMapp.height);
+  mapRightOffset = translateTilesXToPositionX(daMap.width+1,0);
+  mapTopOffset = translateTilesYToPositionY(daMap.height);
   //printf("screen topright %f,%f\n",convertedTopRightX,convertedTopRightY);
   //printf("screen bottomleft %f,%f\n",convertedBottomLeftX,convertedBottomLeftY);
   //printf("translate %f,%f,%f\n",translateX,translateY,translateZ);
@@ -1195,14 +1212,6 @@ void calculateTranslation(){
       translateY += scrollSpeed*deltaTicks;
     }
   }
-/*  if(!isAnimating && !doneAnimatingFired){
-    doneAnimatingFired = 1;
-    if(PyObject_HasAttrString(gameMode,"onDoneAnimating")){
-      pyObj = PyObject_CallMethod(gameMode,"onDoneAnimating",NULL);//New reference
-      printPyStackTrace();
-      Py_DECREF(pyObj);
-    }
-    }*/
   if(isSliding){
     if(SDL_GetTicks()-slidingTicks < SLIDE_UNIT_TIME){
       currentAnim->unit->xPosDraw = slidingEasingFunction(SDL_GetTicks()-slidingTicks, currentAnim->xPos,currentAnim->unit->xPos,SLIDE_UNIT_TIME);
@@ -1300,9 +1309,10 @@ void calculateTranslation(){
 void drawBoard(){
   glDepthFunc(GL_LEQUAL);
   glClear(GL_DEPTH_BUFFER_BIT);		 
-  if(theMap != Py_None && theMap != NULL){
+  if(daMap.nodes != NULL){
     drawTiles();
-    drawMovePath();
+    drawMovePath(&(movePath));
+    drawMovePath(&(aStarPath));
     drawSelectionBox();
     drawUnits();
     drawCities();
@@ -1403,37 +1413,7 @@ void drawUIElement(UIELEMENT * uiElement){
       glPopName();
       glPopMatrix();
     }
-    /**/
-
-    /*    if(PyObject_HasAttrString(uiElement,"text") && text[0] != 0){
-	  glColor3f(*red/255.0, *green/255.0, *blue/255.0);
-	  if(selectedName == name && mouseOverColor != NULL){
-	    sscanf(mouseOverColor,"%X %X %X",red,green,blue);
-	  }else{
-	    sscanf(textColor,"%X %X %X",red,green,blue);
-	  }
-	  glColor3f(*red/255.0, *green/255.0, *blue/255.0);
-	  glPushMatrix();
-	  glLoadIdentity();
-	  glTranslatef(xPosition+textXPosition,yPosition+textYPosition,0.0);
-	  glScalef(textSize,textSize,0.0);
-	  //glTranslatef(0.0,0.0,-10.0);
-	  glPushName(name);
-	  if(isFocused){
-	    drawText(text,fontIndex,cursorPosition,xPosition+width,NULL);
-	  }else{
-	    drawText(text,fontIndex,-1,xPosition+width,NULL);
-	  }
-	  glPopName();
-	  glPopMatrix();
-	}
-
-    */
-
   }
-
-
-  
 }
 void _drawUIElement(PyObject * uiElement){
   isNode = PyObject_HasAttrString(uiElement,"tileValue");
@@ -1615,15 +1595,6 @@ void drawUI(){
   while(nextElement != NULL){
     drawUIElement(nextElement);
     nextElement = nextElement->nextElement;
-  }
-  pyObj = PyObject_CallMethod(gameMode,"getUIElementsIterator",NULL);
-  if(pyObj != NULL && 0){
-    UIElementsIterator = PyObject_GetIter(pyObj);//New reference
-    while (uiElement = PyIter_Next(UIElementsIterator)) {
-      _drawUIElement(uiElement);
-    }
-    Py_DECREF(UIElementsIterator);
-    Py_DECREF(pyObj);
   }
   glGetIntegerv(GL_RENDER_MODE,&bufRenderMode);
   if(bufRenderMode==GL_RENDER){//need to hide the cursor during GL_SELECT
@@ -1998,14 +1969,6 @@ static void handleInput(){
       clickScroll = pyClickScroll == Py_True;
       Py_DECREF(pyClickScroll);
   }
-  /*  if(PyObject_HasAttrString(gameMode,"getFocusNextUnit")){
-    pyFocusNextUnit = PyObject_CallMethod(gameMode,"getFocusNextUnit",NULL);
-    doFocus = PyLong_AsLong(pyFocusNextUnit);
-    if(doFocus){
-      isFocusing = 1;
-    }
-    //    Py_DECREF(pyClickScroll);
-    }*/
   if(previousMousedoverName != selectedName){
     if(PyObject_HasAttrString(gameMode,"handleMouseOver")){
       pyObj = PyObject_CallMethod(gameMode,"handleMouseOver","(ii)",selectedName,leftButtonDown);//New reference
@@ -2301,6 +2264,18 @@ PyObject * pyUIElement;
 long updateType;
 int doResetUI = 0;
 static void draw(){
+  if(PyObject_HasAttrString(gameMode,"map")){
+    theMap = PyObject_GetAttrString(gameMode, "map");//New reference
+  }
+  if(theMap != NULL && theMap != Py_None){
+    pyLoaded = PyObject_CallMethod(theMap,"getLoaded",NULL);
+    mapLoaded = PyLong_AsLong(pyLoaded);
+    if(mapLoaded){
+      loadMap();
+    }
+    Py_DECREF(pyLoaded);
+    Py_DECREF(theMap);
+  }
   PyObject_SetAttrString(gameMode,"ticks",PyLong_FromLong(SDL_GetTicks()));
   pyUpdatesQueue = PyObject_GetAttrString(gameState,"rendererUpdateQueue");
   pyUpdatesQueueEmpty = PyObject_CallMethod(pyUpdatesQueue,"empty",NULL);
@@ -2346,9 +2321,14 @@ static void draw(){
     }else if(updateType == RENDERER_REMOVE_UIELEM){
       pyUIElement = PyObject_GetAttrString(pyUpdate,"uiElement");
       removeUIElement(pyUIElement);
-    }else if(updateType == RENDERER_UPDATE_UIELEM){
-      pyUIElement = PyObject_GetAttrString(pyUpdate,"uiElement");
-      updateUIElement(pyUIElement);
+    }else if(updateType == RENDERER_RELOAD_MOVEPATH){
+      pyMovePath = PyObject_GetAttrString(gameState,"movePath");
+      loadMovePath(pyMovePath,&(movePath));
+      Py_DECREF(pyMovePath);
+    }else if(updateType == RENDERER_RELOAD_ASTARPATH){
+      pyMovePath = PyObject_GetAttrString(gameState,"aStarPath");
+      loadMovePath(pyMovePath,&(aStarPath));
+      Py_DECREF(pyMovePath);
     }
 
     /* if(updateType == RENDERER_CHANGE_UNIT_REMOVE){
@@ -2515,18 +2495,12 @@ static void mainLoop (){
       pyObj = PyObject_CallMethod(gameMode,"getSound",NULL);
       Py_DECREF(pyObj);
     }
-    if(PyObject_HasAttrString(gameMode,"map")){
-      theMap = PyObject_GetAttrString(gameMode, "map");//New reference
-    }
     pyExit = PyObject_GetAttrString(gameMode,"exit");
     done = (pyExit == Py_True);
     deltaTicks = SDL_GetTicks()-currentTick;
     currentTick = SDL_GetTicks();
     handleInput();
     draw();
-    if(theMap != NULL && theMap != Py_None){
-      Py_DECREF(theMap);
-    }
     Py_DECREF(gameMode);
   }
   pyObj = PyObject_CallMethod(gameMode,"onQuit",NULL);
@@ -2585,7 +2559,7 @@ int main(int argc, char **argv){
   //SDL_EnableUNICODE(1);
   gameModule = PyImport_ImportModule("gameModes");//New reference
   gameState = PyImport_ImportModule("gameState");
-  theMapp.nodes = NULL;
+  daMap.nodes = NULL;
 
   mainLoop();
   Py_DECREF(gameModule);
