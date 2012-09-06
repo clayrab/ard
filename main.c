@@ -777,8 +777,6 @@ setSelectedNode(){
 PyObject * pyBackgroundImageIndex;
 int backgroundImageIndex = -1;
 setBackgroundImage(){
-  //gameMode = PyObject_CallMethod(gameState,"getGameMode",NULL);//this is very hacky...
-  //gamemode is set in handleleftclick in handleInput() which is fired 
   if(PyObject_HasAttrString(gameMode,"backgroundImageIndex")){
     pyBackgroundImageIndex = PyObject_GetAttrString(gameMode, "backgroundImageIndex");//New reference
     backgroundImageIndex = PyLong_AsLong(pyBackgroundImageIndex);

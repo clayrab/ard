@@ -14,7 +14,6 @@
 
 #client:
 #
-#backgroundimage
 #music/sound
 #exit
 #don't draw hidden units
