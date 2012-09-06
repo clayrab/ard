@@ -46,3 +46,7 @@ typedef struct movePathNode{
   float xPos;
   float yPos;
 }MOVEPATHNODE;
+typedef struct selectedNode{
+  float xPos;
+  float yPos;
+}SELECTEDNODE;

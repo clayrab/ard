@@ -14,11 +14,7 @@
 
 #client:
 #
-#uiElements list in C
 #backgroundimage
-#cities
-#movepath
-#selectionbox
 #music/sound
 #exit
 #don't draw hidden units
@@ -186,6 +182,7 @@ class gameMode:
 		uiElements.viewer.theViewer = None
 		gameState.rendererUpdateQueue.put(rendererUpdates.resetUnits())
 		gameState.rendererUpdateQueue.put(rendererUpdates.resetUI())
+		gameState.rendererUpdateQueue.put(rendererUpdates.setBackgroundImage())
 	def __dealloc__(self):
 		print '**** dealloc gamemode ****'
 	def getRestartMusic(self):
@@ -1041,6 +1038,7 @@ class createGameMode(tiledGameMode):
 		self.createGameMode = True
 #		self.teamSize = 1
 #		self.mapSelector = None
+		print "createGameMode"
 		self.backgroundImageIndex = texIndex("CREATE_GAME_BACKGROUND")
 		self.selectedNode = None
 	def setMap(self,mapName):

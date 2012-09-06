@@ -332,14 +332,14 @@ class unit(object):
 	def move(self):
 #		for node in self.movePath:
 #			node.onMovePath = False
-		gameState.movePath = []
-		gameState.rendererUpdateQueue.put(rendererUpdates.updateMovePath())
-
+#		gameState.movePath = []
+#		gameState.rendererUpdateQueue.put(rendererUpdates.updateMovePath())
+		gameState.aStarPath = []
+		gameState.rendererUpdateQueue.put(rendererUpdates.updateAStarPath())
 		if(self.movePath[0].unit != None):#ran into unit
 			self.movePath = []
+			gameState.rendererUpdateQueue.put(rendererUpdates.updateMovePath())
 			gameState.getGameMode().focus(self.node)
-#			selectNode(self.node)
-#			gameState.getGameMode().doFocus = 1
 		else:
 			node = self.movePath[0]
 			self.movePath = self.movePath[1:]
@@ -1106,6 +1106,7 @@ def selectNode(node):
 #		pnode.onMovePath = False
 	playModeNode.movePath = []
 	gameState.movePath = []
+	gameState.aStarPath = []
 	if(gameState.getGameMode().selectedNode != None):
 		gameState.getGameMode().selectedNode.selected = False
 #		gameState.getGameMode().selectedNode.onMovePath = False
@@ -1115,18 +1116,17 @@ def selectNode(node):
 	if(node != None):
 		node.selected = True
 		if(node.unit != None and len(node.unit.movePath) > 0):
-			print len(node.unit.movePath)
 			gameState.movePath = node.unit.movePath
-			print 'update move patyh'
 #			for pathNode in node.unit.movePath:
 #				pathNode.onMovePath = True
 #		if(node.unit != None and node.unit.gotoNode != None):
 #			node.unit.gotoNode.onMovePath = True
-	print gameState.movePath
+	gameState.rendererUpdateQueue.put(rendererUpdates.updateAStarPath())
 	gameState.rendererUpdateQueue.put(rendererUpdates.updateMovePath())
 	if(gameState.getGameMode().selectedNode != None and gameState.getGameMode().selectedNode != node and hasattr(gameState.getGameMode(),"gotoMode") and gameState.getGameMode().gotoMode):
 		gameState.getGameMode().gotoMode = False		
 	gameState.getGameMode().selectedNode = node
+	gameState.rendererUpdateQueue.put(rendererUpdates.setSelectedNode())	
 	if(uiElements.viewer.theViewer != None):
 		uiElements.viewer.theViewer.destroy()
 	if(uiElements.unitTypeViewer.theViewer != None):

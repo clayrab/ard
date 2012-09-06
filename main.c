@@ -758,7 +758,35 @@ loadMovePath(PyObject * pyPath,MOVEPATHNODE ** path){
     addMovePathNode(pyNode,path);
   }
 }
-
+SELECTEDNODE * selectedNode = NULL;
+setSelectedNode(){
+  if(selectedNode != NULL){
+    free(selectedNode);
+  }
+  selectedNode = (SELECTEDNODE *)malloc(sizeof(SELECTEDNODE));
+  pyNode = PyObject_GetAttrString(gameMode,"selectedNode");
+  if(pyNode != NULL && pyNode != Py_None){
+    pyXPosition = PyObject_GetAttrString(pyNode,"xPos");
+    colNumber = 0-PyLong_AsLong(pyXPosition);
+    pyYPosition = PyObject_GetAttrString(pyNode,"yPos");
+    rowNumber = PyLong_AsLong(pyYPosition);
+    selectedNode->xPos = translateTilesXToPositionX(colNumber,rowNumber);
+    selectedNode->yPos = translateTilesYToPositionY(rowNumber);
+  }
+}
+PyObject * pyBackgroundImageIndex;
+int backgroundImageIndex = -1;
+setBackgroundImage(){
+  //gameMode = PyObject_CallMethod(gameState,"getGameMode",NULL);//this is very hacky...
+  //gamemode is set in handleleftclick in handleInput() which is fired 
+  if(PyObject_HasAttrString(gameMode,"backgroundImageIndex")){
+    pyBackgroundImageIndex = PyObject_GetAttrString(gameMode, "backgroundImageIndex");//New reference
+    backgroundImageIndex = PyLong_AsLong(pyBackgroundImageIndex);
+    Py_DECREF(pyBackgroundImageIndex);
+  }else{
+    backgroundImageIndex = -1;    
+  }
+}
 
 
 
@@ -1025,23 +1053,12 @@ void drawMovePath(MOVEPATHNODE ** path){
   }
 }
 void drawSelectionBox(){
-  pyNode = PyObject_GetAttrString(gameMode,"selectedNode");
-  if(pyNode != NULL && pyNode != Py_None){
-    pyXPosition = PyObject_GetAttrString(pyNode,"xPos");
-    colNumber = 0-PyLong_AsLong(pyXPosition);
-    pyYPosition = PyObject_GetAttrString(pyNode,"yPos");
-    rowNumber = PyLong_AsLong(pyYPosition);
-    xPosition = translateTilesXToPositionX(colNumber,rowNumber);
-    yPosition = translateTilesYToPositionY(rowNumber);
-    pySelectionBoxScale = PyObject_GetAttrString(gameMode,"selectionBoxScale");
-    selectionBoxScale = PyFloat_AsDouble(pySelectionBoxScale);
-    Py_DECREF(pySelectionBoxScale);
-
+  if(selectedNode != NULL){
     glColor3f(1.0,1.0,1.0);
     glBindTexture(GL_TEXTURE_2D, texturesArray[SELECTION_BOX_INDEX]);
     glPushMatrix();
-    glTranslatef(xPosition,yPosition,0.0);
-    glScalef(selectionBoxScale+1.0,selectionBoxScale+1.0,0.0);
+    glTranslatef(selectedNode->xPos,selectedNode->yPos,0.0);
+    //  glScalef(selectionBoxScale+1.0,selectionBoxScale+1.0,0.0);
     glCallList(selectionBoxList);
     glPopMatrix();
   }
@@ -2229,25 +2246,20 @@ static void handleInput(){
     }
   }
 }
-PyObject * pyBackgroundImageIndex;
-int backgroundImageIndex;
 void drawBackground(){
-  if(PyObject_HasAttrString(gameMode,"backgroundImageIndex")){
-    glColor3f(1.0,1.0,1.0);
-    pyBackgroundImageIndex = PyObject_GetAttrString(gameMode, "backgroundImageIndex");//New reference
-    backgroundImageIndex = PyLong_AsLong(pyBackgroundImageIndex);
+  if(backgroundImageIndex >= 0){
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     glBindTexture(GL_TEXTURE_2D, texturesArray[backgroundImageIndex]);
+    glColor3f(1.0,1.0,1.0);
     glBegin(GL_QUADS);
     glTexCoord2f(0.0,0.0); glVertex3f(-1.0,-1.0,0.0);
     glTexCoord2f(1.0,0.0); glVertex3f(1.0,-1.0,0.0);
     glTexCoord2f(1.0,1.0); glVertex3f(1.0,1.0,0.0);
     glTexCoord2f(0.0,1.0); glVertex3f(-1.0,1.0,0.0);
     glEnd();
-    Py_DECREF(pyBackgroundImageIndex);
   }
 }
 GLint viewport[4];
@@ -2329,15 +2341,12 @@ static void draw(){
       pyMovePath = PyObject_GetAttrString(gameState,"aStarPath");
       loadMovePath(pyMovePath,&(aStarPath));
       Py_DECREF(pyMovePath);
+    }else if(updateType == RENDERER_SET_SELECTEDNODE){
+      setSelectedNode();
+    }else if(updateType == RENDERER_SET_BACKGROUND){
+      setBackgroundImage();
     }
-
-    /* if(updateType == RENDERER_CHANGE_UNIT_REMOVE){
-    }else if(updateType == RENDERER_CHANGE_UNIT_CHANGE){
-    }else if(updateType == RENDERER_CHANGE_NODE_CHANGE){
-    }else if(updateType == RENDERER_CHANGE_TEXT_INPUT){
-     }*/
-    Py_DECREF(pyUpdate);
-    
+    Py_DECREF(pyUpdate);    
     pyUpdatesQueueEmpty = PyObject_CallMethod(pyUpdatesQueue,"empty",NULL);
   }
   Py_DECREF(pyUpdatesQueue);
@@ -2499,8 +2508,8 @@ static void mainLoop (){
     done = (pyExit == Py_True);
     deltaTicks = SDL_GetTicks()-currentTick;
     currentTick = SDL_GetTicks();
-    handleInput();
     draw();
+    handleInput();
     Py_DECREF(gameMode);
   }
   pyObj = PyObject_CallMethod(gameMode,"onQuit",NULL);

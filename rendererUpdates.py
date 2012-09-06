@@ -59,6 +59,15 @@ class updateUIElem(rendererUpdate):
 class updateMovePath(rendererUpdate):
     def __init__(self):
         rendererUpdate.__init__(self,cDefines.defines["RENDERER_RELOAD_MOVEPATH"])
+
 class updateAStarPath(rendererUpdate):
     def __init__(self):
         rendererUpdate.__init__(self,cDefines.defines["RENDERER_RELOAD_ASTARPATH"])
+
+class setSelectedNode(rendererUpdate):
+    def __init__(self):
+        rendererUpdate.__init__(self,cDefines.defines["RENDERER_SET_SELECTEDNODE"])
+
+class setBackgroundImage(rendererUpdate):
+    def __init__(self):
+        rendererUpdate.__init__(self,cDefines.defines["RENDERER_SET_BACKGROUND"])
