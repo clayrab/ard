@@ -485,9 +485,7 @@ class viewer(uiElement):
 			self.names.append(uiElement(xPos+0.335,yPos-0.044,text="stone",textSize=0.00055,textColor="cc cc cc",width=1.0,height=1.0,fontIndex=1).name)
 	def destroy(self):
 		viewer.theViewer = None
-		print 'a'
 		uiElement.destroy(self)
-		print 'b'
 
 class unitViewer(viewer):
 	def __init__(self,node):

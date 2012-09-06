@@ -61,6 +61,7 @@ int animationTimes[2] = {4000,2000};
 #define RENDERER_RELOAD_ASTARPATH 13
 #define RENDERER_SET_SELECTEDNODE 14
 #define RENDERER_SET_BACKGROUND 15
+#define RENDERER_LOAD_MAP 16
 
 #define TILES "assets/tiles2.png"
 #define UI "assets/UI.png"

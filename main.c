@@ -2274,18 +2274,6 @@ PyObject * pyUIElement;
 long updateType;
 int doResetUI = 0;
 static void draw(){
-  if(PyObject_HasAttrString(gameMode,"map")){
-    theMap = PyObject_GetAttrString(gameMode, "map");//New reference
-  }
-  if(theMap != NULL && theMap != Py_None){
-    pyLoaded = PyObject_CallMethod(theMap,"getLoaded",NULL);
-    mapLoaded = PyLong_AsLong(pyLoaded);
-    if(mapLoaded){
-      loadMap();
-    }
-    Py_DECREF(pyLoaded);
-    Py_DECREF(theMap);
-  }
   PyObject_SetAttrString(gameMode,"ticks",PyLong_FromLong(SDL_GetTicks()));
   pyUpdatesQueue = PyObject_GetAttrString(gameState,"rendererUpdateQueue");
   pyUpdatesQueueEmpty = PyObject_CallMethod(pyUpdatesQueue,"empty",NULL);
@@ -2343,7 +2331,27 @@ static void draw(){
       setSelectedNode();
     }else if(updateType == RENDERER_SET_BACKGROUND){
       setBackgroundImage();
+    }else if(updateType == RENDERER_LOAD_MAP){
+      theMap = PyObject_GetAttrString(gameMode, "map");//New reference
+      loadMap();
     }
+
+
+    /*  if(PyObject_HasAttrString(gameMode,"map")){
+  }
+  if(theMap != NULL && theMap != Py_None){
+    pyLoaded = PyObject_CallMethod(theMap,"getLoaded",NULL);
+    mapLoaded = PyLong_AsLong(pyLoaded);
+    if(mapLoaded){
+    }
+    Py_DECREF(pyLoaded);
+    Py_DECREF(theMap);
+    }*/
+
+
+
+
+
     Py_DECREF(pyUpdate);    
     pyUpdatesQueueEmpty = PyObject_CallMethod(pyUpdatesQueue,"empty",NULL);
   }

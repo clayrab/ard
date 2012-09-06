@@ -973,11 +973,11 @@ class mapp:
 		self.nodeType = nodeType
 #		self.translateZ = 0.0-cDefines.defines['initZoom']#translateZ
 		self.load()
-		self.loaded = True
-	def getLoaded(self):
-		temp = self.loaded
-		self.loaded = False
-		return temp
+#		self.loaded = True
+#	def getLoaded(self):
+#		temp = self.loaded
+#		self.loaded = False
+#		return temp
 	def getWidth(self):
 		return len(self.nodes[0])
 	def getHeight(self):

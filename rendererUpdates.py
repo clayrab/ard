@@ -71,3 +71,7 @@ class setSelectedNode(rendererUpdate):
 class setBackgroundImage(rendererUpdate):
     def __init__(self):
         rendererUpdate.__init__(self,cDefines.defines["RENDERER_SET_BACKGROUND"])
+
+class loadMap(rendererUpdate):
+    def __init__(self):
+        rendererUpdate.__init__(self,cDefines.defines["RENDERER_LOAD_MAP"])

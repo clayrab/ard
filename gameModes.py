@@ -432,6 +432,7 @@ class playMode(tiledGameMode):
 		gameState.getClient().sendCommand("chooseNextUnit")
 	def loadMap(self):
 		self.map = gameLogic.mapp(gameLogic.playModeNode)
+		gameState.rendererUpdateQueue.put(rendererUpdates.loadMap())
 		gameLogic.aStarSearch.parentPipe.send(['map',gameState.getMapName()])
 	def unitComparater(self,unit):
 		if(unit.isMeditating):
@@ -729,6 +730,7 @@ class mapEditorMode(tiledGameMode):
 		tiledGameMode.__init__(self)
 	def loadMap(self):
 		self.map = gameLogic.mapp(gameLogic.mapEditorNode)
+		gameState.rendererUpdateQueue.put(rendererUpdates.loadMap())		
 		self.focus()
 	def keyDown(self,keycode):
 		try:
@@ -972,6 +974,7 @@ class gameRoomMode(tiledGameMode):
 #		self.maxTranslateZ = 0.0-cDefines.defines["maxZoom"]
 		gameState.setMapName(mapName)
 		self.map = gameLogic.mapp(gameLogic.mapViewNode)
+		gameState.rendererUpdateQueue.put(rendererUpdates.loadMap())
 		self.mapNameElem.text = mapName
 		self.focus()
 	def addUIElements(self):
@@ -1037,7 +1040,6 @@ class createGameMode(tiledGameMode):
 		self.createGameMode = True
 #		self.teamSize = 1
 #		self.mapSelector = None
-		print "createGameMode"
 		self.backgroundImageIndex = texIndex("CREATE_GAME_BACKGROUND")
 		self.selectedNode = None
 	def setMap(self,mapName):
@@ -1046,6 +1048,8 @@ class createGameMode(tiledGameMode):
 			self.map = gameLogic.mapp(gameLogic.mapViewNode)
 		else:
 			self.map = gameLogic.mapp(gameLogic.mapViewNode)			
+		gameState.rendererUpdateQueue.put(rendererUpdates.loadMap())
+
 #		self.maxTranslateZ = 0.0-cDefines.defines["maxZoom"]
 #		if(self.mapSelector != None):
 #			self.mapSelector.destroy()
