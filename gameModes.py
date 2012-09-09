@@ -14,8 +14,10 @@
 
 #client:
 #
+#draw cities
+#gameRoomMode/createGameMode(use defines and an int 'mode')
 #music/sound
-#exit
+#
 #don't draw hidden units
 #fix 'nextUnit' big flag in drawUnit()
 #text left and right char position
@@ -275,9 +277,9 @@ class gameMode:
 			if(hasattr(self.elementWithFocus,"onKeyDown")):
 				self.elementWithFocus.onKeyDown(keycode)			
 	def handleKeyUp(self,keycode):
-		if(keycode == "`"):
-			if(hasattr(self,"clickScroll")):
-				self.clickScroll = False
+#		if(keycode == "`"):
+#			if(hasattr(self,"clickScroll")):
+#				self.clickScroll = False
 		if(self.modal == None):
 			if(hasattr(self,"keyUp")):
 				self.keyUp(keycode)
@@ -346,7 +348,7 @@ class gameMode:
 			
 class tiledGameMode(gameMode):
 	def __init__(self,args=[]):
-		self.clickScroll = False
+#		self.clickScroll = False
 		gameMode.__init__(self)
 		self.doFocus = 0
 		self.doFocusTemp = 0
@@ -374,8 +376,8 @@ class tiledGameMode(gameMode):
 				if(not rightClickable):
 					self.selectedCityNode.selected = False
 					self.selectedCityNode = None
-	def handleRightClickUp(self,name):
-		self.clickScroll = False
+#	def handleRightClickUp(self,name):
+#		self.clickScroll = False
 	def handleScrollUp(self,name):
 		if(self.modal == None):
 			if(name in self.elementsDict and hasattr(self.elementsDict[name],"onScrollUp")):
@@ -607,7 +609,8 @@ class playMode(tiledGameMode):
 			uiElements.menuModal()
 		else:
 			if(keycode == "`"):
-				self.clickScroll = True
+				gameState.rendererUpdateQueue.put(rendererUpdates.clickScroll())
+#				self.clickScroll = True
 #			elif(keycode == "a" or keycode == "A"):
 #				self.autoSelectCheckBox.onClick()
 			elif(keycode == "g" or keycode == "G"):
@@ -636,8 +639,8 @@ class playMode(tiledGameMode):
 	def keyUp(self,keycode):
 		if(keycode == "left shift" or keycode == "right shift"):
 			self.shiftDown = False
-		elif(keycode == "`"):
-			self.clickScroll = False		
+#		elif(keycode == "`"):
+#			self.clickScroll = False		
 		if(hasattr(self.mousedOverObject,"onKeyUp")):
 			self.mousedOverObject.onKeyUp(keycode)
 	def getPlayerNumber(self):#TODO: GET RID OF THIS ONCE AI IS DONE AND REPLACE WITH GAMESTATE VERSION

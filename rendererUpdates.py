@@ -75,3 +75,12 @@ class setBackgroundImage(rendererUpdate):
 class loadMap(rendererUpdate):
     def __init__(self):
         rendererUpdate.__init__(self,cDefines.defines["RENDERER_LOAD_MAP"])
+
+class exit(rendererUpdate):
+    def __init__(self):
+        rendererUpdate.__init__(self,cDefines.defines["RENDERER_EXIT"])
+
+class clickScroll(rendererUpdate):
+    def __init__(self):
+        rendererUpdate.__init__(self,cDefines.defines["RENDERER_CLICKSCROLL"])
+

@@ -563,7 +563,8 @@ class node:
 			else:		
 				(random.choice(self.neighbors)).addUnit(theUnit)
 	def onRightClick(self):
-		gameState.getGameMode().clickScroll = True
+		gameState.rendererUpdateQueue.put(rendererUpdates.clickScroll())
+#		gameState.getGameMode().clickScroll = True
 
 class playModeNode(node):
 	isNeighbor = False

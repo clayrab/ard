@@ -1247,7 +1247,8 @@ class exitButton(menuButton):
 	def __init__(self,xPos,yPos,text="Exit"):
 		menuButton.__init__(self,xPos,yPos,text=text)
 	def onClick(self):
-		gameState.getGameMode().exit = True
+		gameState.rendererUpdateQueue.put(rendererUpdates.exit())
+#		gameState.getGameMode().exit = True
 
 class savedGameSelector(scrollableTextFieldsElement):
 	def __init__(self):

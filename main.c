@@ -1,3 +1,4 @@
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -865,11 +866,11 @@ void drawIce(){
   glCallList(unitList);
 }
 void drawFire(){
-  glBindTexture(GL_TEXTURE_2D, texturesArray[FIRE_INDEX]);
+  /*  glBindTexture(GL_TEXTURE_2D, texturesArray[FIRE_INDEX]);
   glCallList(unitList);
   double fireVitality;
   char fireVit[20];
-  PyObject * pyFireVitality = PyObject_GetAttrString(pyFire,"vitality");
+  //  PyObject * pyFireVitality = PyObject_GetAttrString(pyFire,"vitality");
   fireVitality = PyFloat_AsDouble(pyFireVitality);
   glColor3f(1.0,1.0,1.0);
   glPushMatrix();
@@ -878,7 +879,7 @@ void drawFire(){
   sprintf(fireVit,"%f",fireVitality);
   drawText(fireVit,0,-1,-9999.9,NULL);
   glPopMatrix();
-  
+  */
 }
 PyObject * pyXPositionUnit;
 PyObject * pyYPositionUnit;
@@ -1977,13 +1978,13 @@ static void initPython(){
 SDL_Event event;
 PyObject * pyFocusNextUnit;
 char keyArray[20];
-PyObject * pyClickScroll;
+//PyObject * pyClickScroll;
 static void handleInput(){
-  if(PyObject_HasAttrString(gameMode,"clickScroll")){
-      pyClickScroll = PyObject_GetAttrString(gameMode, "clickScroll");//New reference
-      clickScroll = pyClickScroll == Py_True;
-      Py_DECREF(pyClickScroll);
-  }
+  //  if(PyObject_HasAttrString(gameMode,"clickScroll")){
+    //      pyClickScroll = PyObject_GetAttrString(gameMode, "clickScroll");//New reference
+    //  clickScroll = pyClickScroll == Py_True;
+      //      Py_DECREF(pyClickScroll);
+  //  }
   if(previousMousedoverName != selectedName){
     if(PyObject_HasAttrString(gameMode,"handleMouseOver")){
       pyObj = PyObject_CallMethod(gameMode,"handleMouseOver","(ii)",selectedName,leftButtonDown);//New reference
@@ -2063,6 +2064,7 @@ static void handleInput(){
       }
       printPyStackTrace();
       if(event.button.button == SDL_BUTTON_RIGHT){
+	
 	//	clickScroll = 1;
 	pyObj = PyObject_CallMethod(gameMode,"handleRightClick","i",selectedName);//New reference
 	printPyStackTrace();
@@ -2082,6 +2084,7 @@ static void handleInput(){
 	leftButtonDown = 0;
       }
       if(event.button.button == SDL_BUTTON_RIGHT){
+	clickScroll = 0;
 	if(PyObject_HasAttrString(gameMode,"handleRightClickUp")){
 	  pyObj = PyObject_CallMethod(gameMode,"handleRightClickUp","i",selectedName);//New reference
 	  printPyStackTrace();
@@ -2334,6 +2337,10 @@ static void draw(){
     }else if(updateType == RENDERER_LOAD_MAP){
       theMap = PyObject_GetAttrString(gameMode, "map");//New reference
       loadMap();
+    }else if(updateType == RENDERER_EXIT){
+      done = 1;
+    }else if(updateType == RENDERER_CLICKSCROLL){
+      clickScroll = 1;
     }
 
 
@@ -2486,10 +2493,12 @@ static void draw(){
   glFlush();
   SDL_GL_SwapBuffers();
 }
-PyObject * pyExit;
+//PyObject * pyExit;
 int musicChannel = -2;
 int soundIndex = -1;
 int restartMusic = 0;
+int counter = 0;
+pthread_mutex_t mutex;
 static void mainLoop (){
   while ( !done ) {
     gameMode = PyObject_CallMethod(gameState,"getGameMode",NULL);
@@ -2502,39 +2511,39 @@ static void mainLoop (){
       soundIndex = PyLong_AsLong(pyObj);
       Mix_PlayMusic(musicArray[soundIndex], 0);
       }*/
-    pyObj = PyObject_CallMethod(gameMode,"getSound",NULL);
+    /*    pyObj = PyObject_CallMethod(gameMode,"getSound",NULL);
     while(pyObj != Py_None && pyObj != NULL){
       soundIndex = PyLong_AsLong(pyObj);
       Py_DECREF(pyObj);
       Mix_PlayChannel(-1, soundArray[soundIndex], 0);
       pyObj = PyObject_CallMethod(gameMode,"getSound",NULL);
       Py_DECREF(pyObj);
-    }
-    pyExit = PyObject_GetAttrString(gameMode,"exit");
-    done = (pyExit == Py_True);
+      }*/
     deltaTicks = SDL_GetTicks()-currentTick;
     currentTick = SDL_GetTicks();
     draw();
     handleInput();
     Py_DECREF(gameMode);
+    /*    pthread_mutex_lock(&mutex);
+    counter = counter + 1;
+    printf("thread 1 %d\n",counter);    
+    pthread_mutex_unlock(&mutex);*/
   }
   pyObj = PyObject_CallMethod(gameMode,"onQuit",NULL);
   Py_DECREF(pyObj);
 }
-int nextPowerOf2(unsigned int v){
-  const unsigned int b[] = {0x2, 0xC, 0xF0, 0xFF00, 0xFFFF0000};
-  const unsigned int S[] = {1, 2, 4, 8, 16};
-  int i;
-  register unsigned int r = 0; // result of log2(v) will go here
-  for (i = 4; i >= 0; i--){ // unroll for speed...
-    if (v & b[i]){
-      v >>= S[i];
-      r |= S[i];
-    } 
+void * pythonLoop(){
+  while(1){
+    sleep(1.0);
+    /*    pthread_mutex_lock(&mutex);
+    counter = counter + 1;
+    printf("thread 2 %d\n",counter);    
+    pthread_mutex_unlock(&mutex);*/
   }
-  return pow(2,r+1);
 }
 
+
+int ppid;
 int main(int argc, char **argv){
   if ( SDL_Init (SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0 ) {
     fprintf(stderr, "Couldn't initialize SDL: %s\n",SDL_GetError());
@@ -2575,7 +2584,8 @@ int main(int argc, char **argv){
   gameModule = PyImport_ImportModule("gameModes");//New reference
   gameState = PyImport_ImportModule("gameState");
   daMap.nodes = NULL;
-
+  pthread_t threads[1];
+  pthread_create(&threads[0], NULL, pythonLoop, NULL);
   mainLoop();
   Py_DECREF(gameModule);
   Py_DECREF(gameState);

@@ -50,3 +50,7 @@ typedef struct selectedNode{
   float xPos;
   float yPos;
 }SELECTEDNODE;
+typedef struct sound{
+  struct sound * nextSound;
+  int index;
+}SOUND;
