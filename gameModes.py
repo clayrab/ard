@@ -16,6 +16,8 @@
 #
 #draw cities
 #gameRoomMode/createGameMode(use defines and an int 'mode')
+#"events" threadable. create a bunch of flags for each event and an event struct ot hold necessary args to the python calls.
+#
 #music/sound
 #
 #don't draw hidden units
@@ -786,44 +788,31 @@ class textBasedMenuMode(gameMode):
 		gameMode.__init__(self,args)
 	def handleMouseOver(self,name,isLeftMouseDown):
 		return
-#	def handleMouseMovement(self,name,mouseX,mouseY):
-#		return
 	def setFocusedElem(self,elem):
 		return
 	def keyDown(self,keycode):
-#		if(keycode == "p"):
-		#			pdb.set_trace()
-		if(keycode == "up" or keycode == "down"):
+		if(keycode == "up" or keycode == "down"):			
+			if(keycode == "up"):
+				if(uiElements.menuButton.selectedIndex == 0):
+					uiElements.menuButton.buttonsList[uiElements.menuButton.selectedIndex].textColor  = uiElements.menuButton.normalTextColor
+					uiElements.menuButton.selectedIndex = uiElements.menuButton.index - 1
+					uiElements.menuButton.buttonsList[uiElements.menuButton.selectedIndex].textColor  =uiElements.menuButton.selectedTextColor
+				else:
+					uiElements.menuButton.buttonsList[uiElements.menuButton.selectedIndex].textColor  = uiElements.menuButton.normalTextColor
+					uiElements.menuButton.selectedIndex = uiElements.menuButton.selectedIndex - 1
+					uiElements.menuButton.buttonsList[uiElements.menuButton.selectedIndex].textColor  =uiElements.menuButton.selectedTextColor
+			elif(keycode == "down"):
+				if(uiElements.menuButton.selectedIndex == uiElements.menuButton.index - 1):
+					uiElements.menuButton.buttonsList[uiElements.menuButton.selectedIndex].textColor = uiElements.menuButton.normalTextColor
+					uiElements.menuButton.selectedIndex = 0
+					uiElements.menuButton.buttonsList[uiElements.menuButton.selectedIndex].textColor = uiElements.menuButton.selectedTextColor
+				else:
+					uiElements.menuButton.buttonsList[uiElements.menuButton.selectedIndex].textColor = uiElements.menuButton.normalTextColor
+					uiElements.menuButton.selectedIndex = uiElements.menuButton.selectedIndex + 1
+					uiElements.menuButton.buttonsList[uiElements.menuButton.selectedIndex].textColor = uiElements.menuButton.selectedTextColor
 			self.soundIndeces.append(cDefines.defines["FINGER_CYMBALS_HIT_INDEX"])
-		if(keycode == "up"):
-			if(uiElements.menuButton.selectedIndex == 0):
-				uiElements.menuButton.buttonsList[uiElements.menuButton.selectedIndex].textColor  = uiElements.menuButton.normalTextColor
-				uiElements.menuButton.selectedIndex = uiElements.menuButton.index - 1
-				uiElements.menuButton.buttonsList[uiElements.menuButton.selectedIndex].textColor  =uiElements.menuButton.selectedTextColor
-			else:
-				uiElements.menuButton.buttonsList[uiElements.menuButton.selectedIndex].textColor  = uiElements.menuButton.normalTextColor
-				uiElements.menuButton.selectedIndex = uiElements.menuButton.selectedIndex - 1
-				uiElements.menuButton.buttonsList[uiElements.menuButton.selectedIndex].textColor  =uiElements.menuButton.selectedTextColor
-		elif(keycode == "down"):
-			if(uiElements.menuButton.selectedIndex == uiElements.menuButton.index - 1):
-				uiElements.menuButton.buttonsList[uiElements.menuButton.selectedIndex].textColor  = uiElements.menuButton.normalTextColor
-				uiElements.menuButton.selectedIndex = 0
-				uiElements.menuButton.buttonsList[uiElements.menuButton.selectedIndex].textColor  =uiElements.menuButton.selectedTextColor
-			else:
-				uiElements.menuButton.buttonsList[uiElements.menuButton.selectedIndex].textColor  = uiElements.menuButton.normalTextColor
-				uiElements.menuButton.selectedIndex = uiElements.menuButton.selectedIndex + 1
-				uiElements.menuButton.buttonsList[uiElements.menuButton.selectedIndex].textColor  =uiElements.menuButton.selectedTextColor
-#		elif(keycode == "escape"):
-#			for button in uiElements.menuButton.buttonsList:
-#				if(button.text.lower() == "exit"):
-#					button.onClick()
-#					break
-			
 		elif(keycode == "return"):
 			uiElements.menuButton.buttonsList[uiElements.menuButton.selectedIndex].onClick()
-#		else:
-#			if(hasattr(self.elementWithFocus,"onKeyDown")):
-#				self.elementWithFocus.onKeyDown(keycode)
 
 class newGameScreenMode(textBasedMenuMode):
 	def __dealloc__(self):
@@ -832,7 +821,6 @@ class newGameScreenMode(textBasedMenuMode):
 		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])
 		uiElements.uiElement(-0.5*texWidth("TITLE"),0.65,textureIndex=texIndex("TITLE"),width=texWidth("TITLE"),height=texHeight("TITLE"))
 		uiElements.menuButtonGameModeSelector(-0.18,-0.22,quickPlayMode,text="Quick Play")
-#		uiElements.menuButtonGameModeSelector(-0.18,-0.22,quickPlayMode,text="asdf1asdf")
 		uiElements.menuButtonGameModeSelector(-0.07,-0.34,loadGameMode,text="Load")
 		uiElements.menuButtonGameModeSelector(-0.28,-0.46,joinLANGameScreenMode,text="Join LAN Game")
 		uiElements.menuButtonGameModeSelector(-0.30,-0.58,hostGameMode,text="Host LAN Game")
@@ -931,7 +919,6 @@ class findGameMode(gameMode):
 		uiElements.da4v4Button(-0.660,-0.82)
 		uiElements.createRoomButton(-0.930,-0.885)
 		uiElements.logoutButton(-0.930,0.9,newGameScreenMode)
-
 		
 class gameRoomMode(tiledGameMode):
 	def __init__(self,args):
@@ -1058,14 +1045,13 @@ class createGameMode(tiledGameMode):
 #			self.mapSelector.destroy()
 		self.mapNameField.text = mapName
 		if(hasattr(self,"roomNameField")):
-			self.roomNameField.setText(gameState.getOwnUserName() + "'s " + str(gameState.getTeamSize()) + "v" + str(gameState.getTeamSize()))
+			self.roomNameField.setText(str(gameState.getOwnUserName()) + "'s " + str(gameState.getTeamSize()) + "v" + str(gameState.getTeamSize()))
 #		self.mapSelector = uiElements.mapSelector(-0.93,0.813,[],self.mapNameField)
 		self.focus()
-
 	def addUIElements(self):
 		self.mapNameField = uiElements.uiElement(-1.0+texWidth("CREATE_GAME_BACKGROUND_LEFT"),0.85,fontIndex=3,textColor="ee ed 9b")
 		self.roomNameField = uiElements.textInputElement(0.31,-0.616)
-		uiElements.createGameButton(0.717,-0.616)		
+#		uiElements.createGameButton(0.717,-0.616)#can't put this here, interupts createGameButtun needed by hostGameMode, put it somewhere else for online mode
 		uiElements.onlineBackButton(-0.930,0.9)
 		uiElements.mapSelector(-0.93,0.813,[],self.mapNameField)
 
@@ -1081,8 +1067,9 @@ class hostGameMode(createGameMode):
 		uiElements.da2v2Button(-0.620,0.9,offColor="AA AA AA")
 		uiElements.da3v3Button(-0.530,0.9,offColor="AA AA AA")
 		uiElements.da4v4Button(-0.440,0.9,offColor="AA AA AA")
-		uiElements.createGameButtun(0.717,-0.616)		
+		uiElements.createGameButtun(0.717,-0.616)
 		gameState.getGameMode().setMap(gameState.getMapDatas()[0][0].name)
+		createGameMode.addUIElements(self)
 
 class mapViewMode(createGameMode):
 	def addUIElements(self):

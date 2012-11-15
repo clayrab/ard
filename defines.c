@@ -752,3 +752,8 @@ int animationTimes[2] = {4000,2000};
 
 #define OMAR_7_INDEX 1
 #define OMAR_7 "assets/audio/music/Omar Faruk Tekbilek - Whirling 07 Caspian Winds.mp3"
+
+#define EVENT_LEFT_CLICK_DOWN 0
+#define EVENT_LEFT_CLICK_UP 1
+#define EVENT_MOUSE_OVER 2
+

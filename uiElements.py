@@ -859,6 +859,7 @@ class scrollableRoomElement(scrollableElement):
 
 class scrollableTextFieldsElement(uiElement):
 	def __init__(self,xPos,yPos,textFields,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.0005,color="FF FF FF",mouseOverColor=None,xPositionOffset=0.0,yPositionOffset=0.04,lineHeight=0.041,numFields=25,scrollSpeed=1,scrollPadTex="UI_SCROLL_PAD"):
+		print "scrollableTextFieldsElement"
 		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,color=color,mouseOverColor=mouseOverColor)
 		self.xPositionOffset = xPositionOffset
 		self.yPositionOffset = yPositionOffset
@@ -875,6 +876,7 @@ class scrollableTextFieldsElement(uiElement):
 		self.scrollPadElem.onScrollDown = self.onScrollDown
 		self.names.append(self.scrollPadElem.name)
 		self.redraw()
+		print "scrollableTextFieldsElement done"
 	def redraw(self):
 #		self.reset()
 		for field in self.textFields:
@@ -893,11 +895,11 @@ class scrollableTextFieldsElement(uiElement):
 #				else:
 #					text=field
 #				textFieldElem = scrollingTextElement(self.xPosition+self.xPositionOffset,0.0,self,width=2.0,height=0.1,text=text,textureIndex=-1,textSize=self.textSize,hidden=True)
-			textFieldElem.onScrollUp = self.onScrollUp
-			textFieldElem.onScrollDown = self.onScrollDown
-			for name in textFieldElem.names:
-				gameState.getGameMode().elementsDict[name].onScrollUp = self.onScrollUp
-				gameState.getGameMode().elementsDict[name].onScrollDown = self.onScrollDown
+				textFieldElem.onScrollUp = self.onScrollUp
+				textFieldElem.onScrollDown = self.onScrollDown
+				for name in textFieldElem.names:
+					gameState.getGameMode().elementsDict[name].onScrollUp = self.onScrollUp
+					gameState.getGameMode().elementsDict[name].onScrollDown = self.onScrollDown
 #			self.names.append(textFieldElem.name)
 			self.textFieldElements.append(textFieldElem)
 		self.hideAndShowTextFields()
@@ -1628,6 +1630,7 @@ class newMapPlayerCountInputElement(textInputElement):
 #	def __init__(self,xPos,yPos):
 #		textInputElement.__init__(self,xPos,yPos)
 
+#
 class createGameButton(clickableElement):
 	def __init__(self,xPos,yPos):
 		clickableElement.__init__(self,xPos,yPos,textureIndex=texIndex("CREATE_GAME_BUTTON_LARGE"),width=texWidth("CREATE_GAME_BUTTON_LARGE"),height=texHeight("CREATE_GAME_BUTTON_LARGE"))

@@ -102,8 +102,10 @@ class Client:
             argsString = rsa.encrypt(argsString, pubKey)
         self.socket.send(command + " " + str(argsString) + "\r\n")
 def startClient():
+    print 'startclient'
     gameState.setGameFindClient(Client())
 def stopClient():
+    print 'stopclient'
     gameState.getGameFindClient().socket.close()
     gameState.setGameFindClient(None)
 #    clientThread = ClientThread(hostIP)
