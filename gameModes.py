@@ -186,6 +186,8 @@ class gameMode:
 		gameState.rendererUpdateQueue.put(rendererUpdates.resetUnits())
 		gameState.rendererUpdateQueue.put(rendererUpdates.resetUI())
 		gameState.rendererUpdateQueue.put(rendererUpdates.setBackgroundImage())
+		gameState.rendererUpdateQueue.put(rendererUpdates.setViewportMode(cDefines.defines["FULL_SCREEN_MODE"]))
+
 	def __dealloc__(self):
 		print '**** dealloc gamemode ****'
 	def getRestartMusic(self):
@@ -529,6 +531,7 @@ class playMode(tiledGameMode):
 				#unit.movementPoints = unit.movementPoints + (gameLogic.INITIATIVE_ACTION_DEPLETION/5.0)
 				unit.skip()
 			if(gameState.getPlayerNumber() == 0):
+				gameState.rendererUpdateQueue.put(rendererUpdates.renderFocus())
 				self.chooseNextDelayed = True
 			self.nextUnit = None
 		else:
@@ -929,7 +932,8 @@ class gameRoomMode(tiledGameMode):
 		self.hostPort = int(args[2])
 #		self.teamSize = int(args[3])
 #		gameState.setTeamSize(int(args[4]))
-		self.gameRoomMode = True
+		gameState.rendererUpdateQueue.put(rendererUpdates.setViewportMode(cDefines.defines["JOIN_GAME_ROOM_MODE"]))
+#		self.gameRoomMode = True
 		self.backgroundImageIndex = texIndex("JOIN_GAME_BACKGROUND")
 		self.selectedNode = None
 		self.playerElements = []
@@ -1027,7 +1031,8 @@ class lanGameRoomMode(gameRoomMode):
 class createGameMode(tiledGameMode):
 	def __init__(self,args):
 		tiledGameMode.__init__(self)
-		self.createGameMode = True
+		gameState.rendererUpdateQueue.put(rendererUpdates.setViewportMode(cDefines.defines["JOIN_GAME_ROOM_MODE"]))
+#		self.createGameMode = True
 #		self.teamSize = 1
 #		self.mapSelector = None
 		self.backgroundImageIndex = texIndex("CREATE_GAME_BACKGROUND")
@@ -1058,8 +1063,9 @@ class createGameMode(tiledGameMode):
 class hostGameMode(createGameMode):
 	def __init__(self,args):
 		createGameMode.__init__(self,args)
-		self.hostGameMode = True
-		self.createGameMode = True
+#		self.hostGameMode = True
+		gameState.rendererUpdateQueue.put(rendererUpdates.setViewportMode(cDefines.defines["CREATE_GAME_ROOM_MODE"]))
+#		self.createGameMode = True
 	def addUIElements(self):
 		self.mapNameField = uiElements.uiElement(-1.0+texWidth("CREATE_GAME_BACKGROUND_LEFT"),0.85,fontIndex=3,textColor="ee ed 9b")
 		uiElements.backButton(-0.930,0.9,newGameScreenMode)

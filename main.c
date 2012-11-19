@@ -839,8 +839,12 @@ void processTheHits(GLint hitsCount, GLuint buffer[]){
 	}
       }
       if(nameValue < 5000){//first 5000 names are reserved for text
-	pyObj = PyObject_CallMethod(gameMode,"setMouseTextPosition","i",nameValue);
-	Py_DECREF(pyObj);
+	//	PYTHONCALLBACK * callback = (PYTHONCALLBACK *)malloc(sizeof(PYTHONCALLBACK));
+	//	callback->id = 	EVENT_SET_CURSOR_POSITION;
+	//	callback->nameValue = nameValue;
+	//	queueCallback(callback);
+	//	pyObj = PyObject_CallMethod(gameMode,"setMouseTextPosition","i",nameValue);
+	//	Py_DECREF(pyObj);
 	mouseTextPositionSet = 1;
       }
     }
@@ -848,10 +852,10 @@ void processTheHits(GLint hitsCount, GLuint buffer[]){
     count = count + 1;
   }  
   if(!mouseTextPositionSet){
-    pyObj = PyObject_CallMethod(gameMode,"setMouseTextPosition","i",-1);
-    if(pyObj != NULL){
-      Py_DECREF(pyObj);
-    }
+    //  pyObj = PyObject_CallMethod(gameMode,"setMouseTextPosition","i",-1);
+    //    if(pyObj != NULL){
+    //      Py_DECREF(pyObj);
+    //    }
   }
 }
 
@@ -1090,28 +1094,6 @@ void drawCities(){
     glPopMatrix();
     nextCity = nextCity->nextCity;
   }
-  /*  pyCities = PyObject_GetAttrString(gameMode,"cities");
-  pyCitiesIter = PyObject_CallMethod(pyCities,"__iter__",NULL);
-  if(pyCitiesIter != NULL && pyCitiesIter != Py_None){
-    while(city = PyIter_Next(pyCitiesIter)){
-      pyNode = PyObject_GetAttrString(city,"node");
-      pyXPosition = PyObject_GetAttrString(pyNode,"xPos");
-      colNumber = 0-PyLong_AsLong(pyXPosition);
-      pyYPosition = PyObject_GetAttrString(pyNode,"yPos");
-      rowNumber = PyLong_AsLong(pyYPosition);
-      xPosition = translateTilesXToPositionX(colNumber,rowNumber);
-      yPosition = translateTilesYToPositionY(rowNumber);
-
-      glPushMatrix();
-      glTranslatef(xPosition,yPosition,0.0);
-
-      glBindTexture(GL_TEXTURE_2D, texturesArray[CITY_INDEX]);
-      glCallList(unitList);
-      glPopMatrix();
-      Py_DECREF(city);
-      Py_DECREF(pyNode);
-    }
-    }*/
 }
 void drawUnits(){
   //  glDepthFunc(GL_LEQUAL);
@@ -1136,11 +1118,11 @@ void drawTiles(){
     }
   }
 }
-
+char viewportMode = FULL_SCREEN_MODE;
 void doViewport(){
-  if(PyObject_HasAttrString(gameMode,"gameRoomMode")){
+  if(viewportMode == CREATE_GAME_ROOM_MODE){
     glViewport(60.0*SCREEN_WIDTH/SCREEN_BASE_WIDTH,258.0*SCREEN_HEIGHT/SCREEN_BASE_HEIGHT,991.5*SCREEN_WIDTH/SCREEN_BASE_WIDTH,824.0*SCREEN_HEIGHT/SCREEN_BASE_HEIGHT);
-  }else if(PyObject_HasAttrString(gameMode,"createGameMode")){
+  }else if(viewportMode == JOIN_GAME_ROOM_MODE){
     glViewport(544.0*SCREEN_WIDTH/SCREEN_BASE_WIDTH,258.0*SCREEN_HEIGHT/SCREEN_BASE_HEIGHT,991.5*SCREEN_WIDTH/SCREEN_BASE_WIDTH,824.0*SCREEN_HEIGHT/SCREEN_BASE_HEIGHT);
   }else{
     glViewport(0,0,SCREEN_WIDTH,SCREEN_HEIGHT);
@@ -1185,11 +1167,11 @@ void calculateTranslation(){
   glEnd();
   glPopMatrix();
   if(translateZ != translateZPrev2){
-  if(PyObject_HasAttrString(gameMode,"gameRoomMode")){
+  if(viewportMode == CREATE_GAME_ROOM_MODE){
     glReadPixels( 7*SCREEN_WIDTH/16, SCREEN_HEIGHT/2, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &mapDepthTest1 );
     glReadPixels( 8*SCREEN_WIDTH/16, SCREEN_HEIGHT/2, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &mapDepthTest2 );
     glReadPixels( 9*SCREEN_WIDTH/16, SCREEN_HEIGHT/2, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &mapDepthTest3 );
-  }else if(PyObject_HasAttrString(gameMode,"createGameMode")){
+  }else if(viewportMode == JOIN_GAME_ROOM_MODE){
     glReadPixels( 13*SCREEN_WIDTH/16, 7*SCREEN_HEIGHT/16, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &mapDepthTest1 );
     glReadPixels( 13*SCREEN_WIDTH/16, 8*SCREEN_HEIGHT/16, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &mapDepthTest2 );
     glReadPixels( 13*SCREEN_WIDTH/16, 9*SCREEN_HEIGHT/16, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &mapDepthTest3 );
@@ -1208,10 +1190,10 @@ void calculateTranslation(){
     printf("mapdepth not found%d\n",1);
   }
 
-  if(PyObject_HasAttrString(gameMode,"gameRoomMode")){
+  if(viewportMode == CREATE_GAME_ROOM_MODE){
     convertWindowCoordsToViewportCoords(60.0*SCREEN_WIDTH/SCREEN_BASE_WIDTH,SCREEN_HEIGHT,translateZ,&convertedBottomLeftX,&convertedBottomLeftY,&convertedBottomLeftZ);
     convertWindowCoordsToViewportCoords(1551.5*SCREEN_WIDTH/SCREEN_BASE_WIDTH,0.0,translateZ,&convertedTopRightX,&convertedTopRightY,&convertedTopRightZ);
-  }else if(PyObject_HasAttrString(gameMode,"createGameMode")){
+  }else if(viewportMode == JOIN_GAME_ROOM_MODE){
     convertWindowCoordsToViewportCoords(100.0*SCREEN_WIDTH/SCREEN_BASE_WIDTH,SCREEN_HEIGHT,translateZ,&convertedBottomLeftX,&convertedBottomLeftY,&convertedBottomLeftZ);
     convertWindowCoordsToViewportCoords(1535.5*SCREEN_WIDTH/SCREEN_BASE_WIDTH,0.0,translateZ,&convertedTopRightX,&convertedTopRightY,&convertedTopRightZ);
   }else{
@@ -1804,41 +1786,17 @@ static void initGL (){
 
 }
 
-static void initPython(){
-  //http://docs.python.org/release/2.6.6/c-api/index.html
-  //  char [100] = "-v";
-  //	sprintf(path,"%s","hello");
-  Py_SetPythonHome(".");
-  Py_Initialize();
-  char *pyArgv[1];
-  pyArgv[0] = "";
-  PySys_SetArgv(1, pyArgv);
-  if(isWindows){
-    PyObject* sys = PyImport_ImportModule("sys");
-    PyObject* pystdout = PyFile_FromString("stdout.txt", "wt");
-    if (-1 == PyObject_SetAttrString(sys, "stdout", pystdout)) {
-      printf("NO STDOUT AVAILABLE");
-    }
-    PyObject* pystderr = PyFile_FromString("stderr.txt", "wt");
-    if (-1 == PyObject_SetAttrString(sys, "stderr", pystderr)) {
-      printf("NO STDERR AVAILABLE");
-    }
-    if(pystdout != NULL){
-      Py_DECREF(pystdout);
-    }
-    if(pystderr != NULL){
-      Py_DECREF(pystderr);
-    }
-    Py_DECREF(sys);
-  }
-}
 SDL_Event event;
 PyObject * pyFocusNextUnit;
 char keyArray[20];
 //PyObject * pyClickScroll;
 PYTHONCALLBACK * firstCallback = NULL;
 PYTHONCALLBACK * lastCallback = NULL;//put new callbacks here
+
+pthread_mutex_t pythonCallbackMutex;
+
 void queueCallback(PYTHONCALLBACK * callback){
+  pthread_mutex_lock(&pythonCallbackMutex);
   callback->nextCallback = NULL;
   if(lastCallback != NULL){
     lastCallback->nextCallback = callback;
@@ -1847,23 +1805,84 @@ void queueCallback(PYTHONCALLBACK * callback){
   if(firstCallback == NULL){
     firstCallback = callback;
   }
+  pthread_mutex_unlock(&pythonCallbackMutex);
 }
 static void dispatch(PYTHONCALLBACK * callback){
-    if(callback->id == EVENT_MOUSE_OVER){
+  if(callback->id == EVENT_MOUSE_OVER){
+    if(PyObject_HasAttrString(gameMode,"handleMouseOver")){
       pyObj = PyObject_CallMethod(gameMode,"handleMouseOver","(ii)",callback->selectedName,callback->leftButtonDown);
       printPyStackTrace();
       Py_DECREF(pyObj);
-    }else if(callback->id == EVENT_LEFT_CLICK_DOWN){
-      if(PyObject_HasAttrString(gameMode,"handleLeftClickDown")){
-	pyObj = PyObject_CallMethod(gameMode,"handleLeftClickDown","i",callback->selectedName);//New reference
-	printPyStackTrace();
-	Py_DECREF(pyObj);
-      }
-      //      pyObj = PyObject_CallMethod(gameMode,"handleMouseOver","(ii)",selectedName,leftButtonDown);//New reference
-    }  
+    }
+  }else if(callback->id == EVENT_LEFT_CLICK_DOWN){
+    if(PyObject_HasAttrString(gameMode,"handleLeftClickDown")){
+      pyObj = PyObject_CallMethod(gameMode,"handleLeftClickDown","i",callback->selectedName);//New reference
+      printPyStackTrace();
+      Py_DECREF(pyObj);
+    }
+    //      pyObj = PyObject_CallMethod(gameMode,"handleMouseOver","(ii)",selectedName,leftButtonDown);//New reference
+  }else if(callback->id == EVENT_MOUSE_MOVE){
+    if(PyObject_HasAttrString(gameMode,"handleMouseMovement")){
+      pyObj = PyObject_CallMethod(gameMode,"handleMouseMovement","(iii)",callback->selectedName,callback->mouseX,callback->mouseY);
+      printPyStackTrace();
+      Py_DECREF(pyObj);
+    }
+  }else if(callback->id == EVENT_SCROLL_UP){
+    if(PyObject_HasAttrString(gameMode,"handleScrollUp")){
+      PyObject_CallMethod(gameMode,"handleScrollUp","i",callback->selectedName);//New reference
+      Py_DECREF(pyObj);
+    }
+  }else if(callback->id == EVENT_SCROLL_DOWN){
+    if(PyObject_HasAttrString(gameMode,"handleScrollDown")){
+      PyObject_CallMethod(gameMode,"handleScrollDown","i",callback->selectedName);//New reference
+      Py_DECREF(pyObj);
+    }
+  }else if(callback->id == EVENT_RIGHT_CLICK_DOWN){
+    pyObj = PyObject_CallMethod(gameMode,"handleRightClick","i",callback->selectedName);//New reference
+    printPyStackTrace();
+    Py_DECREF(pyObj);
+  }else if(callback->id == EVENT_LEFT_CLICK_UP){
+    if(PyObject_HasAttrString(gameMode,"handleLeftClickUp")){
+      pyObj = PyObject_CallMethod(gameMode,"handleLeftClickUp","i",callback->selectedName);//New reference
+      printPyStackTrace();
+      Py_DECREF(pyObj);
+    }
+  }else if(callback->id == EVENT_RIGHT_CLICK_UP){
+    if(PyObject_HasAttrString(gameMode,"handleRightClickUp")){
+      pyObj = PyObject_CallMethod(gameMode,"handleRightClickUp","i",callback->selectedName);//New reference
+      printPyStackTrace();
+      Py_DECREF(pyObj);
+    }
+  }else if(callback->id == EVENT_KEY_DOWN){
+    if(PyObject_HasAttrString(gameMode,"handleKeyDown")){	
+      pyObj = PyObject_CallMethod(gameMode,"handleKeyDown","s",callback->keyArray); 
+      printPyStackTrace();
+      Py_DECREF(pyObj);
+    }
+  }else if(callback->id == EVENT_KEY_UP){
+    if(PyObject_HasAttrString(gameMode,"handleKeyUp")){
+      pyObj = PyObject_CallMethod(gameMode,"handleKeyUp","s",callback->keyArray);
+      printPyStackTrace();
+      Py_DECREF(pyObj);
+    }
+  }else if(callback->id == EVENT_ON_DRAW){
+    if(PyObject_HasAttrString(gameMode,"onDraw")){
+      pyObj = PyObject_CallMethod(gameMode,"onDraw","(ii)",callback->deltaTicks,callback->isAnimating);//New reference
+      printPyStackTrace();
+      Py_DECREF(pyObj);
+    }
+  }else if(callback->id == EVENT_ON_QUIT){
+    pyObj = PyObject_CallMethod(gameMode,"onQuit",NULL);
+    Py_DECREF(pyObj);
+  }else if(callback->id == EVENT_CHOOSE_NEXT_DELAYED){
+    pyObj = PyObject_CallMethod(gameMode,"sendChooseNextUnit",NULL);//New reference
+    printPyStackTrace();
+    Py_DECREF(pyObj);
+  }
 }
 PYTHONCALLBACK * dispatchCallback;
 static void dispatchPythonCallbacks(){
+  pthread_mutex_lock(&pythonCallbackMutex);
   if(firstCallback != NULL){
     dispatchCallback = firstCallback;
     firstCallback = dispatchCallback->nextCallback;
@@ -1874,19 +1893,22 @@ static void dispatchPythonCallbacks(){
     free(dispatchCallback);
     //#define EVENT_LEFT_CLICK_UP
   }
+  pthread_mutex_unlock(&pythonCallbackMutex);
 }
+static void queueSimpleCallback(int id){
+  PYTHONCALLBACK * callback = (PYTHONCALLBACK *)malloc(sizeof(PYTHONCALLBACK));
+  callback->id = id;
+  callback->selectedName = selectedName;
+  queueCallback(callback);
+}
+
 static void handleInput(){
   if(previousMousedoverName != selectedName){
-    if(PyObject_HasAttrString(gameMode,"handleMouseOver")){
-      PYTHONCALLBACK * callback = (PYTHONCALLBACK *)malloc(sizeof(PYTHONCALLBACK));
-      callback->id = EVENT_MOUSE_OVER;
-      callback->selectedName = selectedName;
-      callback->leftButtonDown = 1;
-      queueCallback(callback);
-      //      pyObj = PyObject_CallMethod(gameMode,"handleMouseOver","(ii)",selectedName,leftButtonDown);//New reference
-      printPyStackTrace();
-      Py_DECREF(pyObj);
-    }
+    PYTHONCALLBACK * callback = (PYTHONCALLBACK *)malloc(sizeof(PYTHONCALLBACK));
+    callback->id = EVENT_MOUSE_OVER;
+    callback->selectedName = selectedName;
+    callback->leftButtonDown = 1;
+    queueCallback(callback);
     previousMousedoverName = selectedName;
   }
 
@@ -1896,11 +1918,10 @@ static void handleInput(){
     if(repeatKey){
       if(SDL_GetTicks() - keyHeldTime > 40){
 	keyHeldTime = SDL_GetTicks();
-	if(PyObject_HasAttrString(gameMode,"handleKeyDown")){
+	//	if(PyObject_HasAttrString(gameMode,"handleKeyDown")){
 	  //	  pyObj = PyObject_CallMethod(gameMode,"handleKeyDown","s",keyArray);
-	  printPyStackTrace();
-	  Py_DECREF(pyObj);
-	}
+	//	  Py_DECREF(pyObj);
+	//	}
       }
     }else if(SDL_GetTicks() - keyHeldTime > 500){
       repeatKey = 1;
@@ -1912,11 +1933,12 @@ static void handleInput(){
     case SDL_MOUSEMOTION:
       mouseX = event.motion.x;
       mouseY = event.motion.y;
-      if(PyObject_HasAttrString(gameMode,"handleMouseMovement")){
-	pyObj = PyObject_CallMethod(gameMode,"handleMouseMovement","(iii)",selectedName,mouseX,mouseY);
-	Py_DECREF(pyObj);
-      }
-      printPyStackTrace();
+      PYTHONCALLBACK * callback = (PYTHONCALLBACK *)malloc(sizeof(PYTHONCALLBACK));
+      callback->id = EVENT_MOUSE_MOVE;
+      callback->selectedName = selectedName;
+      callback->mouseX = mouseX;
+      callback->mouseY = mouseY;
+      queueCallback(callback);
       if(mouseX == 0){
 	moveRight = -1;
       }else if(mouseX >= SCREEN_WIDTH-1){
@@ -1935,35 +1957,23 @@ static void handleInput(){
     case SDL_MOUSEBUTTONDOWN:
       if(event.button.button == SDL_BUTTON_WHEELUP){
 	translateZ = translateZ + ZOOM_SPEED*deltaTicks;
-	if(PyObject_HasAttrString(gameMode,"handleScrollUp")){
-	  pyObj = PyObject_CallMethod(gameMode,"handleScrollUp","i",selectedName);//New reference
-	  Py_DECREF(pyObj);
-	}
+	queueSimpleCallback(EVENT_SCROLL_UP);
       }else if(event.button.button == SDL_BUTTON_WHEELDOWN){
 	translateZ = translateZ - ZOOM_SPEED*deltaTicks;
-	if(PyObject_HasAttrString(gameMode,"handleScrollDown")){
-	  PyObject_CallMethod(gameMode,"handleScrollDown","i",selectedName);//New reference
-	  Py_DECREF(pyObj);
-	}
+	queueSimpleCallback(EVENT_SCROLL_DOWN);
       }
       if(event.button.button == SDL_BUTTON_MIDDLE){
 	//	clickScroll = 1;
       }
       if(event.button.button == SDL_BUTTON_LEFT){
 	leftButtonDown = 1;
-	PYTHONCALLBACK * callback = (PYTHONCALLBACK *)malloc(sizeof(PYTHONCALLBACK));
-	callback->id = EVENT_LEFT_CLICK_DOWN;
-	callback->selectedName = selectedName;
-	queueCallback(callback);
+	queueSimpleCallback(EVENT_LEFT_CLICK_DOWN);
 	previousClickedName = selectedName;
       }
       printPyStackTrace();
       if(event.button.button == SDL_BUTTON_RIGHT){
-	
 	//	clickScroll = 1;
-	pyObj = PyObject_CallMethod(gameMode,"handleRightClick","i",selectedName);//New reference
-	printPyStackTrace();
-	Py_DECREF(pyObj);
+	queueSimpleCallback(EVENT_RIGHT_CLICK_DOWN);
       }
       break;
     case SDL_MOUSEBUTTONUP:
@@ -1971,20 +1981,12 @@ static void handleInput(){
 	//	clickScroll = 0;
       }
       if(event.button.button == SDL_BUTTON_LEFT){
-	if(PyObject_HasAttrString(gameMode,"handleLeftClickUp")){
-	  pyObj = PyObject_CallMethod(gameMode,"handleLeftClickUp","i",selectedName);//New reference
-	  printPyStackTrace();
-	  Py_DECREF(pyObj);
-	}
+	queueSimpleCallback(EVENT_LEFT_CLICK_UP);
 	leftButtonDown = 0;
       }
       if(event.button.button == SDL_BUTTON_RIGHT){
 	clickScroll = 0;
-	if(PyObject_HasAttrString(gameMode,"handleRightClickUp")){
-	  pyObj = PyObject_CallMethod(gameMode,"handleRightClickUp","i",selectedName);//New reference
-	  printPyStackTrace();
-	  Py_DECREF(pyObj);
-	}
+	queueSimpleCallback(EVENT_RIGHT_CLICK_UP);
       }
       break;
     case SDL_KEYDOWN:
@@ -2111,11 +2113,11 @@ static void handleInput(){
 	}else{
 	  sprintf(keyArray,"%s",SDL_GetKeyName(event.key.keysym.sym));
 	}
-	if(PyObject_HasAttrString(gameMode,"handleKeyDown")){	
-	  pyObj = PyObject_CallMethod(gameMode,"handleKeyDown","s",keyArray); 
-	  printPyStackTrace();
-	  Py_DECREF(pyObj);
-	}
+	PYTHONCALLBACK * callback = (PYTHONCALLBACK *)malloc(sizeof(PYTHONCALLBACK));
+	callback->id = EVENT_KEY_DOWN;
+	callback->selectedName = selectedName;
+	sprintf(callback->keyArray,"%s",keyArray);
+	queueCallback(callback);
       }
       break;
     case SDL_KEYUP:
@@ -2127,11 +2129,11 @@ static void handleInput(){
       if(event.key.keysym.sym == 303//rightshift
 	 || event.key.keysym.sym == 304//leftshift
 	 || event.key.keysym.sym == SDLK_BACKQUOTE){
-	if(PyObject_HasAttrString(gameMode,"handleKeyUp")){
-	  pyObj = PyObject_CallMethod(gameMode,"handleKeyUp","s",SDL_GetKeyName(event.key.keysym.sym));
-	  printPyStackTrace();
-	  Py_DECREF(pyObj);
-	}
+	PYTHONCALLBACK * callback = (PYTHONCALLBACK *)malloc(sizeof(PYTHONCALLBACK));
+	callback->id = EVENT_KEY_UP;
+	callback->selectedName = selectedName;
+	sprintf(callback->keyArray,"%s",SDL_GetKeyName(event.key.keysym.sym));
+	queueCallback(callback);	
       }
       break;
     case SDL_QUIT:
@@ -2169,6 +2171,7 @@ PyObject * pyUpdatesQueue;
 PyObject * pyUpdatesQueueEmpty;
 PyObject * pyUpdate;
 PyObject * pyUIElement;
+PyObject * pyMode;
 long updateType;
 int doResetUI = 0;
 static void getPythonUpdates(){
@@ -2238,6 +2241,14 @@ static void getPythonUpdates(){
       done = 1;
     }else if(updateType == RENDERER_CLICKSCROLL){
       clickScroll = 1;
+    }else if(updateType == RENDERER_SETVIEWPORTMODE){
+      pyMode = PyObject_GetAttrString(pyUpdate,"mode");
+      viewportMode = PyLong_AsLong(pyMode);
+      printf("setviewport: %d\n",viewportMode);
+      Py_DECREF(pyMode);
+    }else if(updateType == RENDERER_SETCHOOSENEXTDELAYED){
+      chooseNextTimeStart = SDL_GetTicks();
+      chooseNextDelayed = 1;
     }
     Py_DECREF(pyUpdate);    
     pyUpdatesQueueEmpty = PyObject_CallMethod(pyUpdatesQueue,"empty",NULL);
@@ -2272,19 +2283,19 @@ static void draw(){
   if(!isFocusing && !isSliding && isAnimating){
     isAnimating = 0;
   }
-  if(PyObject_HasAttrString(gameMode,"onDraw")){
-    pyObj = PyObject_CallMethod(gameMode,"onDraw","(ii)",deltaTicks,isAnimating);//New reference
-    printPyStackTrace();
-    Py_DECREF(pyObj);
-  }
+  PYTHONCALLBACK * callback = (PYTHONCALLBACK *)malloc(sizeof(PYTHONCALLBACK));
+  callback->id = EVENT_ON_DRAW;
+  callback->deltaTicks = deltaTicks;
+  callback->isAnimating = isAnimating;
+  queueCallback(callback);
 
   //  pyCursorIndex = PyObject_GetAttrString(gameState,"cursorIndex");
   theCursorIndex = -1;
-  pyCursorIndex = PyObject_GetAttrString(gameState,"cursorIndex");
-  theCursorIndex = PyLong_AsLong(pyCursorIndex);
-  Py_DECREF(pyCursorIndex);
+  //pyCursorIndex = PyObject_GetAttrString(gameState,"cursorIndex");
+  //  theCursorIndex = PyLong_AsLong(pyCursorIndex);
+  //  Py_DECREF(pyCursorIndex);
 
-  if(PyObject_HasAttrString(gameMode,"chooseNextDelayed")){
+  /*  if(PyObject_HasAttrString(gameMode,"chooseNextDelayed")){
     pyChooseNextDelayed = PyObject_CallMethod(gameMode,"getChooseNextDelayed",NULL);//New reference
     printPyStackTrace();
     Py_DECREF(pyChooseNextDelayed);
@@ -2292,12 +2303,10 @@ static void draw(){
       chooseNextTimeStart = SDL_GetTicks();
       chooseNextDelayed = 1;
     }
-  }
+    }*/
   if(chooseNextDelayed && ((SDL_GetTicks() - chooseNextTimeStart) > AUTO_CHOOSE_NEXT_DELAY)){
     chooseNextDelayed = 0;
-    pyObj = PyObject_CallMethod(gameMode,"sendChooseNextUnit",NULL);//New reference
-    printPyStackTrace();
-    Py_DECREF(pyObj);
+    queueSimpleCallback(EVENT_CHOOSE_NEXT_DELAYED);
   }
 
 //  printf("**** other:      \t%d\n",SDL_GetTicks() - testTicks2); testTicks2 = SDL_GetTicks(); 
@@ -2381,10 +2390,19 @@ int musicChannel = -2;
 int soundIndex = -1;
 int restartMusic = 0;
 int counter = 0;
-pthread_mutex_t mutex;
+static void fetchPyGameMode(){ 
+  gameMode = PyObject_CallMethod(gameState,"getGameMode",NULL);
+  /*  if(PyObject_HasAttrString(gameMode,"gameRoomMode")){
+    viewportMode = CREATE_GAME_ROOM_MODE;
+  }else if(PyObject_HasAttrString(gameMode,"createGameMode")){
+    viewportMode = JOIN_GAME_ROOM_MODE;
+  }else{
+    viewportMode = FULL_SCREEN_MODE;
+    }*/
+}
+
 static void mainLoop (){
   while ( !done ) {
-    gameMode = PyObject_CallMethod(gameState,"getGameMode",NULL);
     //    pyObj = PyObject_CallMethod(gameMode, "getRestartMusic",NULL);//New reference
     //    restartMusic = PyLong_AsLong(pyObj);
     //    Py_DECREF(pyObj);
@@ -2402,32 +2420,59 @@ static void mainLoop (){
       pyObj = PyObject_CallMethod(gameMode,"getSound",NULL);
       Py_DECREF(pyObj);
       }*/
+
+ 
+    fetchPyGameMode();
     deltaTicks = SDL_GetTicks()-currentTick;
     currentTick = SDL_GetTicks();
     getPythonUpdates();
     draw();
     handleInput();
+
     dispatchPythonCallbacks();
+
     Py_DECREF(gameMode);
-    /*    pthread_mutex_lock(&mutex);
-    counter = counter + 1;
-    printf("thread 1 %d\n",counter);    
-    pthread_mutex_unlock(&mutex);*/
   }
-  pyObj = PyObject_CallMethod(gameMode,"onQuit",NULL);
-  Py_DECREF(pyObj);
+  queueSimpleCallback(EVENT_ON_QUIT);
 }
 void * pythonLoop(){
   while(1){
     sleep(1.0);
-    /*    pthread_mutex_lock(&mutex);
-    counter = counter + 1;
-    printf("thread 2 %d\n",counter);    
-    pthread_mutex_unlock(&mutex);*/
   }
 }
-
-
+static void initPython(){
+  //http://docs.python.org/release/2.6.6/c-api/index.html
+  //  char [100] = "-v";
+  //	sprintf(path,"%s","hello");
+  Py_SetPythonHome(".");
+  Py_Initialize();
+  char *pyArgv[1];
+  pyArgv[0] = "";
+  PySys_SetArgv(1, pyArgv);
+  if(isWindows){
+    PyObject* sys = PyImport_ImportModule("sys");
+    PyObject* pystdout = PyFile_FromString("stdout.txt", "wt");
+    if (-1 == PyObject_SetAttrString(sys, "stdout", pystdout)) {
+      printf("NO STDOUT AVAILABLE");
+    }
+    PyObject* pystderr = PyFile_FromString("stderr.txt", "wt");
+    if (-1 == PyObject_SetAttrString(sys, "stderr", pystderr)) {
+      printf("NO STDERR AVAILABLE");
+    }
+    if(pystdout != NULL){
+      Py_DECREF(pystdout);
+    }
+    if(pystderr != NULL){
+      Py_DECREF(pystderr);
+    }
+    Py_DECREF(sys);
+  }
+  gameModule = PyImport_ImportModule("gameModes");//New reference
+  gameState = PyImport_ImportModule("gameState");
+  fetchPyGameMode();
+  //  getPythonUpdates();
+  //    dispatchPythonCallbacks();
+}
 int ppid;
 int main(int argc, char **argv){
   if ( SDL_Init (SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0 ) {
@@ -2462,12 +2507,10 @@ int main(int argc, char **argv){
   //  SDL_GL_GetAttribute(SDL_GL_DEPTH_SIZE,value);
   SDL_ShowCursor(0);
   initGL();
-  const GLubyte * glVersion = glGetString(GL_VERSION);
+  //  const GLubyte * glVersion = glGetString(GL_VERSION);
   initPython();
   initFonts();
   //SDL_EnableUNICODE(1);
-  gameModule = PyImport_ImportModule("gameModes");//New reference
-  gameState = PyImport_ImportModule("gameState");
   daMap.nodes = NULL;
   pthread_t threads[1];
   pthread_create(&threads[0], NULL, pythonLoop, NULL);

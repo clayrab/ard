@@ -1,7 +1,7 @@
 typedef struct pythonCallback{
   struct pythonCallback * nextCallback;
-  int id, selectedName, mouseX, mouseY, leftButtonDown;
-  
+  int id, selectedName, mouseX, mouseY, leftButtonDown, deltaTicks, isAnimating;
+  char keyArray[20];
 }PYTHONCALLBACK;
 typedef struct uiElement{
   struct uiElement * nextElement;  

@@ -84,3 +84,12 @@ class clickScroll(rendererUpdate):
     def __init__(self):
         rendererUpdate.__init__(self,cDefines.defines["RENDERER_CLICKSCROLL"])
 
+class setViewportMode(rendererUpdate):
+    def __init__(self,mode):
+        rendererUpdate.__init__(self,cDefines.defines["RENDERER_SETVIEWPORTMODE"])
+        self.mode = mode
+        
+class setChooseNextDelayed(rendererUpdate):
+    def __init__(self):
+        rendererUpdate.__init__(self,cDefines.defines["RENDERER_SETCHOOSENEXTDELAYED"])
+        
