@@ -14,9 +14,7 @@
 
 #client:
 #
-#draw cities
-#gameRoomMode/createGameMode(use defines and an int 'mode')
-#"events" threadable. create a bunch of flags for each event and an event struct ot hold necessary args to the python calls.
+#when exiting the callback never gets called in python because the mainLoop already exits
 #
 #music/sound
 #

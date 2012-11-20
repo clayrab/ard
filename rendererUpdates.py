@@ -92,4 +92,8 @@ class setViewportMode(rendererUpdate):
 class setChooseNextDelayed(rendererUpdate):
     def __init__(self):
         rendererUpdate.__init__(self,cDefines.defines["RENDERER_SETCHOOSENEXTDELAYED"])
+
+#class loadGameMode(rendererUpdate):
+#    def __init__(self):
+#        rendererUpdate.__init__(self,cDefines.defines["RENDERER_LOADGAMEMODE"])
         

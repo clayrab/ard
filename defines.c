@@ -66,6 +66,7 @@ int animationTimes[2] = {4000,2000};
 #define RENDERER_CLICKSCROLL 18
 #define RENDERER_SETVIEWPORTMODE 19
 #define RENDERER_SETCHOOSENEXTDELAYED 20
+#define RENDERER_LOADGAMEMODE 21
 
 #define TILES "assets/tiles2.png"
 #define UI "assets/UI.png"
