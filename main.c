@@ -1,4 +1,4 @@
-#include <pthread.h>
+//#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -46,6 +46,7 @@ int considerDoneFocusing = 0;
 int leftButtonDown = 0;
 
 int doQuit = 0;    
+int quit = 0;    
 int moveUp = 0;
 int moveRight = 0;
 int currentTick = 0;
@@ -287,7 +288,22 @@ float translateTilesXToPositionX(int tileX,int tileY){
 float translateTilesYToPositionY(int tileY){
   return (float)(tileY*1.5);
 }
+SDL_mutex * pythonCallbackMutex;
+SDL_mutex * unitsMutex;//protects theUnits
+SDL_mutex * animationsMutex;//protects animQueue
+SDL_mutex * modalAnimationsMutex;//protects modalAnimQueue
+SDL_mutex * uiElementsMutex;//protects uiElements
+SDL_mutex * movePathMutex;//protects movePath
+SDL_mutex * aStarMutex;//protects movePath
+SDL_mutex * selectedNodeMutex;//protects selectedNode
+SDL_mutex * backgroundImageMutex;//protects backgroundImageIndex
+SDL_mutex * mapMutex;//protects theMap
+SDL_mutex * exitMutex;//protects doQuit
+SDL_mutex * clickScrollMutex;//protects clickScroll
+SDL_mutex * viewportModeMutex;//protects viewportMode
+SDL_mutex * chooseNextDelayedMutex;//protects chooseNextDelayed and chooseNextStartTime
 
+/*
 pthread_mutex_t pythonCallbackMutex;
 pthread_mutex_t unitsMutex;//protects theUnits
 pthread_mutex_t animationsMutex;//protects animQueue
@@ -302,6 +318,7 @@ pthread_mutex_t exitMutex;//protects doQuit
 pthread_mutex_t clickScrollMutex;//protects clickScroll
 pthread_mutex_t viewportModeMutex;//protects viewportMode
 pthread_mutex_t chooseNextDelayedMutex;//protects chooseNextDelayed and chooseNextStartTime
+*/
 int rowNumber;
 PyObject * pyNode;
 PyObject * row;
@@ -644,9 +661,9 @@ void updateUnit(PyObject * pyUnit){
     theAnim->unit = daNextUnit;
     theAnim->xPos = daNextUnit->xPosDraw;
     theAnim->yPos = daNextUnit->yPosDraw;
-    pthread_mutex_lock(&modalAnimationsMutex);
+    SDL_mutexP(modalAnimationsMutex);
     modalAnimQueue = AddItem(modalAnimQueue,theAnim);
-    pthread_mutex_unlock(&modalAnimationsMutex);
+    SDL_mutexV(modalAnimationsMutex);
   }
   if(unitHealthPrev != daNextUnit->health){
     ANIMATION * theAnim = malloc(sizeof(ANIMATION));
@@ -795,7 +812,7 @@ loadMovePath(PyObject * pyPath,MOVEPATHNODE ** path){
 }
 SELECTEDNODE * selectedNode = NULL;
 setSelectedNode(){
-  pthread_mutex_lock(&selectedNodeMutex);
+  SDL_mutexP(selectedNodeMutex);
   if(selectedNode != NULL){
     free(selectedNode);
   }
@@ -809,12 +826,12 @@ setSelectedNode(){
     selectedNode->xPos = translateTilesXToPositionX(colNumber,rowNumber);
     selectedNode->yPos = translateTilesYToPositionY(rowNumber);
   }
-  pthread_mutex_unlock(&selectedNodeMutex);
+  SDL_mutexV(selectedNodeMutex);
 }
 PyObject * pyBackgroundImageIndex;
 int backgroundImageIndex = -1;
 setBackgroundImage(){
-  pthread_mutex_lock(&backgroundImageMutex);
+  SDL_mutexP(backgroundImageMutex);
   if(PyObject_HasAttrString(gameMode,"backgroundImageIndex")){
     pyBackgroundImageIndex = PyObject_GetAttrString(gameMode, "backgroundImageIndex");//New reference
     backgroundImageIndex = PyLong_AsLong(pyBackgroundImageIndex);
@@ -822,7 +839,7 @@ setBackgroundImage(){
   }else{
     backgroundImageIndex = -1;    
   }
-  pthread_mutex_unlock(&backgroundImageMutex);
+  SDL_mutexV(backgroundImageMutex);
 }
 
 
@@ -1094,7 +1111,7 @@ void drawMovePath(MOVEPATHNODE ** path){
   }
 }
 void drawSelectionBox(){
-  pthread_mutex_lock(&selectedNodeMutex);
+  SDL_mutexP(selectedNodeMutex);
   if(selectedNode != NULL){
     glColor3f(1.0,1.0,1.0);
     glBindTexture(GL_TEXTURE_2D, texturesArray[SELECTION_BOX_INDEX]);
@@ -1104,7 +1121,7 @@ void drawSelectionBox(){
     glCallList(selectionBoxList);
     glPopMatrix();
   }
-  pthread_mutex_unlock(&selectedNodeMutex);
+  SDL_mutexV(selectedNodeMutex);
 }
 CITYNODELISTELEM * nextCity;
 void drawCities(){
@@ -1133,7 +1150,7 @@ void drawUnits(){
 int nodesIndex;
 NODE * daNode;
 void drawTiles(){  
-  pthread_mutex_lock(&mapMutex);
+  SDL_mutexP(mapMutex);
   if(theMap.nodes != NULL){
     for(nodesIndex = 0;nodesIndex < theMap.size;nodesIndex++){
       daNode = &(theMap.nodes[nodesIndex]);
@@ -1143,11 +1160,11 @@ void drawTiles(){
       glPopMatrix();
     }
   }
-  pthread_mutex_unlock(&mapMutex);
+  SDL_mutexV(mapMutex);
 }
 char viewportMode = FULL_SCREEN_MODE;
 void doViewport(){
-  pthread_mutex_lock(&viewportModeMutex);
+  SDL_mutexP(viewportModeMutex);
   if(viewportMode == CREATE_GAME_ROOM_MODE){
     glViewport(60.0*SCREEN_WIDTH/SCREEN_BASE_WIDTH,258.0*SCREEN_HEIGHT/SCREEN_BASE_HEIGHT,991.5*SCREEN_WIDTH/SCREEN_BASE_WIDTH,824.0*SCREEN_HEIGHT/SCREEN_BASE_HEIGHT);
   }else if(viewportMode == JOIN_GAME_ROOM_MODE){
@@ -1155,16 +1172,16 @@ void doViewport(){
   }else{
     glViewport(0,0,SCREEN_WIDTH,SCREEN_HEIGHT);
   }
-  pthread_mutex_unlock(&viewportModeMutex);
+  SDL_mutexV(viewportModeMutex);
 }
 PyObject * pyTranslateZ;
 int frameNumber = 0;
 void calculateTranslation(){
   frameNumber++;
   glPushMatrix();
-  pthread_mutex_lock(&mapMutex);
+  SDL_mutexP(mapMutex);
   if(theMap.nodes != NULL){
-    pthread_mutex_unlock(&mapMutex);
+    SDL_mutexV(mapMutex);
     if(translateX - mapRightOffset < convertedTopRightX
        && translateX - (2.0*SIN60) > convertedBottomLeftX
        && translateY < convertedTopRightY - mapTopOffset
@@ -1184,6 +1201,8 @@ void calculateTranslation(){
     if(translateZ > - 1.0 - minZoom){
       translateZ = - 1.0 - minZoom;
     }
+  }else{
+    SDL_mutexV(mapMutex);
   }
   glTranslatef(translateX,translateY,translateZ);
   //glTranslatef(0.0,0.0,translateZ);
@@ -1196,7 +1215,7 @@ void calculateTranslation(){
   glEnd();
   glPopMatrix();
   if(translateZ != translateZPrev2){
-    pthread_mutex_lock(&viewportModeMutex);
+    SDL_mutexP(viewportModeMutex);
     if(viewportMode == CREATE_GAME_ROOM_MODE){
       glReadPixels(7*SCREEN_WIDTH/16, SCREEN_HEIGHT/2, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &mapDepthTest1);
       glReadPixels(8*SCREEN_WIDTH/16, SCREEN_HEIGHT/2, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &mapDepthTest2);
@@ -1210,7 +1229,7 @@ void calculateTranslation(){
       glReadPixels( 8*SCREEN_WIDTH/16, SCREEN_HEIGHT/2, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &mapDepthTest2);
       glReadPixels( 9*SCREEN_WIDTH/16, SCREEN_HEIGHT/2, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &mapDepthTest3);
     }
-    pthread_mutex_unlock(&viewportModeMutex);
+    SDL_mutexV(viewportModeMutex);
     translateZPrev2 = translateZ;
   }
   if(mapDepthTest1 == mapDepthTest2 || mapDepthTest1 == mapDepthTest3){
@@ -1220,7 +1239,7 @@ void calculateTranslation(){
   }else{
     printf("mapdepth not found%d\n",1);
   }
-  pthread_mutex_lock(&viewportModeMutex);
+  SDL_mutexP(viewportModeMutex);
   if(viewportMode == CREATE_GAME_ROOM_MODE){
     convertWindowCoordsToViewportCoords(60.0*SCREEN_WIDTH/SCREEN_BASE_WIDTH,SCREEN_HEIGHT,translateZ,&convertedBottomLeftX,&convertedBottomLeftY,&convertedBottomLeftZ);
     convertWindowCoordsToViewportCoords(1551.5*SCREEN_WIDTH/SCREEN_BASE_WIDTH,0.0,translateZ,&convertedTopRightX,&convertedTopRightY,&convertedTopRightZ);
@@ -1231,7 +1250,7 @@ void calculateTranslation(){
     convertWindowCoordsToViewportCoords(390.0*SCREEN_WIDTH/SCREEN_BASE_WIDTH,SCREEN_HEIGHT,translateZ,&convertedBottomLeftX,&convertedBottomLeftY,&convertedBottomLeftZ);
     convertWindowCoordsToViewportCoords(SCREEN_WIDTH,0.0,translateZ,&convertedTopRightX,&convertedTopRightY,&convertedTopRightZ);
   }
-  pthread_mutex_unlock(&viewportModeMutex);
+  SDL_mutexV(viewportModeMutex);
   mouseMapPosXPrevious = mouseMapPosX;
   mouseMapPosYPrevious = mouseMapPosY;
   convertWindowCoordsToViewportCoords(mouseX,mouseY,translateZ,&mouseMapPosX,&mouseMapPosY,&mouseMapPosZ);  
@@ -1248,9 +1267,8 @@ void calculateTranslation(){
   //printf("offsets: %f %f\n",mapRightOffset,mapTopOffset);
   //printf("%f\n",translateTilesYToPositionY(mapHeight));//setting translateY to this number will focus on it
   //printf("mouse %d:%f\t%d:%f\n",mouseX,mouseMapPosX,mouseY,mouseMapPosY);
-  pthread_mutex_lock(&clickScrollMutex);
+  SDL_mutexP(clickScrollMutex);
   if(clickScroll > 0 && !isFocusing){
-    pthread_mutex_unlock(&clickScrollMutex);
     translateX = translateX + mouseMapPosX - mouseMapPosXPrevious;
     translateY = translateY + mouseMapPosY - mouseMapPosYPrevious;
   }else if(!isFocusing){
@@ -1267,6 +1285,7 @@ void calculateTranslation(){
       translateY += scrollSpeed*deltaTicks;
     }
   }
+  SDL_mutexV(clickScrollMutex);
   if(isSliding){
     if(SDL_GetTicks()-slidingTicks < SLIDE_UNIT_TIME){
       currentAnim->unit->xPosDraw = slidingEasingFunction(SDL_GetTicks()-slidingTicks, currentAnim->xPos,currentAnim->unit->xPos,SLIDE_UNIT_TIME);
@@ -1364,20 +1383,22 @@ void calculateTranslation(){
 void drawBoard(){
   glDepthFunc(GL_LEQUAL);
   glClear(GL_DEPTH_BUFFER_BIT);		 
-  pthread_mutex_lock(&mapMutex);
+  SDL_mutexP(mapMutex);
   if(theMap.nodes != NULL){
-    pthread_mutex_unlock(&mapMutex);
+    SDL_mutexV(mapMutex);
     drawTiles();
-    pthread_mutex_lock(&movePathMutex);
+    SDL_mutexP(movePathMutex);
     drawMovePath(&(movePath));
-    pthread_mutex_unlock(&movePathMutex);
-    pthread_mutex_lock(&aStarMutex);
+    SDL_mutexV(movePathMutex);
+    SDL_mutexP(aStarMutex);
     drawMovePath(&(aStarPath));
-    pthread_mutex_unlock(&aStarMutex);
+    SDL_mutexV(aStarMutex);
     drawSelectionBox();
     drawUnits();
     drawCities();
     drawAnimations();
+  }else{
+    SDL_mutexV(mapMutex);
   }
 }
 
@@ -1484,9 +1505,9 @@ char frameRate[20];
 UIELEMENT * nextUIElement;
 void drawUI(){
   glDepthFunc(GL_ALWAYS);
-  pthread_mutex_lock(&uiElementsMutex);
+  SDL_mutexP(uiElementsMutex);
   nextUIElement = uiElements;
-  pthread_mutex_lock(&uiElementsMutex);
+  SDL_mutexV(uiElementsMutex);
   while(nextUIElement != NULL){
     drawUIElement(nextUIElement);
     nextUIElement = nextUIElement->nextElement;
@@ -1833,7 +1854,7 @@ char keyArray[20];
 PYTHONCALLBACK * firstCallback = NULL;
 PYTHONCALLBACK * lastCallback = NULL;//put new callbacks here
 void queueCallback(PYTHONCALLBACK * callback){
-  pthread_mutex_lock(&pythonCallbackMutex);
+  SDL_mutexP(pythonCallbackMutex);
   callback->nextCallback = NULL;
   if(lastCallback != NULL){
     lastCallback->nextCallback = callback;
@@ -1842,7 +1863,7 @@ void queueCallback(PYTHONCALLBACK * callback){
   if(firstCallback == NULL){
     firstCallback = callback;
   }
-  pthread_mutex_unlock(&pythonCallbackMutex);
+  SDL_mutexV(pythonCallbackMutex);
 }
 static void dispatch(PYTHONCALLBACK * callback){
   if(callback->id == EVENT_MOUSE_OVER){
@@ -1908,9 +1929,7 @@ static void dispatch(PYTHONCALLBACK * callback){
       printPyStackTrace();
       Py_DECREF(pyObj);
     }
-  }else if(callback->id == EVENT_ON_QUIT){
-    pyObj = PyObject_CallMethod(gameMode,"onQuit",NULL);
-    Py_DECREF(pyObj);
+    //  }else if(callback->id == EVENT_ON_QUIT){
   }else if(callback->id == EVENT_CHOOSE_NEXT_DELAYED){
     pyObj = PyObject_CallMethod(gameMode,"sendChooseNextUnit",NULL);//New reference
     printPyStackTrace();
@@ -1919,7 +1938,7 @@ static void dispatch(PYTHONCALLBACK * callback){
 }
 PYTHONCALLBACK * dispatchCallback;
 static void dispatchPythonCallbacks(){
-  pthread_mutex_lock(&pythonCallbackMutex);
+  SDL_mutexP(pythonCallbackMutex);
   while(firstCallback != NULL){
     dispatchCallback = firstCallback;
     firstCallback = dispatchCallback->nextCallback;
@@ -1930,7 +1949,7 @@ static void dispatchPythonCallbacks(){
     free(dispatchCallback);
     //#define EVENT_LEFT_CLICK_UP
   }
-  pthread_mutex_unlock(&pythonCallbackMutex);
+  SDL_mutexV(pythonCallbackMutex);
 }
 static void queueSimpleCallback(int id){
   PYTHONCALLBACK * callback = (PYTHONCALLBACK *)malloc(sizeof(PYTHONCALLBACK));
@@ -2022,9 +2041,9 @@ static void handleInput(){
 	leftButtonDown = 0;
       }
       if(event.button.button == SDL_BUTTON_RIGHT){
-	pthread_mutex_lock(&clickScrollMutex);
+	SDL_mutexP(clickScrollMutex);
 	clickScroll = 0;
-	pthread_mutex_unlock(&clickScrollMutex);
+	SDL_mutexV(clickScrollMutex);
 	queueSimpleCallback(EVENT_RIGHT_CLICK_UP);
       }
       break;
@@ -2175,16 +2194,16 @@ static void handleInput(){
 	queueCallback(callback);	
       }
       break;
-      //    case SDL_QUIT:
-      //      doQuit = 1;
-      //      break;
+    case SDL_QUIT://when user x's the window
+      doQuit = 1;
+      break;
     default:
       break;
     }
   }
 }
 void drawBackground(){
-  pthread_mutex_lock(&backgroundImageMutex);
+  SDL_mutexP(backgroundImageMutex);
   if(backgroundImageIndex >= 0){
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
@@ -2199,7 +2218,7 @@ void drawBackground(){
     glTexCoord2f(0.0,1.0); glVertex3f(-1.0,1.0,0.0);
     glEnd();
   }
-  pthread_mutex_unlock(&backgroundImageMutex);
+  SDL_mutexV(backgroundImageMutex);
 }
 GLint viewport[4];
 GLint hitsCnt;
@@ -2227,31 +2246,31 @@ static void getPythonUpdates(){
     Py_DECREF(pyObj);    
     if(updateType == RENDERER_CHANGE_UNIT_ADD){
       pyUnit = PyObject_GetAttrString(pyUpdate,"unit");
-      pthread_mutex_lock(&unitsMutex);
+      SDL_mutexP(unitsMutex);
       addUnit(pyUnit);
-      pthread_mutex_unlock(&unitsMutex);
+      SDL_mutexV(unitsMutex);
       Py_DECREF(pyUnit);
     }else if(updateType == RENDERER_CHANGE_UNIT_REMOVE){
       pyUnit = PyObject_GetAttrString(pyUpdate,"unit");
-      pthread_mutex_lock(&unitsMutex);
+      SDL_mutexP(unitsMutex);
       removeUnit(pyUnit);
-      pthread_mutex_unlock(&unitsMutex);
+      SDL_mutexV(unitsMutex);
       Py_DECREF(pyUnit);
     }else if(updateType == RENDERER_CHANGE_UNIT_CHANGE){
       pyUnit = PyObject_GetAttrString(pyUpdate,"unit");
-      pthread_mutex_lock(&unitsMutex);
+      SDL_mutexP(unitsMutex);
       updateUnit(pyUnit);
-      pthread_mutex_unlock(&unitsMutex);
+      SDL_mutexV(unitsMutex);
       Py_DECREF(pyUnit);     
     }else if(updateType == RENDERER_RESET_UNITS){
-      pthread_mutex_lock(&unitsMutex);
+      SDL_mutexP(unitsMutex);
       resetUnits();
-      pthread_mutex_unlock(&unitsMutex);
+      SDL_mutexV(unitsMutex);
     }else if(updateType == RENDERER_CHANGE_NODE_CHANGE){
       pyNode = PyObject_GetAttrString(pyUpdate,"node");
-      pthread_mutex_lock(&mapMutex);
+      SDL_mutexP(mapMutex);
       updateNode(pyNode);
-      pthread_mutex_unlock(&mapMutex);
+      SDL_mutexV(mapMutex);
       Py_DECREF(pyNode);
     }else if(updateType == RENDERER_FOCUS){
       ANIMATION * theAnim = malloc(sizeof(ANIMATION));
@@ -2262,39 +2281,39 @@ static void getPythonUpdates(){
       pyYPosition = PyObject_GetAttrString(pyUpdate,"yPos");
       theAnim->yPos = PyFloat_AsDouble(pyYPosition);
       Py_DECREF(pyYPosition);      
-      pthread_mutex_lock(&modalAnimationsMutex);
+      SDL_mutexP(modalAnimationsMutex);
       modalAnimQueue = AddItem(modalAnimQueue,theAnim);
-      pthread_mutex_unlock(&modalAnimationsMutex);
+      SDL_mutexV(modalAnimationsMutex);
     }else if(updateType == RENDERER_RESET_UI){
-      pthread_mutex_lock(&uiElementsMutex);
+      SDL_mutexP(uiElementsMutex);
       resetUIElements();
-      pthread_mutex_unlock(&uiElementsMutex);
+      SDL_mutexV(uiElementsMutex);
     }else if(updateType == RENDERER_ADD_UIELEM){
       pyUIElement = PyObject_GetAttrString(pyUpdate,"uiElement");
-      pthread_mutex_lock(&uiElementsMutex);
+      SDL_mutexP(uiElementsMutex);
       addUIElement(pyUIElement);
-      pthread_mutex_unlock(&uiElementsMutex);
+      SDL_mutexV(uiElementsMutex);
     }else if(updateType == RENDERER_REMOVE_UIELEM){
       pyUIElement = PyObject_GetAttrString(pyUpdate,"uiElement");
-      pthread_mutex_lock(&uiElementsMutex);
+      SDL_mutexP(uiElementsMutex);
       removeUIElement(pyUIElement);
-      pthread_mutex_unlock(&uiElementsMutex);
+      SDL_mutexV(uiElementsMutex);
     }else if(updateType == RENDERER_UPDATE_UIELEM){
       pyUIElement = PyObject_GetAttrString(pyUpdate,"uiElement");
-      pthread_mutex_lock(&uiElementsMutex);
+      SDL_mutexP(uiElementsMutex);
       updateUIElement(pyUIElement);
-      pthread_mutex_unlock(&uiElementsMutex);
+      SDL_mutexV(uiElementsMutex);
     }else if(updateType == RENDERER_RELOAD_MOVEPATH){
       pyMovePath = PyObject_GetAttrString(gameState,"movePath");
-      pthread_mutex_lock(&movePathMutex);
+      SDL_mutexP(movePathMutex);
       loadMovePath(pyMovePath,&(movePath));
-      pthread_mutex_unlock(&movePathMutex);
+      SDL_mutexV(movePathMutex);
       Py_DECREF(pyMovePath);
     }else if(updateType == RENDERER_RELOAD_ASTARPATH){
       pyMovePath = PyObject_GetAttrString(gameState,"aStarPath");
-      pthread_mutex_lock(&aStarMutex);
+      SDL_mutexP(aStarMutex);
       loadMovePath(pyMovePath,&(aStarPath));
-      pthread_mutex_unlock(&aStarMutex);
+      SDL_mutexV(aStarMutex);
       Py_DECREF(pyMovePath);
     }else if(updateType == RENDERER_SET_SELECTEDNODE){
       setSelectedNode();
@@ -2302,28 +2321,28 @@ static void getPythonUpdates(){
       setBackgroundImage();
     }else if(updateType == RENDERER_LOAD_MAP){
       pyMap = PyObject_GetAttrString(gameMode, "map");//New reference
-      pthread_mutex_lock(&mapMutex);
+      SDL_mutexP(mapMutex);
       loadMap();
-      pthread_mutex_unlock(&mapMutex);
+      SDL_mutexV(mapMutex);
     }else if(updateType == RENDERER_EXIT){
-      pthread_mutex_lock(&exitMutex);
+      SDL_mutexP(exitMutex);
       doQuit = 1;
-      pthread_mutex_unlock(&exitMutex);
+      SDL_mutexV(exitMutex);
     }else if(updateType == RENDERER_CLICKSCROLL){
-      pthread_mutex_lock(&clickScrollMutex);
+      SDL_mutexP(clickScrollMutex);
       clickScroll = 1;
-      pthread_mutex_unlock(&clickScrollMutex);
+      SDL_mutexV(clickScrollMutex);
     }else if(updateType == RENDERER_SETVIEWPORTMODE){
       pyMode = PyObject_GetAttrString(pyUpdate,"mode");
-      pthread_mutex_lock(&viewportModeMutex);
+      SDL_mutexP(viewportModeMutex);
       viewportMode = PyLong_AsLong(pyMode);
-      pthread_mutex_unlock(&viewportModeMutex);
+      SDL_mutexV(viewportModeMutex);
       Py_DECREF(pyMode);
     }else if(updateType == RENDERER_SETCHOOSENEXTDELAYED){
-      pthread_mutex_lock(&chooseNextDelayedMutex);
+      SDL_mutexP(chooseNextDelayedMutex);
       chooseNextTimeStart = SDL_GetTicks();
       chooseNextDelayed = 1;
-      pthread_mutex_unlock(&chooseNextDelayedMutex);
+      SDL_mutexV(chooseNextDelayedMutex);
     }
     Py_DECREF(pyUpdate);    
     pyUpdatesQueueEmpty = PyObject_CallMethod(pyUpdatesQueue,"empty",NULL);
@@ -2331,13 +2350,12 @@ static void getPythonUpdates(){
 }
 static void draw(){
   Py_DECREF(pyUpdatesQueue);
-  pthread_mutex_lock(&modalAnimationsMutex);
+  SDL_mutexP(modalAnimationsMutex);
   if(modalAnimQueue != NULL && !isFocusing && !isSliding){//> 0 items
     isAnimating = 1;
     listelement * listpointer;
     currentAnim = modalAnimQueue->item; 
     modalAnimQueue = RemoveItem(modalAnimQueue);
-    pthread_mutex_unlock(&modalAnimationsMutex);
     if(currentAnim->type == ANIMATION_AUTO_FOCUS){
       isFocusing = 1;
       focusTicks = SDL_GetTicks();
@@ -2356,6 +2374,7 @@ static void draw(){
       slidingTicks = SDL_GetTicks();
     }
   }
+  SDL_mutexV(modalAnimationsMutex);
   if(!isFocusing && !isSliding && isAnimating){
     isAnimating = 0;
   }
@@ -2380,12 +2399,12 @@ static void draw(){
       chooseNextDelayed = 1;
     }
     }*/
-  pthread_mutex_lock(&chooseNextDelayedMutex);
+  SDL_mutexP(chooseNextDelayedMutex);
   if(chooseNextDelayed && ((SDL_GetTicks() - chooseNextTimeStart) > AUTO_CHOOSE_NEXT_DELAY)){
     chooseNextDelayed = 0;
     queueSimpleCallback(EVENT_CHOOSE_NEXT_DELAYED);
   }
-  pthread_mutex_unlock(&chooseNextDelayedMutex);
+  SDL_mutexV(chooseNextDelayedMutex);
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		 
   glSelectBuffer(BUFSIZE,selectBuf);//glSelectBuffer must be issued before selection mode is enabled, and it must not be issued while the rendering mode is GL_SELECT.
@@ -2471,9 +2490,7 @@ static void fetchPyGameMode(){
 }
 
 static void mainLoop (){
-  pthread_mutex_lock(&exitMutex);
-  while ( !doQuit ) {
-    pthread_mutex_unlock(&exitMutex);
+  while ( !quit ) {
     //    pyObj = PyObject_CallMethod(gameMode, "getRestartMusic",NULL);//New reference
     //    restartMusic = PyLong_AsLong(pyObj);
     //    Py_DECREF(pyObj);
@@ -2491,25 +2508,31 @@ static void mainLoop (){
       pyObj = PyObject_CallMethod(gameMode,"getSound",NULL);
       Py_DECREF(pyObj);
       }*/
-    printf("%d\n",0);
     deltaTicks = SDL_GetTicks()-currentTick;
     currentTick = SDL_GetTicks();
     draw();
-    printf("%d\n",2);
     handleInput();
-    printf("%d\n",3);
-    //    Py_DECREF(gameMode);
+    SDL_mutexP(exitMutex);
+    if(doQuit){
+      quit = 1;
+    }
+    SDL_mutexV(exitMutex);
   }
 }
-void * pythonLoop(){
-  while(1){
+int pyQuit = 0;
+int pythonThread(void * data){
+  while(!pyQuit){
     fetchPyGameMode();
     getPythonUpdates();
     dispatchPythonCallbacks();
-    //PyObject_SetAttrString(gameMode,"ticks",PyLong_FromLong(SDL_GetTicks()));
-    //    printf("%d\n",-1);
-    sleep(1.0);
-  }
+    PyObject_SetAttrString(gameMode,"ticks",PyLong_FromLong(SDL_GetTicks()));
+    SDL_mutexP(exitMutex);
+    if(doQuit){
+      pyQuit = 1;
+    }
+    SDL_mutexV(exitMutex);
+    //    sleep(1.0);
+  }  
 }
 static void initPython(){
   //http://docs.python.org/release/2.6.6/c-api/index.html
@@ -2545,19 +2568,13 @@ static void initPython(){
   //    dispatchPythonCallbacks();
 }
 int ppid;
+SDL_Thread * pyThread = NULL;
 int main(int argc, char **argv){
-  initPython();
-  //SDL_EnableUNICODE(1);
-  pthread_mutex_lock(&mapMutex);//don't really need this yet, but putting it here for consistency's sake
-  theMap.nodes = NULL;
-  pthread_mutex_unlock(&mapMutex);
-  pthread_t threads[1];
-  pthread_create(&threads[0], NULL, pythonLoop, NULL);
   if ( SDL_Init (SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0 ) {
     fprintf(stderr, "Couldn't initialize SDL: %s\n",SDL_GetError());
     exit(1);
   }
-
+  
   int audio_rate = 44100;//22050;
   Uint16 audio_format = AUDIO_S16SYS;
   int audio_channels = 2;
@@ -2585,11 +2602,37 @@ int main(int argc, char **argv){
   //  SDL_GL_GetAttribute(SDL_GL_DEPTH_SIZE,value);
   SDL_ShowCursor(0);
   initGL();
+  initPython();
+  //SDL_EnableUNICODE(1);
+
+  pythonCallbackMutex = SDL_CreateMutex();
+  unitsMutex = SDL_CreateMutex();
+  animationsMutex = SDL_CreateMutex();
+  modalAnimationsMutex = SDL_CreateMutex();
+  uiElementsMutex = SDL_CreateMutex();
+  movePathMutex = SDL_CreateMutex();
+  aStarMutex = SDL_CreateMutex();
+  selectedNodeMutex = SDL_CreateMutex();
+  backgroundImageMutex = SDL_CreateMutex();
+  mapMutex = SDL_CreateMutex();
+  exitMutex = SDL_CreateMutex();
+  clickScrollMutex = SDL_CreateMutex();
+  viewportModeMutex = SDL_CreateMutex();
+  chooseNextDelayedMutex = SDL_CreateMutex();
+
+  SDL_mutexP(mapMutex);//don't really need this yet, but putting it here for consistency's sake
+  theMap.nodes = NULL;
+  SDL_mutexV(mapMutex);
+  pyThread = SDL_CreateThread(pythonThread, NULL);
   initFonts();
-  //  const GLubyte * glVersion = glGetString(GL_VERSION);
+
   mainLoop();
-  SDL_Quit();
+
+  SDL_WaitThread(pyThread,NULL);//should kill itself...
   queueSimpleCallback(EVENT_ON_QUIT);
+  pyObj = PyObject_CallMethod(gameMode,"onQuit",NULL);
+  Py_DECREF(pyObj);
+  SDL_Quit();
   Py_DECREF(gameModule);
   Py_DECREF(gameState);
   Py_Finalize();
