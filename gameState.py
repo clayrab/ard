@@ -214,6 +214,9 @@ def reevalAvailableUnitTypes():
 					availableUnitTypes[unit.player].append(unitType)
 				if(not researchProgress[unit.player].has_key(unitType)):
 					researchProgress[unit.player][unitType] = [1,0]
+global doingAStarMove
+doingAStarMove = False
+
 global cursorIndex
 cursorIndex = -2
 

@@ -85,33 +85,41 @@ void make_dlist(FT_Face face, char charIndex, GLuint list_base, GLuint * tex_bas
   dataWidth = nextPowerOf2( bitmap.width );
   dataHeight = nextPowerOf2( bitmap.rows );
   expanded_data = malloc(2 * dataWidth * dataHeight * sizeof(GLubyte));
-  if(bitmap.rows != 0){//space char has 0 height, but we need it for the 'empty' quads between chars, so we'll use the previous char's height
-    glyphHeight = bitmap.rows;
-  }
-  glyphWidth = bitmap.width;
   for(j=0; j < dataHeight; j++){
     for(i=0; i < dataWidth; i++){
-      expanded_data[2*(i+j*dataWidth)]= expanded_data[2*(i+j*dataWidth)+1] = 
-	(i>=glyphWidth || j>=glyphHeight) ?
-	0 : bitmap.buffer[i + glyphWidth*j];
+      expanded_data[2*(i+j*dataWidth)] = 
+	expanded_data[2*(i+j*dataWidth)+1] = 
+	(i>=bitmap.width || j>=bitmap.rows) ? 0 : bitmap.buffer[i + bitmap.width*j];
     }
   }
   glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
   glBindTexture(GL_TEXTURE_2D, tex_base[charIndex]);
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, dataWidth, dataHeight, 0, GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE, expanded_data);
+
+  if(bitmap.rows > 0){//space char has 0 height and width, but we need it for the 'empty' quads between chars, so we'll use the previous char's
+    glyphHeight = bitmap.rows;
+    glyphWidth = bitmap.width;
+  }
+
   x=(float)glyphWidth / (float)dataWidth;
   y=(float)glyphHeight / (float)dataHeight;
 
   glNewList(list_base+(2*charIndex),GL_COMPILE);
   glPushMatrix();
-  /*  glBegin(GL_QUADS);
+
+  glBegin(GL_QUADS);//makes the space between letters clickable
   glVertex2f(-4,glyphHeight);
   glVertex2f(-4,0);
   glVertex2f(face->glyph->advance.x>>6,0);
   glVertex2f(bitmap_glyph->left,glyphHeight);
-  glEnd();*/
-  glTranslatef(bitmap_glyph->left,bitmap_glyph->top-glyphHeight,0);
+  glEnd();
+  
+  if(bitmap_glyph->top == 0){//draws quad for space at the correct height
+    glTranslatef(bitmap_glyph->left,0,0);
+  }else{
+    glTranslatef(bitmap_glyph->left,bitmap_glyph->top-glyphHeight,0);
+  }
   glBindTexture(GL_TEXTURE_2D,tex_base[charIndex]);
   glBegin(GL_QUADS);
   glTexCoord2d(0,0); glVertex2f(0,glyphHeight);
@@ -233,7 +241,7 @@ int checkRightMargin(int fontIndex, char* str, int strPosition, float rightMargi
       return 1;
     }
     strPosition++;
-    }
+  }
   glPopMatrix();
   return 0;
 }

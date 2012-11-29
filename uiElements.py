@@ -30,7 +30,7 @@ class uiElement(object):
 		self.textureIndex = textureIndex
 		self._hidden=hidden
 		self.cursorIndex=cursorIndex
-		self.text = text
+		self._text = text
 		self._textColor = textColor
 		if(self._textColor == None):
 			self._textColor = "FF FF FF"
@@ -69,15 +69,24 @@ class uiElement(object):
 		return self._xPosition
 	@xPosition.setter
 	def xPosition(self,val):
-		gameState.rendererUpdateQueue.put(rendererUpdates.updateUIElem(self))
 		self._xPosition = val
+		gameState.rendererUpdateQueue.put(rendererUpdates.updateUIElem(self))
 	@property
 	def yPosition(self): 
 		return self._yPosition
 	@yPosition.setter
 	def yPosition(self,val):
-		gameState.rendererUpdateQueue.put(rendererUpdates.updateUIElem(self))
 		self._yPosition = val
+		gameState.rendererUpdateQueue.put(rendererUpdates.updateUIElem(self))
+	@property
+	def text(self): 
+		return self._text
+	@text.setter
+	def text(self,val):
+		if(self._text != val):
+			self._text = val
+#			gameState.rendererUpdateQueue.put(rendererUpdates.updateUIElem(self))
+		
 	def onScrollDown(self):
 		return None
 	def onScrollUp(self):
@@ -460,9 +469,7 @@ class unitTypeViewer(uiElement):
 #	self.canSwim = canSwim
 	def destroy(self):
 		unitTypeViewer.theViewer = None
-		print 'arg'
 		uiElement.destroy(self)
-		print 'fuck'
 
 
 class viewer(uiElement):
@@ -859,7 +866,6 @@ class scrollableRoomElement(scrollableElement):
 
 class scrollableTextFieldsElement(uiElement):
 	def __init__(self,xPos,yPos,textFields,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.0005,color="FF FF FF",mouseOverColor=None,xPositionOffset=0.0,yPositionOffset=0.04,lineHeight=0.041,numFields=25,scrollSpeed=1,scrollPadTex="UI_SCROLL_PAD"):
-		print "scrollableTextFieldsElement"
 		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,color=color,mouseOverColor=mouseOverColor)
 		self.xPositionOffset = xPositionOffset
 		self.yPositionOffset = yPositionOffset
@@ -876,7 +882,6 @@ class scrollableTextFieldsElement(uiElement):
 		self.scrollPadElem.onScrollDown = self.onScrollDown
 		self.names.append(self.scrollPadElem.name)
 		self.redraw()
-		print "scrollableTextFieldsElement done"
 	def redraw(self):
 #		self.reset()
 		for field in self.textFields:

@@ -48,6 +48,7 @@ class MODES:
 	ATTACK_MODE = 1
 	SELECT_MODE = 2
 	HEAL_MODE = 3
+	ASTARMOVE_MODE= 4
 SIN60 = 0.86602540378
 COS60 = 0.5
 cityNames = ["Eshnunna","Tutub","Der","Sippar","Sippar-Amnanum","Kutha","Jemde Nasr","Kish","Babilim","Borsippa","Mashkan-shapir","Dilbat","Nippur","Marad","Adab","Isin","Kisurra","Shuruppak","Bad-tibira","Zabalam","Umma","Girsu","Lagash","Urum","Uruk","Larsa","Ur","Kuara","Eridu","Akshak","Akkad","Urfa","Shanidar cave","Urkesh","Shekhna","Arbid","Harran","Chagar Bazar","Kahat","El Fakhariya","Arslan Tash","Carchemish","Til Barsip","Nabada","Nagar","Telul eth-Thalathat","Tepe Gawra","Tell Arpachiyah","Shibaniba","Tarbisu","Ninua","Qatara","Dur Sharrukin","Tell Shemshara","Arbil","Imgur-Enlil","Nimrud","Emar","Arrapha","Kar-Tukulti-Ninurta","Ashur","Nuzi","al-Fakhar","Terqa","Mari","Haradum","Nerebtum","Agrab","Dur-Kurigalzu","Shaduppum","Seleucia","Ctesiphon","Zenobia","Zalabiye","Hasanlu","Takht-i-Suleiman","Behistun","Godin Tepe","Chogha Mish","Tepe Sialk","Susa","Kabnak","Dur Untash","Pasargadai","Naqsh-e Rustam","Parsa","Anshan","Konar Sandal","Tepe Yahya","Miletus","Sfard","Nicaea","Sapinuwa","Yazilikaya","Alaca Hoyuk","Masat Hoyuk","Hattusa","Ilios","Kanesh","Arslantepe","Sam'al","Beycesultan","Adana","Karatepe","Tarsus","Sultantepe","Attalia","Acre","Adoraim","Alalah","Aleppo","Al-Sinnabra","Aphek","Arad Rabbah","Ashdod","Ashkelon","Baalbek","Batroun","Beersheba","Beth Shean","Bet Shemesh","Bethany","Bet-el","Bezer","Byblos","Capernaum","Dan","Dimashq","Deir Alla","Dhiban","Dor","Ebla","En Gedi","Enfeh","Ekron","Et-Tell","Gath","Gezer","Gibeah","Gilgal Refaim","Gubla","Hamath","Hazor","Hebron","Herodion","Jezreel","Kadesh Barnea","Kedesh","Kumidi","Lachish","Megiddo","Qatna","Qumran","Rabat Amon","Samaria","Sarepta","Sharuhen","Shiloh","Sidon","Tadmor","Tirzah","Tyros","Ugarit","Umm el-Marra"]
@@ -625,35 +626,17 @@ class playModeNode(node):
 #			self.visible = True
 	def onLeftClickDown(self):
 		if(gameState.getGameMode().doFocus == 0 or True):
-			if(playModeNode.mode == MODES.ATTACK_MODE):
+			if(playModeNode.mode == MODES.ASTARMOVE_MODE):
+				pass
+			elif(playModeNode.mode == MODES.ATTACK_MODE):
 				gameState.getGameMode().nextUnit.attack(self)
 			elif(playModeNode.mode == MODES.HEAL_MODE):
 				gameState.getGameMode().nextUnit.heal(self)
 			elif(playModeNode.mode == MODES.MOVE_MODE):
 				if(gameState.getGameMode().selectedNode != None and gameState.getGameMode().selectedNode.unit != None and (self.tileValue != cDefines.defines['MOUNTAIN_TILE_INDEX'] or (self.tileValue == cDefines.defines['MOUNTAIN_TILE_INDEX'] and gameState.getGameMode().selectedNode.unit.unitType.canFly))):
-#					if(len(gameState.getGameMode().selectedNode.unit.movePath) > 0):
-#						gameState.getGameMode().selectedNode.unit.gotoNode = None
-#						gameState.movePath = gameState.getGameMode().selectedNode.unit.movePath
-#						gameState.rendererUpdateQueue.put(rendererUpdates.updateMovePath())
-
-#						for node in gameState.getGameMode().selectedNode.unit.movePath:
-#							node.onMovePath = False
-
-
-					gameState.getGameMode().selectedNode.unit.gotoNode = None
-					gameState.getGameMode().selectedNode.unit.movePath = playModeNode.movePath
-					if(len(gameState.getGameMode().selectedNode.unit.movePath) == 0):#movepath wasn't done calculating						
-						if(playModeNode.isNeighbor):
-							gameState.getGameMode().selectedNode.unit.gotoNode = None
-							gameState.getGameMode().selectedNode.unit.movePath = []
-							gameState.getGameMode().selectedNode.unit.movePath.append(self)
-							
-						else:
-							gameState.getGameMode().selectedNode.unit.gotoNode = self
-#							gameState.getGameMode().selectedNode.unit.gotoNode.onMovePath = True
-							gameState.getGameMode().gotoMode = False
-					else:
-						gameState.getGameMode().selectedNode.unit.gotoNode = None
+					gameState.getGameMode().selectedNode.unit.gotoNode = self
+					gameState.getGameMode().selectedNode.unit.movePath = []
+					gameState.doingAStarMove = True
 			else:
 				selectNode(self)
 	def toggleCursor(self):
@@ -683,7 +666,9 @@ class playModeNode(node):
 				gameState.getGameMode().shiftDown,#11
 				gameState.getGameMode().gotoMode,#12
 				)
-			if((not state[0]) or state[7]):
+			if(gameState.doingAStarMove):
+				playModeNode.mode = MODES.ASTARMOVE_MODE
+			elif((not state[0]) or state[7]):
 				gameState.cursorIndex = cDefines.defines['CURSOR_POINTER_INDEX']
 				playModeNode.mode = MODES.SELECT_MODE
 			elif(state[1:7] == (True,True,True,True,True,False)):
@@ -712,11 +697,12 @@ class playModeNode(node):
 							neighbs.append(gameState.getGameMode().map.nodes[self.yPos + yDelta][self.xPos + xDelta])
 		return neighbs
 	def onMouseOver(self):
-#		if(playModeNode.mode == MODES.MOVE_MODE):
-#			self.onMovePath = True
 		if(hasattr(gameState.getGameMode(),"selectedNode") and gameState.getGameMode().selectedNode != None and gameState.getGameMode().selectedNode.unit != None):
 			if(gameState.getGameMode().selectedNode.unit.node.neighbors.count(self) > 0):
 				playModeNode.isNeighbor = True
+				gameState.movePath = []
+				gameState.movePath.append(self)
+				gameState.rendererUpdateQueue.put(rendererUpdates.updateMovePath())
 			else:
 				playModeNode.isNeighbor = False
 		self.toggleCursor()

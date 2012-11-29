@@ -673,34 +673,38 @@ class playMode(tiledGameMode):
 			if((not isAnimating) and self.nextUnit != None and gameState.rendererUpdateQueue.empty()):
 				if(self.nextUnit.ai != None):
 					self.nextUnit.ai.takeTurn()
-				elif(self.nextUnit.isControlled() and len(self.nextUnit.movePath) != 0):
-					if(self.nextUnit.gotoNode != None):
+				elif(self.nextUnit.isControlled()): # and len(self.nextUnit.movePath) != 0):
+					print 'wtf!'
+					if(len(self.nextUnit.movePath) > 0 and self.nextUnit.movementPoints == 0.0):#movementPoints check makes sure that we don't fire twice before chooseNextUnit comes back from server
+						self.nextUnit.move()
+					elif(self.nextUnit.gotoNode != None):
 						if((len(gameLogic.playModeNode.movePath) > 0) and (gameLogic.playModeNode.movePath[0] in self.nextUnit.node.neighbors) and (gameLogic.playModeNode.movePath[-1] == self.nextUnit.gotoNode)):
 							self.nextUnit.movePath = gameLogic.playModeNode.movePath
 							self.nextUnit.gotoNode = None
+							gameState.doingAStarMove = False
 						else:
 							gameLogic.aStarSearch.search(self.nextUnit.gotoNode,self.nextUnit.node,self.nextUnit.unitType.canFly,self.nextUnit.unitType.canSwim)
-					elif(len(self.nextUnit.movePath) > 0 and self.nextUnit.movementPoints == 0.0):#movementPoints check makes sure that we don't fire twice before chooseNextUnit comes back from server
-						self.nextUnit.move()
-				elif(self.nextUnit.isControlled() and len(self.nextUnit.movePath) == 0 and not self.selectedNextUnit):
-					self.selectedNextUnit = True
-					self.soundIndeces.append(cDefines.defines["FINGER_CYMBALS_HIT_INDEX"])
-					gameLogic.selectNode(self.nextUnit.node)
-					gameState.rendererUpdateQueue.put(rendererUpdates.renderSelectNextUnit())
-					if(self.timeToMove <= 0 and self.nextUnit != None and self.nextUnit.isControlled() and self.nextUnit.movementPoints == 0.0):#movementPoints check makes sure that we don't fire twice before chooseNextUnit comes back from server
-						gameState.getClient().sendCommand("skip")
-						gameState.getClient().sendCommand("chooseNextUnit")
-			#				self.nextUnit = None#prevents this block from firing again
-					if(self.players[self.getPlayerNumber()] != None):
-						self.redWoodUIElem.text = str(int(math.floor(self.players[self.getPlayerNumber()].redWood)))
-						self.blueWoodUIElem.text = str(int(math.floor(self.players[self.getPlayerNumber()].blueWood)))
-					if(self.previousTicks != 0 and self.nextUnit != None and self.nextUnit.isControlled()):
-						self.timeToMove = self.timeToMove - (self.ticks - self.previousTicks)
-					self.timeToMoveElem.text = "{0:.2f}".format(self.timeToMove/1000.0)
-					self.previousTicks = self.ticks
-					if(self.ticks - self.lastChatTicks > 6000):
-						self.chatDisplay.hidden = True
-						self.chatDisplay.hideAndShowTextFields()
+							gameState.doingAStarMove = True
+					elif(len(self.nextUnit.movePath) == 0 and not self.selectedNextUnit):
+						self.selectedNextUnit = True
+						self.soundIndeces.append(cDefines.defines["FINGER_CYMBALS_HIT_INDEX"])
+						gameLogic.selectNode(self.nextUnit.node)
+						gameState.rendererUpdateQueue.put(rendererUpdates.renderSelectNextUnit())
+				if(self.timeToMove <= 0 and self.nextUnit != None and self.nextUnit.isControlled() and self.nextUnit.movementPoints == 0.0):#movementPoints check makes sure that we don't fire twice before chooseNextUnit comes back from server
+					gameState.getClient().sendCommand("skip")
+					gameState.getClient().sendCommand("chooseNextUnit")
+				if(self.players[self.getPlayerNumber()] != None):
+					
+					self.redWoodUIElem.text = str(int(math.floor(self.players[self.getPlayerNumber()].redWood)))
+					self.blueWoodUIElem.text = str(int(math.floor(self.players[self.getPlayerNumber()].blueWood)))
+				if(self.previousTicks != 0 and self.nextUnit != None and self.nextUnit.isControlled()):
+					self.timeToMove = self.timeToMove - (self.ticks - self.previousTicks)
+
+				self.timeToMoveElem.text = "{0:.2f}".format(self.timeToMove/1000.0)
+				self.previousTicks = self.ticks
+				if(self.ticks - self.lastChatTicks > 6000):
+					self.chatDisplay.hidden = True
+					self.chatDisplay.hideAndShowTextFields()
 
 	def addUIElements(self):
 		self.players = gameState.getPlayers()
@@ -787,8 +791,8 @@ class mapEditorMode(tiledGameMode):
 class textBasedMenuMode(gameMode):
 	def __init__(self,args):
 		gameMode.__init__(self,args)
-	def handleMouseOver(self,name,isLeftMouseDown):
-		return
+#	def handleMouseOver(self,name,isLeftMouseDown):
+#		return
 	def setFocusedElem(self,elem):
 		return
 	def keyDown(self,keycode):
