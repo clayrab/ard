@@ -637,16 +637,13 @@ class playModeNode(node):
 					gameState.getGameMode().selectedNode.unit.gotoNode = self
 					gameState.getGameMode().selectedNode.unit.movePath = []
 					gameState.doingAStarMove = True
+					gameState.movePath = []
+					gameState.rendererUpdateQueue.put(rendererUpdates.updateMovePath())
 			else:
 				selectNode(self)
 	def toggleCursor(self):
-#		gameState.movePath = []
-#		if(gameState.getGameMode().selectedNode != None and gameState.getGameMode().selectedNode.unit != None and len(gameState.getGameMode().selectedNode.unit.movePath) != 0):
-#			gameState.movePath = gameState.getGameMode().selectedNode.unit.movePath
-#		gameState.rendererUpdateQueue.put(rendererUpdates.updateMovePath())
-
-
-
+		gameState.movePath = []
+		gameState.aStarPath = []
 		if(gameState.getGameMode().doFocus == 1 or gameState.getGameMode().selectedNode == None or gameState.getGameMode().selectedNode.unit == None or gameState.getGameMode().selectedNode.unit.isMeditating or not gameState.getGameMode().selectedNode.unit.isControlled()):
 			gameState.cursorIndex = cDefines.defines['CURSOR_POINTER_INDEX']
 			playModeNode.mode = MODES.SELECT_MODE
@@ -682,11 +679,13 @@ class playModeNode(node):
 				#is neighbor or gotoMode and not a mountain or is mountain and canFly
 				gameState.cursorIndex = cDefines.defines['CURSOR_MOVE_INDEX']
 				playModeNode.mode = MODES.MOVE_MODE
-#				self.onMovePath = True
+				gameState.movePath.append(self)
 				aStarSearch.search(self,gameState.getGameMode().selectedNode,gameState.getGameMode().selectedNode.unit.unitType.canFly,gameState.getGameMode().selectedNode.unit.unitType.canSwim)
 			else:
 				gameState.cursorIndex = cDefines.defines['CURSOR_POINTER_INDEX']
 				playModeNode.mode = MODES.SELECT_MODE
+		gameState.rendererUpdateQueue.put(rendererUpdates.updateMovePath())
+		gameState.rendererUpdateQueue.put(rendererUpdates.updateAStarPath())
 	def getNeighbors(self,distance):
 		neighbs = []
 		for xDelta in range(0-distance,distance):
@@ -702,13 +701,7 @@ class playModeNode(node):
 				playModeNode.isNeighbor = True
 			else:
 				playModeNode.isNeighbor = False
-		if(playModeNode.mode == MODES.MOVE_MODE):
-			gameState.movePath = []
-			gameState.movePath.append(self)
-			gameState.rendererUpdateQueue.put(rendererUpdates.updateMovePath())
 		self.toggleCursor()
-#	def onMouseOut(self):
-#		self.onMovePath = False
 	def onKeyUp(self,keycode):
 		self.toggleCursor()
 
@@ -741,14 +734,6 @@ class mapEditorNode(node):
 				else:
 					self.tileValue = gameState.getGameMode().selectedButton.tileType
 			else:
-#				if(self.playerStartValue == gameState.getGameMode().selectedButton.playerNumber):
-#					self.playerStartValue = 0
-#					if(gameState.getGameMode().map.numPlayers == gameState.getGameMode().selectedButton.playerNumber and gameState.getGameMode().map.numPlayers != 1):
-#						for button in playerStartLocationButton.playerStartLocationButtons:
-#							if(button.playerNumber == gameState.getGameMode().map.numPlayers + 1):
-#								button.color = "55 55 55"
-#						gameState.getGameMode().map.numPlayers = gameState.getGameMode().map.numPlayers - 1
-#				else:
 				if(self.playerStartValue != gameState.getGameMode().selectedButton.playerNumber):	
 					for row in gameState.getGameMode().map.nodes:
 						for node in row:
@@ -757,7 +742,6 @@ class mapEditorNode(node):
 					self.playerStartValue = gameState.getGameMode().selectedButton.playerNumber
 
 class mapViewNode(node):
-#	def __init__(self)
 	def onClick(self):
 		selectNode(self)			
 
