@@ -2469,17 +2469,21 @@ static void draw(){
   doViewport();
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-  glGetIntegerv(GL_VIEWPORT,viewport);
-  gluPerspective(45.0f,(float)viewport[2]/(float)viewport[3],minZoom,maxZoom);
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
+
   glColor3f(0.0,0.0,0.0);
+  //  glBindTexture(GL_TEXTURE_2D, texturesArray[HEALTH_BAR_INDEX]);
   glBegin(GL_QUADS);
-  glTexCoord2f(0.0,0.0); glVertex3f(-1.0,-1.0,-1.01);
-  glTexCoord2f(1.0,0.0); glVertex3f(1.0,-1.0,-1.01);
-  glTexCoord2f(1.0,1.0); glVertex3f(1.0,1.0,-1.01);
-  glTexCoord2f(0.0,1.0); glVertex3f(-1.0,1.0,-1.01);
+  glTexCoord2f(0.0,0.0); glVertex3f(-1.0,-1.0,0.0);//-11.01);
+  glTexCoord2f(1.0,0.0); glVertex3f(1.0,-1.0,0.0);//-11.01);
+  glTexCoord2f(1.0,1.0); glVertex3f(1.0,1.0,0.0);
+  glTexCoord2f(0.0,1.0); glVertex3f(-1.0,1.0,0.0);
   glEnd();
+
+  glGetIntegerv(GL_VIEWPORT,viewport);
+  gluPerspective(45.0f,(float)viewport[2]/(float)viewport[3],minZoom,maxZoom);
+
   glTranslatef(translateX,translateY,translateZ);
   drawBoard();
   
