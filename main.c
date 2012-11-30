@@ -304,22 +304,6 @@ SDL_mutex * clickScrollMutex;//protects clickScroll
 SDL_mutex * viewportModeMutex;//protects viewportMode
 SDL_mutex * chooseNextDelayedMutex;//protects chooseNextDelayed and chooseNextStartTime
 
-/*
-pthread_mutex_t pythonCallbackMutex;
-pthread_mutex_t unitsMutex;//protects theUnits
-pthread_mutex_t animationsMutex;//protects animQueue
-pthread_mutex_t modalAnimationsMutex;//protects modalAnimQueue
-pthread_mutex_t uiElementsMutex;//protects uiElements
-pthread_mutex_t movePathMutex;//protects movePath
-pthread_mutex_t aStarMutex;//protects movePath
-pthread_mutex_t selectedNodeMutex;//protects selectedNode
-pthread_mutex_t backgroundImageMutex;//protects backgroundImageIndex
-pthread_mutex_t mapMutex;//protects theMap
-pthread_mutex_t exitMutex;//protects doQuit
-pthread_mutex_t clickScrollMutex;//protects clickScroll
-pthread_mutex_t viewportModeMutex;//protects viewportMode
-pthread_mutex_t chooseNextDelayedMutex;//protects chooseNextDelayed and chooseNextStartTime
-*/
 int rowNumber;
 PyObject * pyNode;
 PyObject * row;
@@ -802,21 +786,21 @@ void loadMap(){
 }
 MOVEPATHNODE * movePath = NULL;
 MOVEPATHNODE * aStarPath = NULL;
-MOVEPATHNODE * nextMovePathNode;
 MOVEPATHNODE * tempPathNode;
 addMovePathNode(PyObject * pyNode, MOVEPATHNODE ** path){
-  MOVEPATHNODE * movePathNode = (MOVEPATHNODE *)malloc(sizeof(MOVEPATHNODE));
   pyXPosition = PyObject_GetAttrString(pyNode,"xPos");
   colNumber = 0-PyLong_AsLong(pyXPosition);
   Py_DECREF(pyXPosition);
   pyYPosition = PyObject_GetAttrString(pyNode,"yPos");
   rowNumber = PyLong_AsLong(pyYPosition);
-  Py_DECREF(pyYPosition);  
+  Py_DECREF(pyYPosition);
+  MOVEPATHNODE * movePathNode = (MOVEPATHNODE *)malloc(sizeof(MOVEPATHNODE));
   movePathNode->xPos = translateTilesXToPositionX(colNumber,rowNumber);
   movePathNode->yPos = translateTilesYToPositionY(rowNumber);
   movePathNode->nextNode = *(path);
   *(path) = movePathNode;
 }
+MOVEPATHNODE * nextMovePathNode;
 freeMovePath(MOVEPATHNODE ** path){
   nextMovePathNode = *(path);
   while(nextMovePathNode != NULL){
@@ -1114,14 +1098,12 @@ void drawTilesText(){
   }
   unitNamesCount = 0;*/
 }
-
+MOVEPATHNODE * nextMovePathNoed;
 void drawMovePath(MOVEPATHNODE ** path){
-  //  printf("draw move path%d\n",1);
-  nextMovePathNode = *(path);
-  while(nextMovePathNode != NULL){
-    //    printf("draw move path node%d\n",1);
+  nextMovePathNoed = *(path);
+  while(nextMovePathNoed != NULL){
     glPushMatrix();
-    glTranslatef(nextMovePathNode->xPos,nextMovePathNode->yPos,0.0);
+    glTranslatef(nextMovePathNoed->xPos,nextMovePathNoed->yPos,0.0);
     glBindTexture(GL_TEXTURE_2D, texturesArray[WALK_ICON_INDEX]);
     glColor3f(1.0f, 0.0f, 0.0f);
     glBegin(GL_QUADS);
@@ -1130,8 +1112,8 @@ void drawMovePath(MOVEPATHNODE ** path){
     glTexCoord2f(1.0,1.0); glVertex3f(-0.5,0.5,0.0);
     glTexCoord2f(0.0,1.0); glVertex3f(0.5,0.5,0.0);
     glEnd();
-    glPopMatrix();    
-    nextMovePathNode = nextMovePathNode->nextNode;
+    glPopMatrix();
+    nextMovePathNoed = nextMovePathNoed->nextNode;
   }
 }
 void drawSelectionBox(){
@@ -2376,9 +2358,10 @@ static void getPythonUpdates(){
     Py_DECREF(pyUpdate);    
     pyUpdatesQueueEmpty = PyObject_CallMethod(pyUpdatesQueue,"empty",NULL);
   } 
+  Py_DECREF(pyUpdatesQueue);
+  Py_DECREF(pyUpdatesQueueEmpty);
 }
 static void draw(){
-  Py_DECREF(pyUpdatesQueue);
   SDL_mutexP(modalAnimationsMutex);
   if(modalAnimQueue != NULL && !isFocusing && !isSliding){//> 0 items
     isAnimating = 1;
@@ -2540,7 +2523,7 @@ static void mainLoop (){
     //    printf("%d\n",0);
     deltaTicks = SDL_GetTicks()-currentTick;
     currentTick = SDL_GetTicks();
-    //printf("%d\n",-1);
+    ////printf("%d\n",-1);
     draw();
     //printf("%d\n",-2);
     handleInput();
@@ -2556,20 +2539,20 @@ static void mainLoop (){
 int pyQuit = 0;
 int pythonThread(void * data){
   while(!pyQuit){
-    //printf("%d\n",1);
+    //    printf("%d\n",1);
     fetchPyGameMode();
-    //printf("%d\n",2);
+    //    printf("%d\n",2);
     getPythonUpdates();
-    //printf("%d\n",3);
+    //    printf("%d\n",3);
     dispatchPythonCallbacks();
-    //printf("%d\n",4);
+    //    printf("%d\n",4);
     PyObject_SetAttrString(gameMode,"ticks",PyLong_FromLong(SDL_GetTicks()));
     SDL_mutexP(exitMutex);
     if(doQuit){
       pyQuit = 1;
     }
     SDL_mutexV(exitMutex);
-    //    sleep(1.0);
+    //    sleep(0.01);
   }  
 }
 static void initPython(){

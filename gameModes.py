@@ -674,7 +674,6 @@ class playMode(tiledGameMode):
 				if(self.nextUnit.ai != None):
 					self.nextUnit.ai.takeTurn()
 				elif(self.nextUnit.isControlled()): # and len(self.nextUnit.movePath) != 0):
-					print 'wtf!'
 					if(len(self.nextUnit.movePath) > 0 and self.nextUnit.movementPoints == 0.0):#movementPoints check makes sure that we don't fire twice before chooseNextUnit comes back from server
 						self.nextUnit.move()
 					elif(self.nextUnit.gotoNode != None):

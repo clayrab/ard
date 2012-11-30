@@ -700,11 +700,12 @@ class playModeNode(node):
 		if(hasattr(gameState.getGameMode(),"selectedNode") and gameState.getGameMode().selectedNode != None and gameState.getGameMode().selectedNode.unit != None):
 			if(gameState.getGameMode().selectedNode.unit.node.neighbors.count(self) > 0):
 				playModeNode.isNeighbor = True
-				gameState.movePath = []
-				gameState.movePath.append(self)
-				gameState.rendererUpdateQueue.put(rendererUpdates.updateMovePath())
 			else:
 				playModeNode.isNeighbor = False
+		if(playModeNode.mode == MODES.MOVE_MODE):
+			gameState.movePath = []
+			gameState.movePath.append(self)
+			gameState.rendererUpdateQueue.put(rendererUpdates.updateMovePath())
 		self.toggleCursor()
 #	def onMouseOut(self):
 #		self.onMovePath = False
