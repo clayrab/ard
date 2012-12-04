@@ -1,5 +1,6 @@
 #!/bin/bash
 gcc -Wno-overflow -arch x86_64 -lz -framework SDL -framework SDL_mixer -framework Cocoa -framework libpng12 -framework openGl -Iinclude/SDL/ -Iinclude/SDL_mixer -lpython2.6 main.c -lSDLmain include/SDLMain.m lib/libfreetypeosx.a -D isWindows=0
+#gcc -arch x86_64 -lz -lSDLmain -lSDL -Wl,-framework,Cocoa -D_THREAD_SAFE -Wno-overflow -framework SDL_mixer  -framework libpng12 -framework openGl -Iinclude/SDL/ -Iinclude/SDL_mixer -lpython2.6 main.c lib/libfreetypeosx.a -D isWindows=0
 
 
 

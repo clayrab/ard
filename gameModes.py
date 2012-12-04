@@ -703,6 +703,9 @@ class playMode(tiledGameMode):
 					
 					self.redWoodUIElem.text = str(int(math.floor(self.players[self.getPlayerNumber()].redWood)))
 					self.blueWoodUIElem.text = str(int(math.floor(self.players[self.getPlayerNumber()].blueWood)))
+					gameState.rendererUpdateQueue.put(rendererUpdates.updateUIElem(self.redWoodUIElem))		
+					gameState.rendererUpdateQueue.put(rendererUpdates.updateUIElem(self.blueWoodUIElem))
+					
 
 	def addUIElements(self):
 		self.players = gameState.getPlayers()
