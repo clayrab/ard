@@ -51,12 +51,8 @@ int quit = 0;
 int moveUp = 0;
 int moveRight = 0;
 int currentTick = 0;
+int pythonCurrentTick = 0;
 int deltaTicks = 0;
-int testTicks1 = 0;
-int testTicks2 = 0;
-int testTicks3 = 0;
-int testTicks4 = 0;
-int testTicks5 = 0;
 int avgDeltaTicks = 0;
 int totalDeltaTicksDataPoints = 0;
 
@@ -303,6 +299,7 @@ SDL_mutex * exitMutex;//protects doQuit
 SDL_mutex * clickScrollMutex;//protects clickScroll
 SDL_mutex * viewportModeMutex;//protects viewportMode
 SDL_mutex * chooseNextDelayedMutex;//protects chooseNextDelayed and chooseNextStartTime
+SDL_mutex * currentTickMutex;//protects pythonCurrentTick
 
 int rowNumber;
 PyObject * pyNode;
@@ -624,7 +621,6 @@ char * unitId;
 struct unit * daNextUnit;
 struct unit * daPrevUnit;
 void removeUnit(PyObject * pyUnit){
-  printf("removeUnit%d\n",1);
   pyId = PyObject_GetAttrString(pyUnit,"id");
   pyObj = PyObject_GetAttrString(pyId,"hex");
   unitId = PyString_AsString(pyObj);
@@ -676,7 +672,7 @@ void updateUnit(PyObject * pyUnit){
   if(unitHealthPrev != daNextUnit->health){
     ANIMATION * theAnim = malloc(sizeof(ANIMATION));
     theAnim->type = ANIMATION_DAMAGE;
-    theAnim->time = SDL_GetTicks();
+    theAnim->time = pythonCurrentTick;
     theAnim->unit = daNextUnit;
     theAnim->damage = unitHealthPrev - daNextUnit->health;
     animQueue = AddItem(animQueue,theAnim);
@@ -857,9 +853,6 @@ setBackgroundImage(){
 
 
 
-void testTicks(char * label, long ticksCounter){
-  printf("%s:\t%ld\n",label,SDL_GetTicks() - ticksCounter); ticksCounter = SDL_GetTicks(); 
-}
 GLuint *bufferPtr,*ptrNames, numberOfNames;
 int count;
 int nameValue;
@@ -1260,7 +1253,6 @@ void calculateTranslation(){
   mouseMapPosXPrevious = mouseMapPosX;
   mouseMapPosYPrevious = mouseMapPosY;
   convertWindowCoordsToViewportCoords(mouseX,mouseY,translateZ,&mouseMapPosX,&mouseMapPosY,&mouseMapPosZ);  
-//  printf("****** d:    \t%d\n",SDL_GetTicks() - testTicks5); testTicks5 = SDL_GetTicks(); 
   if(translateZ > translateZPrev){
     translateX = translateX + mouseMapPosX - mouseMapPosXPrevious;
     translateY = translateY + mouseMapPosY - mouseMapPosYPrevious;
@@ -2351,7 +2343,8 @@ static void getPythonUpdates(){
       Py_DECREF(pyMode);
     }else if(updateType == RENDERER_SETCHOOSENEXTDELAYED){
       SDL_mutexP(chooseNextDelayedMutex);
-      chooseNextTimeStart = SDL_GetTicks();
+      
+      chooseNextTimeStart = pythonCurrentTick;
       chooseNextDelayed = 1;
       SDL_mutexV(chooseNextDelayedMutex);
     }
@@ -2442,7 +2435,6 @@ static void draw(){
   glLoadIdentity();
 
   hitsCnt = glRenderMode(GL_RENDER);
-//  printf("**** selectc:      \t%d\n",SDL_GetTicks() - testTicks2); testTicks2 = SDL_GetTicks(); 
   processTheHits(hitsCnt,selectBuf);
   selectedNodeName = selectedName;
 
@@ -2527,6 +2519,10 @@ static void mainLoop (){
     //    printf("%d\n",0);
     deltaTicks = SDL_GetTicks()-currentTick;
     currentTick = SDL_GetTicks();
+    SDL_mutexP(currentTickMutex);
+    pythonCurrentTick = currentTick;
+    SDL_mutexV(currentTickMutex);
+    
     ////printf("%d\n",-1);
     draw();
     //printf("%d\n",-2);
@@ -2550,7 +2546,7 @@ int pythonThread(void * data){
     //    printf("%d\n",3);
     dispatchPythonCallbacks();
     //    printf("%d\n",4);
-    PyObject_SetAttrString(gameMode,"ticks",PyLong_FromLong(SDL_GetTicks()));
+    PyObject_SetAttrString(gameMode,"ticks",PyLong_FromLong(pythonCurrentTick));
     SDL_mutexP(exitMutex);
     if(doQuit){
       pyQuit = 1;
@@ -2644,7 +2640,7 @@ int main(int argc, char **argv){
   clickScrollMutex = SDL_CreateMutex();
   viewportModeMutex = SDL_CreateMutex();
   chooseNextDelayedMutex = SDL_CreateMutex();
-
+  currentTickMutex = SDL_CreateMutex();
   SDL_mutexP(mapMutex);//don't really need this yet, but putting it here for consistency's sake
   theMap.nodes = NULL;
   SDL_mutexV(mapMutex);

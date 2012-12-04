@@ -686,28 +686,30 @@ class playMode(tiledGameMode):
 						self.soundIndeces.append(cDefines.defines["FINGER_CYMBALS_HIT_INDEX"])
 						gameLogic.selectNode(self.nextUnit.node)
 						gameState.rendererUpdateQueue.put(rendererUpdates.renderSelectNextUnit())
-				if(self.timeToMove <= 0 and self.nextUnit != None and self.nextUnit.isControlled() and self.nextUnit.movementPoints == 0.0):#movementPoints check makes sure that we don't fire twice before chooseNextUnit comes back from server
-					gameState.getClient().sendCommand("skip")
-					gameState.getClient().sendCommand("chooseNextUnit")
+					if(self.timeToMove <= 0 and self.nextUnit != None and self.nextUnit.isControlled() and self.nextUnit.movementPoints == 0.0):#movementPoints check makes sure that we don't fire twice before chooseNextUnit comes back from server
+						gameState.getClient().sendCommand("skip")
+						gameState.getClient().sendCommand("chooseNextUnit")
+					if(self.previousTicks != 0 and self.nextUnit != None and self.nextUnit.isControlled()):
+						self.timeToMove = self.timeToMove - (self.ticks - self.previousTicks)
+						self.timeToMoveElem.text = "{0:.2f}".format(self.timeToMove/1000.0)
+						gameState.rendererUpdateQueue.put(rendererUpdates.updateUIElem(self.timeToMoveElem))		
+
+					self.previousTicks = self.ticks
+					if(self.ticks - self.lastChatTicks > 6000):
+						self.chatDisplay.hidden = True
+						self.chatDisplay.hideAndShowTextFields()
+
 				if(self.players[self.getPlayerNumber()] != None):
 					
 					self.redWoodUIElem.text = str(int(math.floor(self.players[self.getPlayerNumber()].redWood)))
 					self.blueWoodUIElem.text = str(int(math.floor(self.players[self.getPlayerNumber()].blueWood)))
-				if(self.previousTicks != 0 and self.nextUnit != None and self.nextUnit.isControlled()):
-					self.timeToMove = self.timeToMove - (self.ticks - self.previousTicks)
-
-				self.timeToMoveElem.text = "{0:.2f}".format(self.timeToMove/1000.0)
-				self.previousTicks = self.ticks
-				if(self.ticks - self.lastChatTicks > 6000):
-					self.chatDisplay.hidden = True
-					self.chatDisplay.hideAndShowTextFields()
 
 	def addUIElements(self):
 		self.players = gameState.getPlayers()
 #		uiElements.uiElement(0.718,-0.932,textureIndex=texIndex("CHECKBOXES_BACKGROUND"),width=texWidth("CHECKBOXES_BACKGROUND"),height=texHeight("CHECKBOXES_BACKGROUND"))
 #		self.autoSelectCheckBox = uiElements.autoSelectCheckBox(0.735,-0.94)
 		uiElements.uiElement(0.395,0.985,textureIndex=texIndex("TIME_ICON"),width=texWidth("TIME_ICON")/2.0,height=texHeight("TIME_ICON")/2.0)
-		self.timeToMoveElem = uiElements.uiElement(0.439,0.942,text="",textSize=0.0007)
+		self.timeToMoveElem = uiElements.uiElement(0.439,0.942,text="{0:.2f}".format(self.timeToMove/1000.0),textSize=0.0007)
 		uiElements.uiElement(0.595,0.985,textureIndex=texIndex("RED_WOOD_ICON"),width=texWidth("RED_WOOD_ICON")/2.0,height=texHeight("RED_WOOD_ICON")/2.0)
 		self.redWoodUIElem = uiElements.uiElement(0.639,0.942,text=str(self.players[0].redWood),textSize=0.0007)
 		uiElements.uiElement(0.755,0.985,textureIndex=texIndex("BLUE_WOOD_ICON"),width=texWidth("BLUE_WOOD_ICON")/2.0,height=texHeight("BLUE_WOOD_ICON")/2.0)

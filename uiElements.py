@@ -348,7 +348,7 @@ class cityViewerButton(clickableElement):
 		node = viewer.theViewer.node
 		viewer.theViewer.destroy()
 		viewer.theViewer = cityViewer(node)
-
+#		gameState.rendererUpdateQueue.put(rendererUpdates.updateUIElem(viewer.theViewer))
 class cancelButton(clickableElement):
 	def __init__(self,xPos,yPos,index):
 		clickableElement.__init__(self,xPos,yPos,height=texHeight('CANCEL_BUTTON'),width=texWidth('CANCEL_BUTTON'),textureIndex=texIndex('CANCEL_BUTTON'))	
