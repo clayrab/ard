@@ -633,7 +633,7 @@ class playModeNode(node):
 			elif(playModeNode.mode == MODES.HEAL_MODE):
 				gameState.getGameMode().nextUnit.heal(self)
 			elif(playModeNode.mode == MODES.MOVE_MODE):
-				if(gameState.getGameMode().selectedNode != None and gameState.getGameMode().selectedNode.unit != None and (self.tileValue != cDefines.defines['MOUNTAIN_TILE_INDEX'] or (self.tileValue == cDefines.defines['MOUNTAIN_TILE_INDEX'] and gameState.getGameMode().selectedNode.unit.unitType.canFly))):
+				if(gameState.getGameMode().selectedNode != None and gameState.getGameMode().selectedNode.unit != None and (not self.visible or self.unit == None) and (self.tileValue != cDefines.defines['MOUNTAIN_TILE_INDEX'] or (self.tileValue == cDefines.defines['MOUNTAIN_TILE_INDEX'] and gameState.getGameMode().selectedNode.unit.unitType.canFly))):
 					gameState.getGameMode().selectedNode.unit.gotoNode = self
 					gameState.getGameMode().selectedNode.unit.movePath = []
 					gameState.doingAStarMove = True
@@ -649,7 +649,7 @@ class playModeNode(node):
 			playModeNode.mode = MODES.SELECT_MODE
 		else:
 			state = (
-				gameState.getGameMode().selectedNode.unit != None,#0
+				gameState.getGameMode().selectedNode.unit != None,#0 Dont' actually need this since it's guaranteed by the outer if/else
 				gameState.getGameMode().selectedNode.unit == gameState.getGameMode().nextUnit,#1
 				gameState.getGameMode().selectedNode.unit.isControlled(),#2
 				self.findDistance(gameState.getGameMode().selectedNode,gameState.getGameMode().map.polarity) <= float(gameState.getGameMode().selectedNode.unit.unitType.range),#3
@@ -665,7 +665,7 @@ class playModeNode(node):
 				)
 			if(gameState.doingAStarMove):
 				playModeNode.mode = MODES.ASTARMOVE_MODE
-			elif((not state[0]) or state[7]):
+			elif(not state[2]):
 				gameState.cursorIndex = cDefines.defines['CURSOR_POINTER_INDEX']
 				playModeNode.mode = MODES.SELECT_MODE
 			elif(state[1:7] == (True,True,True,True,True,False)):
@@ -675,7 +675,8 @@ class playModeNode(node):
 				gameState.cursorIndex = cDefines.defines['CURSOR_HEAL_INDEX']
 				playModeNode.mode = MODES.HEAL_MODE
 #			elif(((not state[4]) and ( (state[2] and state[12]) or (state[1] and state[2] and state[10] and (not state[11])) ) and ( (not state[8]) or (state[6:8] == (True,True)) ) )):
-			elif(((not state[4]) and ( (state[2] and state[12]) or (state[1] and state[2] and state[10] and (not state[11])) ) )):
+#			elif(((not state[4]) and ( (state[2] and state[12]) or (state[1] and state[2] and state[10] and (not state[11])) ) )):
+			elif(state[1] and state[2]):
 				#is neighbor or gotoMode and not a mountain or is mountain and canFly
 				gameState.cursorIndex = cDefines.defines['CURSOR_MOVE_INDEX']
 				playModeNode.mode = MODES.MOVE_MODE

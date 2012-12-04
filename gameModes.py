@@ -576,7 +576,7 @@ class playMode(tiledGameMode):
 				columnCount = columnCount + 1
 				if(node.playerStartValue != 0):
 					node.addUnit(gameLogic.unit(gameState.theUnitTypes["summoner"],node.playerStartValue-1,node,1))
-					for x in range(0,0):
+					for x in range(0,1):
 						node.addUnit(gameLogic.unit(gameState.theUnitTypes["gatherer"],node.playerStartValue-1,node,1))
 					node.addUnit(gameLogic.unit(gameState.theUnitTypes["swordsman"],node.playerStartValue-1,node,1))
 
@@ -614,21 +614,18 @@ class playMode(tiledGameMode):
 			if(keycode == "`"):
 				gameState.rendererUpdateQueue.put(rendererUpdates.clickScroll())
 #				self.clickScroll = True
-#			elif(keycode == "a" or keycode == "A"):
+#			elif(keycode.upper() == "A"):
 #				self.autoSelectCheckBox.onClick()
-			elif(keycode == "g" or keycode == "G"):
+			elif(keycode.upper() == "G"):
 				if(not self.gotoMode):
 					if(self.selectedNode != None and self.selectedNode.unit != None):
 						self.gotoMode = True
 				else:
 						self.gotoMode = False
-			elif(keycode == "k" or keycode == "K"):
+			elif(keycode.upper() == "S"):
 				if(self.nextUnit == self.selectedNode.unit):
 					uiElements.skip()
-			elif(keycode == "d" or keycode == "D"):
-				if(self.nextUnit == self.selectedNode.unit and self.nextUnit.isMeditating and self.nextUnit.unitType.name == "summoner"):
-					uiElements.skip()
-			elif(keycode == "s" or keycode == "S"):
+			elif(keycode.upper() == "D"):
 				if(self.selectedNode != None and self.nextUnit == self.selectedNode.unit and self.nextUnit.unitType.name == "gatherer" and (self.selectedNode.tileValue == cDefines.defines["RED_FOREST_TILE_INDEX"] or self.selectedNode.tileValue == cDefines.defines["BLUE_FOREST_TILE_INDEX"])):
 					uiElements.startGathering()
 #				if(self.nextUnit == self.selectedNode.unit and self.nextUnit.unitType.name == "summoner" and (self.selectedNode.city != None)):
