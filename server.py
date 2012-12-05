@@ -8,7 +8,6 @@ import client
 import uiElements
 import gameFindClient
 import gameLogic
-import ai
 
 serverLock = threading.Lock()
 server = None
@@ -25,18 +24,6 @@ def addNetworkPlayer(requestHandler):
             player = gameState.addPlayer(playerClass=gameLogic.NetworkPlayer,playerNumber=i,requestHandler=requestHandler)
             break
     return player
-
-def addAIPlayer():
-    players = gameState.getPlayers()
-    for i in range(0,8):
-        if(players[i] == None):
-            aiPlayer = gameState.addPlayer(playerClass=gameLogic.AIPlayer,playerNumber=i,requestHandler=None)
-            break
-    gameState.addAIPlayer(aiPlayer)
-    for player in gameState.getPlayers():
-        if(player != None):
-            player.dispatchCommand("addPlayer -1 " + str(aiPlayer.playerNumber) + ":" + aiPlayer.userName)
-    return aiPlayer
 
 def removeNetworkPlayer(player):
     #todo: need ot notify players of playernumber changes too
@@ -152,7 +139,7 @@ def startServer(serverIP,port=0):
         gameState.resetPlayers()
         gameState.resetAIs()
         gameState.resetPlayerUserNames()
-        gameLogic.AIPlayer.nextAINumber = 1
+        gameState.nextAINumber = 1
         if(server == None):
             if(port == 0):
                 port = int(gameState.getConfig()["serverPort"])

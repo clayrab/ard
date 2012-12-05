@@ -96,7 +96,7 @@ class uiElement(object):
 			for name in self.names:
 				gameState.getGameMode().elementsDict[name].destroy()
 			self.names = []
-		gameState.rendererUpdateQueue.put(rendererUpdates.removeUIElem(self))			
+		gameState.rendererUpdateQueue.put(rendererUpdates.removeUIElem(self))
 		del gameState.getGameMode().elementsDict[self.name]
 		gameState.getGameMode().resortElems = True
 
@@ -112,7 +112,7 @@ class playerElement(clickableElement):
 		if(self.text == "empty"):
 			gameState.getClient().sendCommand("changePlayerNumber",str(gameState.getPlayerNumber()) + ":" + str(self.playerNumber))
 
-class saveButton(clickableElement):	
+class saveButtonDEPRECATED(clickableElement):	
 	def onClick(self):
 		gameState.getGameMode().map.save()
 
@@ -121,11 +121,14 @@ class addColumnButton(clickableElement):
 	def onClick(self):
 		for row in gameState.getGameMode().map.nodes:
 			row.append(gameLogic.mapEditorNode(0,0))
+		gameState.rendererUpdateQueue.put(rendererUpdates.loadMap())
+
 
 class removeColumnButton(clickableElement):
 	def onClick(self):
 		for row in gameState.getGameMode().map.nodes:
 			row.pop()
+		gameState.rendererUpdateQueue.put(rendererUpdates.loadMap())
 
 class addFirstColumnButton(clickableElement):
 	def onClick(self):
@@ -135,6 +138,7 @@ class addFirstColumnButton(clickableElement):
 			rowCopy.append(gameLogic.mapEditorNode(0,0))
 			rowCopy.reverse()
 			gameState.getGameMode().map.nodes[count] = rowCopy
+		gameState.rendererUpdateQueue.put(rendererUpdates.loadMap())
 
 class removeFirstColumnButton(clickableElement):
 	def onClick(self):
@@ -144,6 +148,7 @@ class removeFirstColumnButton(clickableElement):
 			rowCopy.pop()
 			rowCopy.reverse()
 			gameState.getGameMode().map.nodes[count] = rowCopy
+		gameState.rendererUpdateQueue.put(rendererUpdates.loadMap())
 
 class addRowButton(clickableElement):
 	def onClick(self):
@@ -151,10 +156,12 @@ class addRowButton(clickableElement):
 		for count in range(0,len(gameState.getGameMode().map.nodes[0])):
 			newRow.append(gameLogic.mapEditorNode(0,0))
 		gameState.getGameMode().map.nodes.append(newRow)
+		gameState.rendererUpdateQueue.put(rendererUpdates.loadMap())
 
 class removeRowButton(clickableElement):
 	def onClick(self):
 		gameState.getGameMode().map.nodes.pop()
+		gameState.rendererUpdateQueue.put(rendererUpdates.loadMap())
 
 class addFirstRowButton(clickableElement):
 	def onClick(self):
@@ -167,6 +174,7 @@ class addFirstRowButton(clickableElement):
 		nodesCopy.reverse()
 		gameState.getGameMode().map.polarity = (~gameState.getGameMode().map.polarity)&1
 		gameState.getGameMode().map.nodes = nodesCopy
+		gameState.rendererUpdateQueue.put(rendererUpdates.loadMap())
 
 class removeFirstRowButton(clickableElement):
 	def onClick(self):
@@ -176,6 +184,7 @@ class removeFirstRowButton(clickableElement):
 		nodesCopy.reverse()
 		gameState.getGameMode().map.polarity = (~gameState.getGameMode().map.polarity)&1
 		gameState.getGameMode().map.nodes = nodesCopy
+		gameState.rendererUpdateQueue.put(rendererUpdates.loadMap())
 
 class textInputElement(uiElement):
 	elements = []
@@ -709,7 +718,7 @@ class cityEditor(uiElement):
 		cityEditor.theCityEditor = cityEditor(cityEditor.theCityEditor.city)
 
 class mapEditorTileSelectUIElement(uiElement):
-	def __init__(self,xPos,yPos,width=0.0,height=0.0,textureIndex=-1,hidden=False,tileType=0,playerNumber=-1):
+	def __init__(self,xPos,yPos,width=0.0866,height=0.10,textureIndex=-1,hidden=False,tileType=0,playerNumber=-1):
 		uiElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,cursorIndex=texIndex('CURSOR_POINTER_ON'))
 		self.tileType = tileType
 		self.selected = False
@@ -1236,7 +1245,7 @@ class menuButtonGameModeSelector(menuButton):
 		gameState.setGameMode(self.gameMode)
 		gameState.getGameMode().soundIndeces.append(cDefines.defines["DARBUKA_HIT_INDEX"])
 
-class mapEditSelectButton(menuButtonGameModeSelector):
+class mapEditSelectButtonDEPRECATED(menuButtonGameModeSelector):
 	def onClick(self):
 		if(self.text == "create new map"):#TODO: someone naming a map "create new map" would fuck this up, break this into separate classes
 			gameState.setGameMode(self.gameMode)
@@ -1432,6 +1441,13 @@ class doSaveGameButton(inGameMenuButton):
 		gameLogic.saveGame(self.modal.saveNameInput.realText)
 		self.modal.destroy()
 
+class saveMapButton(inGameMenuButton):
+	def __init__(self,modal,xPos,yPos,text="Save"):
+		inGameMenuButton.__init__(self,modal,xPos,yPos,text=text)
+	def onClick(self):
+		gameState.getGameMode().map.save()
+		self.modal.destroy()
+
 class saveNameInput(modalTextInput):
 	def onKeyDown(self,keycode):
 		if(keycode == "return"):
@@ -1458,16 +1474,13 @@ class cancelSaveButton(inGameMenuButton):
 
 class modal(uiElement):
 	def destroy(self):
-		del gameState.getGameMode().elementsDict[self.name]
-		for name in self.names:
-			del gameState.getGameMode().elementsDict[name]
 		if(hasattr(self,"textElem")):
-			   del gameState.getGameMode().elementsDict[self.textElem.name]
+			   gameState.getGameMode().elementsDict[self.textElem.name].destroy()
 		if(hasattr(self,"backgroundElem")):
-			del gameState.getGameMode().elementsDict[self.backgroundElem.name]
+			gameState.getGameMode().elementsDict[self.backgroundElem.name].destroy()
 		if(hasattr(self,"buttonElem")):
-			del gameState.getGameMode().elementsDict[self.buttonElem.name]
-		gameState.getGameMode().resortElems = True
+			gameState.getGameMode().elementsDict[self.buttonElem.name].destroy()
+		uiElement.destroy(self)
 		gameState.getGameMode().modal = None
 		gameState.getGameMode().elementWithFocus = None
 
@@ -1501,13 +1514,23 @@ class menuModal(modal):
 		self.names.append(self.exitButton.name)
 		gameState.getGameMode().modal = self
 
+class mapEditorMenuModal(modal):
+	def __init__(self,dismissable=True):
+		uiElement.__init__(self,-1.0,1.0,width=texWidth("MENU_MODAL"),height=texHeight("MENU_MODAL"),textureIndex=texIndex("MENU_MODAL"))
+		self.names = []
+		self.dismissable = dismissable
+		self.names.append(resumeButton(self,-0.12,0.2).name)
+		self.names.append(saveMapButton(self,-0.07,0.0).name)
+		self.exitButton = exiitButton(self,-0.06,-0.2)
+		self.names.append(self.exitButton.name)
+		gameState.getGameMode().modal = self
+
 class saveGameModal(modal):
 	def __init__(self,dismissable=True):
 		uiElement.__init__(self,-1.0,1.0,width=texWidth("MENU_MODAL"),height=texHeight("MENU_MODAL"),textureIndex=texIndex("MENU_MODAL"))
 		self.names = []
 		self.dismissable = dismissable
 #		self.names.append(uiElement(-0.12,0.26,text="save name:",textColor="bb bb bb",textSize=0.0008,fontIndex=1).name)
-		
 		self.saveNameInput = saveNameInput(self,-0.25,0.14,text="MySave")
 		self.names.append(self.saveNameInput.name)
 		self.names.append(doSaveGameButton(self,0.160,0.080).name)
@@ -1662,6 +1685,11 @@ class createGameButtun(clickableElement):
 #			gameState.setGameMode(gameModes.newGameScreenMode)
 #			smallModal("Cannot connect to server... Try again in 30 seconds.")
 
+class editMapButton(clickableElement):
+	def __init__(self,xPos,yPos):
+		clickableElement.__init__(self,xPos,yPos,textureIndex=texIndex("CREATE_GAME_BUTTON_LARGE"),width=texWidth("CREATE_GAME_BUTTON_LARGE"),height=texHeight("CREATE_GAME_BUTTON_LARGE"))
+	def onClick(self):
+		gameState.setGameMode(gameModes.mapEditorMode)
 
 class onlineBackButton(clickableElement):
 	def __init__(self,xPos,yPos):
@@ -1703,13 +1731,6 @@ class startGameButton(clickableElement):
 		clickableElement.__init__(self,xPos,yPos,textureIndex=texIndex("START_BUTTON"),width=texWidth("START_BUTTON"),height=texHeight("START_BUTTON"))
 	def onClick(self):
 		server.startGame()
-
-class addAIButton(clickableElement):
-	def __init__(self,xPos,yPos):
-		clickableElement.__init__(self,xPos,yPos,textureIndex=texIndex("ADD_AI_BUTTON"),width=texWidth("ADD_AI_BUTTON"),height=texHeight("ADD_AI_BUTTON"))
-	def onClick(self):
-		server.addAIPlayer()
-		gameState.getGameMode().soundIndeces.append(cDefines.defines["FINGER_CYMBALS_HIT_INDEX"])
 
 #class autoSelectCheckBox(clickableElement):
 #	def __init__(self,xPos,yPos):

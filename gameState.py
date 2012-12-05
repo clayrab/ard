@@ -185,6 +185,9 @@ def resetAIs():
     global theAIs
     theAIs = [None]*8
 
+global nextAINumber
+nextAINumber = 1
+
 global researchProgress
 researchProgress = [{},{},{},{},{},{},{},{},]
 global availableUnitTypes

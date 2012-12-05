@@ -13,7 +13,6 @@
 #report game state(to look for cheaters/bugs)
 
 #client:
-#
 #when exiting the callback never gets called in python because the mainLoop already exits
 #
 #music/sound
@@ -22,22 +21,14 @@
 #fix 'nextUnit' big flag in drawUnit()
 #text left and right char position
 #focused/mousedover? etc
-#py strings need to be copied and freed? i.e. unit->id, uiElement->text, etc
 #
 #zooming can just be handled in C? 
 #
-#animation control is going to have to change. Py should just send animations to the c and c should fire an onDoneAnimating event. autofocus, sliding units, damaging units, selection box animation.
-#
-#refactor uiElement drawing. refactor unit drawing. make callback list in C. make changes list in python. 
-#
-#
 #replace PyObject_CallMethod with PyObject_CallMethodObjArgs where possible
 #move game login into background thread.
-#rewrite testTicks stuff to call a function so i can turn it off in one place.
 #control focusSpeed from python, use a nicer curve
 #health loss not showing
 #make health bar a lot bigger
-#bug with movepath going straight into a friendly unit
 #dmg numbers showing up for ban but not me
 #add attack sound
 #show move initiative and attack initiative
@@ -138,6 +129,7 @@ import server
 import rendererUpdates
 import Queue
 from textureFunctions import texWidth, texHeight, texIndex
+import ai
 import pdb
 
 version = 0.1
@@ -747,33 +739,36 @@ class mapEditorMode(tiledGameMode):
 		try:
 			self.elementWithFocus.onKeyDown(keycode)
 		except:
+			
 			try:
-				intKeycode = int(keycode)
-				for key,value in self.elementsDict.iteritems():
-					if(hasattr(value,'tileType')):
-						if(value.tileType == intKeycode-1):
-							if(self.selectedButton != None):
-								self.selectedButton.selected = False
-							value.selected = True
-							self.selectedButton = value
+				if(keycode == "escape"):
+					uiElements.mapEditorMenuModal()
+				else:
+					intKeycode = int(keycode)
+					for key,value in self.elementsDict.iteritems():
+						if(hasattr(value,'tileType')):
+							if(value.tileType == intKeycode-1):
+								if(self.selectedButton != None):
+									self.selectedButton.selected = False
+								value.selected = True
+								self.selectedButton = value
 			except:
 				return
 	def addUIElements(self):
 		uiElements.uiElement(-0.50,0.98,textureIndex=texIndex("UI_CITY_EDITOR_BACKGROUND_BACKGROUND"),height=0.12,width=0.7)
-		uiElements.mapEditorTileSelectUIElement(-0.45,0.92,tileType=cDefines.defines['FOREST_TILE_INDEX'])
-		uiElements.mapEditorTileSelectUIElement(-0.37,0.92,tileType=cDefines.defines['GRASS_TILE_INDEX'])
-		uiElements.mapEditorTileSelectUIElement(-0.29,0.92,tileType=cDefines.defines['MOUNTAIN_TILE_INDEX'])
-		uiElements.mapEditorTileSelectUIElement(-0.21,0.92,tileType=cDefines.defines['RED_FOREST_TILE_INDEX'])
-		uiElements.mapEditorTileSelectUIElement(-0.13,0.92,tileType=cDefines.defines['BLUE_FOREST_TILE_INDEX'])
-		uiElements.mapEditorTileSelectUIElement(-0.05,0.92,tileType=cDefines.defines['WATER_TILE_INDEX'])
-		uiElements.mapEditorTileSelectUIElement(0.03,0.92,tileType=cDefines.defines['ROAD_TILE_INDEX'])
-		uiElements.mapEditorTileSelectUIElement(0.11,0.92,tileType=cDefines.defines['CITY_TILE_INDEX'])
+		uiElements.mapEditorTileSelectUIElement(-0.47,0.97,tileType=cDefines.defines['FOREST_TILE_INDEX'],textureIndex=cDefines.defines["FOREST_INDEX0"])
+		uiElements.mapEditorTileSelectUIElement(-0.37,0.97,tileType=cDefines.defines['GRASS_TILE_INDEX'],textureIndex=cDefines.defines["GRASS_INDEX0"])
+		uiElements.mapEditorTileSelectUIElement(-0.27,0.97,tileType=cDefines.defines['MOUNTAIN_TILE_INDEX'],textureIndex=cDefines.defines["MOUNTAIN_INDEX0"])
+		uiElements.mapEditorTileSelectUIElement(-0.17,0.97,tileType=cDefines.defines['RED_FOREST_TILE_INDEX'],textureIndex=cDefines.defines["REDFOREST_INDEX0"])
+		uiElements.mapEditorTileSelectUIElement(-0.07,0.97,tileType=cDefines.defines['BLUE_FOREST_TILE_INDEX'],textureIndex=cDefines.defines["BLUEFOREST_INDEX0"])
+		uiElements.mapEditorTileSelectUIElement(0.03,0.97,tileType=cDefines.defines['WATER_TILE_INDEX'],textureIndex=cDefines.defines["WATER_INDEX0"])
+		uiElements.mapEditorTileSelectUIElement(0.13,0.97,tileType=cDefines.defines['CITY_TILE_INDEX'],textureIndex=cDefines.defines["CITY_INDEX"])
+#		uiElements.mapEditorTileSelectUIElement(0.23,0.97,tileType=cDefines.defines['ROAD_TILE_INDEX'])
 		for col in range(0,2):
 			for row in range(0,4):
 				if((4*(col))+(row+1) <= self.map.numPlayers):
-					
-					uiElements.playerStartLocationButton(0.17+(0.05*col),0.972-(0.038*row),playerNumber=col*4+row+1,width=2.0*cDefines.defines['PLAYER_START_BUTTON_WIDTH']/cDefines.defines['SCREEN_WIDTH'],height=2.0*cDefines.defines['PLAYER_START_BUTTON_HEIGHT']/cDefines.defines['SCREEN_HEIGHT'],textureIndex=cDefines.defines['PLAYER_START_BUTTON_INDEX'])
-					uiElements.uiElement(0.19+(0.05*col),0.948-(0.04*row),text=str((col*4)+row+1),textSize=0.0004)
+					uiElements.playerStartLocationButton(0.27+(0.05*col),0.972-(0.038*row),playerNumber=col*4+row+1,width=2.0*cDefines.defines['PLAYER_START_BUTTON_WIDTH']/cDefines.defines['SCREEN_WIDTH'],height=2.0*cDefines.defines['PLAYER_START_BUTTON_HEIGHT']/cDefines.defines['SCREEN_HEIGHT'],textureIndex=cDefines.defines['PLAYER_START_BUTTON_INDEX'])
+					uiElements.uiElement(0.29+(0.05*col),0.948-(0.04*row),text=str((col*4)+row+1),textSize=0.0004)
 				
 		uiElements.addColumnButton(0.96,0.03,text="+",textureIndex=cDefines.defines['ADD_BUTTON_INDEX'])
 		uiElements.removeColumnButton(0.96,-0.03,text="-",textureIndex=-1)
@@ -786,8 +781,6 @@ class mapEditorMode(tiledGameMode):
 
 		uiElements.addFirstRowButton(0.18,0.77,text="+",textureIndex=-1)
 		uiElements.removeFirstRowButton(0.21,0.77,text="-",textureIndex=-1)
-
-		uiElements.saveButton(0.9,0.925,text="save",textSize=0.0005)
 
 class textBasedMenuMode(gameMode):
 	def __init__(self,args):
@@ -850,10 +843,6 @@ class mapEditorSelectModeDEPRECATED(textBasedMenuMode):
 			if(fileName.endswith(".map")):
 				heightDelta = heightDelta - 0.1
 				uiElements.mapEditSelectButton(-0.16,0.2+heightDelta,mapEditorMode,text=fileName[0:len(fileName)-4])
-
-class mapEditorSelectMode(textBasedMenuMode):
-	def __init__(self,args):
-		gameMode.__init__(self)
 
 class newMapMode(gameMode):
 	def __init__(self,args):
@@ -1062,19 +1051,29 @@ class createGameMode(tiledGameMode):
 		self.focus()
 	def addUIElements(self):
 		self.mapNameField = uiElements.uiElement(-1.0+texWidth("CREATE_GAME_BACKGROUND_LEFT"),0.85,fontIndex=3,textColor="ee ed 9b")
-		self.roomNameField = uiElements.textInputElement(0.31,-0.616)
 #		uiElements.createGameButton(0.717,-0.616)#can't put this here, interupts createGameButtun needed by hostGameMode, put it somewhere else for online mode
 		uiElements.onlineBackButton(-0.930,0.9)
 		uiElements.mapSelector(-0.93,0.813,[],self.mapNameField)
 
+class mapEditorSelectMode(createGameMode):
+	def __init__(self,args):
+		createGameMode.__init__(self,args)
+		gameState.rendererUpdateQueue.put(rendererUpdates.setViewportMode(cDefines.defines["CREATE_GAME_ROOM_MODE"]))
+	def addUIElements(self):
+		self.mapNameField = uiElements.uiElement(-1.0+texWidth("CREATE_GAME_BACKGROUND_LEFT"),0.85,fontIndex=3,textColor="ee ed 9b")
+		uiElements.backButton(-0.930,0.9,newGameScreenMode)
+		uiElements.editMapButton(0.717,-0.616)
+		
+		gameState.getGameMode().setMap(gameState.getMapDatas()[0][0].name)
+		createGameMode.addUIElements(self)
+
 class hostGameMode(createGameMode):
 	def __init__(self,args):
 		createGameMode.__init__(self,args)
-#		self.hostGameMode = True
 		gameState.rendererUpdateQueue.put(rendererUpdates.setViewportMode(cDefines.defines["CREATE_GAME_ROOM_MODE"]))
-#		self.createGameMode = True
 	def addUIElements(self):
 		self.mapNameField = uiElements.uiElement(-1.0+texWidth("CREATE_GAME_BACKGROUND_LEFT"),0.85,fontIndex=3,textColor="ee ed 9b")
+		self.roomNameField = uiElements.textInputElement(0.31,-0.616)
 		uiElements.backButton(-0.930,0.9,newGameScreenMode)
 		uiElements.da1v1Button(-0.710,0.9,offColor="AA AA AA")
 		uiElements.da2v2Button(-0.620,0.9,offColor="AA AA AA")
@@ -1083,6 +1082,7 @@ class hostGameMode(createGameMode):
 		uiElements.createGameButtun(0.717,-0.616)
 		gameState.getGameMode().setMap(gameState.getMapDatas()[0][0].name)
 		createGameMode.addUIElements(self)
+
 
 class mapViewMode(createGameMode):
 	def addUIElements(self):
@@ -1098,6 +1098,7 @@ class quickPlayMode(createGameMode):
 
 	def addUIElements(self):
 		self.mapNameField = uiElements.uiElement(-1.0+texWidth("CREATE_GAME_BACKGROUND_LEFT"),0.85,fontIndex=3,textColor="ee ed 9b")
+		print '1'
 		try:
 			server.startServer('')
 			client.startClient('127.0.0.1')
@@ -1105,7 +1106,9 @@ class quickPlayMode(createGameMode):
 			gameState.setGameMode(newGameScreenMode)
 			uiElements.smallModal("Cannot connect to socket. Try again in 1 minute.")
 			return
-		server.addAIPlayer()
+		print "???"
+		ai.addAIPlayer()
+		print "!!!"
 		uiElements.backButton(-0.930,0.9,newGameScreenMode)
 		gameState.getGameMode().setMap(gameState.getMapDatas()[0][0].name)
 		uiElements.startGameButton(0.806,-0.616)

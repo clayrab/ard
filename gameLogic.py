@@ -12,7 +12,6 @@ import thread
 import time
 import sys
 import socket
-import ai
 import rendererUpdates
 import uuid
 from multiprocessing import Process, Queue, Pipe
@@ -75,6 +74,7 @@ class Player:
 		self.hasSummoners = True
 		self.team = (self.playerNumber)/gameState.getTeamSize()
 		self.isAI = isAI
+
 class NetworkPlayer(Player):
 	def __init__(self,playerNumber,userName,requestHandler,player=None):
 		self.requestHandler = requestHandler
@@ -92,29 +92,6 @@ class NetworkPlayer(Player):
 			return
 
 
-class AIPlayer(Player):
-	nextAINumber = 1
-	def __init__(self,playerNumber,userName,requestHandler):
-		if(userName == "Player ?"):
-			Player.__init__(self,playerNumber,"AI " + str(AIPlayer.nextAINumber),None,isAI=True)
-		else:
-			Player.__init__(self,playerNumber,userName,None,isAI=True)
-			
-		AIPlayer.nextAINumber = AIPlayer.nextAINumber + 1
-	def dispatchCommand(self,command):
-		return
-	def takeTurn(self):
-		eligibleMoveNodes = []
-		for neighb in gameState.getGameMode().nextUnit.node.neighbors:
-			if(neighb.unit == None):
-				if(neighb.tileValue != cDefines.defines['MOUNTAIN_TILE_INDEX'] or (gameState.getGameMode().nextUnit.unitType.canFly)):
-					eligibleMoveNodes.append(neighb)
-		if(len(eligibleMoveNodes) > 0):
-			moveToNode = eligibleMoveNodes[0]
-			gameState.getClient().sendCommand("moveTo",str(moveToNode.xPos) + " " + str(moveToNode.yPos))
-		else:
-			gameState.getClient().sendCommand("skip")
-		gameState.getClient().sendCommand("chooseNextUnit")
 class unitType:
 	def __init__(self,name,textureIndex,movementSpeed,attackSpeed,attackPower,armor,range,health,canFly,canSwim,costRed,costBlue,buildTime,movementSpeedBonus,researchCostRed,researchCostBlue,researchTime,canAttackGround=False):
 		self.name = name
@@ -741,6 +718,7 @@ class mapEditorNode(node):
 							if(node.playerStartValue == gameState.getGameMode().selectedButton.playerNumber):
 								node.playerStartValue = 0
 					self.playerStartValue = gameState.getGameMode().selectedButton.playerNumber
+			gameState.rendererUpdateQueue.put(rendererUpdates.loadMap())
 
 class mapViewNode(node):
 	def onClick(self):
