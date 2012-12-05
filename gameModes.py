@@ -840,7 +840,7 @@ class comingSoonMode(textBasedMenuMode):
 		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])
 		uiElements.menuButtonGameModeSelector(-0.45,0.0,newGameScreenMode,text="campaign mode coming soon!")
 		
-class mapEditorSelectMode(textBasedMenuMode):
+class mapEditorSelectModeDEPRECATED(textBasedMenuMode):
 	def addUIElements(self):
 		uiElements.uiElement(-1.0,1.0,width=2.0,height=2.0,textureIndex=cDefines.defines['UI_NEW_GAME_SCREEN_INDEX'])
 		uiElements.mapEditSelectButton(-0.16,0.2,newMapMode,text="create new map")
@@ -850,6 +850,10 @@ class mapEditorSelectMode(textBasedMenuMode):
 			if(fileName.endswith(".map")):
 				heightDelta = heightDelta - 0.1
 				uiElements.mapEditSelectButton(-0.16,0.2+heightDelta,mapEditorMode,text=fileName[0:len(fileName)-4])
+
+class mapEditorSelectMode(textBasedMenuMode):
+	def __init__(self,args):
+		gameMode.__init__(self)
 
 class newMapMode(gameMode):
 	def __init__(self,args):
@@ -1088,6 +1092,10 @@ class mapViewMode(createGameMode):
 		gameState.getGameMode().setMap(gameState.getMapDatas()[0][0].name)
 	
 class quickPlayMode(createGameMode):
+	def __init__(self,args):
+		createGameMode.__init__(self,args)
+		gameState.rendererUpdateQueue.put(rendererUpdates.setViewportMode(cDefines.defines["CREATE_GAME_ROOM_MODE"]))
+
 	def addUIElements(self):
 		self.mapNameField = uiElements.uiElement(-1.0+texWidth("CREATE_GAME_BACKGROUND_LEFT"),0.85,fontIndex=3,textColor="ee ed 9b")
 		try:

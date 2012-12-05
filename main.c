@@ -1165,9 +1165,9 @@ void drawTiles(){
 char viewportMode = FULL_SCREEN_MODE;
 void doViewport(){
   SDL_mutexP(viewportModeMutex);
-  if(viewportMode == CREATE_GAME_ROOM_MODE){
+  if(viewportMode == JOIN_GAME_ROOM_MODE){
     glViewport(60.0*SCREEN_WIDTH/SCREEN_BASE_WIDTH,258.0*SCREEN_HEIGHT/SCREEN_BASE_HEIGHT,991.5*SCREEN_WIDTH/SCREEN_BASE_WIDTH,824.0*SCREEN_HEIGHT/SCREEN_BASE_HEIGHT);
-  }else if(viewportMode == JOIN_GAME_ROOM_MODE){
+  }else if(viewportMode == CREATE_GAME_ROOM_MODE){
     glViewport(544.0*SCREEN_WIDTH/SCREEN_BASE_WIDTH,258.0*SCREEN_HEIGHT/SCREEN_BASE_HEIGHT,991.5*SCREEN_WIDTH/SCREEN_BASE_WIDTH,824.0*SCREEN_HEIGHT/SCREEN_BASE_HEIGHT);
   }else{
     glViewport(0,0,SCREEN_WIDTH,SCREEN_HEIGHT);
@@ -1214,11 +1214,11 @@ void calculateTranslation(){
   glPopMatrix();
   if(translateZ != translateZPrev2){
     SDL_mutexP(viewportModeMutex);
-    if(viewportMode == CREATE_GAME_ROOM_MODE){
+    if(viewportMode == JOIN_GAME_ROOM_MODE){
       glReadPixels(7*SCREEN_WIDTH/16, SCREEN_HEIGHT/2, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &mapDepthTest1);
       glReadPixels(8*SCREEN_WIDTH/16, SCREEN_HEIGHT/2, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &mapDepthTest2);
       glReadPixels(9*SCREEN_WIDTH/16, SCREEN_HEIGHT/2, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &mapDepthTest3);
-    }else if(viewportMode == JOIN_GAME_ROOM_MODE){
+    }else if(viewportMode == CREATE_GAME_ROOM_MODE){
       glReadPixels(13*SCREEN_WIDTH/16, 7*SCREEN_HEIGHT/16, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &mapDepthTest1);
       glReadPixels(13*SCREEN_WIDTH/16, 8*SCREEN_HEIGHT/16, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &mapDepthTest2);
       glReadPixels(13*SCREEN_WIDTH/16, 9*SCREEN_HEIGHT/16, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &mapDepthTest3);
@@ -1238,10 +1238,10 @@ void calculateTranslation(){
     printf("mapdepth not found%d\n",1);
   }
   SDL_mutexP(viewportModeMutex);
-  if(viewportMode == CREATE_GAME_ROOM_MODE){
+  if(viewportMode == JOIN_GAME_ROOM_MODE){
     convertWindowCoordsToViewportCoords(60.0*SCREEN_WIDTH/SCREEN_BASE_WIDTH,SCREEN_HEIGHT,translateZ,&convertedBottomLeftX,&convertedBottomLeftY,&convertedBottomLeftZ);
     convertWindowCoordsToViewportCoords(1551.5*SCREEN_WIDTH/SCREEN_BASE_WIDTH,0.0,translateZ,&convertedTopRightX,&convertedTopRightY,&convertedTopRightZ);
-  }else if(viewportMode == JOIN_GAME_ROOM_MODE){
+  }else if(viewportMode == CREATE_GAME_ROOM_MODE){
     convertWindowCoordsToViewportCoords(100.0*SCREEN_WIDTH/SCREEN_BASE_WIDTH,SCREEN_HEIGHT,translateZ,&convertedBottomLeftX,&convertedBottomLeftY,&convertedBottomLeftZ);
     convertWindowCoordsToViewportCoords(1535.5*SCREEN_WIDTH/SCREEN_BASE_WIDTH,0.0,translateZ,&convertedTopRightX,&convertedTopRightY,&convertedTopRightZ);
   }else{
@@ -2545,7 +2545,7 @@ static void mainLoop (){
     pythonCurrentTick = currentTick;
     SDL_mutexV(currentTickMutex);
     
-    ////printf("%d\n",-1);
+    //    printf("%d\n",-1);
     draw();
     //printf("%d\n",-2);
     handleInput();

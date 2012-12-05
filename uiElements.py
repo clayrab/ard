@@ -291,7 +291,7 @@ class hostIPConnectButton(clickableElement):
 
 class hostIPInputElement(textInputElement):
 	def __init__(self,xPos,yPos):
-		textInputElement.__init__(self,xPos,yPos,width=texWidth("UI_TEXT_INPUT"),height=texHeight("UI_TEXT_INPUT"),textureIndex=texIndex("UI_TEXT_INPUT"),text="192.168.0.102")
+		textInputElement.__init__(self,xPos,yPos,width=texWidth("UI_TEXT_INPUT"),height=texHeight("UI_TEXT_INPUT"),textureIndex=texIndex("UI_TEXT_INPUT"),text="192.168.1.4")
 #		self.gameMode = gameMode
 	def onKeyDown(self,keycode):
 		if(keycode == "return"):
