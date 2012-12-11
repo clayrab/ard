@@ -19,9 +19,9 @@
 #include <freetype/fttrigon.h>
 #include "pystacktrace.c"
 
-#include "fonts.c"
 #include "defines.c"
 #include "structs.c"
+#include "fonts.c"
 //#include "animQueue.c"
 
 float focusSpeed = 0.0;
@@ -452,7 +452,6 @@ void loadUIElem(PyObject * pyUIElem,UIELEMENT * uiElem){
     pyIsFocused = PyObject_GetAttrString(pyUIElem,"focused");
     uiElem->xPosition = PyFloat_AsDouble(pyXPosition);
     uiElem->yPosition = PyFloat_AsDouble(pyYPosition);
-    
     uiElem->width = PyFloat_AsDouble(pyWidth);
     uiElem->height = PyFloat_AsDouble(pyHeight);
     uiElem->hidden = pyHidden==Py_True;
@@ -461,6 +460,25 @@ void loadUIElem(PyObject * pyUIElem,UIELEMENT * uiElem){
     uiElem->cursorIndex = PyLong_AsLong(pyCursorIndex);
     uiElem->textSize = PyFloat_AsDouble(pyTextSize);
 
+    uiElem->recalculateText = 0;
+    uiElem->leftmostCharPos = 0;
+    uiElem->rightmostCharPos = 0;
+    if(PyObject_HasAttrString(pyUIElem,"realText")){
+      pyRealText = PyObject_GetAttrString(pyUIElem,"realText");
+      uiElem->realText = (char*)malloc(strlen(PyString_AsString(pyRealText)));
+      strcpy(uiElem->realText,PyString_AsString(pyRealText));
+      pyRecalculateText = PyObject_GetAttrString(pyUIElem,"recalculateText");
+      uiElem->recalculateText = PyLong_AsLong(pyRecalculateText);
+      pyLeftmostCharPosition = PyObject_GetAttrString(pyUIElem,"leftmostCharPosition");
+      pyRightmostCharPosition = PyObject_GetAttrString(pyUIElem,"rightmostCharPosition");
+      uiElem->leftmostCharPos = PyLong_AsLong(pyLeftmostCharPosition);
+      uiElem->rightmostCharPos = PyLong_AsLong(pyRightmostCharPosition);
+      Py_DECREF(pyRecalculateText);
+      Py_DECREF(pyLeftmostCharPosition);
+      Py_DECREF(pyRightmostCharPosition);
+      Py_DECREF(pyRealText);
+    }
+    
     uiElem->text = (char*)malloc(strlen(PyString_AsString(pyText)));
     strcpy(uiElem->text,PyString_AsString(pyText));
     uiElem->textColor = (char*)malloc(strlen(PyString_AsString(pyTextColor)));
@@ -573,6 +591,7 @@ void freeUnit(struct unit * daUnit){
   free(daUnit->id);
   free(daUnit);
 }
+PyObject * pyObj;
 void loadUnit(struct unit * daUnit,PyObject * pyUnit){
   pyUnitType = PyObject_GetAttrString(pyUnit,"unitType");
   pyId = PyObject_GetAttrString(pyUnit,"id");
@@ -1377,6 +1396,26 @@ void calculateTranslation(){
    }
 }
 
+PYTHONCALLBACK * firstCallback = NULL;
+PYTHONCALLBACK * lastCallback = NULL;//put new callbacks here
+void queueCallback(PYTHONCALLBACK * callback){
+  SDL_mutexP(pythonCallbackMutex);
+  callback->nextCallback = NULL;
+  if(lastCallback != NULL){
+    lastCallback->nextCallback = callback;
+  }
+  lastCallback = callback;
+  if(firstCallback == NULL){
+    firstCallback = callback;
+  }
+  SDL_mutexV(pythonCallbackMutex);
+}
+static void queueSimpleCallback(int id){
+  PYTHONCALLBACK * callback = (PYTHONCALLBACK *)malloc(sizeof(PYTHONCALLBACK));
+  callback->id = id;
+  callback->selectedName = selectedName;
+  queueCallback(callback);
+}
 void drawBoard(){
   glDepthFunc(GL_LEQUAL);
   glClear(GL_DEPTH_BUFFER_BIT);		 
@@ -1427,6 +1466,83 @@ void drawTileSelect(double xPos, double yPos, int name, long tileType, long sele
     glEnd();
   }
 }
+void queuePosTextCallback(UIELEMENT * uiElement, int left, int right){
+  PYTHONCALLBACK * callback = (PYTHONCALLBACK *)malloc(sizeof(PYTHONCALLBACK));
+  callback->id = EVENT_POSITION_TEXT;
+  callback->selectedName = uiElement->name;
+  callback->rightmostCharPos = right;
+  callback->leftmostCharPos = left;
+  queueCallback(callback);
+}
+void findTextWidthFromRight(UIELEMENT * uiElement, int fontIndex, char* realStr, float rightMargin, int rightmostCharPosition){
+  glPushMatrix();
+  glGetDoublev(GL_MODELVIEW_MATRIX,projMatrix);
+  strPosition = rightmostCharPosition;
+  while(strPosition >= 0){
+    //    strPosition = strPosition - 1;
+    glCallList(list_base+(fontIndex*256)+(2*realStr[strPosition])+1);
+    glGetDoublev(GL_MODELVIEW_MATRIX,projMatrix);
+    if(projMatrix[12] > rightMargin){
+      glPopMatrix();
+      queuePosTextCallback(uiElement,strPosition-1,rightmostCharPosition);
+      //  Py_DECREF(pyObj);
+      return;
+    }
+    strPosition--;
+  }
+  printf("ERROR, THIS CODE SHOUDL NEVER RUN!!");
+  glPopMatrix();  
+  //  pyObj = PyObject_CallMethod(uiElement,"positionText","(ii)",strPosition-1,rightmostCharPosition);
+  //  Py_DECREF(pyObj);
+}
+void findTextWidthFromLeft(UIELEMENT * uiElement, int fontIndex, char* realStr, float rightMargin, int leftmostCharPosition){
+  glPushMatrix();
+  glGetDoublev(GL_MODELVIEW_MATRIX,projMatrix);
+  strPosition = leftmostCharPosition;
+  while(realStr[strPosition] != 0){
+    glCallList(list_base+(fontIndex*256)+(2*realStr[strPosition])+1);
+    glGetDoublev(GL_MODELVIEW_MATRIX,projMatrix);
+    if(projMatrix[12] > rightMargin){
+      glPopMatrix();
+      queuePosTextCallback(uiElement,leftmostCharPosition,strPosition+1);
+
+      //      Py_DECREF(pyObj);
+      return;
+    }
+    strPosition++;
+  }
+  glPopMatrix();
+  queuePosTextCallback(uiElement,leftmostCharPosition,strPosition+1);
+
+  //  Py_DECREF(pyObj);
+}
+void findTextWidth(UIELEMENT * uiElement, int fontIndex, char* realStr, float rightMargin, int leftmostCharPosition, int rightmostCharPosition, int cursorPosition, int recalcValu){
+  rightMargin = rightMargin-0.003;
+  strPosition = 0;
+  glPushMatrix();
+  glGetDoublev(GL_MODELVIEW_MATRIX,projMatrix);
+  while(realStr[strPosition] != 0){//while the next char is not a space or end of string
+    glCallList(list_base+(fontIndex*256)+(2*realStr[strPosition])+1);
+    glGetDoublev(GL_MODELVIEW_MATRIX,projMatrix);
+    if(projMatrix[12] > rightMargin){
+      glPopMatrix();
+      //recalcValu comes straight from python
+      if(recalcValu > 0){//calculate length from left
+	findTextWidthFromLeft(uiElement,fontIndex,realStr,rightMargin,leftmostCharPosition);
+      }else{//calculate length from right
+	findTextWidthFromRight(uiElement,fontIndex,realStr,rightMargin,rightmostCharPosition);
+      }
+      return;
+    }
+    strPosition++;
+  }
+  glPopMatrix();
+  PYTHONCALLBACK * callback = (PYTHONCALLBACK *)malloc(sizeof(PYTHONCALLBACK));
+  callback->id = EVENT_TEXT_OKAY;
+  callback->selectedName = uiElement->name;
+  queueCallback(callback);
+  //  Py_DECREF(pyObj);  
+}
 int isNode;
 unsigned int red[1],green[1],blue[1];
 //double xPosition;
@@ -1473,30 +1589,14 @@ void drawUIElement(UIELEMENT * uiElement){
       glEnd();
       glPopName();
     }
-
-
-    /*    if(PyObject_HasAttrString(uiElement,"realText")){
-      pyRecalculateText = PyObject_GetAttrString(uiElement,"recalculateText");
-      recalculateText = PyLong_AsLong(pyRecalculateText);
-      if(recalculateText){
-	pyRealText = PyObject_GetAttrString(uiElement,"realText");
-	pyLeftmostCharPosition = PyObject_GetAttrString(uiElement,"leftmostCharPosition");
-	pyRightmostCharPosition = PyObject_GetAttrString(uiElement,"rightmostCharPosition");
-	leftmostCharPosition = PyLong_AsLong(pyLeftmostCharPosition);
-	rightmostCharPosition = PyLong_AsLong(pyRightmostCharPosition);
-	realText = PyString_AsString(pyRealText);
-	glPushMatrix();
-	glLoadIdentity();
-	glTranslatef(xPosition+textXPosition,yPosition+textYPosition,0.0);
-	glScalef(textSize,textSize,0.0);
-	findTextWidth(uiElement,fontIndex,realText,xPosition+width,leftmostCharPosition,rightmostCharPosition,cursorPosition,recalculateText);
-	glPopMatrix();
-	Py_DECREF(pyLeftmostCharPosition);
-	Py_DECREF(pyRightmostCharPosition);
-	Py_DECREF(pyRealText);
-      }
-      Py_DECREF(pyRecalculateText);	  
-      }*/
+    if(uiElement->recalculateText){
+      glPushMatrix();
+      glLoadIdentity();
+      glTranslatef(uiElement->xPosition+uiElement->textXPosition,uiElement->yPosition+uiElement->textYPosition,0.0);
+      glScalef(uiElement->textSize,uiElement->textSize,0.0);
+      findTextWidth(uiElement,uiElement->fontIndex,uiElement->realText,uiElement->xPosition+uiElement->width,uiElement->leftmostCharPos,uiElement->rightmostCharPos,uiElement->cursorPosition,uiElement->recalculateText);
+      glPopMatrix();
+    }
     /*    if(PyObject_HasAttrString(uiElement,"textQueue")){
       pyQueuedText = PyObject_CallMethod(uiElement,"getText",NULL);
       queuedText = PyString_AsString(pyQueuedText);
@@ -1891,20 +1991,6 @@ SDL_Event event;
 PyObject * pyFocusNextUnit;
 char keyArray[20];
 //PyObject * pyClickScroll;
-PYTHONCALLBACK * firstCallback = NULL;
-PYTHONCALLBACK * lastCallback = NULL;//put new callbacks here
-void queueCallback(PYTHONCALLBACK * callback){
-  SDL_mutexP(pythonCallbackMutex);
-  callback->nextCallback = NULL;
-  if(lastCallback != NULL){
-    lastCallback->nextCallback = callback;
-  }
-  lastCallback = callback;
-  if(firstCallback == NULL){
-    firstCallback = callback;
-  }
-  SDL_mutexV(pythonCallbackMutex);
-}
 static void dispatch(PYTHONCALLBACK * callback){
   if(callback->id == EVENT_MOUSE_OVER){
     if(PyObject_HasAttrString(gameMode,"handleMouseOver")){
@@ -1999,6 +2085,16 @@ static void dispatch(PYTHONCALLBACK * callback){
     if(pyObj != NULL){
       Py_DECREF(pyObj);
     }
+  }else if(callback->id == EVENT_POSITION_TEXT){
+    pyObj = PyObject_CallMethod(gameMode,"positionText","(iii)",callback->selectedName,callback->leftmostCharPos,callback->rightmostCharPos);
+    if(pyObj != NULL){
+      Py_DECREF(pyObj);
+    }
+  }else if(callback->id == EVENT_TEXT_OKAY){
+    pyObj = PyObject_CallMethod(gameMode,"textOkay","i",callback->selectedName);
+    if(pyObj != NULL){
+      Py_DECREF(pyObj);
+    }
   }
 }
 PYTHONCALLBACK * dispatchCallback;
@@ -2016,13 +2112,7 @@ static void dispatchPythonCallbacks(){
   }
   SDL_mutexV(pythonCallbackMutex);
 }
-static void queueSimpleCallback(int id){
-  PYTHONCALLBACK * callback = (PYTHONCALLBACK *)malloc(sizeof(PYTHONCALLBACK));
-  callback->id = id;
-  callback->selectedName = selectedName;
-  queueCallback(callback);
-}
-
+//PyObject * pyObj;
 static void handleInput(){
   if(previousMousedoverName != selectedName){
     PYTHONCALLBACK * callback = (PYTHONCALLBACK *)malloc(sizeof(PYTHONCALLBACK));

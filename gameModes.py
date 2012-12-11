@@ -180,6 +180,12 @@ class gameMode:
 
 	def __dealloc__(self):
 		print '**** dealloc gamemode ****'
+	def positionText(self,name,leftmostCharPos,rightmostCharPos):
+		if(self.elementsDict.has_key(name)):
+			self.elementsDict[name].positionText(leftmostCharPos,rightmostCharPos)
+	def textOkay(self,name):
+		if(self.elementsDict.has_key(name)):
+			self.elementsDict[name].textOkay()
 	def getRestartMusic(self):
 		temp = self.restartMusic
 		self.restartMusic = False

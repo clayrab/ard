@@ -1,6 +1,6 @@
 typedef struct pythonCallback{
   struct pythonCallback * nextCallback;
-  int id, selectedName, mouseX, mouseY, leftButtonDown, deltaTicks, isAnimating;
+  int id, selectedName, mouseX, mouseY, leftButtonDown, deltaTicks, isAnimating, leftmostCharPos, rightmostCharPos;
   char keyArray[20];
 }PYTHONCALLBACK;
 typedef struct uiElement{
@@ -8,8 +8,9 @@ typedef struct uiElement{
   struct uiElement * childElements;
   long name;
   float xPosition,yPosition,width,height,textSize,textXPosition,textYPosition;
-  int textureIndex,cursorPosition;
-  char hidden,cursorIndex,fontIndex,focused;
+  int textureIndex,cursorPosition,leftmostCharPos,rightmostCharPos;
+  char hidden,cursorIndex,fontIndex,focused, recalculateText;
+  char * realText;
   char * text;
   char * textColor;
   char * color;

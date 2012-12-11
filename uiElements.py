@@ -196,16 +196,25 @@ class textInputElement(uiElement):
 		self.realText = text
 		self.leftmostCharPosition = 0
 		self.rightmostCharPosition = 0
-		self.recalculateText = 0
+		self._recalculateText = 0
 		self.isPassword = isPassword
 	def __del__(self):
 		textInputElement.elements.remove(self)
+	@property
+        def recalculateText(self):
+		temp = self._recalculateText
+		self._recalculateText = 0
+		return temp
+	@recalculateText.setter
+        def recalculateText(self,val):
+		self._recalculateText = val
 	def setText(self,txt):
 		self.realText = txt
 		self.leftmostCharPosition = 0
 		self.cursorPosition = 0
 		self.recalculateText = 1
 	def textOkay(self):
+		print 'text okay'
 		self.recalculateText = 0
 		if(self.isPassword):
 			self.text = "*"*len(self.realText)
@@ -214,6 +223,7 @@ class textInputElement(uiElement):
 		self.cursorPosition = self.cursorPosition + self.leftmostCharPosition
 		self.leftmostCharPosition = 0
 		self.rightmostCharPosition = len(self.realText)
+		gameState.rendererUpdateQueue.put(rendererUpdates.updateUIElem(self))
 	def positionText(self,leftmostCharPosition,rightmostCharPosition):
 		self.recalculateText = 0
 		if(leftmostCharPosition < self.leftmostCharPosition):
@@ -226,10 +236,11 @@ class textInputElement(uiElement):
 			self.text = "*"*(rightmostCharPosition-leftmostCharPosition)
 		else:
 			self.text = self.realText[leftmostCharPosition:rightmostCharPosition]
+		print self.text
 		if(self.cursorPosition > len(self.text)):
 			self.cursorPosition = len(self.text)
+		gameState.rendererUpdateQueue.put(rendererUpdates.updateUIElem(self))
 	def onKeyDown(self,keycode):
-		print 'onkeydown'
 		if(keycode == "backspace"):
 			if(self.cursorPosition > 0 or self.leftmostCharPosition > 0):
 				self.realText = self.realText[0:self.leftmostCharPosition+self.cursorPosition-1] + self.realText[self.leftmostCharPosition+self.cursorPosition:]
