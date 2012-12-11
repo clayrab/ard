@@ -428,6 +428,9 @@ void freeUIElem(UIELEMENT * uiElem){
   if(uiElem->mouseOverColor != NULL){
     free(uiElem->mouseOverColor);
   }
+  if(uiElem->realText != NULL){
+    free(uiElem->realText);
+  }
 }
 void loadUIElem(PyObject * pyUIElem,UIELEMENT * uiElem){
     pyXPosition = PyObject_GetAttrString(pyUIElem,"xPosition");
@@ -463,6 +466,7 @@ void loadUIElem(PyObject * pyUIElem,UIELEMENT * uiElem){
     uiElem->recalculateText = 0;
     uiElem->leftmostCharPos = 0;
     uiElem->rightmostCharPos = 0;
+    uiElem->realText = 0;
     if(PyObject_HasAttrString(pyUIElem,"realText")){
       pyRealText = PyObject_GetAttrString(pyUIElem,"realText");
       uiElem->realText = (char*)malloc(strlen(PyString_AsString(pyRealText)));
@@ -477,8 +481,7 @@ void loadUIElem(PyObject * pyUIElem,UIELEMENT * uiElem){
       Py_DECREF(pyLeftmostCharPosition);
       Py_DECREF(pyRightmostCharPosition);
       Py_DECREF(pyRealText);
-    }
-    
+    }    
     uiElem->text = (char*)malloc(strlen(PyString_AsString(pyText)));
     strcpy(uiElem->text,PyString_AsString(pyText));
     uiElem->textColor = (char*)malloc(strlen(PyString_AsString(pyTextColor)));

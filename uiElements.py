@@ -214,7 +214,6 @@ class textInputElement(uiElement):
 		self.cursorPosition = 0
 		self.recalculateText = 1
 	def textOkay(self):
-		print 'text okay'
 		self.recalculateText = 0
 		if(self.isPassword):
 			self.text = "*"*len(self.realText)
@@ -272,8 +271,8 @@ class textInputElement(uiElement):
 			elif(self.leftmostCharPosition + self.cursorPosition < len(self.realText)):
 				self.rightmostCharPosition = self.rightmostCharPosition + 1
 				self.recalculateText = -1
-		elif(keycode == "up" or keycode == "down" or keycode == "left shift" or keycode == "right shift"):
-			self.realText = self.realText
+		elif(keycode == "up" or keycode == "down" or keycode == "left shift" or keycode == "right shift" or keycode == "return"):
+			return
 		elif(keycode == "*" or keycode == "|" or keycode == "-"):
 			return
 		else:
@@ -289,7 +288,6 @@ class textInputElement(uiElement):
                                 self.recalculateText = -1
 		gameState.rendererUpdateQueue.put(rendererUpdates.updateUIElem(self))
 	def onClick(self):
-		print 'onclick'
 #		uiElement.setFocusedElemed(self)
 		if(gameState.getGameMode().mouseTextPosition >=0):
 			self.cursorPosition = gameState.getGameMode().mouseTextPosition

@@ -247,9 +247,9 @@ int checkRightMargin(int fontIndex, char* str, int strPosition, float rightMargi
 }
 
 void drawChar(int fontIndex,char* str, int strPosition,int cursorPosition){
-  /*  if(strPosition == cursorPosition){
+  if(strPosition == cursorPosition){
     drawCursor();
-    }*/
+  }
   //  printf("%s\t%d\n",str,strPosition);
   glPushName(strPosition);
   //  glGetDoublev(GL_MODELVIEW_MATRIX,projMatrix);
