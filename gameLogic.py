@@ -66,6 +66,7 @@ def translateTilesYToPositionY(tileY):
 
 class Player:
 	def __init__(self,playerNumber,userName,requestHandler,isAI=False):
+		print "playerNumber: " + str(playerNumber)
 		self.userName = userName
 		self.playerNumber = playerNumber
 		self.isOwnPlayer = False
@@ -749,7 +750,7 @@ class aStarThread():
 	@staticmethod
 	def runTarget(pipe):
 		while True:
-#			print aStarSearch.keepAliveTime
+#			print self.keepAliveTime
 			if(time.clock() - aStarSearch.keepAliveTime > 30.0):
 				print 'no keepalives sent, exiting.\n'
 				sys.exit(0)
@@ -772,14 +773,16 @@ class aStarThread():
 					if(not(aStarSearch.endNode == aStarSearch.map.nodes[data[3]][data[2]] and aStarSearch.startNode == aStarSearch.map.nodes[data[1]][data[0]])):
 						aStarSearch.movePath = []
 						aStarSearch.resetNodes()
-						aStarSearch.canFly = data[4]
-						aStarSearch.canSwim = data[5]
-						aStarSearch.endNode = aStarSearch.map.nodes[data[3]][data[2]]
-						aStarSearch.startNode = aStarSearch.map.nodes[data[1]][data[0]]
-						aStarSearch.openNodes.append(aStarSearch.startNode)
+						aStarSearch.startSearch(aStarSearch.map.nodes[data[1]][data[0]],aStarSearch.map.nodes[data[3]][data[2]],data[4],data[5])
 						aStarSearch.aStarSearchRecurse()
 			else:
 				aStarSearch.aStarSearchRecurse()
+	def startSearch(self,startNode,endNode,canFly,canSwim):
+		self.canFly = canFly
+		self.canSwim = canSwim
+		self.endNode = endNode
+		self.startNode = startNode
+		self.openNodes.append(self.startNode)
         @staticmethod
         def search(startNode,endNode,canFly,canSwim):
 		aStarSearch.parentPipe.send([startNode.xPos,startNode.yPos,endNode.xPos,endNode.yPos,canFly,canSwim])
@@ -821,44 +824,47 @@ class aStarThread():
 			distance = 0.0
 		distance = distance + abs(node1.yPos - node2.yPos)
 		return distance
-
-	def aStarSearchRecurse(self,count=0):
-		if(len(aStarSearch.openNodes) == 0):
-#			aStarSearch.searching = False
-			return
+	def aStarSearchRecurse(self,suppressPipe=False):
+		if(len(self.openNodes) == 0):
+#			self.searching = False
+			return []
 		node = None
-		for openNode in aStarSearch.openNodes:
+		for openNode in self.openNodes:
 			if(not openNode.closed):
 				if(node == None):
 					node = openNode
 				if((openNode.aStarKnownCost + openNode.aStarHeuristicCost) < (node.aStarKnownCost + node.aStarHeuristicCost)):
 					node = openNode
-		if(node == aStarSearch.endNode):
+		if(node == self.endNode):
 			foundNodes = []
-			nextNode = aStarSearch.endNode.aStarParent
+			nextNode = self.endNode.aStarParent
 			while nextNode != None:
 				foundNodes.append([nextNode.xPos,nextNode.yPos])
 				nextNode = nextNode.aStarParent
-			aStarSearch.childPipe.send(foundNodes)
-			aStarSearch.resetNodes()
-			return
+			if(not suppressPipe):
+				self.resetNodes()
+				self.childPipe.send(foundNodes)
+			else:
+				self.resetNodes()
+				return foundNodes
+			return []
 		node.closed = True
-		aStarSearch.closedNodes.append(node)
+		self.closedNodes.append(node)
 		for neighbor in node.neighbors:
 			if(not neighbor.closed):
 				if(not neighbor.open):
-					aStarSearch.openNodes.append(neighbor)
+					self.openNodes.append(neighbor)
 					neighbor.open = True
 					neighbor.aStarParent = node
-					aStarThread.aStarHeuristic(neighbor,aStarSearch.endNode,aStarSearch.polarity)
-#					Neighbor.findAStarHeuristicCost(aStarSearch.endNode)
+					aStarThread.aStarHeuristic(neighbor,self.endNode,self.polarity)
+#					Neighbor.findAStarHeuristicCost(self.endNode)
 					if(neighbor.unit):
 						neighbor.aStarKnownCost = node.aStarKnownCost + 999.9
-					elif(neighbor.tileValue == cDefines.defines['MOUNTAIN_TILE_INDEX'] and not aStarSearch.canFly):
+					elif(neighbor.tileValue == cDefines.defines['MOUNTAIN_TILE_INDEX'] and not self.canFly):
 						neighbor.aStarKnownCost = node.aStarKnownCost + (cDefines.defines['MOUNTAIN_MOVE_COST']/(1.0+float(neighbor.roadValue)))
-					elif(neighbor.tileValue == cDefines.defines['WATER_TILE_INDEX'] and not aStarSearch.canFly and not aStarSearch.canFly):
+					elif(neighbor.tileValue == cDefines.defines['WATER_TILE_INDEX'] and not self.canFly and not self.canFly):
 						neighbor.aStarKnownCost = node.aStarKnownCost + (cDefines.defines['WATER_MOVE_COST']/(1.0+float(neighbor.roadValue)))
-					elif(neighbor.tileValue == cDefines.defines['FOREST_TILE_INDEX'] and not aStarSearch.canFly):
+					elif(neighbor.tileValue == cDefines.defines['FOREST_TILE_INDEX'] and not self.canFly):
 						neighbor.aStarKnownCost = node.aStarKnownCost + (cDefines.defines['FOREST_MOVE_COST']/(1.0+float(neighbor.roadValue)))
 					else:
 						neighbor.aStarKnownCost = node.aStarKnownCost + (cDefines.defines['GRASS_MOVE_COST']/(1.0+float(neighbor.roadValue)))
@@ -869,7 +875,7 @@ class aStarThread():
 					elif(neighbor.tileValue == cDefines.defines['MOUNTAIN_TILE_INDEX']):
 						if(neighbor.aStarKnownCost > node.aStarKnownCost + (cDefines.defines['MOUNTAIN_MOVE_COST']/(1.0+float(neighbor.roadValue)))):
 							neighbor.aStarKnownCost = node.aStarKnownCost + (cDefines.defines['MOUNTAIN_MOVE_COST']/(1.0+float(neighbor.roadValue)))
-					elif(neighbor.tileValue == cDefines.defines['WATER_TILE_INDEX'] and aStarSearch.canSwim == False):
+					elif(neighbor.tileValue == cDefines.defines['WATER_TILE_INDEX'] and self.canSwim == False):
 						if(neighbor.aStarKnownCost > node.aStarKnownCost + (cDefines.defines['WATER_MOVE_COST']/(1.0+float(neighbor.roadValue)))):
 							neighbor.aStarKnownCost = node.aStarKnownCost + (cDefines.defines['WATER_MOVE_COST']/(1.0+float(neighbor.roadValue)))
 					elif(neighbor.tileValue == cDefines.defines['FOREST_TILE_INDEX']):
@@ -878,7 +884,7 @@ class aStarThread():
 					else:
 						if(neighbor.aStarKnownCost > node.aStarKnownCost + (cDefines.defines['GRASS_MOVE_COST']/(1.0+float(neighbor.roadValue)))):
 							neighbor.aStarKnownCost = node.aStarKnownCost + (cDefines.defines['GRASS_MOVE_COST']/(1.0+float(neighbor.roadValue)))
-		return
+		return []
 
 class aStarNode():
 	def __init__(self,xPos,yPos,tileValue=cDefines.defines['GRASS_TILE_INDEX'],roadValue=0,city=None,playerStartValue=0):

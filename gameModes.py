@@ -650,7 +650,6 @@ class playMode(tiledGameMode):
 		gameMode.onDraw(self,deltaTicks,isAnimating)
 		if(not self.playerMissing):
 			if(gameLogic.aStarSearch.parentPipe.poll()):
-#				print 'new move path'
 				gameState.aStarPath = []
 				gameLogic.playModeNode.movePath = []
 				data = gameLogic.aStarSearch.parentPipe.recv()
@@ -964,6 +963,7 @@ class gameRoomMode(tiledGameMode):
 #		self.maxTranslateZ = 0.0-cDefines.defines["maxZoom"]
 		gameState.setMapName(mapName)
 		self.map = gameLogic.mapp(gameLogic.mapViewNode)
+		ai.analyzeMap()
 		gameState.rendererUpdateQueue.put(rendererUpdates.loadMap())
 		self.mapNameElem.text = mapName
 		self.focus()
@@ -1038,9 +1038,9 @@ class createGameMode(tiledGameMode):
 		if(self.map != None):
 			self.map = gameLogic.mapp(gameLogic.mapViewNode)
 		else:
-			self.map = gameLogic.mapp(gameLogic.mapViewNode)			
+			self.map = gameLogic.mapp(gameLogic.mapViewNode)
+		ai.analyzeMap()
 		gameState.rendererUpdateQueue.put(rendererUpdates.loadMap())
-
 #		self.maxTranslateZ = 0.0-cDefines.defines["maxZoom"]
 #		if(self.mapSelector != None):
 #			self.mapSelector.destroy()
@@ -1052,7 +1052,7 @@ class createGameMode(tiledGameMode):
 	def addUIElements(self):
 		self.mapNameField = uiElements.uiElement(-1.0+texWidth("CREATE_GAME_BACKGROUND_LEFT"),0.85,fontIndex=3,textColor="ee ed 9b")
 #		uiElements.createGameButton(0.717,-0.616)#can't put this here, interupts createGameButtun needed by hostGameMode, put it somewhere else for online mode
-		uiElements.onlineBackButton(-0.930,0.9)
+#		uiElements.onlineBackButton(-0.930,0.9)
 		uiElements.mapSelector(-0.93,0.813,[],self.mapNameField)
 
 class mapEditorSelectMode(createGameMode):
@@ -1063,7 +1063,6 @@ class mapEditorSelectMode(createGameMode):
 		self.mapNameField = uiElements.uiElement(-1.0+texWidth("CREATE_GAME_BACKGROUND_LEFT"),0.85,fontIndex=3,textColor="ee ed 9b")
 		uiElements.backButton(-0.930,0.9,newGameScreenMode)
 		uiElements.editMapButton(0.717,-0.616)
-		
 		gameState.getGameMode().setMap(gameState.getMapDatas()[0][0].name)
 		createGameMode.addUIElements(self)
 
@@ -1098,7 +1097,6 @@ class quickPlayMode(createGameMode):
 
 	def addUIElements(self):
 		self.mapNameField = uiElements.uiElement(-1.0+texWidth("CREATE_GAME_BACKGROUND_LEFT"),0.85,fontIndex=3,textColor="ee ed 9b")
-		print '1'
 		try:
 			server.startServer('')
 			client.startClient('127.0.0.1')
@@ -1106,9 +1104,7 @@ class quickPlayMode(createGameMode):
 			gameState.setGameMode(newGameScreenMode)
 			uiElements.smallModal("Cannot connect to socket. Try again in 1 minute.")
 			return
-		print "???"
 		ai.addAIPlayer()
-		print "!!!"
 		uiElements.backButton(-0.930,0.9,newGameScreenMode)
 		gameState.getGameMode().setMap(gameState.getMapDatas()[0][0].name)
 		uiElements.startGameButton(0.806,-0.616)

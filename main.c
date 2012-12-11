@@ -1473,6 +1473,47 @@ void drawUIElement(UIELEMENT * uiElement){
       glEnd();
       glPopName();
     }
+
+
+    /*    if(PyObject_HasAttrString(uiElement,"realText")){
+      pyRecalculateText = PyObject_GetAttrString(uiElement,"recalculateText");
+      recalculateText = PyLong_AsLong(pyRecalculateText);
+      if(recalculateText){
+	pyRealText = PyObject_GetAttrString(uiElement,"realText");
+	pyLeftmostCharPosition = PyObject_GetAttrString(uiElement,"leftmostCharPosition");
+	pyRightmostCharPosition = PyObject_GetAttrString(uiElement,"rightmostCharPosition");
+	leftmostCharPosition = PyLong_AsLong(pyLeftmostCharPosition);
+	rightmostCharPosition = PyLong_AsLong(pyRightmostCharPosition);
+	realText = PyString_AsString(pyRealText);
+	glPushMatrix();
+	glLoadIdentity();
+	glTranslatef(xPosition+textXPosition,yPosition+textYPosition,0.0);
+	glScalef(textSize,textSize,0.0);
+	findTextWidth(uiElement,fontIndex,realText,xPosition+width,leftmostCharPosition,rightmostCharPosition,cursorPosition,recalculateText);
+	glPopMatrix();
+	Py_DECREF(pyLeftmostCharPosition);
+	Py_DECREF(pyRightmostCharPosition);
+	Py_DECREF(pyRealText);
+      }
+      Py_DECREF(pyRecalculateText);	  
+      }*/
+    /*    if(PyObject_HasAttrString(uiElement,"textQueue")){
+      pyQueuedText = PyObject_CallMethod(uiElement,"getText",NULL);
+      queuedText = PyString_AsString(pyQueuedText);
+      if(queuedText[0] != 0){
+	glPushMatrix();
+	glLoadIdentity();
+	glTranslatef(xPosition+textXPosition,yPosition+textYPosition,0.0);
+	glScalef(textSize,textSize,0.0);
+	wordWidth = findWordWidth(fontIndex,queuedText,xPosition+width);
+	glPopMatrix();
+	pyObj = PyObject_CallMethod(uiElement,"addLine","i",wordWidth);
+	Py_DECREF(pyObj);
+      }
+      Py_DECREF(pyQueuedText);
+      }*/
+
+
     if((uiElement->text) != NULL){
       sscanf(uiElement->textColor,"%X %X %X",red,green,blue);
       glColor3f(*red/255.0, *green/255.0, *blue/255.0);
@@ -1875,11 +1916,11 @@ static void dispatch(PYTHONCALLBACK * callback){
     }
   }else if(callback->id == EVENT_LEFT_CLICK_DOWN){
     if(PyObject_HasAttrString(gameMode,"handleLeftClickDown")){
-      pyObj = PyObject_CallMethod(gameMode,"handleLeftClickDown","i",callback->selectedName);//New reference
+      PyObject_CallMethod(gameMode,"handleLeftClickDown","i",callback->selectedName);//New reference
       printPyStackTrace();
-      if(pyObj != NULL){
+      /*      if(pyObj != NULL){
 	Py_DECREF(pyObj);
-      }
+	}*/
     }
   }else if(callback->id == EVENT_MOUSE_MOVE){
     if(PyObject_HasAttrString(gameMode,"handleMouseMovement")){
@@ -1913,11 +1954,11 @@ static void dispatch(PYTHONCALLBACK * callback){
     }
   }else if(callback->id == EVENT_LEFT_CLICK_UP){
     if(PyObject_HasAttrString(gameMode,"handleLeftClickUp")){
-      pyObj = PyObject_CallMethod(gameMode,"handleLeftClickUp","i",callback->selectedName);//New reference
+      PyObject_CallMethod(gameMode,"handleLeftClickUp","i",callback->selectedName);//New reference
       printPyStackTrace();
-      if(pyObj != NULL){
+      /*if(pyObj != NULL){
 	Py_DECREF(pyObj);
-      }
+	}*/
     }
   }else if(callback->id == EVENT_RIGHT_CLICK_UP){
     if(PyObject_HasAttrString(gameMode,"handleRightClickUp")){

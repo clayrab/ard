@@ -265,7 +265,7 @@ void findTextWidthFromRight(PyObject * uiElement, int fontIndex, char* realStr, 
   }
   printf("ERROR, THIS CODE SHOUDL NEVER RUN!!");
   glPopMatrix();  
-  pyObj = PyObject_CallMethod(uiElement,"positionText","(ii)",strPosition-1,rightmostCharPosition);
+  //  pyObj = PyObject_CallMethod(uiElement,"positionText","(ii)",strPosition-1,rightmostCharPosition);
   //  Py_DECREF(pyObj);
 }
 void findTextWidthFromLeft(PyObject * uiElement, int fontIndex, char* realStr, float rightMargin, int leftmostCharPosition){

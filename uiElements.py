@@ -229,6 +229,7 @@ class textInputElement(uiElement):
 		if(self.cursorPosition > len(self.text)):
 			self.cursorPosition = len(self.text)
 	def onKeyDown(self,keycode):
+		print 'onkeydown'
 		if(keycode == "backspace"):
 			if(self.cursorPosition > 0 or self.leftmostCharPosition > 0):
 				self.realText = self.realText[0:self.leftmostCharPosition+self.cursorPosition-1] + self.realText[self.leftmostCharPosition+self.cursorPosition:]
@@ -275,8 +276,9 @@ class textInputElement(uiElement):
                                 self.cursorPosition = self.cursorPosition + 1
 				self.rightmostCharPosition = self.rightmostCharPosition + 1
                                 self.recalculateText = -1
-			
+		gameState.rendererUpdateQueue.put(rendererUpdates.updateUIElem(self))
 	def onClick(self):
+		print 'onclick'
 #		uiElement.setFocusedElemed(self)
 		if(gameState.getGameMode().mouseTextPosition >=0):
 			self.cursorPosition = gameState.getGameMode().mouseTextPosition
@@ -1714,8 +1716,11 @@ class backButton(clickableElement):
 		clickableElement.__init__(self,xPos,yPos,textureIndex=texIndex("BACK_BUTTON"),width=texWidth("BACK_BUTTON"),height=texHeight("BACK_BUTTON"))
 		self.gameMode = gameMode
 	def onClick(self):
+		print '1'
+		print self.gameMode
 		gameState.setGameMode(self.gameMode)
 		gameState.getGameMode().soundIndeces.append(cDefines.defines["DARBUKA_HIT_INDEX"])
+		print '2'
 
 class logoutButton(clickableElement):
 	def __init__(self,xPos,yPos,gameMode):
@@ -1731,6 +1736,14 @@ class startGameButton(clickableElement):
 		clickableElement.__init__(self,xPos,yPos,textureIndex=texIndex("START_BUTTON"),width=texWidth("START_BUTTON"),height=texHeight("START_BUTTON"))
 	def onClick(self):
 		server.startGame()
+
+class addAIButton(clickableElement):
+	def __init__(self,xPos,yPos):
+		clickableElement.__init__(self,xPos,yPos,textureIndex=texIndex("ADD_AI_BUTTON"),width=texWidth("ADD_AI_BUTTON"),height=texHeight("ADD_AI_BUTTON"))
+	def onClick(self):
+		import ai
+		ai.addAIPlayer()
+		gameState.getGameMode().soundIndeces.append(cDefines.defines["FINGER_CYMBALS_HIT_INDEX"])
 
 #class autoSelectCheckBox(clickableElement):
 #	def __init__(self,xPos,yPos):
