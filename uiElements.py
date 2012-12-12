@@ -293,6 +293,7 @@ class textInputElement(uiElement):
 			self.cursorPosition = gameState.getGameMode().mouseTextPosition
 		else:
 			self.cursorPosition = len(self.text)
+		gameState.rendererUpdateQueue.put(rendererUpdates.updateUIElem(self))
 
 class cityNameInputElement(textInputElement):
 	def __init__(self,xPos,yPos,width=0.0,height=0.0,text="",textSize=0.001,textureIndex=-1,textColor='FF FF FF',textXPos=0.0,textYPos=0.0):
@@ -1725,11 +1726,8 @@ class backButton(clickableElement):
 		clickableElement.__init__(self,xPos,yPos,textureIndex=texIndex("BACK_BUTTON"),width=texWidth("BACK_BUTTON"),height=texHeight("BACK_BUTTON"))
 		self.gameMode = gameMode
 	def onClick(self):
-		print '1'
-		print self.gameMode
 		gameState.setGameMode(self.gameMode)
 		gameState.getGameMode().soundIndeces.append(cDefines.defines["DARBUKA_HIT_INDEX"])
-		print '2'
 
 class logoutButton(clickableElement):
 	def __init__(self,xPos,yPos,gameMode):
@@ -1738,7 +1736,6 @@ class logoutButton(clickableElement):
 	def onClick(self):
 		gameFindClient.stopClient()
 		gameState.setGameMode(self.gameMode)
-	
 
 class startGameButton(clickableElement):
 	def __init__(self,xPos,yPos):

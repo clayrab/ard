@@ -1,6 +1,6 @@
 /*
     SDL - Simple DirectMedia Layer
-    Copyright (C) 1997-2009 Sam Lantinga
+    Copyright (C) 1997-2012 Sam Lantinga
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -184,7 +184,7 @@ extern DECLSPEC void SDLCALL SDL_free(void *mem);
 
 #if defined(HAVE_ALLOCA) && !defined(alloca)
 # if defined(HAVE_ALLOCA_H)
-#  include <malloc.h>
+#  include <alloca.h>
 # elif defined(__GNUC__)
 #  define alloca __builtin_alloca
 # elif defined(_MSC_VER)

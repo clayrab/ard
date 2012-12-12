@@ -1,12 +1,12 @@
 typedef struct pythonCallback{
   struct pythonCallback * nextCallback;
-  int id, selectedName, mouseX, mouseY, leftButtonDown, deltaTicks, isAnimating, leftmostCharPos, rightmostCharPos;
-  char keyArray[20];
+  int id, selectedName, mouseX, mouseY, leftButtonDown, deltaTicks, isAnimating, leftmostCharPos, rightmostCharPos, nameValue;
+  char keyArray[200];
 }PYTHONCALLBACK;
-typedef struct uiElement{
-  struct uiElement * nextElement;  
-  struct uiElement * childElements;
-  long name;
+typedef struct uiElementStruct{
+  struct uiElementStruct * nextElement;  
+  struct uiElementStruct * childElements;
+  int name;
   float xPosition,yPosition,width,height,textSize,textXPosition,textYPosition;
   int textureIndex,cursorPosition,leftmostCharPos,rightmostCharPos;
   char hidden,cursorIndex,fontIndex,focused, recalculateText;
@@ -15,17 +15,17 @@ typedef struct uiElement{
   char * textColor;
   char * color;
   char * mouseOverColor;
-}UIELEMENT;
+}UIELEMENTSTRUCT;
 typedef struct unit{
   char * id;
   struct unit * nextUnit;
   double xPos,yPos,xPosDraw,yPosDraw;
-  long health,maxHealth;
+  int health,maxHealth;
   char textureIndex,isNextUnit;
 }UNIT;
 typedef struct node{
   //  UNIT * unit;
-  long name;
+  int name;
   uint hash;
   float xPos;
   float yPos;

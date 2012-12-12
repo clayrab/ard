@@ -96,7 +96,7 @@ long unitTextureIndex;
 int level;
 int flagBits;
 double healthBarLength;
-PyObject * uiElement;
+//PyObject * uiElement;
 //PyObject * gameModule;
 PyObject * gameState;
 PyObject * gameMode;
@@ -418,10 +418,10 @@ PyObject * pyFrameLength;
 PyObject * pyFrameCount;
 PyObject * pyIsFocused;
 long name;
-UIELEMENT * uiElements = NULL;
-UIELEMENT * tempUIElem;
-UIELEMENT * nextElement;
-void freeUIElem(UIELEMENT * uiElem){
+UIELEMENTSTRUCT * uiElements = NULL;
+UIELEMENTSTRUCT * tempUIElem;
+UIELEMENTSTRUCT * nextElement;
+void freeUIElem(UIELEMENTSTRUCT * uiElem){
   free(uiElem->text);
   free(uiElem->textColor);
   free(uiElem->color);
@@ -432,7 +432,7 @@ void freeUIElem(UIELEMENT * uiElem){
     free(uiElem->realText);
   }
 }
-void loadUIElem(PyObject * pyUIElem,UIELEMENT * uiElem){
+void loadUIElem(PyObject * pyUIElem,UIELEMENTSTRUCT * uiElem){
     pyXPosition = PyObject_GetAttrString(pyUIElem,"xPosition");
     pyYPosition = PyObject_GetAttrString(pyUIElem,"yPosition");
     pyWidth = PyObject_GetAttrString(pyUIElem,"width");
@@ -466,10 +466,10 @@ void loadUIElem(PyObject * pyUIElem,UIELEMENT * uiElem){
     uiElem->recalculateText = 0;
     uiElem->leftmostCharPos = 0;
     uiElem->rightmostCharPos = 0;
-    uiElem->realText = 0;
+    uiElem->realText = NULL;
     if(PyObject_HasAttrString(pyUIElem,"realText")){
       pyRealText = PyObject_GetAttrString(pyUIElem,"realText");
-      uiElem->realText = (char*)malloc(strlen(PyString_AsString(pyRealText)));
+      uiElem->realText = (char*)malloc(strlen(PyString_AsString(pyRealText))+1);
       strcpy(uiElem->realText,PyString_AsString(pyRealText));
       pyRecalculateText = PyObject_GetAttrString(pyUIElem,"recalculateText");
       uiElem->recalculateText = PyLong_AsLong(pyRecalculateText);
@@ -482,18 +482,28 @@ void loadUIElem(PyObject * pyUIElem,UIELEMENT * uiElem){
       Py_DECREF(pyRightmostCharPosition);
       Py_DECREF(pyRealText);
     }    
-    uiElem->text = (char*)malloc(strlen(PyString_AsString(pyText)));
+    uiElem->text = (char*)malloc(strlen(PyString_AsString(pyText))+1);
     strcpy(uiElem->text,PyString_AsString(pyText));
-    uiElem->textColor = (char*)malloc(strlen(PyString_AsString(pyTextColor)));
-    strcpy(uiElem->textColor,PyString_AsString(pyTextColor));
-    uiElem->color = (char*)malloc(strlen(PyString_AsString(pyColor)));
-    strcpy(uiElem->color,PyString_AsString(pyColor));
+    if(pyTextColor != Py_None && pyTextColor != NULL){
+      uiElem->textColor = (char*)malloc(strlen(PyString_AsString(pyTextColor))+1);
+      strcpy(uiElem->textColor,PyString_AsString(pyTextColor));
+    }else{
+      uiElem->textColor = (char*)malloc(strlen("FF FF FF")+1);
+      strcpy(uiElem->textColor,"FF FF FF");
+    }
+    if(pyColor != Py_None && pyColor != NULL){
+      uiElem->color = (char*)malloc(strlen(PyString_AsString(pyColor))+1);
+      strcpy(uiElem->color,PyString_AsString(pyColor));
+    }else{
+      uiElem->color = (char*)malloc(strlen("FF FF FF")+1);
+      strcpy(uiElem->color,"FF FF FF");
+    }
 
     //    uiElem->textColor = PyString_AsString(pyTextColor);
     //    uiElem->color = PyString_AsString(pyColor);
 
-    if(pyMouseOverColor != Py_None){
-      uiElem->mouseOverColor = (char*)malloc(strlen(PyString_AsString(pyMouseOverColor)));
+    if(pyMouseOverColor != Py_None && pyMouseOverColor != NULL){
+      uiElem->mouseOverColor = (char*)malloc(strlen(PyString_AsString(pyMouseOverColor))+1);
       strcpy(uiElem->mouseOverColor,PyString_AsString(pyMouseOverColor));
       //      uiElem->mouseOverColor = PyString_AsString(pyMouseOverColor);
     }else{
@@ -512,8 +522,12 @@ void loadUIElem(PyObject * pyUIElem,UIELEMENT * uiElem){
     Py_DECREF(pyName);
     Py_DECREF(pyTextureIndex);
     Py_DECREF(pyCursorIndex);
-    Py_DECREF(pyText);
-    Py_DECREF(pyTextColor);
+    if(pyText != Py_None){
+      Py_DECREF(pyText);
+    }
+    if(pyTextColor != Py_None){
+      Py_DECREF(pyTextColor);
+    }
     Py_DECREF(pyTextSize);
     Py_DECREF(pyColor);
     if(pyMouseOverColor != Py_None){
@@ -531,7 +545,8 @@ void updateUIElement(PyObject * pyUIElem){
   pyName = PyObject_GetAttrString(pyUIElem,"name");
   name = PyLong_AsLong(pyName);
   Py_DECREF(pyName);
-  nextElement = uiElements->nextElement;
+  //  nextElement = uiElements->nextElement;
+  nextElement = uiElements;
   while(nextElement != NULL){
     if(nextElement->name == name){
       break;
@@ -567,7 +582,7 @@ void removeUIElement(PyObject * pyUIElem){
   free(nextElement);    
 }
 void addUIElement(PyObject * pyUIElem){
-  tempUIElem = (UIELEMENT *)malloc(sizeof(UIELEMENT));
+  tempUIElem = (UIELEMENTSTRUCT *)malloc(sizeof(UIELEMENTSTRUCT));
   if(uiElements == NULL){
     uiElements = tempUIElem;
   }else{
@@ -869,12 +884,26 @@ setBackgroundImage(){
   SDL_mutexV(backgroundImageMutex);
 }
 
-
-
-
-
-
-
+PYTHONCALLBACK * firstCallback = NULL;
+PYTHONCALLBACK * lastCallback = NULL;//put new callbacks here
+void queueCallback(PYTHONCALLBACK * callback){
+  SDL_mutexP(pythonCallbackMutex);
+  callback->nextCallback = NULL;
+  if(lastCallback != NULL){
+    lastCallback->nextCallback = callback;
+  }
+  lastCallback = callback;
+  if(firstCallback == NULL){
+    firstCallback = callback;
+  }
+  SDL_mutexV(pythonCallbackMutex);
+}
+static void queueSimpleCallback(int id){
+  PYTHONCALLBACK * callback = (PYTHONCALLBACK *)malloc(sizeof(PYTHONCALLBACK));
+  callback->id = id;
+  callback->selectedName = selectedName;
+  queueCallback(callback);
+}
 
 GLuint *bufferPtr,*ptrNames, numberOfNames;
 int count;
@@ -902,12 +931,10 @@ void processTheHits(GLint hitsCount, GLuint buffer[]){
 	}
       }
       if(nameValue < 5000){//first 5000 names are reserved for text
-	//	PYTHONCALLBACK * callback = (PYTHONCALLBACK *)malloc(sizeof(PYTHONCALLBACK));
-	//	callback->id = 	EVENT_SET_CURSOR_POSITION;
-	//	callback->nameValue = nameValue;
-	//	queueCallback(callback);
-	//	pyObj = PyObject_CallMethod(gameMode,"setMouseTextPosition","i",nameValue);
-	//	Py_DECREF(pyObj);
+	PYTHONCALLBACK * callback = (PYTHONCALLBACK *)malloc(sizeof(PYTHONCALLBACK));
+	callback->id = 	EVENT_SET_CURSOR_POSITION;
+	callback->nameValue = nameValue;
+	queueCallback(callback);
 	mouseTextPositionSet = 1;
       }
     }
@@ -915,6 +942,11 @@ void processTheHits(GLint hitsCount, GLuint buffer[]){
     count = count + 1;
   }  
   if(!mouseTextPositionSet){
+    PYTHONCALLBACK * callback = (PYTHONCALLBACK *)malloc(sizeof(PYTHONCALLBACK));
+    callback->id = 	EVENT_SET_CURSOR_POSITION;
+    callback->nameValue = -1;
+    queueCallback(callback);
+    
     //  pyObj = PyObject_CallMethod(gameMode,"setMouseTextPosition","i",-1);
     //    if(pyObj != NULL){
     //      Py_DECREF(pyObj);
@@ -1399,26 +1431,6 @@ void calculateTranslation(){
    }
 }
 
-PYTHONCALLBACK * firstCallback = NULL;
-PYTHONCALLBACK * lastCallback = NULL;//put new callbacks here
-void queueCallback(PYTHONCALLBACK * callback){
-  SDL_mutexP(pythonCallbackMutex);
-  callback->nextCallback = NULL;
-  if(lastCallback != NULL){
-    lastCallback->nextCallback = callback;
-  }
-  lastCallback = callback;
-  if(firstCallback == NULL){
-    firstCallback = callback;
-  }
-  SDL_mutexV(pythonCallbackMutex);
-}
-static void queueSimpleCallback(int id){
-  PYTHONCALLBACK * callback = (PYTHONCALLBACK *)malloc(sizeof(PYTHONCALLBACK));
-  callback->id = id;
-  callback->selectedName = selectedName;
-  queueCallback(callback);
-}
 void drawBoard(){
   glDepthFunc(GL_LEQUAL);
   glClear(GL_DEPTH_BUFFER_BIT);		 
@@ -1469,7 +1481,7 @@ void drawTileSelect(double xPos, double yPos, int name, long tileType, long sele
     glEnd();
   }
 }
-void queuePosTextCallback(UIELEMENT * uiElement, int left, int right){
+void queuePosTextCallback(UIELEMENTSTRUCT * uiElement, int left, int right){
   PYTHONCALLBACK * callback = (PYTHONCALLBACK *)malloc(sizeof(PYTHONCALLBACK));
   callback->id = EVENT_POSITION_TEXT;
   callback->selectedName = uiElement->name;
@@ -1477,7 +1489,7 @@ void queuePosTextCallback(UIELEMENT * uiElement, int left, int right){
   callback->leftmostCharPos = left;
   queueCallback(callback);
 }
-void findTextWidthFromRight(UIELEMENT * uiElement, int fontIndex, char* realStr, float rightMargin, int rightmostCharPosition){
+void findTextWidthFromRight(UIELEMENTSTRUCT * uiElement, int fontIndex, char* realStr, float rightMargin, int rightmostCharPosition){
   glPushMatrix();
   glGetDoublev(GL_MODELVIEW_MATRIX,projMatrix);
   strPosition = rightmostCharPosition;
@@ -1498,7 +1510,7 @@ void findTextWidthFromRight(UIELEMENT * uiElement, int fontIndex, char* realStr,
   //  pyObj = PyObject_CallMethod(uiElement,"positionText","(ii)",strPosition-1,rightmostCharPosition);
   //  Py_DECREF(pyObj);
 }
-void findTextWidthFromLeft(UIELEMENT * uiElement, int fontIndex, char* realStr, float rightMargin, int leftmostCharPosition){
+void findTextWidthFromLeft(UIELEMENTSTRUCT * uiElement, int fontIndex, char* realStr, float rightMargin, int leftmostCharPosition){
   glPushMatrix();
   glGetDoublev(GL_MODELVIEW_MATRIX,projMatrix);
   strPosition = leftmostCharPosition;
@@ -1519,7 +1531,7 @@ void findTextWidthFromLeft(UIELEMENT * uiElement, int fontIndex, char* realStr, 
 
   //  Py_DECREF(pyObj);
 }
-void findTextWidth(UIELEMENT * uiElement, int fontIndex, char* realStr, float rightMargin, int leftmostCharPosition, int rightmostCharPosition, int cursorPosition, int recalcValu){
+void findTextWidth(UIELEMENTSTRUCT * uiElement, int fontIndex, char* realStr, float rightMargin, int leftmostCharPosition, int rightmostCharPosition, int cursorPosition, int recalcValu){
   rightMargin = rightMargin-0.003;
   strPosition = 0;
   glPushMatrix();
@@ -1573,7 +1585,7 @@ double fontIndex;
 int frameLength;
 int frameCount;
 int isFocused;
-void drawUIElement(UIELEMENT * uiElement){
+void drawUIElement(UIELEMENTSTRUCT * uiElement){
   if(!uiElement->hidden){
     if(uiElement->textureIndex > -1){
       glBindTexture(GL_TEXTURE_2D, texturesArray[uiElement->textureIndex]);
@@ -1641,7 +1653,7 @@ float yPos;
 float pointerWidth;
 float pointerHeight;
 char frameRate[20];
-UIELEMENT * nextUIElement;
+UIELEMENTSTRUCT * nextUIElement;
 void drawUI(){
   glDepthFunc(GL_ALWAYS);
   SDL_mutexP(uiElementsMutex);
@@ -1990,7 +2002,7 @@ static void initGL (){
 
 }
 
-SDL_Event event;
+SDL_Event SDLEvent;
 PyObject * pyFocusNextUnit;
 char keyArray[20];
 //PyObject * pyClickScroll;
@@ -2098,8 +2110,14 @@ static void dispatch(PYTHONCALLBACK * callback){
     if(pyObj != NULL){
       Py_DECREF(pyObj);
     }
+  }else if(callback->id == EVENT_SET_CURSOR_POSITION){
+    pyObj = PyObject_CallMethod(gameMode,"setMouseTextPosition","i",callback->nameValue);
+    if(pyObj != NULL){
+      Py_DECREF(pyObj);
+    }
   }
 }
+
 PYTHONCALLBACK * dispatchCallback;
 static void dispatchPythonCallbacks(){
   SDL_mutexP(pythonCallbackMutex);
@@ -2142,11 +2160,11 @@ static void handleInput(){
       keyHeldTime = SDL_GetTicks();
     }
   }
-  while(SDL_PollEvent(&event)){
-    switch(event.type){
+  while(SDL_PollEvent(&SDLEvent)){
+    switch(SDLEvent.type){
     case SDL_MOUSEMOTION:
-      mouseX = event.motion.x;
-      mouseY = event.motion.y;
+      mouseX = SDLEvent.motion.x;
+      mouseY = SDLEvent.motion.y;
       PYTHONCALLBACK * callback = (PYTHONCALLBACK *)malloc(sizeof(PYTHONCALLBACK));
       callback->id = EVENT_MOUSE_MOVE;
       callback->selectedName = selectedName;
@@ -2169,36 +2187,35 @@ static void handleInput(){
       }
       break;
     case SDL_MOUSEBUTTONDOWN:
-      if(event.button.button == SDL_BUTTON_WHEELUP){
+      if(SDLEvent.button.button == SDL_BUTTON_WHEELUP){
 	translateZ = translateZ + ZOOM_SPEED*deltaTicks;
 	queueSimpleCallback(EVENT_SCROLL_UP);
-      }else if(event.button.button == SDL_BUTTON_WHEELDOWN){
+      }else if(SDLEvent.button.button == SDL_BUTTON_WHEELDOWN){
 	translateZ = translateZ - ZOOM_SPEED*deltaTicks;
 	queueSimpleCallback(EVENT_SCROLL_DOWN);
       }
-      if(event.button.button == SDL_BUTTON_MIDDLE){
+      if(SDLEvent.button.button == SDL_BUTTON_MIDDLE){
 	//	clickScroll = 1;
       }
-      if(event.button.button == SDL_BUTTON_LEFT){
+      if(SDLEvent.button.button == SDL_BUTTON_LEFT){
 	leftButtonDown = 1;
 	queueSimpleCallback(EVENT_LEFT_CLICK_DOWN);
 	previousClickedName = selectedName;
       }
-      printPyStackTrace();
-      if(event.button.button == SDL_BUTTON_RIGHT){
+      if(SDLEvent.button.button == SDL_BUTTON_RIGHT){
 	//	clickScroll = 1;
 	queueSimpleCallback(EVENT_RIGHT_CLICK_DOWN);
       }
       break;
     case SDL_MOUSEBUTTONUP:
-      if(event.button.button == SDL_BUTTON_MIDDLE){
+      if(SDLEvent.button.button == SDL_BUTTON_MIDDLE){
 	//	clickScroll = 0;
       }
-      if(event.button.button == SDL_BUTTON_LEFT){
+      if(SDLEvent.button.button == SDL_BUTTON_LEFT){
 	queueSimpleCallback(EVENT_LEFT_CLICK_UP);
 	leftButtonDown = 0;
       }
-      if(event.button.button == SDL_BUTTON_RIGHT){
+      if(SDLEvent.button.button == SDL_BUTTON_RIGHT){
 	SDL_mutexP(clickScrollMutex);
 	clickScroll = 0;
 	SDL_mutexV(clickScrollMutex);
@@ -2206,49 +2223,49 @@ static void handleInput(){
       }
       break;
     case SDL_KEYDOWN:
-      /*      if(event.key.keysym.sym == SDLK_ESCAPE){
+      /*      if(SDLEvent.key.keysym.sym == SDLK_ESCAPE){
 	doQuit = 1;	
 	
-      }else if(event.key.keysym.sym == SDLK_BACKQUOTE){
+      }else if(SDLEvent.key.keysym.sym == SDLK_BACKQUOTE){
 	clickScroll = 1;
 	avgDeltaTicks = 0;
 	totalDeltaTicksDataPoints = 0;
       }else */
-      if(event.key.keysym.sym == SDLK_NUMLOCK
-	       || event.key.keysym.sym ==SDLK_CAPSLOCK
-	       || event.key.keysym.sym ==SDLK_SCROLLOCK
-	       //	       || event.key.keysym.sym ==SDLK_RSHIFT
-	       //	       || event.key.keysym.sym ==SDLK_LSHIFT
-	       || event.key.keysym.sym ==SDLK_RCTRL
-	       || event.key.keysym.sym ==SDLK_LCTRL
-	       || event.key.keysym.sym ==SDLK_RALT
-	       || event.key.keysym.sym ==SDLK_LALT
-	       || event.key.keysym.sym == SDLK_RMETA
-	       || event.key.keysym.sym == SDLK_LMETA
-	       || event.key.keysym.sym == SDLK_LSUPER
-	       || event.key.keysym.sym == SDLK_RSUPER
-	       || event.key.keysym.sym == SDLK_MODE
-	       || event.key.keysym.sym == SDLK_COMPOSE
-	       || event.key.keysym.sym == SDLK_HELP
-	       || event.key.keysym.sym == SDLK_PRINT
-	       || event.key.keysym.sym == SDLK_SYSREQ
-	       || event.key.keysym.sym == SDLK_BREAK
-	       || event.key.keysym.sym == SDLK_MENU
-	       || event.key.keysym.sym == SDLK_POWER
-	       || event.key.keysym.sym == SDLK_EURO
-	       || event.key.keysym.sym == SDLK_UNDO){
-	//	printf("rejected: %d\n",event.key.keysym.sym);
+      if(SDLEvent.key.keysym.sym == SDLK_NUMLOCK
+	       || SDLEvent.key.keysym.sym ==SDLK_CAPSLOCK
+	       || SDLEvent.key.keysym.sym ==SDLK_SCROLLOCK
+	       //	       || SDLEvent.key.keysym.sym ==SDLK_RSHIFT
+	       //	       || SDLEvent.key.keysym.sym ==SDLK_LSHIFT
+	       || SDLEvent.key.keysym.sym ==SDLK_RCTRL
+	       || SDLEvent.key.keysym.sym ==SDLK_LCTRL
+	       || SDLEvent.key.keysym.sym ==SDLK_RALT
+	       || SDLEvent.key.keysym.sym ==SDLK_LALT
+	       || SDLEvent.key.keysym.sym == SDLK_RMETA
+	       || SDLEvent.key.keysym.sym == SDLK_LMETA
+	       || SDLEvent.key.keysym.sym == SDLK_LSUPER
+	       || SDLEvent.key.keysym.sym == SDLK_RSUPER
+	       || SDLEvent.key.keysym.sym == SDLK_MODE
+	       || SDLEvent.key.keysym.sym == SDLK_COMPOSE
+	       || SDLEvent.key.keysym.sym == SDLK_HELP
+	       || SDLEvent.key.keysym.sym == SDLK_PRINT
+	       || SDLEvent.key.keysym.sym == SDLK_SYSREQ
+	       || SDLEvent.key.keysym.sym == SDLK_BREAK
+	       || SDLEvent.key.keysym.sym == SDLK_MENU
+	       || SDLEvent.key.keysym.sym == SDLK_POWER
+	       || SDLEvent.key.keysym.sym == SDLK_EURO
+	       || SDLEvent.key.keysym.sym == SDLK_UNDO){
+	//	printf("rejected: %d\n",SDLEvent.key.keysym.sym);
       }else{
-	if(event.key.keysym.sym != SDLK_RSHIFT && event.key.keysym.sym != SDLK_LSHIFT){
+	if(SDLEvent.key.keysym.sym != SDLK_RSHIFT && SDLEvent.key.keysym.sym != SDLK_LSHIFT){
 	  keyHeld = 1;
 	  repeatKey = 0;
 	}
 	keyHeldTime = SDL_GetTicks();
-	if((event.key.keysym.mod & KMOD_CAPS | event.key.keysym.mod & KMOD_LSHIFT | event.key.keysym.mod & KMOD_RSHIFT) && (event.key.keysym.sym > 0x60 && event.key.keysym.sym <= 0x7A)){
-	  keyArray[0] = (*SDL_GetKeyName(event.key.keysym.sym))-32;
+	if((SDLEvent.key.keysym.mod & KMOD_CAPS | SDLEvent.key.keysym.mod & KMOD_LSHIFT | SDLEvent.key.keysym.mod & KMOD_RSHIFT) && (SDLEvent.key.keysym.sym > 0x60 && SDLEvent.key.keysym.sym <= 0x7A)){
+	  keyArray[0] = (*SDL_GetKeyName(SDLEvent.key.keysym.sym))-32;
 	  keyArray[1] = 0;
-	}else if(event.key.keysym.mod & KMOD_LSHIFT | event.key.keysym.mod & KMOD_RSHIFT){
-	  switch(event.key.keysym.sym){
+	}else if(SDLEvent.key.keysym.mod & KMOD_LSHIFT | SDLEvent.key.keysym.mod & KMOD_RSHIFT){
+	  switch(SDLEvent.key.keysym.sym){
 	  case SDLK_COMMA:
 	    keyArray[0] = SDLK_LESS;
 	    keyArray[1] = 0;
@@ -2327,7 +2344,7 @@ static void handleInput(){
 	    break;
 	  }
 	}else{
-	  sprintf(keyArray,"%s",SDL_GetKeyName(event.key.keysym.sym));
+	  sprintf(keyArray,"%s",SDL_GetKeyName(SDLEvent.key.keysym.sym));
 	}
 	PYTHONCALLBACK * callback = (PYTHONCALLBACK *)malloc(sizeof(PYTHONCALLBACK));
 	callback->id = EVENT_KEY_DOWN;
@@ -2339,16 +2356,16 @@ static void handleInput(){
     case SDL_KEYUP:
       keyHeld = 0;
       repeatKey = 0;
-      /*if(event.key.keysym.sym == SDLK_BACKQUOTE){
+      /*if(SDLEvent.key.keysym.sym == SDLK_BACKQUOTE){
 	clickScroll = 0;
 	}else*/
-      if(event.key.keysym.sym == 303//rightshift
-	 || event.key.keysym.sym == 304//leftshift
-	 || event.key.keysym.sym == SDLK_BACKQUOTE){
+      if(SDLEvent.key.keysym.sym == 303//rightshift
+	 || SDLEvent.key.keysym.sym == 304//leftshift
+	 || SDLEvent.key.keysym.sym == SDLK_BACKQUOTE){
 	PYTHONCALLBACK * callback = (PYTHONCALLBACK *)malloc(sizeof(PYTHONCALLBACK));
 	callback->id = EVENT_KEY_UP;
 	callback->selectedName = selectedName;
-	sprintf(callback->keyArray,"%s",SDL_GetKeyName(event.key.keysym.sym));
+	sprintf(callback->keyArray,"%s",SDL_GetKeyName(SDLEvent.key.keysym.sym));
 	queueCallback(callback);	
       }
       break;
@@ -2805,9 +2822,8 @@ int main(int argc, char ** argv){
   mainLoop();
   SDL_WaitThread(pyThread,NULL);//should kill itself...
   queueSimpleCallback(EVENT_ON_QUIT);
-  pyObj = PyObject_CallMethod(gameMode,"onQuit",NULL);
+  PyObject_CallMethod(gameMode,"onQuit",NULL);
   printPyStackTrace();
-  Py_DECREF(pyObj);
   SDL_Quit();
   Py_DECREF(gameModule);
   Py_DECREF(gameState);
