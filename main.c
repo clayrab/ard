@@ -716,6 +716,12 @@ void updateUnit(PyObject * pyUnit){
     animQueue = AddItem(animQueue,theAnim);
   }
 }
+void freeNode(NODE * theNode){
+  if(theNode->debugColor != NULL){
+    free(theNode->debugColor);
+  }
+}
+PyObject * pyDebugColor;
 void loadNode(NODE * theNode, PyObject * pyNode){
   pyNodeName = PyObject_GetAttrString(pyNode,"name");
   theNode->name = PyLong_AsLong(pyNodeName);
@@ -729,6 +735,13 @@ void loadNode(NODE * theNode, PyObject * pyNode){
   pyIsVisible = PyObject_GetAttrString(pyNode,"visible");//New reference
   theNode->visible = PyLong_AsLong(pyIsVisible);
   Py_DECREF(pyIsVisible);
+  theNode->debugColor = NULL;
+  pyDebugColor = PyObject_GetAttrString(pyNode,"debugColor");//New reference
+  if(pyDebugColor != Py_None){
+      theNode->debugColor = (char*)malloc(strlen(PyString_AsString(pyDebugColor))+1);
+      strcpy(theNode->debugColor,PyString_AsString(pyDebugColor));
+  }
+  
 }
 
 long nodeName;
@@ -1076,6 +1089,7 @@ void drawUnit(UNIT * daUnit){
 }
 float shading;
 char playerStartVal[2];
+unsigned int red[1],green[1],blue[1];
 void drawTile(NODE * theNode){
   textureVertices = vertexArrays[theNode->tileValue];
   shading = 1.0;
@@ -1088,11 +1102,17 @@ void drawTile(NODE * theNode){
     //      theCursorIndex = (int)cursorIndex;
     //    }
   }
-  glColor3f(shading,shading,shading);
+  //  glColor3f(shading,shading,shading);
+  if(theNode->debugColor != NULL){
+    sscanf(theNode->debugColor,"%X %X %X",red,green,blue);
+    glColor3f((*red)/255.0, (*green)/255.0, (*blue)/255.0);
+  }else{
+    glColor3f(shading,shading,shading);
+  }
   glPushName(theNode->name);
   glCallList(tilesLists+(4*theNode->tileValue)+theNode->hash);
   glPopName();
-
+  
   //  glColor3f(0.0,1.0,0.0);
   //  if(roadValue == 1){
   //    glCallList(tilesLists+(4*ROAD_TILE_INDEX));
@@ -1197,7 +1217,6 @@ void drawUnits(){
     glPushMatrix();
     drawUnit(daNextUnit);
     glPopMatrix();
-    
     daNextUnit = daNextUnit->nextUnit;
   }
 }						
@@ -1559,7 +1578,6 @@ void findTextWidth(UIELEMENTSTRUCT * uiElement, int fontIndex, char* realStr, fl
   //  Py_DECREF(pyObj);  
 }
 int isNode;
-unsigned int red[1],green[1],blue[1];
 //double xPosition;
 //double yPosition;
 double width;

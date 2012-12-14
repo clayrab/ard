@@ -22,6 +22,7 @@ from multiprocessing import Process, Queue, Pipe
 #print "thread stack size: " + str(thread.stack_size())
 #sys.setcheckinterval(10)
 
+
 #researchBuildTime = 100
 #unitBuildSpeed = 0.1
 STARTING_RED_WOOD = 250.0
@@ -66,7 +67,6 @@ def translateTilesYToPositionY(tileY):
 
 class Player:
 	def __init__(self,playerNumber,userName,requestHandler,isAI=False):
-		print "playerNumber: " + str(playerNumber)
 		self.userName = userName
 		self.playerNumber = playerNumber
 		self.isOwnPlayer = False
@@ -115,6 +115,7 @@ class unitType:
 		self.researchCostBlue = researchCostBlue
 		self.researchTime = researchTime
 		self.canAttackGround = canAttackGround
+		self.aiData = None
 #		print self.name
 		if(self.name == "_archer"):
 			print self.name
@@ -192,6 +193,7 @@ class unit(object):
 		self.player = player
 		self.team = (self.player)/gameState.getTeamSize()
 		self.ai = gameState.theAIs[self.player]
+		self.aiData = None
 		self._node = None
 		self.xPos = 0.0
 		self.yPos = 0.0
@@ -486,6 +488,7 @@ class node:
 		self.neighbors = []
 		self.unit = None
 		self.visible = True
+		self.debugColor = None
 	def getValue(self):
 		return self.tileValue
 	def findDistance(self,target,polarity):

@@ -39,6 +39,7 @@ typedef struct node{
   //  char onMovePath;
   //  char cursorIndex;
   char visible;
+  char * debugColor;
 }NODE;
 typedef struct cityNodeListElem{
   struct cityNodeListElem * nextCity;

@@ -2,8 +2,19 @@ import gameState
 import gameLogic
 import uiElements
 import cDefines
-#import random
+import rendererUpdates
+import random
 
+class MODES:
+    ATTACK_MODE = 0
+    DEFEND_MODE = 1
+    GATHER_MODE = 2
+    GATHER_BLUE_MODE = 2
+    RESEARCH_MODE = 4
+class AIUnitData:
+    def __init__(self):
+        self.mode = None
+        self.gotoNode = None
 class AIPlayer(gameLogic.Player):
     AIAStar = gameLogic.aStarThread()
     def __init__(self,playerNumber,userName,requestHandler):
@@ -13,50 +24,157 @@ class AIPlayer(gameLogic.Player):
             gameLogic.Player.__init__(self,playerNumber,userName,None,isAI=True)
         gameState.nextAINumber = gameState.nextAINumber + 1
         self.rankedCities = []
+        self.enemyRankedCities = []        
         self.startingNode = None
+        self.enemyStartingNodes = []
+        self.nearestEnemyStartingNode = None
+        self.nearestEnemy = None
+        self.somewhatReasonableNumberOfCitiesToHaveOccupied = 0
+#        self.units = []
+#        self.workers = []
+        self.workerCount = 0
+        self.nonWorkerCount = 0
+    @staticmethod
+    def findPath(node1,node2):
+        AIPlayer.AIAStar.startSearch(AIPlayer.AIAStar.map.nodes[node1.yPos][node1.xPos],AIPlayer.AIAStar.map.nodes[node2.yPos][node2.xPos],False,False)
+        foundNodes = []
+        while(len(foundNodes) == 0):
+            foundNodes = AIPlayer.AIAStar.aStarSearchRecurse(True)
+        return foundNodes
+    @staticmethod
+    def findDistance(node1,node2):
+        return len(AIPlayer.findPath(node1,node2))
     def analyzeMap(self):
-        self.rankedCities = []        
         AIPlayer.AIAStar.map = gameLogic.mapp(gameLogic.aStarNode,mapName=gameState.getMapName(),ignoreCities=True)
         for row in gameState.getGameMode().map.nodes:
             for node in row:
                 if node.playerStartValue != 0:
-                    print node.playerStartValue
-                if node.playerStartValue == self.playerNumber+1:
-                    self.startingNode = node
-                    break
+                    if gameState.getPlayers()[node.playerStartValue-1].team != self.team:
+                        self.enemyStartingNodes.append(node)
+                    if self.playerNumber == node.playerStartValue - 1:
+                        self.startingNode = node
+        #calculate distance to nearest cities and rank them:
         for city in gameState.getGameMode().cities:
-            print 'city'
-            print city.node.yPos
-            print city.node.xPos
-            AIPlayer.AIAStar.startSearch(AIPlayer.AIAStar.map.nodes[city.node.yPos][city.node.xPos],AIPlayer.AIAStar.map.nodes[self.startingNode.yPos][self.startingNode.xPos],False,False)
-            foundNodes = []
-#            while(len(foundNodes) == 0):
-#                foundNodes = AIPlayer.AIAStar.aStarSearchRecurse(True)
-#            print foundNodes
-#            print len(foundNodes)
-#            self.rankedCities.append((len(foundNodes),city,))
- #       print self.rankedCities
+            if(not(city.node.yPos == self.startingNode.yPos and city.node.xPos == self.startingNode.xPos)):
+                self.rankedCities.append((AIPlayer.findDistance(city.node,self.startingNode),city,))
+            else:
+                self.rankedCities.append((0,city,))
+        self.rankedCities.sort(lambda x,y:x[0]-y[0])
+        #find nearest enemy starting node
+        for startingNode in self.enemyStartingNodes:
+            distance = AIPlayer.findDistance(startingNode,self.startingNode)
+            if(self.nearestEnemy == None or distance < self.nearestEnemy[0]):
+                self.nearestEnemy = (distance,startingNode,)
+                self.nearestEnemyStartingNode = startingNode
+        #calculate distance to nearest enemy's nearest cities and rank them:
+        for city in gameState.getGameMode().cities:
+            if(not(city.node.yPos == self.nearestEnemy[1].yPos and city.node.xPos == self.nearestEnemy[1].xPos)):
+                self.enemyRankedCities.append((AIPlayer.findDistance(city.node,self.nearestEnemy[1]),city,))
+            else:
+                self.enemyRankedCities.append((0,city,))
+        self.enemyRankedCities.sort(lambda x,y:x[0]-y[0])
+        #account for units/count workers
+        for unit in gameState.getGameMode().units:
+            if unit.player == self.playerNumber:
+                if unit.unitType.name == "gatherer":
+                    self.workerCount = self.workerCount + 1
+                else:
+                    self.nonWorkerCount = self.nonWorkerCount + 1
+#        print "nearest enemy: " + str(self.nearestEnemy)
+#        print "ranked cities: " + str(self.rankedCities)
+#        print "enemy ranked cities: " + str(self.enemyRankedCities)
+        print "worker count: " + str(self.workerCount)
+#       print self.rankedCities
 #            print AIPlayer.AIAStar.closedNodes
 #            print AIPlayer.AIAStar.openNodes
     def dispatchCommand(self,command):
         return
-    def takeTurn(self):
+    def moveNextUnitToRandomNode(self):
+        rngState = random.getstate()
         eligibleMoveNodes = []
         for neighb in gameState.getGameMode().nextUnit.node.neighbors:
             if(neighb.unit == None):
                 if(neighb.tileValue != cDefines.defines['MOUNTAIN_TILE_INDEX'] or (gameState.getGameMode().nextUnit.unitType.canFly)):
                     eligibleMoveNodes.append(neighb)
         if(len(eligibleMoveNodes) > 0):
-            moveToNode = eligibleMoveNodes[0]
+            moveToNode = random.choice(eligibleMoveNodes)
             gameState.getClient().sendCommand("moveTo",str(moveToNode.xPos) + " " + str(moveToNode.yPos))
         else:
             gameState.getClient().sendCommand("skip")
+        random.setstate(rngState)
+    def chooseRandomBuildableUnitType(self):
+        rngState = random.getstate()
+        eligibleUnitTypes = []
+        for unitType in gameState.researchProgress[self.playerNumber]:
+            print unitType.name
+            if unitType.name != "gatherer":
+                eligibleUnitTypes.append(unitType)
+        if(len(eligibleUnitTypes) == 0):
+            retUnitType = gameState.researchProgress[self.playerNumber].keys()[0]
+        else:
+            retUnitType = random.choice(eligibleUnitTypes)
+        random.setstate(rngState)
+        return retUnitType
+    def moveNextUnitTowardNode(self,node):
+        path = AIPlayer.findPath(node,gameState.getGameMode().nextUnit.node)
+        gameState.getClient().sendCommand("moveTo",str(path[0][0]) + " " + str(path[0][1]))
+    def findNearestTile(self,tileComparitor):
+        searchDistance = 1
+        retNode = None
+        while(True):
+            neighbs = gameState.getGameMode().nextUnit.node.getNeighbors(searchDistance)
+            for node in neighbs:
+                if(tileComparitor(node) and node.unit == None):
+                    return node
+            searchDistance += 1
+    def findNearestRedForest(self):
+        return self.findNearestTile(lambda x:x.tileValue == cDefines.defines['RED_FOREST_TILE_INDEX'])
+    def findNearestCity(self):
+        return self.findNearestTile(lambda x:x.city != None)
+    def takeTurn(self):
+        nextUnit = gameState.getGameMode().nextUnit
+        if(nextUnit.aiData == None):
+            nextUnit.aiData = AIUnitData()
+        if(nextUnit.unitType.name == "summoner"):
+            if(nextUnit.node.city != None):
+                self.moveNextUnitToRandomNode()
+            else:
+                if(self.nonWorkerCount > self.workerCount):
+                    gameState.getClient().sendCommand("startSummoning",str(nextUnit.node.xPos) + " " + str(nextUnit.node.yPos) + " gatherer")
+                else:
+                    buildUnitType = self.chooseRandomBuildableUnitType()
+                    gameState.getClient().sendCommand("startSummoning",str(nextUnit.node.xPos) + " " + str(nextUnit.node.yPos) + " " + buildUnitType.name)
+        elif(nextUnit.unitType.name == "gatherer"):
+            if(nextUnit.aiData.mode == None):
+                if(self.workerCount%10 == 0 and False):
+                    nextUnit.aiData.mode = MODES.GATHER_BLUE_MODE
+                elif(self.workerCount%5 == 0):
+                    nextUnit.aiData.mode = MODES.RESEARCH_MODE
+                else:
+                    nextUnit.aiData.mode = MODES.GATHER_MODE
+            if(nextUnit.aiData.mode == MODES.GATHER_MODE or True):
+                if(nextUnit.node.tileValue == cDefines.defines['RED_FOREST_TILE_INDEX']):
+                    gameState.getClient().sendCommand("startMeditating",str(nextUnit.node.xPos) + " " + str(nextUnit.node.yPos))
+                else:
+                    if(nextUnit.aiData.gotoNode == None or (nextUnit.aiData.gotoNode.unit != None and nextUnit.aiData.gotoNode.unit.isMeditating)):
+                        nextUnit.aiData.gotoNode = self.findNearestRedForest()
+                    self.moveNextUnitTowardNode(nextUnit.aiData.gotoNode)
+            else:#MODES.RESEARCH_MODE
+                if(nextUnit.node.city != None):
+                    gameState.getClient().sendCommand("startMeditating",str(nextUnit.node.xPos) + " " + str(nextUnit.node.yPos))
+                else:
+                    if(nextUnit.aiData.gotoNode == None or (nextUnit.aiData.gotoNode.unit != None and nextUnit.aiData.gotoNode.unit.isMeditating)):
+                        nextUnit.aiData.gotoNode = self.findNearestCity()
+                    self.moveNextUnitTowardNode(nextUnit.aiData.gotoNode)
+        else:
+            self.moveNextUnitTowardNode(self.nearestEnemyStartingNode)
+            #self.moveNextUnitToRandomNode()
         gameState.getClient().sendCommand("chooseNextUnit")
 
-def analyzeMap():
-    for player in gameState.getPlayers():
-        if player != None and player.isAI:
-            player.analyzeMap()
+#def analyzeMap():
+#    for player in gameState.getPlayers():
+#        if player != None and player.isAI:
+#            player.analyzeMap()
 def addAIPlayer():
     players = gameState.getPlayers()
     for i in range(0,8):

@@ -5,9 +5,10 @@ import SocketServer
 import time
 import gameState
 import client
-import uiElements
+#import uiElements
 import gameFindClient
 import gameLogic
+#import ai
 
 serverLock = threading.Lock()
 server = None
@@ -102,7 +103,8 @@ class Server(SocketServer.ThreadingMixIn,SocketServer.TCPServer):
         try:
             SocketServer.TCPServer.__init__(self,serverAddress,RequestHandler)
         except:
-            uiElements.smallModal("There was an error hosting the game.")
+            print "There was an error hosting the game."
+#            uiElements.smallModal("There was an error hosting the game.")
         self.acceptingConnections = True
         self.acceptingConnectionsLock = threading.Lock()
     def startAcceptingConnections(self):

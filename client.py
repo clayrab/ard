@@ -100,6 +100,10 @@ class Commands:
         gameState.setGameMode(gameModes.playMode)
         gameState.getGameMode().startGame()
         gameState.getGameMode().soundIndeces.append(cDefines.defines["DARBUKA_HIT_INDEX"])
+        for player in gameState.getPlayers():
+            if player != None and player.isAI:
+                player.analyzeMap()
+
     @staticmethod
     def chooseNextUnit():
         gameState.getGameMode().chooseNextUnit()

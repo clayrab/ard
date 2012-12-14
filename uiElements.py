@@ -1368,6 +1368,7 @@ class roomTitleInputElement(textInputElement):
 
 class startButton(menuButtonGameModeSelector):
 	def onClick(self):
+		print 'startbutton clicked'
 		server.startGame()
 
 

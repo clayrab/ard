@@ -969,7 +969,7 @@ class gameRoomMode(tiledGameMode):
 #		self.maxTranslateZ = 0.0-cDefines.defines["maxZoom"]
 		gameState.setMapName(mapName)
 		self.map = gameLogic.mapp(gameLogic.mapViewNode)
-		ai.analyzeMap()
+#		ai.analyzeMap()
 		gameState.rendererUpdateQueue.put(rendererUpdates.loadMap())
 		self.mapNameElem.text = mapName
 		self.focus()
@@ -1045,7 +1045,7 @@ class createGameMode(tiledGameMode):
 			self.map = gameLogic.mapp(gameLogic.mapViewNode)
 		else:
 			self.map = gameLogic.mapp(gameLogic.mapViewNode)
-		ai.analyzeMap()
+#		ai.analyzeMap()
 		gameState.rendererUpdateQueue.put(rendererUpdates.loadMap())
 #		self.maxTranslateZ = 0.0-cDefines.defines["maxZoom"]
 #		if(self.mapSelector != None):
@@ -1108,6 +1108,7 @@ class quickPlayMode(createGameMode):
 			client.startClient('127.0.0.1')
 		except socket.error:
 			gameState.setGameMode(newGameScreenMode)
+			print 'socket error... showing modal?'
 			uiElements.smallModal("Cannot connect to socket. Try again in 1 minute.")
 			return
 		ai.addAIPlayer()
