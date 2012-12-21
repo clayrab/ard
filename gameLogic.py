@@ -327,21 +327,21 @@ class unit(object):
 			gameState.getClient().sendCommand("moveTo",str(node.xPos) + " " + str(node.yPos))
 			gameState.getClient().sendCommand("chooseNextUnit")
 	def moveTo(self,node):
+		if(node.unit != None):
+			raise Exception("Cannot move to a node that is already occupied!")
 #		self.onMovePath = False
 		for neighb in self.node.getNeighbors(5):
 			neighb.stopViewing(self)
 		for neighb in node.getNeighbors(5):
 			neighb.startViewing(self)
-		aStarSearch.parentPipe.send(["unitRemove",self.node.xPos,self.node.yPos])
-		if(node.visible):
-			aStarSearch.parentPipe.send(["unitAdd",node.xPos,node.yPos])
-#			gameState.getGameMode().animationQueue.put((node.xPos,node.yPos,))
-#			gameState.getGameMode().animationQueue.put((self,))
+		aStarSearch.removeUnit(self.node)
+#		aStarSearch.parentPipe.send(["unitRemove",self.node.xPos,self.node.yPos])
+		aStarSearch.addUnit(node)
+		if(node.visible or True):#TODO remove 'or True' this, it's just for debuging
 			gameState.rendererUpdateQueue.put(rendererUpdates.renderFocus(node.xPos,node.yPos))
-
 		self.node.unit = None
 		self.node = node
-		node.unit = self
+		self.node.unit = self
 		gameState.rendererUpdateQueue.put(rendererUpdates.renderUnitChange(self))
 		self.movementPoints = self.movementPoints + INITIATIVE_ACTION_DEPLETION
 		gameState.getGameMode().gotoMode = False
@@ -378,7 +378,8 @@ class unit(object):
 				gameState.rendererUpdateQueue.put(rendererUpdates.renderRemoveUnit(node.unit))
 				if(node.unit.unitType.name == "summoner"):
 					gameState.getGameMode().summoners.remove(node.unit)
-				aStarSearch.parentPipe.send(["unitRemove",node.xPos,node.yPos])
+				aStarSearch.removeUnit(node)
+#				aStarSearch.parentPipe.send(["unitRemove",node.xPos,node.yPos])
 				if(node.unit.unitType == "gatherer" and node.city != None):
 					gameState.reevaAvailableUnitTypes()
 				node.unit = None
@@ -523,13 +524,12 @@ class node:
 			theUnit.node = self
 			gameState.getGameMode().units.append(theUnit)
 			gameState.rendererUpdateQueue.put(rendererUpdates.renderNewUnit(self.unit))
-			if(self.visible):
-				aStarSearch.parentPipe.send(["unitAdd",self.xPos,self.yPos])
 			if(theUnit.unitType.name == "summoner"):
 				gameState.getGameMode().summoners.append(theUnit)
 			if(theUnit.isOwnTeam()):
 				for neighb in self.getNeighbors(5):
 					neighb.startViewing(self.unit)
+			aStarSearch.addUnit(self)
 		else:
 			hasEmptyNeighbor = False
 			for neighb in self.neighbors:
@@ -674,7 +674,7 @@ class playModeNode(node):
 			for yDelta in range(0-distance,distance):
 				if((self.yPos + yDelta >= 0) and (self.yPos + yDelta < len(gameState.getGameMode().map.nodes))):
 					if((self.xPos + xDelta >= 0) and (self.xPos + xDelta < len(gameState.getGameMode().map.nodes[self.yPos + yDelta]))):
-						if(self.findDistance(gameState.getGameMode().map.nodes[self.yPos + yDelta][self.xPos + xDelta],gameState.getGameMode().map.polarity) < 5.0):
+						if(self.findDistance(gameState.getGameMode().map.nodes[self.yPos + yDelta][self.xPos + xDelta],gameState.getGameMode().map.polarity) < float(distance)):
 							neighbs.append(gameState.getGameMode().map.nodes[self.yPos + yDelta][self.xPos + xDelta])
 		return neighbs
 	def onMouseOver(self):
@@ -762,14 +762,14 @@ class aStarThread():
 				if(data[0] == "kill"):
 					break
 				elif(data[0] == "polarity"):
-					aStarSearch.polarity = data[1]
+					print "ERROR, WTF IS THIS?"
+#					aStarSearch.polarity = data[1]
 				elif(data[0] == "map"):
 					aStarSearch.map = mapp(aStarNode,mapName=data[1],ignoreCities=True)
 				elif(data[0] == "unitAdd"):
 					aStarSearch.map.nodes[data[2]][data[1]].unit = True
 				elif(data[0] == "unitRemove"):
 					aStarSearch.map.nodes[data[2]][data[1]].unit = False
-#					aStarSearch.map.nodes[data[4]][data[3]].unit = True
 				elif(data[0] == "keepalive"):
 					aStarSearch.keepAliveTime = time.clock()
 				else:
@@ -792,6 +792,17 @@ class aStarThread():
 	@staticmethod
 	def keepAlive():
 		aStarSearch.parentPipe.send(["keepalive"])
+	def removeUnit(self,node):
+		self.map.nodes[node.yPos][node.xPos].unit = False
+		if(node.visible):
+			self.parentPipe.send(["unitRemove",node.xPos,node.yPos])
+	def addUnit(self,node):
+		self.map.nodes[node.yPos][node.xPos].unit = True
+		if(node.visible):
+			self.parentPipe.send(["unitAdd",node.xPos,node.yPos])
+	def setMap(self,mapName):
+		self.parentPipe.send(['map',mapName])
+		self.map = mapp(aStarNode,mapName=mapName,ignoreCities=True)
 	def resetNodes(self):
 		for node in self.openNodes:
 			node.closed = False
@@ -872,7 +883,7 @@ class aStarThread():
 					else:
 						neighbor.aStarKnownCost = node.aStarKnownCost + (cDefines.defines['GRASS_MOVE_COST']/(1.0+float(neighbor.roadValue)))
 				else:#calculate whether new known path is shorter than old known path
-					if(neighbor.unit != None):
+					if(neighbor.unit):
 						if(neighbor.aStarKnownCost > node.aStarKnownCost + 999.9):
 							neighbor.aStarKnownCost = node.aStarKnownCost + 999.9
 					elif(neighbor.tileValue == cDefines.defines['MOUNTAIN_TILE_INDEX']):

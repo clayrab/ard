@@ -16,7 +16,7 @@ class AIUnitData:
         self.mode = None
         self.gotoNode = None
 class AIPlayer(gameLogic.Player):
-    AIAStar = gameLogic.aStarThread()
+    AIAStar = gameLogic.aStarSearch
     def __init__(self,playerNumber,userName,requestHandler):
         if(userName == "Player ?"):
             gameLogic.Player.__init__(self,playerNumber,"AI " + str(gameState.nextAINumber),None,isAI=True)
@@ -45,7 +45,7 @@ class AIPlayer(gameLogic.Player):
     def findDistance(node1,node2):
         return len(AIPlayer.findPath(node1,node2))
     def analyzeMap(self):
-        AIPlayer.AIAStar.map = gameLogic.mapp(gameLogic.aStarNode,mapName=gameState.getMapName(),ignoreCities=True)
+#        AIPlayer.AIAStar.map = gameLogic.mapp(gameLogic.aStarNode,mapName=gameState.getMapName(),ignoreCities=True)
         for row in gameState.getGameMode().map.nodes:
             for node in row:
                 if node.playerStartValue != 0:
@@ -106,7 +106,6 @@ class AIPlayer(gameLogic.Player):
         rngState = random.getstate()
         eligibleUnitTypes = []
         for unitType in gameState.researchProgress[self.playerNumber]:
-            print unitType.name
             if unitType.name != "gatherer":
                 eligibleUnitTypes.append(unitType)
         if(len(eligibleUnitTypes) == 0):
@@ -116,8 +115,17 @@ class AIPlayer(gameLogic.Player):
         random.setstate(rngState)
         return retUnitType
     def moveNextUnitTowardNode(self,node):
-        path = AIPlayer.findPath(node,gameState.getGameMode().nextUnit.node)
-        gameState.getClient().sendCommand("moveTo",str(path[0][0]) + " " + str(path[0][1]))
+        if(node == gameState.getGameMode().nextUnit.node):#just a little precaution for now, hopefully the finished AI would never run into this situation
+            self.moveNextUnitToRandomNode()
+        else:
+            path = AIPlayer.findPath(node,gameState.getGameMode().nextUnit.node)
+            node = gameState.getGameMode().map.nodes[path[0][1]][path[0][0]]
+            if(node.unit != None):
+                for coords in path:
+                    node = gameState.getGameMode().map.nodes[coords[1]][coords[0]]
+                    node.debugColor = "FF 00 00"
+                    gameState.rendererUpdateQueue.put(rendererUpdates.renderNodeChange(node))
+            gameState.getClient().sendCommand("moveTo",str(path[0][0]) + " " + str(path[0][1]))
     def findNearestTile(self,tileComparitor):
         searchDistance = 1
         retNode = None
@@ -127,46 +135,68 @@ class AIPlayer(gameLogic.Player):
                 if(tileComparitor(node) and node.unit == None):
                     return node
             searchDistance += 1
-    def findNearestRedForest(self):
-        return self.findNearestTile(lambda x:x.tileValue == cDefines.defines['RED_FOREST_TILE_INDEX'])
-    def findNearestCity(self):
-        return self.findNearestTile(lambda x:x.city != None)
+    
+#    def findNearestRedForest(self,comparitor):
+#        return self.findNearestTile(lambda x:x.tileValue == cDefines.defines['RED_FOREST_TILE_INDEX'])
+#    def findNearestCity(self):
+#        return self.findNearestTile(lambda x:x.city != None)
     def takeTurn(self):
         nextUnit = gameState.getGameMode().nextUnit
         if(nextUnit.aiData == None):
             nextUnit.aiData = AIUnitData()
         if(nextUnit.unitType.name == "summoner"):
+            print 'summoners turn'
             if(nextUnit.node.city != None):
                 self.moveNextUnitToRandomNode()
             else:
                 if(self.nonWorkerCount > self.workerCount):
-                    gameState.getClient().sendCommand("startSummoning",str(nextUnit.node.xPos) + " " + str(nextUnit.node.yPos) + " gatherer")
+                    buildUnitType = gameState.theUnitTypes["gatherer"]
+                    self.workerCount+=1
                 else:
                     buildUnitType = self.chooseRandomBuildableUnitType()
-                    gameState.getClient().sendCommand("startSummoning",str(nextUnit.node.xPos) + " " + str(nextUnit.node.yPos) + " " + buildUnitType.name)
+#                if(self.redWood >= (gameState.researchProgress[self.playerNumber][buildUnitType][0]*buildUnitType.costRed) and self.blueWood >= (gameState.researchProgress[self.playerNumber][buildUnitType][0]*buildUnitType.costBlue)):
+                gameState.getClient().sendCommand("startSummoning",str(nextUnit.node.xPos) + " " + str(nextUnit.node.yPos) + " " + buildUnitType.name)
+#                else:
         elif(nextUnit.unitType.name == "gatherer"):
+            print 'gatherers turn'
             if(nextUnit.aiData.mode == None):
+                print self.workerCount%5
                 if(self.workerCount%10 == 0 and False):
-                    nextUnit.aiData.mode = MODES.GATHER_BLUE_MODE
-                elif(self.workerCount%5 == 0):
                     nextUnit.aiData.mode = MODES.RESEARCH_MODE
+                elif(self.workerCount%5 == 0):
+                    print 'gather blue...'
+                    nextUnit.aiData.mode = MODES.GATHER_BLUE_MODE
                 else:
                     nextUnit.aiData.mode = MODES.GATHER_MODE
-            if(nextUnit.aiData.mode == MODES.GATHER_MODE or True):
-                if(nextUnit.node.tileValue == cDefines.defines['RED_FOREST_TILE_INDEX']):
-                    gameState.getClient().sendCommand("startMeditating",str(nextUnit.node.xPos) + " " + str(nextUnit.node.yPos))
-                else:
-                    if(nextUnit.aiData.gotoNode == None or (nextUnit.aiData.gotoNode.unit != None and nextUnit.aiData.gotoNode.unit.isMeditating)):
-                        nextUnit.aiData.gotoNode = self.findNearestRedForest()
-                    self.moveNextUnitTowardNode(nextUnit.aiData.gotoNode)
-            else:#MODES.RESEARCH_MODE
-                if(nextUnit.node.city != None):
-                    gameState.getClient().sendCommand("startMeditating",str(nextUnit.node.xPos) + " " + str(nextUnit.node.yPos))
-                else:
-                    if(nextUnit.aiData.gotoNode == None or (nextUnit.aiData.gotoNode.unit != None and nextUnit.aiData.gotoNode.unit.isMeditating)):
-                        nextUnit.aiData.gotoNode = self.findNearestCity()
-                    self.moveNextUnitTowardNode(nextUnit.aiData.gotoNode)
+            if(nextUnit.aiData.mode == MODES.GATHER_MODE):
+                comparitorFunc = lambda node:node.tileValue == cDefines.defines['RED_FOREST_TILE_INDEX']
+            elif(nextUnit.aiData.mode == MODES.GATHER_BLUE_MODE):
+                comparitorFunc = lambda node:node.tileValue == cDefines.defines['BLUE_FOREST_TILE_INDEX']
+            else:
+                comparitorFunc = lambda node:node.city != None
+            if(comparitorFunc(nextUnit.node)):
+                gameState.getClient().sendCommand("startMeditating",str(nextUnit.node.xPos) + " " + str(nextUnit.node.yPos))
+            else:
+                if(nextUnit.aiData.gotoNode == None or nextUnit.aiData.gotoNode.unit != None):
+                    nextUnit.aiData.gotoNode = self.findNearestTile(comparitorFunc)
+                self.moveNextUnitTowardNode(nextUnit.aiData.gotoNode)
+#             if(nextUnit.aiData.mode == MODES.GATHER_MODE):
+#                 if(nextUnit.node.tileValue == cDefines.defines['RED_FOREST_TILE_INDEX']):
+#                     gameState.getClient().sendCommand("startMeditating",str(nextUnit.node.xPos) + " " + str(nextUnit.node.yPos))
+#                 else:
+#                     if(nextUnit.aiData.gotoNode == None or nextUnit.aiData.gotoNode.unit != None):
+#                         nextUnit.aiData.gotoNode = self.findNearestRedForest()
+#                     self.moveNextUnitTowardNode(nextUnit.aiData.gotoNode)
+#             else:#MODES.RESEARCH_MODE
+#                 print 'unimplemented!!!'
+#                 if(nextUnit.node.city != None):
+#                     gameState.getClient().sendCommand("startMeditating",str(nextUnit.node.xPos) + " " + str(nextUnit.node.yPos))
+#                 else:
+#                     if(nextUnit.aiData.gotoNode == None or (nextUnit.aiData.gotoNode.unit != None and nextUnit.aiData.gotoNode.unit.isMeditating)):
+#                         nextUnit.aiData.gotoNode = self.findNearestCity()
+#                     self.moveNextUnitTowardNode(nextUnit.aiData.gotoNode)
         else:
+            print 'units turn'
             self.moveNextUnitTowardNode(self.nearestEnemyStartingNode)
             #self.moveNextUnitToRandomNode()
         gameState.getClient().sendCommand("chooseNextUnit")

@@ -436,6 +436,7 @@ class playMode(tiledGameMode):
 		self.map = gameLogic.mapp(gameLogic.playModeNode)
 		gameState.rendererUpdateQueue.put(rendererUpdates.loadMap())
 		gameLogic.aStarSearch.parentPipe.send(['map',gameState.getMapName()])
+		gameLogic.aStarSearch.setMap(gameState.getMapName())
 	def unitComparater(self,unit):
 		if(unit.isMeditating):
 			return 1000.0
@@ -580,7 +581,8 @@ class playMode(tiledGameMode):
 
 #					node.addFire(gameLogic.fire(node))
 #					node.addIce(gameLogic.ice(node))
-	
+#		for unit in self.units:
+#			gameLogic.aStarSearch.addUnit(unit.node)
 	def keyDown(self,keycode):
 		if(keycode == "left shift" or keycode == "right shift"):
 			self.shiftDown = True
@@ -721,14 +723,10 @@ class playMode(tiledGameMode):
 
 	def startGame(self):
 		self.loadSummoners()
-		for unit in self.units:
-			if(unit.node.visible):
-				gameLogic.aStarSearch.parentPipe.send(["unitAdd",unit.node.xPos,unit.node.yPos])
-#		self.orderUnits()
 	def restartGame(self):
 		for unit in self.units:
-			if(unit.node.visible):
-				gameLogic.aStarSearch.parentPipe.send(["unitAdd",unit.node.xPos,unit.node.yPos])
+			gameLogic.aStarSearch.addUnit(unit.node)
+#				gameLogic.aStarSearch.parentPipe.send(["unitAdd",unit.node.xPos,unit.node.yPos])
 #		self.orderUnits()
 
 class mapEditorMode(tiledGameMode):	
@@ -870,10 +868,10 @@ class joinLANGameScreenMode(gameMode):
 		self.hostIPInputElem = uiElements.hostIPInputElement(-0.18,0.05)
 		uiElements.hostIPConnectButton(-0.18,-0.03)
 		self.setFocusedElem(self.hostIPInputElem)
-		
 		uiElements.backButton(-0.930,0.9,newGameScreenMode)
 #		uiElements.menuButtonGameModeSelector(-0.07,-0.2,newGameScreenMode,text="Back")
-		uiElements.mapSelector(-0.93,0.813,[],self.mapNameField)
+#		uiElements.mapSelector(-0.93,0.813,[],self.mapNameField)
+#		uiElements.mapSelector(-0.93,0.813,[],None)
 
 class loginMode(gameMode):
 	def __init__(self,args):

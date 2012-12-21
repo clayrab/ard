@@ -1197,7 +1197,7 @@ class removeUnitTypeButton(clickableElement):
 		cityEditor.reset()
 
 
-class unitCostField(clickableElement):
+class unitCostFieldDEPRECATED(clickableElement):
        	def __init__(self,xPos,yPos,unitType,width=0.0,height=0.0,textureIndex=-1,hidden=False,cursorIndex=-1,text="",textColor="FF FF FF",textSize=0.001,color="FF FF FF",mouseOverColor=None,textXPos=0.0,textYPos=0.0):
 		clickableElement.__init__(self,xPos,yPos,width=width,height=height,textureIndex=textureIndex,text=text,textColor=textColor,textSize=textSize,cursorIndex=cDefines.defines['CURSOR_POINTER_ON_INDEX'],color=color,mouseOverColor=mouseOverColor,textXPos=textXPos,textYPos=textYPos)
 		self.unitType = unitType
@@ -1620,6 +1620,7 @@ class lanConnectErrorModalButton(clickableElement,modal):
 
 class lanConnectErrorModal(smallModal):
 	def __init__(self):
+		print "lanConnectErrorModal"
 		smallModal.__init__(self,"Cannot connect.",dismissable=False)
 		lanConnectErrorModalButton(self)
 

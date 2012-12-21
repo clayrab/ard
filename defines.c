@@ -29,7 +29,8 @@
 #define AUTO_CHOOSE_NEXT_DELAY 0
 
 //#define SLIDE_UNIT_TIME 350
-#define SLIDE_UNIT_TIME 150.0
+//#define SLIDE_UNIT_TIME 150.0
+#define SLIDE_UNIT_TIME 10.0//put this back to 150 after debugging is done
 #define AUTO_FOCUS_TIME_MAX 1000.0
 #define AUTO_FOCUS_TIME_MIN 300.0
 
