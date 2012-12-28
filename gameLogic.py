@@ -218,7 +218,7 @@ class unit(object):
 		self.unitBeingBuilt = None
 		self.cancelledUnits = []
 		self.buildQueue = []
-
+		self.visible = True
 	@property
 	def node(self):
 		return self._node
@@ -226,6 +226,7 @@ class unit(object):
 	def node(self,theNode):
 		self.xPos = translateTilesXToPositionX(theNode.xPos,theNode.yPos)
 		self.yPos = translateTilesYToPositionY(theNode.yPos)
+		self.visible = theNode.visible
 		if(self._node == None):
 			self.xPosDraw = translateTilesXToPositionX(theNode.xPos,theNode.yPos)
 			self.yPosDraw = translateTilesYToPositionY(theNode.yPos)
@@ -337,7 +338,7 @@ class unit(object):
 		aStarSearch.removeUnit(self.node)
 #		aStarSearch.parentPipe.send(["unitRemove",self.node.xPos,self.node.yPos])
 		aStarSearch.addUnit(node)
-		if(node.visible or True):#TODO remove 'or True' this, it's just for debuging
+		if(node.visible):#TODO remove 'or True' this, it's just for debuging
 			gameState.rendererUpdateQueue.put(rendererUpdates.renderFocus(node.xPos,node.yPos))
 		self.node.unit = None
 		self.node = node

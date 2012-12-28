@@ -107,7 +107,6 @@ PyObject * UIElementsIterator;
 PyObject * rowIterator;
 PyObject * pyMapWidth;
 PyObject * pyMapHeight;
-//PyObject * pyObj;
 //PyObject * playableMode;
 //long mapWidth;
 //long mapHeight;
@@ -609,15 +608,17 @@ void freeUnit(struct unit * daUnit){
   free(daUnit->id);
   free(daUnit);
 }
-PyObject * pyObj;
+PyObject * pyHex;
+PyObject * pyHealth;
+PyObject * pyIndex;
+PyObject * pyUnitVisible;
 void loadUnit(struct unit * daUnit,PyObject * pyUnit){
   pyUnitType = PyObject_GetAttrString(pyUnit,"unitType");
   pyId = PyObject_GetAttrString(pyUnit,"id");
-  pyObj = PyObject_GetAttrString(pyId,"hex");
-  daUnit->id = malloc(33*sizeof(char));//TODO: WTF IS THIS 33 FOR???
-  strcpy(daUnit->id,PyString_AsString(pyObj));
-  //  daUnit->id = PyString_AsString(pyObj);
-  Py_DECREF(pyObj);
+  pyHex = PyObject_GetAttrString(pyId,"hex");
+  daUnit->id = malloc(33*sizeof(char));//hex id is 32 chars long
+  strcpy(daUnit->id,PyString_AsString(pyHex));
+  Py_DECREF(pyHex);
   Py_DECREF(pyId);
   pyXPosition = PyObject_GetAttrString(pyUnit,"xPos");
   daUnit->xPos = PyFloat_AsDouble(pyXPosition);
@@ -625,15 +626,18 @@ void loadUnit(struct unit * daUnit,PyObject * pyUnit){
   pyYPosition = PyObject_GetAttrString(pyUnit,"yPos");
   daUnit->yPos = PyFloat_AsDouble(pyYPosition);
   Py_DECREF(pyYPosition);
-  pyObj = PyObject_GetAttrString(pyUnit,"health");
-  daUnit->health = PyLong_AsLong(pyObj);
-  Py_DECREF(pyObj);
-  pyObj = PyObject_GetAttrString(pyUnitType,"health");
-  daUnit->maxHealth = PyLong_AsLong(pyObj);
-  Py_DECREF(pyObj);
-  pyObj = PyObject_GetAttrString(pyUnitType,"textureIndex");
-  daUnit->textureIndex = PyLong_AsLong(pyObj);
-  Py_DECREF(pyObj);
+  pyHealth = PyObject_GetAttrString(pyUnit,"health");
+  daUnit->health = PyLong_AsLong(pyHealth);
+  Py_DECREF(pyHealth);
+  pyHealth = PyObject_GetAttrString(pyUnitType,"health");
+  daUnit->maxHealth = PyLong_AsLong(pyHealth);
+  Py_DECREF(pyHealth);
+  pyUnitVisible = PyObject_GetAttrString(pyUnit,"visible");
+  daUnit->visible = (pyUnitVisible == Py_True);
+  Py_DECREF(pyUnitVisible);
+  pyIndex = PyObject_GetAttrString(pyUnitType,"textureIndex");
+  daUnit->textureIndex = PyLong_AsLong(pyIndex);
+  Py_DECREF(pyIndex);
   Py_DECREF(pyUnitType);
 }
 UNIT * daUnit;
@@ -658,11 +662,12 @@ void addUnit(PyObject * pyUnit){
 char * unitId;
 struct unit * daNextUnit;
 struct unit * daPrevUnit;
+PyObject * pyHex2;
 void removeUnit(PyObject * pyUnit){
   pyId = PyObject_GetAttrString(pyUnit,"id");
-  pyObj = PyObject_GetAttrString(pyId,"hex");
-  unitId = PyString_AsString(pyObj);
-  Py_DECREF(pyObj);
+  pyHex2 = PyObject_GetAttrString(pyId,"hex");
+  unitId = PyString_AsString(pyHex2);
+  Py_DECREF(pyHex2);
   Py_DECREF(pyId);  
   daPrevUnit = NULL;
   daNextUnit = theUnits;
@@ -682,11 +687,12 @@ void removeUnit(PyObject * pyUnit){
   }
 }
 double unitHealthPrev;
+PyObject * pyHex3;
 void updateUnit(PyObject * pyUnit){
   pyId = PyObject_GetAttrString(pyUnit,"id");
-  pyObj = PyObject_GetAttrString(pyId,"hex");
-  unitId = PyString_AsString(pyObj);
-  Py_DECREF(pyObj);
+  pyHex3 = PyObject_GetAttrString(pyId,"hex");
+  unitId = PyString_AsString(pyHex3);
+  Py_DECREF(pyHex3);
   Py_DECREF(pyId);  
   daNextUnit = theUnits;
   while(daNextUnit != NULL){
@@ -698,16 +704,21 @@ void updateUnit(PyObject * pyUnit){
     daNextUnit = daNextUnit->nextUnit;
   }
   if(daNextUnit->xPos != daNextUnit->xPosDraw){//unit moved
-    ANIMATION * theAnim = malloc(sizeof(ANIMATION));
-    theAnim->type = ANIMATION_UNIT_SLIDE;
-    theAnim->unit = daNextUnit;
-    theAnim->xPos = daNextUnit->xPosDraw;
-    theAnim->yPos = daNextUnit->yPosDraw;
-    SDL_mutexP(modalAnimationsMutex);
-    modalAnimQueue = AddItem(modalAnimQueue,theAnim);
-    SDL_mutexV(modalAnimationsMutex);
+    if(daNextUnit->visible){
+      ANIMATION * theAnim = malloc(sizeof(ANIMATION));
+      theAnim->type = ANIMATION_UNIT_SLIDE;
+      theAnim->unit = daNextUnit;
+      theAnim->xPos = daNextUnit->xPosDraw;
+      theAnim->yPos = daNextUnit->yPosDraw;
+      SDL_mutexP(modalAnimationsMutex);
+      modalAnimQueue = AddItem(modalAnimQueue,theAnim);
+      SDL_mutexV(modalAnimationsMutex);
+    }else{
+      daNextUnit->xPosDraw = daNextUnit->xPos;
+      daNextUnit->yPosDraw = daNextUnit->yPos;
+    }
   }
-  if(unitHealthPrev != daNextUnit->health){
+  if(unitHealthPrev != daNextUnit->health && daNextUnit->visible){
     ANIMATION * theAnim = malloc(sizeof(ANIMATION));
     theAnim->type = ANIMATION_DAMAGE;
     theAnim->time = pythonCurrentTick;
@@ -960,10 +971,6 @@ void processTheHits(GLint hitsCount, GLuint buffer[]){
     callback->nameValue = -1;
     queueCallback(callback);
     
-    //  pyObj = PyObject_CallMethod(gameMode,"setMouseTextPosition","i",-1);
-    //    if(pyObj != NULL){
-    //      Py_DECREF(pyObj);
-    //    }
   }
 }
 
@@ -1211,7 +1218,7 @@ void drawCities(){
   }
 }
 void drawUnits(){
-  //  glDepthFunc(GL_LEQUAL);
+  SDL_mutexP(unitsMutex);
   daNextUnit = theUnits;
   while(daNextUnit != NULL){
     glPushMatrix();
@@ -1219,6 +1226,7 @@ void drawUnits(){
     glPopMatrix();
     daNextUnit = daNextUnit->nextUnit;
   }
+  SDL_mutexV(unitsMutex);
 }						
 int nodesIndex;
 NODE * daNode;
@@ -1519,15 +1527,12 @@ void findTextWidthFromRight(UIELEMENTSTRUCT * uiElement, int fontIndex, char* re
     if(projMatrix[12] > rightMargin){
       glPopMatrix();
       queuePosTextCallback(uiElement,strPosition-1,rightmostCharPosition);
-      //  Py_DECREF(pyObj);
       return;
     }
     strPosition--;
   }
   printf("ERROR, THIS CODE SHOUDL NEVER RUN!!");
   glPopMatrix();  
-  //  pyObj = PyObject_CallMethod(uiElement,"positionText","(ii)",strPosition-1,rightmostCharPosition);
-  //  Py_DECREF(pyObj);
 }
 void findTextWidthFromLeft(UIELEMENTSTRUCT * uiElement, int fontIndex, char* realStr, float rightMargin, int leftmostCharPosition){
   glPushMatrix();
@@ -1540,7 +1545,6 @@ void findTextWidthFromLeft(UIELEMENTSTRUCT * uiElement, int fontIndex, char* rea
       glPopMatrix();
       queuePosTextCallback(uiElement,leftmostCharPosition,strPosition+1);
 
-      //      Py_DECREF(pyObj);
       return;
     }
     strPosition++;
@@ -1548,7 +1552,6 @@ void findTextWidthFromLeft(UIELEMENTSTRUCT * uiElement, int fontIndex, char* rea
   glPopMatrix();
   queuePosTextCallback(uiElement,leftmostCharPosition,strPosition+1);
 
-  //  Py_DECREF(pyObj);
 }
 void findTextWidth(UIELEMENTSTRUCT * uiElement, int fontIndex, char* realStr, float rightMargin, int leftmostCharPosition, int rightmostCharPosition, int cursorPosition, int recalcValu){
   rightMargin = rightMargin-0.003;
@@ -1575,7 +1578,6 @@ void findTextWidth(UIELEMENTSTRUCT * uiElement, int fontIndex, char* realStr, fl
   callback->id = EVENT_TEXT_OKAY;
   callback->selectedName = uiElement->name;
   queueCallback(callback);
-  //  Py_DECREF(pyObj);  
 }
 int isNode;
 //double xPosition;
@@ -1630,22 +1632,6 @@ void drawUIElement(UIELEMENTSTRUCT * uiElement){
       findTextWidth(uiElement,uiElement->fontIndex,uiElement->realText,uiElement->xPosition+uiElement->width,uiElement->leftmostCharPos,uiElement->rightmostCharPos,uiElement->cursorPosition,uiElement->recalculateText);
       glPopMatrix();
     }
-    /*    if(PyObject_HasAttrString(uiElement,"textQueue")){
-      pyQueuedText = PyObject_CallMethod(uiElement,"getText",NULL);
-      queuedText = PyString_AsString(pyQueuedText);
-      if(queuedText[0] != 0){
-	glPushMatrix();
-	glLoadIdentity();
-	glTranslatef(xPosition+textXPosition,yPosition+textYPosition,0.0);
-	glScalef(textSize,textSize,0.0);
-	wordWidth = findWordWidth(fontIndex,queuedText,xPosition+width);
-	glPopMatrix();
-	pyObj = PyObject_CallMethod(uiElement,"addLine","i",wordWidth);
-	Py_DECREF(pyObj);
-      }
-      Py_DECREF(pyQueuedText);
-      }*/
-
 
     if((uiElement->text) != NULL){
       sscanf(uiElement->textColor,"%X %X %X",red,green,blue);
@@ -2024,114 +2010,112 @@ SDL_Event SDLEvent;
 PyObject * pyFocusNextUnit;
 char keyArray[20];
 //PyObject * pyClickScroll;
+PyObject * pyRetObj;
 static void dispatch(PYTHONCALLBACK * callback){
   if(callback->id == EVENT_MOUSE_OVER){
     if(PyObject_HasAttrString(gameMode,"handleMouseOver")){
-      pyObj = PyObject_CallMethod(gameMode,"handleMouseOver","(ii)",callback->selectedName,callback->leftButtonDown);
+      pyRetObj = PyObject_CallMethod(gameMode,"handleMouseOver","(ii)",callback->selectedName,callback->leftButtonDown);
       printPyStackTrace();
-      if(pyObj != NULL){
-	Py_DECREF(pyObj);
+      if(pyRetObj != NULL){
+	Py_DECREF(pyRetObj);
       }
     }
   }else if(callback->id == EVENT_LEFT_CLICK_DOWN){
     if(PyObject_HasAttrString(gameMode,"handleLeftClickDown")){
       PyObject_CallMethod(gameMode,"handleLeftClickDown","i",callback->selectedName);//New reference
       printPyStackTrace();
-      /*      if(pyObj != NULL){
-	Py_DECREF(pyObj);
-	}*/
     }
   }else if(callback->id == EVENT_MOUSE_MOVE){
     if(PyObject_HasAttrString(gameMode,"handleMouseMovement")){
-      pyObj = PyObject_CallMethod(gameMode,"handleMouseMovement","(iii)",callback->selectedName,callback->mouseX,callback->mouseY);
+      pyRetObj = PyObject_CallMethod(gameMode,"handleMouseMovement","(iii)",callback->selectedName,callback->mouseX,callback->mouseY);
       printPyStackTrace();
-      if(pyObj != NULL){
-	Py_DECREF(pyObj);
+      if(pyRetObj != NULL){
+	Py_DECREF(pyRetObj);
       }
     }
   }else if(callback->id == EVENT_SCROLL_UP){
     if(PyObject_HasAttrString(gameMode,"handleScrollUp")){
-      pyObj = PyObject_CallMethod(gameMode,"handleScrollUp","i",callback->selectedName);//New reference
+      pyRetObj = PyObject_CallMethod(gameMode,"handleScrollUp","i",callback->selectedName);//New reference
       printPyStackTrace();
-      if(pyObj != NULL){
-	Py_DECREF(pyObj);
+      if(pyRetObj != NULL){
+	Py_DECREF(pyRetObj);
       }
     }
   }else if(callback->id == EVENT_SCROLL_DOWN){
     if(PyObject_HasAttrString(gameMode,"handleScrollDown")){
-      pyObj = PyObject_CallMethod(gameMode,"handleScrollDown","i",callback->selectedName);//New reference
+      pyRetObj = PyObject_CallMethod(gameMode,"handleScrollDown","i",callback->selectedName);//New reference
       printPyStackTrace();
-      if(pyObj != NULL){
-	Py_DECREF(pyObj);
+      if(pyRetObj != NULL){
+	Py_DECREF(pyRetObj);
       }
     }
   }else if(callback->id == EVENT_RIGHT_CLICK_DOWN){
-    pyObj = PyObject_CallMethod(gameMode,"handleRightClick","i",callback->selectedName);//New reference
+    pyRetObj = PyObject_CallMethod(gameMode,"handleRightClick","i",callback->selectedName);//New reference
     printPyStackTrace();
-    if(pyObj != NULL){
-      Py_DECREF(pyObj);
+    if(pyRetObj != NULL){
+      Py_DECREF(pyRetObj);
     }
   }else if(callback->id == EVENT_LEFT_CLICK_UP){
     if(PyObject_HasAttrString(gameMode,"handleLeftClickUp")){
       PyObject_CallMethod(gameMode,"handleLeftClickUp","i",callback->selectedName);//New reference
       printPyStackTrace();
-      /*if(pyObj != NULL){
-	Py_DECREF(pyObj);
-	}*/
     }
   }else if(callback->id == EVENT_RIGHT_CLICK_UP){
     if(PyObject_HasAttrString(gameMode,"handleRightClickUp")){
-      pyObj = PyObject_CallMethod(gameMode,"handleRightClickUp","i",callback->selectedName);//New reference
+      pyRetObj = PyObject_CallMethod(gameMode,"handleRightClickUp","i",callback->selectedName);//New reference
       printPyStackTrace();
-      if(pyObj != NULL){
-	Py_DECREF(pyObj);
+      if(pyRetObj != NULL){
+	Py_DECREF(pyRetObj);
       }
     }
   }else if(callback->id == EVENT_KEY_DOWN){
     if(PyObject_HasAttrString(gameMode,"handleKeyDown")){	
-      pyObj = PyObject_CallMethod(gameMode,"handleKeyDown","s",callback->keyArray); 
+      pyRetObj = PyObject_CallMethod(gameMode,"handleKeyDown","s",callback->keyArray); 
       printPyStackTrace();
-      if(pyObj != NULL){
-	Py_DECREF(pyObj);
+      if(pyRetObj != NULL){
+	Py_DECREF(pyRetObj);
       }
     }
   }else if(callback->id == EVENT_KEY_UP){
     if(PyObject_HasAttrString(gameMode,"handleKeyUp")){
-      pyObj = PyObject_CallMethod(gameMode,"handleKeyUp","s",callback->keyArray);
+      pyRetObj = PyObject_CallMethod(gameMode,"handleKeyUp","s",callback->keyArray);
       printPyStackTrace();
-      if(pyObj != NULL){
-	Py_DECREF(pyObj);
+      if(pyRetObj != NULL){
+	Py_DECREF(pyRetObj);
       }
     }
   }else if(callback->id == EVENT_ON_DRAW){
     if(PyObject_HasAttrString(gameMode,"onDraw")){
-      pyObj = PyObject_CallMethod(gameMode,"onDraw","(ii)",callback->deltaTicks,callback->isAnimating);//New reference
+      pyRetObj = PyObject_CallMethod(gameMode,"onDraw","(ii)",callback->deltaTicks,callback->isAnimating);//New reference
       printPyStackTrace();
-      if(pyObj != NULL){
-	Py_DECREF(pyObj);
+      if(pyRetObj != NULL){
+	Py_DECREF(pyRetObj);
       }
     }
     //  }else if(callback->id == EVENT_ON_QUIT){
   }else if(callback->id == EVENT_CHOOSE_NEXT_DELAYED){
-    pyObj = PyObject_CallMethod(gameMode,"sendChooseNextUnit",NULL);//New reference
+    pyRetObj = PyObject_CallMethod(gameMode,"sendChooseNextUnit",NULL);//New reference
     printPyStackTrace();
-    if(pyObj != NULL){
-      Py_DECREF(pyObj);
+    if(pyRetObj != NULL){
+      Py_DECREF(pyRetObj);
     }
   }else if(callback->id == EVENT_POSITION_TEXT){
-    pyObj = PyObject_CallMethod(gameMode,"positionText","(iii)",callback->selectedName,callback->leftmostCharPos,callback->rightmostCharPos);
-    if(pyObj != NULL){
-      Py_DECREF(pyObj);
+    pyRetObj = PyObject_CallMethod(gameMode,"positionText","(iii)",callback->selectedName,callback->leftmostCharPos,callback->rightmostCharPos);
+    printPyStackTrace();
+    if(pyRetObj != NULL){
+      Py_DECREF(pyRetObj);
     }
   }else if(callback->id == EVENT_TEXT_OKAY){
-    pyObj = PyObject_CallMethod(gameMode,"textOkay","i",callback->selectedName);
-    if(pyObj != NULL){
-      Py_DECREF(pyObj);
+    pyRetObj = PyObject_CallMethod(gameMode,"textOkay","i",callback->selectedName);
+    printPyStackTrace();
+    if(pyRetObj != NULL){
+      Py_DECREF(pyRetObj);
     }
   }else if(callback->id == EVENT_SET_CURSOR_POSITION){
-    pyObj = PyObject_CallMethod(gameMode,"setMouseTextPosition","i",callback->nameValue);
-    if(pyObj != NULL){
-      Py_DECREF(pyObj);
+    pyRetObj = PyObject_CallMethod(gameMode,"setMouseTextPosition","i",callback->nameValue);
+    printPyStackTrace();
+    if(pyRetObj != NULL){
+      Py_DECREF(pyRetObj);
     }
   }
 }
@@ -2151,7 +2135,6 @@ static void dispatchPythonCallbacks(){
   }
   SDL_mutexV(pythonCallbackMutex);
 }
-//PyObject * pyObj;
 static void handleInput(){
   if(previousMousedoverName != selectedName){
     PYTHONCALLBACK * callback = (PYTHONCALLBACK *)malloc(sizeof(PYTHONCALLBACK));
@@ -2168,10 +2151,6 @@ static void handleInput(){
     if(repeatKey){
       if(SDL_GetTicks() - keyHeldTime > 40){
 	keyHeldTime = SDL_GetTicks();
-	//	if(PyObject_HasAttrString(gameMode,"handleKeyDown")){
-	  //	  pyObj = PyObject_CallMethod(gameMode,"handleKeyDown","s",keyArray);
-	//	  Py_DECREF(pyObj);
-	//	}
       }
     }else if(SDL_GetTicks() - keyHeldTime > 500){
       repeatKey = 1;
@@ -2429,16 +2408,17 @@ PyObject * pyUIElement;
 PyObject * pyMode;
 long updateType;
 int doResetUI = 0;
-
+PyObject * pyType;
 static void getPythonUpdates(){
   pyUpdatesQueue = PyObject_GetAttrString(gameState,"rendererUpdateQueue");
   pyUpdatesQueueEmpty = PyObject_CallMethod(pyUpdatesQueue,"empty",NULL);
   while(pyUpdatesQueueEmpty == Py_False){
     Py_DECREF(pyUpdatesQueueEmpty);
     pyUpdate = PyObject_CallMethod(pyUpdatesQueue,"get",NULL);
-    pyObj = PyObject_GetAttrString(pyUpdate,"type");
-    updateType = PyLong_AsLong(pyObj);
-    Py_DECREF(pyObj);    
+    pyType = PyObject_GetAttrString(pyUpdate,"type");
+    updateType = PyLong_AsLong(pyType);
+    Py_DECREF(pyType);
+    //    printf("updateType: %ld\n",updateType);
     if(updateType == RENDERER_CHANGE_UNIT_ADD){
       pyUnit = PyObject_GetAttrString(pyUpdate,"unit");
       SDL_mutexP(unitsMutex);
@@ -2687,25 +2667,15 @@ int counter = 0;
 static void fetchPyGameMode(){ 
   gameMode = PyObject_CallMethod(gameState,"getGameMode",NULL);
 }
-
+PyObject * pySoundIndex;
 static void mainLoop (){
   while ( !quit ) {
-    //    pyObj = PyObject_CallMethod(gameMode, "getRestartMusic",NULL);//New reference
-    //    restartMusic = PyLong_AsLong(pyObj);
-    //    Py_DECREF(pyObj);
-    /*if(!Mix_PlayingMusic() || restartMusic){
-      Py_DECREF(pyObj);
-      pyObj = PyObject_CallMethod(gameMode,"getMusic",NULL);
-      soundIndex = PyLong_AsLong(pyObj);
-      Mix_PlayMusic(musicArray[soundIndex], 0);
-      }*/
-    /*    pyObj = PyObject_CallMethod(gameMode,"getSound",NULL);
-    while(pyObj != Py_None && pyObj != NULL){
-      soundIndex = PyLong_AsLong(pyObj);
-      Py_DECREF(pyObj);
+    /*    while(pySoundIndex != Py_None && pySoundIndex != NULL){
+      soundIndex = PyLong_AsLong(pySoundIndex);
+      Py_DECREF(pySoundIndex);
       Mix_PlayChannel(-1, soundArray[soundIndex], 0);
-      pyObj = PyObject_CallMethod(gameMode,"getSound",NULL);
-      Py_DECREF(pyObj);
+      pySoundIndex = PyObject_CallMethod(gameMode,"getSound",NULL);
+      Py_DECREF(pySoundIndex);
       }*/
     //    printf("%d\n",0);
     deltaTicks = SDL_GetTicks()-currentTick;
@@ -2730,13 +2700,9 @@ static void mainLoop (){
 int pyQuit = 0;
 int pythonThread(void * data){
   while(!pyQuit){
-    //    printf("%d\n",1);
     fetchPyGameMode();
-    //    printf("%d\n",2);
     getPythonUpdates();
-    //    printf("%d\n",3);
     dispatchPythonCallbacks();
-    //    printf("%d\n",4);
     PyObject_SetAttrString(gameMode,"ticks",PyLong_FromLong(pythonCurrentTick));
     SDL_mutexP(exitMutex);
     if(doQuit){

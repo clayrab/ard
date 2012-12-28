@@ -1,3 +1,4 @@
+import sys
 import socket
 import threading
 import random
@@ -11,7 +12,6 @@ SERVER = -1
 class Commands:
     @staticmethod
     def seedRNG(seed):
-        print 'seed ' + str(seed)
         random.seed(seed)
     @staticmethod
     def setMap(mapName):
@@ -177,7 +177,7 @@ class Commands:
         node.unit.isMeditating = True
     @staticmethod
     def startSummoning(args):
-        tokens = args.split(" ")
+        tokens = args.split(" ",2)
         node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
         unitType = gameState.theUnitTypes[tokens[2]]
         gameState.getGameMode().players[node.unit.player].redWood = gameState.getGameMode().players[node.unit.player].redWood - (gameState.researchProgress[node.unit.player][unitType][0]*unitType.costRed)
@@ -190,14 +190,14 @@ class Commands:
             uiElements.viewer.theViewer = uiElements.summonerViewer(node)
     @staticmethod
     def startSummoningUndo(args):
-        tokens = args.split(" ")
+        tokens = args.split(" ",2)
         node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
         unitType = gameState.theUnitTypes[tokens[2]]
         if(node.unit != None and node.unit.unitType.name == "summoner"):
             node.unit.unqueueUnit()
     @staticmethod
     def startSummoningRedo(args):
-        tokens = args.split(" ")
+        tokens = args.split(" ",2)
         node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
         unitType = gameState.theUnitTypes[tokens[2]]
         if(node.unit != None and node.unit.unitType.name == "summoner"):
@@ -284,7 +284,7 @@ class Client:
         self.socket.setblocking(0)
         self.commandLog = []
     def checkSocket(self):
-        try:
+        try:#this gives errors all the time...
             receivedData = self.socket.recv(1024)
         except:
             receivedData = ''
@@ -329,7 +329,6 @@ class Client:
 #                doCommand(command+"Redo",argsString)
                 else:
                     doCommand(command)
-
         self.socket.send(command + " " + str(gameState.getPlayerNumber()) + " " + argsString + "|")
 
 def startClient(hostIP,hostPort=-1):

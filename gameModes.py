@@ -575,7 +575,7 @@ class playMode(tiledGameMode):
 				columnCount = columnCount + 1
 				if(node.playerStartValue != 0):
 					node.addUnit(gameLogic.unit(gameState.theUnitTypes["summoner"],node.playerStartValue-1,node,1))
-					for x in range(0,1):
+					for x in range(0,3):
 						node.addUnit(gameLogic.unit(gameState.theUnitTypes["gatherer"],node.playerStartValue-1,node,1))
 					node.addUnit(gameLogic.unit(gameState.theUnitTypes["swordsman"],node.playerStartValue-1,node,1))
 
@@ -626,10 +626,8 @@ class playMode(tiledGameMode):
 				if(self.nextUnit == self.selectedNode.unit):
 					uiElements.skip()
 			elif(keycode.upper() == "D"):
-				if(self.selectedNode != None and self.nextUnit == self.selectedNode.unit and self.nextUnit.unitType.name == "gatherer" and (self.selectedNode.tileValue == cDefines.defines["RED_FOREST_TILE_INDEX"] or self.selectedNode.tileValue == cDefines.defines["BLUE_FOREST_TILE_INDEX"])):
+				if(self.selectedNode != None and self.nextUnit == self.selectedNode.unit and self.nextUnit.unitType.name == "gatherer" and (self.selectedNode.tileValue == cDefines.defines["RED_FOREST_TILE_INDEX"] or self.selectedNode.tileValue == cDefines.defines["BLUE_FOREST_TILE_INDEX"] or self.selectedNode.city != None)):
 					uiElements.startGathering()
-#				if(self.nextUnit == self.selectedNode.unit and self.nextUnit.unitType.name == "summoner" and (self.selectedNode.city != None)):
-#					uiElements.startSummoning()
 			if(hasattr(self.mousedOverObject,"toggleCursor")):
 				self.mousedOverObject.toggleCursor()
 			if(hasattr(self.mousedOverObject,"onKeyDown")):
@@ -705,7 +703,6 @@ class playMode(tiledGameMode):
 					gameState.rendererUpdateQueue.put(rendererUpdates.updateUIElem(self.redWoodUIElem))		
 					gameState.rendererUpdateQueue.put(rendererUpdates.updateUIElem(self.blueWoodUIElem))
 					
-
 	def addUIElements(self):
 		self.players = gameState.getPlayers()
 #		uiElements.uiElement(0.718,-0.932,textureIndex=texIndex("CHECKBOXES_BACKGROUND"),width=texWidth("CHECKBOXES_BACKGROUND"),height=texHeight("CHECKBOXES_BACKGROUND"))

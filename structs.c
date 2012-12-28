@@ -21,7 +21,7 @@ typedef struct unit{
   struct unit * nextUnit;
   double xPos,yPos,xPosDraw,yPosDraw;
   int health,maxHealth;
-  char textureIndex,isNextUnit;
+  char textureIndex,isNextUnit,visible;
 }UNIT;
 typedef struct node{
   //  UNIT * unit;

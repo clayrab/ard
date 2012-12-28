@@ -76,9 +76,7 @@ class AIPlayer(gameLogic.Player):
         #account for units/count workers
         for unit in gameState.getGameMode().units:
             if unit.player == self.playerNumber:
-                if unit.unitType.name == "gatherer":
-                    self.workerCount = self.workerCount + 1
-                else:
+                if unit.unitType.name != "gatherer":
                     self.nonWorkerCount = self.nonWorkerCount + 1
 #        print "nearest enemy: " + str(self.nearestEnemy)
 #        print "ranked cities: " + str(self.rankedCities)
@@ -90,6 +88,7 @@ class AIPlayer(gameLogic.Player):
     def dispatchCommand(self,command):
         return
     def moveNextUnitToRandomNode(self):
+        print 'moveNextUnitToRandomNode'
         rngState = random.getstate()
         eligibleMoveNodes = []
         for neighb in gameState.getGameMode().nextUnit.node.neighbors:
@@ -103,6 +102,7 @@ class AIPlayer(gameLogic.Player):
             gameState.getClient().sendCommand("skip")
         random.setstate(rngState)
     def chooseRandomBuildableUnitType(self):
+        print 'chooseRandomBuildableUnitType'
         rngState = random.getstate()
         eligibleUnitTypes = []
         for unitType in gameState.researchProgress[self.playerNumber]:
@@ -119,13 +119,11 @@ class AIPlayer(gameLogic.Player):
             self.moveNextUnitToRandomNode()
         else:
             path = AIPlayer.findPath(node,gameState.getGameMode().nextUnit.node)
-            node = gameState.getGameMode().map.nodes[path[0][1]][path[0][0]]
-            if(node.unit != None):
-                for coords in path:
-                    node = gameState.getGameMode().map.nodes[coords[1]][coords[0]]
-                    node.debugColor = "FF 00 00"
-                    gameState.rendererUpdateQueue.put(rendererUpdates.renderNodeChange(node))
-            gameState.getClient().sendCommand("moveTo",str(path[0][0]) + " " + str(path[0][1]))
+            nextNode = gameState.getGameMode().map.nodes[path[0][1]][path[0][0]]
+            if(nextNode.unit == None):
+                gameState.getClient().sendCommand("moveTo",str(nextNode.xPos) + " " + str(nextNode.yPos))
+            else:#needed in case the unit is completely surrounded by friendly units.
+                gameState.getClient().sendCommand("skip")
     def findNearestTile(self,tileComparitor):
         searchDistance = 1
         retNode = None
@@ -154,17 +152,23 @@ class AIPlayer(gameLogic.Player):
                     self.workerCount+=1
                 else:
                     buildUnitType = self.chooseRandomBuildableUnitType()
-#                if(self.redWood >= (gameState.researchProgress[self.playerNumber][buildUnitType][0]*buildUnitType.costRed) and self.blueWood >= (gameState.researchProgress[self.playerNumber][buildUnitType][0]*buildUnitType.costBlue)):
-                gameState.getClient().sendCommand("startSummoning",str(nextUnit.node.xPos) + " " + str(nextUnit.node.yPos) + " " + buildUnitType.name)
-#                else:
+                    
+                if(self.redWood >= (gameState.researchProgress[self.playerNumber][buildUnitType][0]*buildUnitType.costRed) and self.blueWood >= (gameState.researchProgress[self.playerNumber][buildUnitType][0]*buildUnitType.costBlue)):
+                    print self.redWood
+                    print self.blueWood
+                    gameState.researchProgress[self.playerNumber]
+                    gameState.getClient().sendCommand("startSummoning",str(nextUnit.node.xPos) + " " + str(nextUnit.node.yPos) + " " + buildUnitType.name)
+                else:
+                    #Should the summoner move somewhere? Where?
+                    gameState.getClient().sendCommand("skip")
+
         elif(nextUnit.unitType.name == "gatherer"):
             print 'gatherers turn'
             if(nextUnit.aiData.mode == None):
-                print self.workerCount%5
-                if(self.workerCount%10 == 0 and False):
+                self.workerCount = self.workerCount + 1
+                if(self.workerCount%10 == 0):
                     nextUnit.aiData.mode = MODES.RESEARCH_MODE
                 elif(self.workerCount%5 == 0):
-                    print 'gather blue...'
                     nextUnit.aiData.mode = MODES.GATHER_BLUE_MODE
                 else:
                     nextUnit.aiData.mode = MODES.GATHER_MODE
@@ -174,6 +178,7 @@ class AIPlayer(gameLogic.Player):
                 comparitorFunc = lambda node:node.tileValue == cDefines.defines['BLUE_FOREST_TILE_INDEX']
             else:
                 comparitorFunc = lambda node:node.city != None
+            print comparitorFunc(nextUnit.node)
             if(comparitorFunc(nextUnit.node)):
                 gameState.getClient().sendCommand("startMeditating",str(nextUnit.node.xPos) + " " + str(nextUnit.node.yPos))
             else:
@@ -200,7 +205,7 @@ class AIPlayer(gameLogic.Player):
             self.moveNextUnitTowardNode(self.nearestEnemyStartingNode)
             #self.moveNextUnitToRandomNode()
         gameState.getClient().sendCommand("chooseNextUnit")
-
+        print 'turn done'
 #def analyzeMap():
 #    for player in gameState.getPlayers():
 #        if player != None and player.isAI:
