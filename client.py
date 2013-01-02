@@ -235,7 +235,7 @@ class Commands:
             node.unit.buildQueue.pop(index-1)
     @staticmethod
     def startResearch(args):
-        tokens = args.split(" ")
+        tokens = args.split(" ",2)
         node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
         unitType = gameState.theUnitTypes[tokens[2]]
         node.unit.queueResearch(unitType)
@@ -247,13 +247,13 @@ class Commands:
             uiElements.viewer.theViewer = uiElements.summonerViewer(node)
     @staticmethod
     def startResearchUndo(args):
-        tokens = args.split(" ")
+        tokens = args.split(" ",2)
         node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
         unitType = gameState.theUnitTypes[tokens[2]]
         node.unit.unqueueResearch()
     @staticmethod
     def startResearchRedo(args):
-        tokens = args.split(" ")
+        tokens = args.split(" ",2)
         node = gameState.getGameMode().map.nodes[int(tokens[1])][int(tokens[0])]
         unitType = gameState.theUnitTypes[tokens[2]]
         node.unit.queueResearch(unitType)

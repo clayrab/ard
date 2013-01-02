@@ -195,6 +195,8 @@ availableUnitTypes = [[],[],[],[],[],[],[],[],]
 for i in range(0,8):
 	availableUnitTypes[i].append(theUnitTypes["gatherer"])
 	researchProgress[i][theUnitTypes["gatherer"]] = [1,0]
+	availableUnitTypes[i].append(theUnitTypes["swordsman"])
+	researchProgress[i][theUnitTypes["swordsman"]] = [1,0]
 def getAvailableUnitTypes():
 	global availableUnitTypes
 	return availableUnitTypes[thePlayerNumber]

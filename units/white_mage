@@ -8,7 +8,7 @@
 "canFly":0,
 "canSwim":0,
 "costRed":100,
-"costBlue":0,
+"costBlue":50,
 "buildTime":100,
 "movementSpeedBonus":0,
 "armorBonus":0,

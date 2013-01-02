@@ -15,6 +15,7 @@ class AIUnitData:
     def __init__(self):
         self.mode = None
         self.gotoNode = None
+        self.counted = False
 class AIPlayer(gameLogic.Player):
     AIAStar = gameLogic.aStarSearch
     def __init__(self,playerNumber,userName,requestHandler):
@@ -74,14 +75,9 @@ class AIPlayer(gameLogic.Player):
                 self.enemyRankedCities.append((0,city,))
         self.enemyRankedCities.sort(lambda x,y:x[0]-y[0])
         #account for units/count workers
-        for unit in gameState.getGameMode().units:
-            if unit.player == self.playerNumber:
-                if unit.unitType.name != "gatherer":
-                    self.nonWorkerCount = self.nonWorkerCount + 1
 #        print "nearest enemy: " + str(self.nearestEnemy)
 #        print "ranked cities: " + str(self.rankedCities)
 #        print "enemy ranked cities: " + str(self.enemyRankedCities)
-        print "worker count: " + str(self.workerCount)
 #       print self.rankedCities
 #            print AIPlayer.AIAStar.closedNodes
 #            print AIPlayer.AIAStar.openNodes
@@ -140,6 +136,14 @@ class AIPlayer(gameLogic.Player):
 #        return self.findNearestTile(lambda x:x.city != None)
     def takeTurn(self):
         nextUnit = gameState.getGameMode().nextUnit
+        if(not nextUnit.aiData.counted):
+            nextUnit.aiData.counted = True
+            if(nextUnit.unitType.name == "summonergatherer"):
+                continue
+            elif(nextUnit.unitType.name == "gatherer"):
+                self.nonWorkerCount = self.nonWorkerCount + 1
+            else:
+                self.workerCount = self.workerCount + 1
         if(nextUnit.aiData == None):
             nextUnit.aiData = AIUnitData()
         if(nextUnit.unitType.name == "summoner"):
@@ -149,23 +153,24 @@ class AIPlayer(gameLogic.Player):
             else:
                 if(self.nonWorkerCount > self.workerCount):
                     buildUnitType = gameState.theUnitTypes["gatherer"]
-                    self.workerCount+=1
                 else:
                     buildUnitType = self.chooseRandomBuildableUnitType()
-                    
+                print 'want to build ' + buildUnitType.name
+                print self.redWood
+                print self.blueWood
+                gameState.researchProgress[self.playerNumber]
+
                 if(self.redWood >= (gameState.researchProgress[self.playerNumber][buildUnitType][0]*buildUnitType.costRed) and self.blueWood >= (gameState.researchProgress[self.playerNumber][buildUnitType][0]*buildUnitType.costBlue)):
-                    print self.redWood
-                    print self.blueWood
-                    gameState.researchProgress[self.playerNumber]
+                    print 'building'
                     gameState.getClient().sendCommand("startSummoning",str(nextUnit.node.xPos) + " " + str(nextUnit.node.yPos) + " " + buildUnitType.name)
                 else:
+                    print 'skipping build, not enough resources'
                     #Should the summoner move somewhere? Where?
                     gameState.getClient().sendCommand("skip")
 
         elif(nextUnit.unitType.name == "gatherer"):
             print 'gatherers turn'
             if(nextUnit.aiData.mode == None):
-                self.workerCount = self.workerCount + 1
                 if(self.workerCount%10 == 0):
                     nextUnit.aiData.mode = MODES.RESEARCH_MODE
                 elif(self.workerCount%5 == 0):

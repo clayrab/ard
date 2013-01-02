@@ -30,7 +30,7 @@ STARTING_BLUE_WOOD = 0.0
 #STARTING_RED_WOOD = 8000.0
 #STARTING_BLUE_WOOD = 8000.0
 INITIATIVE_ACTION_DEPLETION = 100.0
-RESOURCE_COLLECTION_RATE = 0.15
+RESOURCE_COLLECTION_RATE = 0.40
 #at RESOURCE_COLLECTION_RATE = 0.15 one gatherer will gather 15 green wood per 100 'ticks'(i.e. the build time of a gatherer)
 ZOOM_SPEED = 0.15 
 #MOUNTAIN_ATTACK_BONUS_MULTIPLIER = 1.0
@@ -43,6 +43,7 @@ FIRE_VITALITIY_LIVE_EFFECT = 0.01
 FIRE_ATTACK_POWER = 3.0
 ICE_SPEED = 10
 UNIT_SLIDE_SPEED = 2.20
+VIEW_RANGE = 4
 class MODES:
 	MOVE_MODE = 0
 	ATTACK_MODE = 1
@@ -331,9 +332,9 @@ class unit(object):
 		if(node.unit != None):
 			raise Exception("Cannot move to a node that is already occupied!")
 #		self.onMovePath = False
-		for neighb in self.node.getNeighbors(5):
+		for neighb in self.node.getNeighbors(VIEW_RANGE):
 			neighb.stopViewing(self)
-		for neighb in node.getNeighbors(5):
+		for neighb in node.getNeighbors(VIEW_RANGE):
 			neighb.startViewing(self)
 		aStarSearch.removeUnit(self.node)
 #		aStarSearch.parentPipe.send(["unitRemove",self.node.xPos,self.node.yPos])
@@ -528,7 +529,7 @@ class node:
 			if(theUnit.unitType.name == "summoner"):
 				gameState.getGameMode().summoners.append(theUnit)
 			if(theUnit.isOwnTeam()):
-				for neighb in self.getNeighbors(5):
+				for neighb in self.getNeighbors(VIEW_RANGE):
 					neighb.startViewing(self.unit)
 			aStarSearch.addUnit(self)
 		else:
