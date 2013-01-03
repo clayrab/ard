@@ -623,7 +623,7 @@ class playMode(tiledGameMode):
 				else:
 						self.gotoMode = False
 			elif(keycode.upper() == "S"):
-				if(self.nextUnit == self.selectedNode.unit):
+				if(self.selectedNode != None and self.nextUnit == self.selectedNode.unit):
 					uiElements.skip()
 			elif(keycode.upper() == "D"):
 				if(self.selectedNode != None and self.nextUnit == self.selectedNode.unit and self.nextUnit.unitType.name == "gatherer" and (self.selectedNode.tileValue == cDefines.defines["RED_FOREST_TILE_INDEX"] or self.selectedNode.tileValue == cDefines.defines["BLUE_FOREST_TILE_INDEX"] or self.selectedNode.city != None)):

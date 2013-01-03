@@ -4,7 +4,8 @@ import uiElements
 import cDefines
 import rendererUpdates
 import random
-
+GROUP_RANGE = 3
+HOSTILITY_RANGE = 3
 class MODES:
     ATTACK_MODE = 0
     DEFEND_MODE = 1
@@ -110,16 +111,24 @@ class AIPlayer(gameLogic.Player):
             retUnitType = random.choice(eligibleUnitTypes)
         random.setstate(rngState)
         return retUnitType
-    def moveNextUnitTowardNode(self,node):
+    def findNextNodeTowardNode(self,node):
         if(node == gameState.getGameMode().nextUnit.node):#just a little precaution for now, hopefully the finished AI would never run into this situation
             self.moveNextUnitToRandomNode()
         else:
             path = AIPlayer.findPath(node,gameState.getGameMode().nextUnit.node)
             nextNode = gameState.getGameMode().map.nodes[path[0][1]][path[0][0]]
             if(nextNode.unit == None):
-                gameState.getClient().sendCommand("moveTo",str(nextNode.xPos) + " " + str(nextNode.yPos))
+                return nextNode
             else:#needed in case the unit is completely surrounded by friendly units.
-                gameState.getClient().sendCommand("skip")
+                return None
+
+    def moveNextUnitTowardNode(self,node):
+        nextNode = self.findNextNodeTowardNode(node)
+        if(nextNode != None):
+            gameState.getClient().sendCommand("moveTo",str(nextNode.xPos) + " " + str(nextNode.yPos))
+        else:
+            gameState.getClient().sendCommand("skip")
+
     def findNearestTile(self,tileComparitor):
         searchDistance = 1
         retNode = None
@@ -134,18 +143,52 @@ class AIPlayer(gameLogic.Player):
 #        return self.findNearestTile(lambda x:x.tileValue == cDefines.defines['RED_FOREST_TILE_INDEX'])
 #    def findNearestCity(self):
 #        return self.findNearestTile(lambda x:x.city != None)
+    def unitStrengthHeuristic(self,unit):
+        return unit.health * unit.level * unit.unitType.attackPower * unit.unitType.attackSpeed
+    def getGroupConfidence(self,group,range):
+        nodes = set()
+        enemyStrength = 0.0
+        ownStrength = 0.0
+        for unit in group:            
+            for node in unit.node.getNeighbors(range):
+                if(not node in nodes):
+                    nodes.add(node)
+                    if(node.unit != None):
+                        if(node.unit.team == self.team):
+                            ownStrength = ownStrength + self.unitStrengthHeuristic(node.unit)
+                        else:
+                            enemyStrength = enemyStrength + self.unitStrengthHeuristic(node.unit)
+        return (ownStrength - enemyStrength)
+    def getGroup(self,unit,group=None,nodes=None):
+        if(group == None):
+            group = set()
+        if(nodes == None):
+            nodes = set()
+        group.add(unit)
+        for node in unit.node.getNeighbors(GROUP_RANGE):
+            if(not node in nodes):
+#                node.debugColor = "FF 00 00"
+#                gameState.rendererUpdateQueue.put(rendererUpdates.renderNodeChange(node))
+                nodes.add(node)
+                if node.unit != None and node.unit != unit and node.unit.team == self.team:
+                    group = group | self.getGroup(node.unit,group,nodes)
+        return group
+    def isNodeDangerous(self,node,group):
+        
+#        getGroupConfidence(group,GROUP_RANGE+)
+        
     def takeTurn(self):
         nextUnit = gameState.getGameMode().nextUnit
-        if(not nextUnit.aiData.counted):
-            nextUnit.aiData.counted = True
-            if(nextUnit.unitType.name == "summonergatherer"):
-                continue
-            elif(nextUnit.unitType.name == "gatherer"):
-                self.nonWorkerCount = self.nonWorkerCount + 1
-            else:
-                self.workerCount = self.workerCount + 1
         if(nextUnit.aiData == None):
             nextUnit.aiData = AIUnitData()
+        if(not nextUnit.aiData.counted):
+            nextUnit.aiData.counted = True
+            if(nextUnit.unitType.name == "summoner"):
+                pass
+            elif(nextUnit.unitType.name == "gatherer"):
+                self.workerCount = self.workerCount + 1
+            else:
+                self.nonWorkerCount = self.nonWorkerCount + 1
         if(nextUnit.unitType.name == "summoner"):
             print 'summoners turn'
             if(nextUnit.node.city != None):
@@ -154,12 +197,11 @@ class AIPlayer(gameLogic.Player):
                 if(self.nonWorkerCount > self.workerCount):
                     buildUnitType = gameState.theUnitTypes["gatherer"]
                 else:
-                    buildUnitType = self.chooseRandomBuildableUnitType()
+                    buildUnitType = self.chooseRandomBuildableUnitType()                
                 print 'want to build ' + buildUnitType.name
                 print self.redWood
                 print self.blueWood
                 gameState.researchProgress[self.playerNumber]
-
                 if(self.redWood >= (gameState.researchProgress[self.playerNumber][buildUnitType][0]*buildUnitType.costRed) and self.blueWood >= (gameState.researchProgress[self.playerNumber][buildUnitType][0]*buildUnitType.costBlue)):
                     print 'building'
                     gameState.getClient().sendCommand("startSummoning",str(nextUnit.node.xPos) + " " + str(nextUnit.node.yPos) + " " + buildUnitType.name)
@@ -207,8 +249,39 @@ class AIPlayer(gameLogic.Player):
 #                     self.moveNextUnitTowardNode(nextUnit.aiData.gotoNode)
         else:
             print 'units turn'
-            self.moveNextUnitTowardNode(self.nearestEnemyStartingNode)
-            #self.moveNextUnitToRandomNode()
+            theGroup = self.getGroup(nextUnit)
+#            print theGroup
+#            nextNode = self.findNextNodeTowardNode(self.nearestEnemyStartingNode)
+            if(self.getGroupConfidence(theGroup,GROUP_RANGE) >= 0.0):
+                print 'attack!'
+                attackableUnit = None
+                for node in nextUnit.node.getNeighbors(nextUnit.unitType.range):
+                    if(node.unit != None and node.unit.team != self.team):
+                        if(attackableUnit == None):
+                            attackableUnit = node.unit
+                        elif(attackableUnit.health > node.unit):
+                            attackableUnit = node.unit
+                if(attackableUnit == None):                    
+                    for ranj in range(0,HOSTILITY_RANGE):
+                        for node in nextUnit.node.getNeighbors(ranj):
+                            if(node.unit != None and node.unit.team != self.team):
+                                if(attackableUnit == None):
+                                    attackableUnit = node.unit
+                                elif(attackableUnit.health > node.unit):
+                                    attackableUnit = node.unit
+                if(attackableUnit == None):
+                    
+                    self.moveNextUnitTowardNode(self.nearestEnemyStartingNode)
+                else:
+                    print 'attacklable unit found'
+                    if(nextUnit.node.findDistance(attackableUnit.node,gameState.getGameMode().map.polarity) <= nextUnit.unitType.range):
+                        gameState.getClient().sendCommand("attackTo",str(attackableUnit.node.xPos) + " " + str(attackableUnit.node.yPos))
+                    else:
+                        self.moveNextUnitTowardNode(attackableUnit.node)
+                        
+            else:
+                print "run away!"
+                self.moveNextUnitToRandomNode()
         gameState.getClient().sendCommand("chooseNextUnit")
         print 'turn done'
 #def analyzeMap():
