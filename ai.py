@@ -174,7 +174,7 @@ class AIPlayer(gameLogic.Player):
                     group = group | self.getGroup(node.unit,group,nodes)
         return group
     def isNodeDangerous(self,node,group):
-        
+        return True
 #        getGroupConfidence(group,GROUP_RANGE+)
         
     def takeTurn(self):

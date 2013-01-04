@@ -492,6 +492,26 @@ class node:
 		self.unit = None
 		self.visible = True
 		self.debugColor = None
+		self.isWater = (self.tileValue == cDefines.defines["WATER_TILE_INDEX"])
+		self.isMountain = (self.tileValue == cDefines.defines["MOUNTAIN_TILE_INDEX"])
+		self.moveCost = cDefines.defines["GRASS_MOVE_COST"]
+		if(self.tileValue == cDefines.defines['FOREST_TILE_INDEX']):
+			self.moveCost = cDefines.defines['FOREST_MOVE_COST']
+		elif(self.tileValue == cDefines.defines['MOUNTAIN_TILE_INDEX']):
+			self.moveCost = cDefines.defines['MOUNTAIN_MOVE_COST']
+		elif(self.tileValue == cDefines.defines['WATER_TILE_INDEX']):
+			self.moveCost = cDefines.defines['WATER_MOVE_COST']
+	def findMoveCost(self,unit):
+		print unit == self.unit
+		moveCost = self.moveCost
+		if(unit.unitType.canFly or (unit.unitType.canSwim and self.isWater)):
+			moveCost = cDefines.defines["GRASS_MOVE_COST"]
+		if(unit == self.unit):
+			return moveCost
+		elif(self.unit != None):
+			return 999.9
+		print 'movecost: ' + str(moveCost)
+		return moveCost
 	def getValue(self):
 		return self.tileValue
 	def findDistance(self,target,polarity):
@@ -576,7 +596,7 @@ class playModeNode(node):
 		if(self.fire != None):
 			self.fire.vitality = self.fire.vitality + fire.vitality
 		else:
-			if(self.tileValue != cDefines.defines['WATER_TILE_INDEX']):
+			if(not self.isWater):
 				gameState.getGameMode().elementalEffects.append(fire)
 				self.fire = fire
 	def addIce(self,ice):
@@ -874,35 +894,13 @@ class aStarThread():
 					neighbor.aStarParent = node
 					aStarThread.aStarHeuristic(neighbor,self.endNode,self.polarity)
 #					Neighbor.findAStarHeuristicCost(self.endNode)
-					if(neighbor.unit):
-						neighbor.aStarKnownCost = node.aStarKnownCost + 999.9
-					elif(neighbor.tileValue == cDefines.defines['MOUNTAIN_TILE_INDEX'] and not self.canFly):
-						neighbor.aStarKnownCost = node.aStarKnownCost + (cDefines.defines['MOUNTAIN_MOVE_COST']/(1.0+float(neighbor.roadValue)))
-					elif(neighbor.tileValue == cDefines.defines['WATER_TILE_INDEX'] and not self.canFly and not self.canFly):
-						neighbor.aStarKnownCost = node.aStarKnownCost + (cDefines.defines['WATER_MOVE_COST']/(1.0+float(neighbor.roadValue)))
-					elif(neighbor.tileValue == cDefines.defines['FOREST_TILE_INDEX'] and not self.canFly):
-						neighbor.aStarKnownCost = node.aStarKnownCost + (cDefines.defines['FOREST_MOVE_COST']/(1.0+float(neighbor.roadValue)))
-					else:
-						neighbor.aStarKnownCost = node.aStarKnownCost + (cDefines.defines['GRASS_MOVE_COST']/(1.0+float(neighbor.roadValue)))
+					neighbor.aStarKnownCost = node.aStarKnownCost + neighbor.findMoveCost(self)
 				else:#calculate whether new known path is shorter than old known path
-					if(neighbor.unit):
-						if(neighbor.aStarKnownCost > node.aStarKnownCost + 999.9):
-							neighbor.aStarKnownCost = node.aStarKnownCost + 999.9
-					elif(neighbor.tileValue == cDefines.defines['MOUNTAIN_TILE_INDEX']):
-						if(neighbor.aStarKnownCost > node.aStarKnownCost + (cDefines.defines['MOUNTAIN_MOVE_COST']/(1.0+float(neighbor.roadValue)))):
-							neighbor.aStarKnownCost = node.aStarKnownCost + (cDefines.defines['MOUNTAIN_MOVE_COST']/(1.0+float(neighbor.roadValue)))
-					elif(neighbor.tileValue == cDefines.defines['WATER_TILE_INDEX'] and self.canSwim == False):
-						if(neighbor.aStarKnownCost > node.aStarKnownCost + (cDefines.defines['WATER_MOVE_COST']/(1.0+float(neighbor.roadValue)))):
-							neighbor.aStarKnownCost = node.aStarKnownCost + (cDefines.defines['WATER_MOVE_COST']/(1.0+float(neighbor.roadValue)))
-					elif(neighbor.tileValue == cDefines.defines['FOREST_TILE_INDEX']):
-						if(neighbor.aStarKnownCost > node.aStarKnownCost + (cDefines.defines['FOREST_MOVE_COST']/(1.0+float(neighbor.roadValue)))):
-							neighbor.aStarKnownCost = node.aStarKnownCost + (cDefines.defines['FOREST_MOVE_COST']/(1.0+float(neighbor.roadValue)))
-					else:
-						if(neighbor.aStarKnownCost > node.aStarKnownCost + (cDefines.defines['GRASS_MOVE_COST']/(1.0+float(neighbor.roadValue)))):
-							neighbor.aStarKnownCost = node.aStarKnownCost + (cDefines.defines['GRASS_MOVE_COST']/(1.0+float(neighbor.roadValue)))
+					if(neighbor.aStarKnownCost > node.aStarKnownCost + neighbor.findMoveCost(self)):
+						neighbor.aStarKnownCost = node.aStarKnownCost + neighbor.findMoveCost(self)
 		return []
 
-class aStarNode():
+class aStarNode(node):
 	def __init__(self,xPos,yPos,tileValue=cDefines.defines['GRASS_TILE_INDEX'],roadValue=0,city=None,playerStartValue=0):
 		self.xPos = xPos
 		self.yPos = yPos
@@ -915,6 +913,16 @@ class aStarNode():
 		self.aStarKnownCost = 0.0
 		self.aStarHeuristicCost = 0.0
 		self.aStarParent = None
+		self.isWater = (self.tileValue == cDefines.defines["WATER_TILE_INDEX"])
+		self.isMountain = (self.tileValue == cDefines.defines["MOUNTAIN_TILE_INDEX"])
+		self.moveCost = cDefines.defines["GRASS_MOVE_COST"]
+		if(self.tileValue == cDefines.defines['FOREST_TILE_INDEX']):
+			self.moveCost = cDefines.defines['FOREST_MOVE_COST']
+		elif(self.tileValue == cDefines.defines['MOUNTAIN_TILE_INDEX']):
+			self.moveCost = cDefines.defines['MOUNTAIN_MOVE_COST']
+		elif(self.tileValue == cDefines.defines['WATER_TILE_INDEX']):
+			self.moveCost = cDefines.defines['WATER_MOVE_COST']
+		
 #	def aStarSearch(self):
 #		#start at end point so we can just track back and insert into an array in order
 #		self.findAStarHeuristicCost(aStarSearch.endNode.unit.node)

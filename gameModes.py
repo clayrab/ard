@@ -486,18 +486,22 @@ class playMode(tiledGameMode):
 				if(unit.attackPoints > 0.0):
 					unit.attackPoints = unit.attackPoints - unit.unitType.attackSpeed
 				else:
-#					if(unit.node.roadValue == 1):
-#					unit.movementPoints = unit.movementPoints - 2.0
-					if(unit.node.tileValue == cDefines.defines['MOUNTAIN_TILE_INDEX'] and not unit.unitType.canFly):
-						unit.movementPoints = unit.movementPoints - ((float(unit.getMovementSpeed())+float(unit.node.roadValue))/cDefines.defines['MOUNTAIN_MOVE_COST'])
-					elif(unit.node.tileValue == cDefines.defines['WATER_TILE_INDEX'] and not unit.unitType.canFly and not unit.unitType.canSwim):
-						unit.movementPoints = unit.movementPoints - ((float(unit.getMovementSpeed())+float(unit.node.roadValue))/cDefines.defines['WATER_MOVE_COST'])
-					elif(unit.node.tileValue == cDefines.defines['FOREST_TILE_INDEX'] and not unit.unitType.canFly):
-						unit.movementPoints = unit.movementPoints - ((float(unit.getMovementSpeed())+float(unit.node.roadValue))/cDefines.defines['FOREST_MOVE_COST'])
-					else:
-						unit.movementPoints = unit.movementPoints - ((float(unit.getMovementSpeed())+float(unit.node.roadValue))/cDefines.defines['GRASS_MOVE_COST'])
+					unit.movementPoints = unit.movementPoints - (unit.getMovementSpeed()/unit.node.findMoveCost(unit))
 					if(unit.movementPoints < 0.0):
-						unit.movementPoints = 0.0#for meditating units
+						unit.movementPoints = 0.0
+#					if(unit.node.roadValue == 1):
+					
+#					unit.movementPoints = unit.movementPoints - 2.0
+#					if(unit.node.tileValue == cDefines.defines['MOUNTAIN_TILE_INDEX'] and not unit.unitType.canFly):
+#						unit.movementPoints = unit.movementPoints - ((float(unit.getMovementSpeed())+float(unit.node.roadValue))/cDefines.defines['MOUNTAIN_MOVE_COST'])
+#					elif(unit.node.tileValue == cDefines.defines['WATER_TILE_INDEX'] and not unit.unitType.canFly and not unit.unitType.canSwim):
+#						unit.movementPoints = unit.movementPoints - ((float(unit.getMovementSpeed())+float(unit.node.roadValue))/cDefines.defines['WATER_MOVE_COST'])
+#					elif(unit.node.tileValue == cDefines.defines['FOREST_TILE_INDEX'] and not unit.unitType.canFly):
+#						unit.movementPoints = unit.movementPoints - ((float(unit.getMovementSpeed())+float(unit.node.roadValue))/cDefines.defines['FOREST_MOVE_COST'])
+#					else:
+#						unit.movementPoints = unit.movementPoints - ((float(unit.getMovementSpeed())+float(unit.node.roadValue))/cDefines.defines['GRASS_MOVE_COST'])
+#					if(unit.movementPoints < 0.0):
+#						unit.movementPoints = 0.0#for meditating units
 			for summoner in self.summoners:
 				summoner.incrementBuildProgress()
 				
@@ -516,7 +520,7 @@ class playMode(tiledGameMode):
 				break
 			if(unit.isMeditating):
 				break
-			if(len(eligibleUnits) == 0):
+			if(len(eligibleUnits) == 0):#units are ordered by movementPoints
 				eligibleUnits.append(unit)
 #			elif(unit.movementPoints == eligibleUnits[0].movementPoints and unit.attackPoints <= 0.0):
 			elif(unit.movementPoints <= 0.0 and unit.attackPoints <= 0.0):
@@ -528,7 +532,7 @@ class playMode(tiledGameMode):
 				#unit.movementPoints = unit.movementPoints + (gameLogic.INITIATIVE_ACTION_DEPLETION/5.0)
 				unit.skip()
 			if(gameState.getPlayerNumber() == 0):
-				gameState.rendererUpdateQueue.put(rendererUpdates.renderFocus())
+#				gameState.rendererUpdateQueue.put(rendererUpdates.renderFocus())
 				self.chooseNextDelayed = True
 			self.nextUnit = None
 		else:
