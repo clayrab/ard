@@ -43,7 +43,16 @@ class Connection(basic.LineReceiver):
         self.factory.clients.append(self)
         self.authenticated = False
     def connectionLost(self, reason):
-        self.logout()
+        print 'client disconnected'
+        if(self.currentRoom != None):
+            print self.currentRoom.name
+            print rooms[self.currentRoom.name].subscribers
+            rooms[self.currentRoom.name].subscribers.remove(self)
+        if(self.ownedRoom != None):
+            self.destroyRoom(self.ownedRoom)
+        if(self.userName != None):
+            del users[self.userName]
+        self.factory.clients.remove(self)
 #        print "Lost a client!"
 #        if(self.currentRoom != None):
 #            rooms[self.currentRoom.name].subscribers.remove(self)
@@ -62,6 +71,9 @@ class Connection(basic.LineReceiver):
         del rooms[room.name]
     #BEGIN COMMANDS
     def subscribe(self,roomName):
+        print 'subscribe'
+        print self.userName
+        print roomName
         if(not roomName in rooms):
             self.sendCommand("showMessage","This room no longer exists.")
             return
@@ -77,18 +89,24 @@ class Connection(basic.LineReceiver):
             self.destroyRoom(self.ownedRoom)
             self.ownedRoom = None
         self.currentRoom = daRoom
-        if(daRoom.mapName != None):
-            for subscriber in self.currentRoom.subscribers:
-                subscriber.sendCommand("addPlayer",self.userName)
+#        if(daRoom.mapName != None):
+#            for subscriber in self.currentRoom.subscribers:
+#                subscriber.sendCommand("addPlayer",self.userName)
         daRoom.subscribers.append(self)
+        print daRoom.name
+        print 'subscribers: ' + str(daRoom.subscribers)
+        for subscriber in daRoom.subscribers:
+            print daRoom.name
+            print subscriber.userName
         if(daRoom.parent != None):
             for subscriber in daRoom.parent.subscribers:
                 subscriber.sendCommand("roomCount",roomName + "*" + str(len(daRoom.subscribers)) + "*" + str(daRoom.teamSize))
         if(daRoom.mapName != None):
             response = roomName + "*" + daRoom.hostIP + "*" + daRoom.hostPort + "*" + daRoom.teamSize
+            print response
             self.sendCommand("showGameRoom",response)
-            for subscriber in self.currentRoom.subscribers:
-                self.sendCommand("addPlayer",subscriber.userName)
+#            for subscriber in self.currentRoom.subscribers:
+#                self.sendCommand("addPlayer",subscriber.userName)
         else:
             response = ""
             for room in daRoom.childRooms:
@@ -127,14 +145,6 @@ class Connection(basic.LineReceiver):
             self.sendCommand("versionPassed","")
         else:
             self.sendCommand("versionFailed","")
-    def logout(self,args=""):
-        if(self.currentRoom != None):
-            rooms[self.currentRoom.name].subscribers.remove(self)
-        if(self.ownedRoom != None):
-            self.destroyRoom(self.ownedRoom)
-        if(self.userName != None):
-            del users[self.userName]
-        self.factory.clients.remove(self)
     def login(self,args):
 #        strArgs = " ".join(args)
 #        strArgs = str(rsaKey.decrypt(args))
@@ -151,7 +161,7 @@ class Connection(basic.LineReceiver):
         else:
             self.sendCommand("showLoginFailed","")
     def doCommand(self,commandName,arguments=None):
-        print commandName
+        print 'command: ' + commandName
 #        if((self.loggedIn or commandName == "login") and commandName != "seedRNG" and commandName != "setPlayerNumber" and commandName != "setMap"):#when testing the host, these commands will come back
         if((self.loggedIn or commandName == "login" or commandName == "verifyVersion")):
             commandFunc = getattr(self,commandName)
