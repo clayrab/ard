@@ -875,7 +875,8 @@ class loginMode(gameMode):
 		uiElements.backButton(-0.930,0.9,newGameScreenMode)
 		try:
 			gameFindClient.startClient()
-		except socket.error:
+		except socket.error as errr:
+			print errr, errr.errno, errr.strerror
 			gameState.setGameMode(newGameScreenMode)
 			uiElements.smallModal("Cannot connect to server.")
 

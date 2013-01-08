@@ -7,7 +7,8 @@ import gameLogic
 import uiElements
 import rsa
 
-gameFindHost = "94.75.231.214"
+gameFindHost = "159.253.136.254"
+#"94.75.231.214"
 #gameFindHost = "94.75.235.221"
 
 (pubKey, privKey) = rsa.newkeys(512)

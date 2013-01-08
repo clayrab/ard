@@ -907,20 +907,20 @@ class scrollableTextFieldsElement(uiElement):
 #		self.reset()
 		for field in self.textFields:
 			textFieldElem = None
-			if(hasattr(field,"xPosition")):
+			if(hasattr(field,"xPosition")):#elements instead of just a text array
 #			if(True):
 				textFieldElem = field
 				textFieldElem.scrollableElement = self
 				textFieldElem.xPosition = self.xPosition+self.xPositionOffset
-#				gameState.getGameMode().elementsDict[textFieldElem.name] = textFieldElem
-#				gameState.rendererUpdateQueue.put(rendererUpdates.addUIElem(textFieldElem))
-#			else:
-#				text = ""
-#				if(hasattr(field,"name")):
-#					text = field.name
-#				else:
-#					text=field
-#				textFieldElem = scrollingTextElement(self.xPosition+self.xPositionOffset,0.0,self,width=2.0,height=0.1,text=text,textureIndex=-1,textSize=self.textSize,hidden=True)
+				gameState.getGameMode().elementsDict[textFieldElem.name] = textFieldElem
+				gameState.rendererUpdateQueue.put(rendererUpdates.addUIElem(textFieldElem))
+			else:
+				text = ""
+				if(hasattr(field,"name")):
+					text = field.name
+				else:
+					text=field
+				textFieldElem = scrollingTextElement(self.xPosition+self.xPositionOffset,0.0,self,width=2.0,height=0.1,text=text,textureIndex=-1,textSize=self.textSize,hidden=True)
 				textFieldElem.onScrollUp = self.onScrollUp
 				textFieldElem.onScrollDown = self.onScrollDown
 				for name in textFieldElem.names:
@@ -973,7 +973,10 @@ class scrollableTextFieldsElement(uiElement):
 #		self.names = []
 #		self.textFields = []
 		self.textFieldElements = []
-
+	def destroy(self):
+		for textFieldElement in self.textFieldElements:
+			textFieldElement.destroy()
+		uiElement.destroy(self)
 class summonerUnitsDisplay(scrollableTextFieldsElement):
 	def __init__(self,xPos,yPos,unitTypes,summoner,unitElemClass):
 		scrollableTextFieldsElement.__init__(self,xPos,yPos,[],height=texHeight("QUEUE_BORDER")-0.015,width=texWidth("QUEUE_BORDER"),xPositionOffset=0.01,yPositionOffset=0.014,lineHeight=0.127,numFields=4,scrollPadTex="SCROLL_BAR")
