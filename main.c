@@ -86,14 +86,12 @@ PyObject * pyName;
 PyObject * pyHealth;
 PyObject * pyMaxHealth;
 PyObject * pyLevel;
-PyObject * pyPlayerNumber;
 PyObject * pyRecentDamage;
 PyObject * pyRecentDamageIter;
 char lvlStr[3];
 char * unitName;
 long playerNumber;
 long unitTextureIndex;
-int level;
 int flagBits;
 double healthBarLength;
 //PyObject * uiElement;
@@ -300,6 +298,7 @@ SDL_mutex * clickScrollMutex;//protects clickScroll
 SDL_mutex * viewportModeMutex;//protects viewportMode
 SDL_mutex * chooseNextDelayedMutex;//protects chooseNextDelayed and chooseNextStartTime
 SDL_mutex * currentTickMutex;//protects pythonCurrentTick
+SDL_mutex * soundMutex;//protects sound queue
 
 int rowNumber;
 PyObject * pyNode;
@@ -612,6 +611,7 @@ PyObject * pyHex;
 PyObject * pyHealth;
 PyObject * pyIndex;
 PyObject * pyUnitVisible;
+PyObject * pyPlayerNumber;
 void loadUnit(struct unit * daUnit,PyObject * pyUnit){
   pyUnitType = PyObject_GetAttrString(pyUnit,"unitType");
   pyId = PyObject_GetAttrString(pyUnit,"id");
@@ -626,15 +626,21 @@ void loadUnit(struct unit * daUnit,PyObject * pyUnit){
   pyYPosition = PyObject_GetAttrString(pyUnit,"yPos");
   daUnit->yPos = PyFloat_AsDouble(pyYPosition);
   Py_DECREF(pyYPosition);
+  pyLevel = PyObject_GetAttrString(pyUnit,"level");
+  daUnit->level = PyLong_AsLong(pyLevel);
+  Py_DECREF(pyLevel);
   pyHealth = PyObject_GetAttrString(pyUnit,"health");
   daUnit->health = PyLong_AsLong(pyHealth);
-  Py_DECREF(pyHealth);
-  pyHealth = PyObject_GetAttrString(pyUnitType,"health");
-  daUnit->maxHealth = PyLong_AsLong(pyHealth);
   Py_DECREF(pyHealth);
   pyUnitVisible = PyObject_GetAttrString(pyUnit,"visible");
   daUnit->visible = (pyUnitVisible == Py_True);
   Py_DECREF(pyUnitVisible);
+  pyPlayerNumber = PyObject_GetAttrString(pyUnit,"player");
+  daUnit->player = PyLong_AsLong(pyPlayerNumber);
+  Py_DECREF(pyPlayerNumber);
+  pyHealth = PyObject_GetAttrString(pyUnitType,"health");
+  daUnit->maxHealth = PyLong_AsLong(pyHealth);
+  Py_DECREF(pyHealth);
   pyIndex = PyObject_GetAttrString(pyUnitType,"textureIndex");
   daUnit->textureIndex = PyLong_AsLong(pyIndex);
   Py_DECREF(pyIndex);
@@ -1060,25 +1066,25 @@ void drawUnit(UNIT * daUnit){
   glTexCoord2f(0.0,1.0); glVertex3f(0.5, .25, 0.0);
   glEnd();
 
-  if(playerNumber == 0){
+  if(daUnit->player == 0){
     glColor3f(1.0,0.0,0.0);//red
-  }else if(playerNumber == 1){
+  }else if(daUnit->player == 1){
     glColor3f(0.0,0.0,1.0);//blue
-  }else if(playerNumber == 2){
+  }else if(daUnit->player == 2){
     glColor3f(1.0,1.0,0.0);//yellow
-  }else if(playerNumber == 3){
+  }else if(daUnit->player == 3){
     glColor3f(0.0,1.0,0.0);//green
-  }else if(playerNumber == 4){
+  }else if(daUnit->player == 4){
     glColor3f(1.0,0.5,0.0);//orange
-  }else if(playerNumber == 5){
+  }else if(daUnit->player == 5){
     glColor3f(0.5,0.0,1.0);//purple/pink
-  }else if(playerNumber == 6){
+  }else if(daUnit->player == 6){
     glColor3f(0.0,1.0,1.0);//teal
-  }else if(playerNumber == 7){
+  }else if(daUnit->player == 7){
     glColor3f(0.23,0.133,0.055);//brown
   }
 
-  flagBits = level;
+  flagBits = daUnit->level;
   while(flagBits != 0){
     glBindTexture(GL_TEXTURE_2D, texturesArray[FLAG_INDEX0+(flagBits&3)]);
     flagBits = flagBits >> 2;
@@ -1221,9 +1227,11 @@ void drawUnits(){
   SDL_mutexP(unitsMutex);
   daNextUnit = theUnits;
   while(daNextUnit != NULL){
-    glPushMatrix();
-    drawUnit(daNextUnit);
-    glPopMatrix();
+    if(daNextUnit->visible || 1){
+      glPushMatrix();
+      drawUnit(daNextUnit);
+      glPopMatrix();
+    }
     daNextUnit = daNextUnit->nextUnit;
   }
   SDL_mutexV(unitsMutex);
@@ -1715,6 +1723,18 @@ void drawUI(){
     }
 
   }
+}
+SOUND * sounds = NULL;
+SOUND * nextSound;
+static void playSounds(){
+  SDL_mutexP(soundMutex);
+  nextSound = sounds;
+  while(nextSound != NULL){
+    Mix_PlayChannel(-1, soundArray[nextSound->index], 0);
+    nextSound = nextSound->nextSound;
+  }
+  sounds = NULL;
+  SDL_mutexV(soundMutex);      
 }
 /************************************* /drawing subroutines ***************************************/
 
@@ -2409,6 +2429,8 @@ PyObject * pyMode;
 long updateType;
 int doResetUI = 0;
 PyObject * pyType;
+PyObject * pySoundIndex;
+SOUND * newSound;
 static void getPythonUpdates(){
   pyUpdatesQueue = PyObject_GetAttrString(gameState,"rendererUpdateQueue");
   pyUpdatesQueueEmpty = PyObject_CallMethod(pyUpdatesQueue,"empty",NULL);
@@ -2518,6 +2540,14 @@ static void getPythonUpdates(){
       chooseNextTimeStart = pythonCurrentTick;
       chooseNextDelayed = 1;
       SDL_mutexV(chooseNextDelayedMutex);
+    }else if(updateType == RENDERER_PLAY_SOUND){
+      SDL_mutexP(soundMutex);
+      pySoundIndex = PyObject_GetAttrString(pyUpdate,"soundIndex");
+      newSound = (SOUND *)malloc(sizeof(SOUND));
+      newSound->nextSound = sounds;
+      newSound->index = PyLong_AsLong(pySoundIndex);
+      sounds = newSound;
+      SDL_mutexV(soundMutex);
     }
     Py_DECREF(pyUpdate);    
     pyUpdatesQueueEmpty = PyObject_CallMethod(pyUpdatesQueue,"empty",NULL);
@@ -2667,25 +2697,17 @@ int counter = 0;
 static void fetchPyGameMode(){ 
   gameMode = PyObject_CallMethod(gameState,"getGameMode",NULL);
 }
-PyObject * pySoundIndex;
 static void mainLoop (){
   while ( !quit ) {
-    /*    while(pySoundIndex != Py_None && pySoundIndex != NULL){
-      soundIndex = PyLong_AsLong(pySoundIndex);
-      Py_DECREF(pySoundIndex);
-      Mix_PlayChannel(-1, soundArray[soundIndex], 0);
-      pySoundIndex = PyObject_CallMethod(gameMode,"getSound",NULL);
-      Py_DECREF(pySoundIndex);
-      }*/
     //    printf("%d\n",0);
     deltaTicks = SDL_GetTicks()-currentTick;
     currentTick = SDL_GetTicks();
     SDL_mutexP(currentTickMutex);
     pythonCurrentTick = currentTick;
     SDL_mutexV(currentTickMutex);
-    
     //    printf("%d\n",-1);
     draw();
+    playSounds();
     //printf("%d\n",-2);
     handleInput();
     //printf("%d\n",-3);
@@ -2798,6 +2820,7 @@ int main(int argc, char ** argv){
   viewportModeMutex = SDL_CreateMutex();
   chooseNextDelayedMutex = SDL_CreateMutex();
   currentTickMutex = SDL_CreateMutex();
+  soundMutex = SDL_CreateMutex();
   SDL_mutexP(mapMutex);//don't really need this yet, but putting it here for consistency's sake
   theMap.nodes = NULL;
   SDL_mutexV(mapMutex);

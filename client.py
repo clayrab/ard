@@ -7,6 +7,7 @@ import gameModes
 import gameLogic
 import uiElements
 import cDefines
+import rendererUpdates
 
 SERVER = -1
 class Commands:
@@ -99,7 +100,7 @@ class Commands:
     def startGame():
         gameState.setGameMode(gameModes.playMode)
         gameState.getGameMode().startGame()
-        gameState.getGameMode().soundIndeces.append(cDefines.defines["DARBUKA_HIT_INDEX"])
+        gameState.rendererUpdateQueue.put(rendererUpdates.playSound(cDefines.defines["DARBUKA_HIT_INDEX"]))
         for player in gameState.getPlayers():
             if player != None and player.isAI:
                 player.analyzeMap()

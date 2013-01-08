@@ -339,7 +339,7 @@ class unit(object):
 		aStarSearch.removeUnit(self.node)
 #		aStarSearch.parentPipe.send(["unitRemove",self.node.xPos,self.node.yPos])
 		aStarSearch.addUnit(node)
-		if(node.visible):#TODO remove 'or True' this, it's just for debuging
+		if(node.visible):
 			gameState.rendererUpdateQueue.put(rendererUpdates.renderFocus(node.xPos,node.yPos))
 		self.node.unit = None
 		self.node = node
@@ -401,7 +401,7 @@ class unit(object):
 		gameState.getGameMode().gotoMode = False
 		selectNode(None)
 	def skip(self):
-		self.movementPoints = self.movementPoints + INITIATIVE_ACTION_DEPLETION
+		self.movementPoints = self.movementPoints + (INITIATIVE_ACTION_DEPLETION/2.0)
 		if(gameState.getGameMode().nextUnit != None and gameState.getGameMode().nextUnit.ai == None):
 			gameState.getGameMode().gotoMode = False
 			selectNode(None)
@@ -501,16 +501,12 @@ class node:
 			self.moveCost = cDefines.defines['MOUNTAIN_MOVE_COST']
 		elif(self.tileValue == cDefines.defines['WATER_TILE_INDEX']):
 			self.moveCost = cDefines.defines['WATER_MOVE_COST']
-	def findMoveCost(self,unit):
-		print unit == self.unit
+	def findMoveCost(self,unitType,unitBlocks=True):
 		moveCost = self.moveCost
-		if(unit.unitType.canFly or (unit.unitType.canSwim and self.isWater)):
+		if(unitType.canFly or (unitType.canSwim and self.isWater)):
 			moveCost = cDefines.defines["GRASS_MOVE_COST"]
-		if(unit == self.unit):
-			return moveCost
-		elif(self.unit != None):
-			return 999.9
-		print 'movecost: ' + str(moveCost)
+		elif(unitBlocks and self.unit):#self.unit == None would be wrong when aStar.unit = False
+			moveCost = 999.9
 		return moveCost
 	def getValue(self):
 		return self.tileValue
@@ -543,7 +539,7 @@ class node:
 	def addUnit(self,theUnit):
 		if(self.unit == None and self.tileValue != cDefines.defines['MOUNTAIN_TILE_INDEX']):
 			self.unit = theUnit
-			theUnit.node = self
+
 			gameState.getGameMode().units.append(theUnit)
 			gameState.rendererUpdateQueue.put(rendererUpdates.renderNewUnit(self.unit))
 			if(theUnit.unitType.name == "summoner"):
@@ -551,6 +547,7 @@ class node:
 			if(theUnit.isOwnTeam()):
 				for neighb in self.getNeighbors(VIEW_RANGE):
 					neighb.startViewing(self.unit)
+			theUnit.node = self#must do this after startViewing
 			aStarSearch.addUnit(self)
 		else:
 			hasEmptyNeighbor = False

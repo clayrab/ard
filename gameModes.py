@@ -19,14 +19,11 @@
 #
 #don't draw hidden units
 #fix 'nextUnit' big flag in drawUnit()
-#text left and right char position
-#focused/mousedover? etc
 #
 #zooming can just be handled in C? 
 #
 #replace PyObject_CallMethod with PyObject_CallMethodObjArgs where possible
-#move game login into background thread.
-#control focusSpeed from python, use a nicer curve
+#give focusSpeed a nicer curve?
 #health loss not showing
 #make health bar a lot bigger
 #dmg numbers showing up for ban but not me
@@ -34,7 +31,7 @@
 #show move initiative and attack initiative
 #unify fire and ice into unit(i.e. change vitality to 'health'
 #
-#roads? Draw them properly or remove them...
+#roads? get rid of the code.
 #handle reconnect... requires ability to save/share game state
 #sound effects
 #mouseover effects
@@ -166,7 +163,6 @@ class gameMode:
 #		self.maxTranslateZ = 0.0-cDefines.defines["maxZoom"]
 		self.exit = False
 		self.mousedOverObject = None
-		self.soundIndeces = []
 		self.musicIndeces = [cDefines.defines["OMAR_1_INDEX"]]
 		self.musicIndex = -1
 		self.restartMusic = False
@@ -190,13 +186,6 @@ class gameMode:
 		temp = self.restartMusic
 		self.restartMusic = False
 		return temp
-	def getSound(self):
-		if(len(self.soundIndeces) > 0):
-			temp = self.soundIndeces[0]
-			del self.soundIndeces[0]
-			return temp
-		else:
-			return None
 	def getMusic(self):
 		self.musicIndex = self.musicIndex + 1
 		return self.musicIndeces[self.musicIndex]
@@ -486,7 +475,7 @@ class playMode(tiledGameMode):
 				if(unit.attackPoints > 0.0):
 					unit.attackPoints = unit.attackPoints - unit.unitType.attackSpeed
 				else:
-					unit.movementPoints = unit.movementPoints - (unit.getMovementSpeed()/unit.node.findMoveCost(unit))
+					unit.movementPoints = unit.movementPoints - (unit.getMovementSpeed()/unit.node.findMoveCost(unit.unitType,False))
 					if(unit.movementPoints < 0.0):
 						unit.movementPoints = 0.0
 #					if(unit.node.roadValue == 1):
@@ -579,7 +568,7 @@ class playMode(tiledGameMode):
 				columnCount = columnCount + 1
 				if(node.playerStartValue != 0):
 					node.addUnit(gameLogic.unit(gameState.theUnitTypes["summoner"],node.playerStartValue-1,node,1))
-					for x in range(0,3):
+					for x in range(0,0):
 						node.addUnit(gameLogic.unit(gameState.theUnitTypes["gatherer"],node.playerStartValue-1,node,1))
 					node.addUnit(gameLogic.unit(gameState.theUnitTypes["swordsman"],node.playerStartValue-1,node,1))
 
@@ -684,7 +673,7 @@ class playMode(tiledGameMode):
 							gameState.doingAStarMove = True
 					elif(len(self.nextUnit.movePath) == 0 and not self.selectedNextUnit):
 						self.selectedNextUnit = True
-						self.soundIndeces.append(cDefines.defines["FINGER_CYMBALS_HIT_INDEX"])
+						gameState.rendererUpdateQueue.put(rendererUpdates.playSound(cDefines.defines["FINGER_CYMBALS_HIT_INDEX"]))
 						gameLogic.selectNode(self.nextUnit.node)
 						gameState.rendererUpdateQueue.put(rendererUpdates.renderSelectNextUnit())
 					if(self.timeToMove <= 0 and self.nextUnit != None and self.nextUnit.isControlled() and self.nextUnit.movementPoints == 0.0):#movementPoints check makes sure that we don't fire twice before chooseNextUnit comes back from server
@@ -813,7 +802,7 @@ class textBasedMenuMode(gameMode):
 					uiElements.menuButton.buttonsList[uiElements.menuButton.selectedIndex].textColor = uiElements.menuButton.normalTextColor
 					uiElements.menuButton.selectedIndex = uiElements.menuButton.selectedIndex + 1
 					uiElements.menuButton.buttonsList[uiElements.menuButton.selectedIndex].textColor = uiElements.menuButton.selectedTextColor
-			self.soundIndeces.append(cDefines.defines["FINGER_CYMBALS_HIT_INDEX"])
+			gameState.rendererUpdateQueue.put(rendererUpdates.playSound(cDefines.defines["FINGER_CYMBALS_HIT_INDEX"]))
 		elif(keycode == "return"):
 			uiElements.menuButton.buttonsList[uiElements.menuButton.selectedIndex].onClick()
 

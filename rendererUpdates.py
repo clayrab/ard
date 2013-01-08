@@ -93,6 +93,11 @@ class setChooseNextDelayed(rendererUpdate):
     def __init__(self):
         rendererUpdate.__init__(self,cDefines.defines["RENDERER_SETCHOOSENEXTDELAYED"])
 
+class playSound(rendererUpdate):
+    def __init__(self,soundIndex):
+        rendererUpdate.__init__(self,cDefines.defines["RENDERER_PLAY_SOUND"])
+        self.soundIndex = soundIndex
+
 #class loadGameMode(rendererUpdate):
 #    def __init__(self):
 #        rendererUpdate.__init__(self,cDefines.defines["RENDERER_LOADGAMEMODE"])

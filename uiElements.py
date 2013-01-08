@@ -1081,7 +1081,7 @@ class gameTypeButton(clickableElement):
 		gameState.setTeamSize(self.teamSize)
 		if(hasattr(gameState.getGameMode(),"hostGameMode")):
 			gameState.getGameMode().setMap(gameState.getMapDatas()[self.teamSize-1][0].name)
-		gameState.getGameMode().soundIndeces.append(cDefines.defines["FINGER_CYMBALS_HIT_INDEX"])
+		gameState.rendererUpdateQueue.put(rendererUpdates.playSound(cDefines.defines["FINGER_CYMBALS_HIT_INDEX"]))
 
 class da1v1Button(gameTypeButton):
 	def __init__(self,xPos,yPos,offColor="88 88 88"):
@@ -1255,7 +1255,7 @@ class menuButtonGameModeSelector(menuButton):
 		self.gameMode = gameMode
 	def onClick(self):
 		gameState.setGameMode(self.gameMode)
-		gameState.getGameMode().soundIndeces.append(cDefines.defines["DARBUKA_HIT_INDEX"])
+		gameState.rendererUpdateQueue.put(rendererUpdates.playSound(cDefines.defines["DARBUKA_HIT_INDEX"]))
 
 class mapEditSelectButtonDEPRECATED(menuButtonGameModeSelector):
 	def onClick(self):
@@ -1678,7 +1678,7 @@ class createGameButton(clickableElement):
 		clickableElement.__init__(self,xPos,yPos,textureIndex=texIndex("CREATE_GAME_BUTTON_LARGE"),width=texWidth("CREATE_GAME_BUTTON_LARGE"),height=texHeight("CREATE_GAME_BUTTON_LARGE"))
 	def onClick(self):
 		gameState.getGameFindClient().sendCommand("createGameRoom",gameState.getGameMode().roomNameField.realText + "|" + str(gameState.getTeamSize()) + "|" + gameState.getGameMode().mapNameField.text)
-		gameState.getGameMode().soundIndeces.append(cDefines.defines["DARBUKA_HIT_INDEX"])
+		gameState.rendererUpdateQueue.put(rendererUpdates.playSound(cDefines.defines["DARBUKA_HIT_INDEX"]))
 
 class createGameButtun(clickableElement):
 	def __init__(self,xPos,yPos):
@@ -1692,7 +1692,7 @@ class createGameButtun(clickableElement):
 			print "socket.error:"
 			print socket.error
 		gameState.setGameMode(gameModes.lanGameRoomMode,["127.0.0.1"])
-		gameState.getGameMode().soundIndeces.append(cDefines.defines["DARBUKA_HIT_INDEX"])
+		gameState.rendererUpdateQueue.put(rendererUpdates.playSound(cDefines.defines["DARBUKA_HIT_INDEX"]))
 #		try:
 #			client.startClient('127.0.0.1',6666)
 #		except socket.error:
@@ -1710,7 +1710,7 @@ class onlineBackButton(clickableElement):
 		clickableElement.__init__(self,xPos,yPos,textureIndex=texIndex("BACK_BUTTON"),width=texWidth("BACK_BUTTON"),height=texHeight("BACK_BUTTON"))
 	def onClick(self):
 		gameState.getGameFindClient().sendCommand("subscribe","lobby")
-		gameState.getGameMode().soundIndeces.append(cDefines.defines["DARBUKA_HIT_INDEX"])
+		gameState.rendererUpdateQueue.put(rendererUpdates.playSound(cDefines.defines["DARBUKA_HIT_INDEX"]))
 
 
 class lanBackButton(clickableElement):
@@ -1720,7 +1720,7 @@ class lanBackButton(clickableElement):
 	def onClick(self):
 #		gameState.getClient().sendCommand("removePlayer",str(gameState.getPlayerNumber()))
 #		gameState.setGameMode(self.gameMode)
-		gameState.getGameMode().soundIndeces.append(cDefines.defines["DARBUKA_HIT_INDEX"])
+		gameState.rendererUpdateQueue.put(rendererUpdates.playSound(cDefines.defines["DARBUKA_HIT_INDEX"]))
 		exitGame()
 
 class backButton(clickableElement):
@@ -1729,7 +1729,7 @@ class backButton(clickableElement):
 		self.gameMode = gameMode
 	def onClick(self):
 		gameState.setGameMode(self.gameMode)
-		gameState.getGameMode().soundIndeces.append(cDefines.defines["DARBUKA_HIT_INDEX"])
+		gameState.rendererUpdateQueue.put(rendererUpdates.playSound(cDefines.defines["DARBUKA_HIT_INDEX"]))
 
 class logoutButton(clickableElement):
 	def __init__(self,xPos,yPos,gameMode):
@@ -1751,7 +1751,7 @@ class addAIButton(clickableElement):
 	def onClick(self):
 		import ai
 		ai.addAIPlayer()
-		gameState.getGameMode().soundIndeces.append(cDefines.defines["FINGER_CYMBALS_HIT_INDEX"])
+		gameState.rendererUpdateQueue.put(rendererUpdates.playSound(cDefines.defines["FINGER_CYMBALS_HIT_INDEX"]))
 
 #class autoSelectCheckBox(clickableElement):
 #	def __init__(self,xPos,yPos):

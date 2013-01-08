@@ -28,9 +28,8 @@
 
 #define AUTO_CHOOSE_NEXT_DELAY 0
 
-//#define SLIDE_UNIT_TIME 350
-//#define SLIDE_UNIT_TIME 150.0
-#define SLIDE_UNIT_TIME 10.0//put this back to 150 after debugging is done
+#define SLIDE_UNIT_TIME 150.0
+//#define SLIDE_UNIT_TIME 10.0//put this back to 150 after debugging is done
 #define AUTO_FOCUS_TIME_MAX 1000.0
 #define AUTO_FOCUS_TIME_MIN 300.0
 
@@ -773,6 +772,7 @@ int animationTimes[2] = {4000,2000};
 #define RENDERER_SETVIEWPORTMODE 19
 #define RENDERER_SETCHOOSENEXTDELAYED 20
 #define RENDERER_LOADGAMEMODE 21
+#define RENDERER_PLAY_SOUND 22
 
 #define CREATE_GAME_ROOM_MODE 0
 #define JOIN_GAME_ROOM_MODE 1

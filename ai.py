@@ -4,7 +4,7 @@ import uiElements
 import cDefines
 import rendererUpdates
 import random
-GROUP_RANGE = 3
+GROUP_RANGE = 1
 HOSTILITY_RANGE = 3
 class MODES:
     ATTACK_MODE = 0
@@ -85,7 +85,6 @@ class AIPlayer(gameLogic.Player):
     def dispatchCommand(self,command):
         return
     def moveNextUnitToRandomNode(self):
-        print 'moveNextUnitToRandomNode'
         rngState = random.getstate()
         eligibleMoveNodes = []
         for neighb in gameState.getGameMode().nextUnit.node.neighbors:
@@ -144,8 +143,9 @@ class AIPlayer(gameLogic.Player):
 #    def findNearestCity(self):
 #        return self.findNearestTile(lambda x:x.city != None)
     def unitStrengthHeuristic(self,unit):
-        return unit.health * unit.level * unit.unitType.attackPower * unit.unitType.attackSpeed
+        return unit.level * ( (unit.health/gameState.theUnitTypes["swordsman"].health) + ((unit.unitType.attackPower * unit.unitType.attackSpeed)/(gameState.theUnitTypes["swordsman"].attackPower * gameState.theUnitTypes["swordsman"].attackSpeed)) )#health+dps normalized to the swordsman
     def getGroupConfidence(self,group,range):
+        print "getGroupConfidence"
         nodes = set()
         enemyStrength = 0.0
         ownStrength = 0.0
@@ -155,8 +155,10 @@ class AIPlayer(gameLogic.Player):
                     nodes.add(node)
                     if(node.unit != None):
                         if(node.unit.team == self.team):
+                            print 'own unit found'
                             ownStrength = ownStrength + self.unitStrengthHeuristic(node.unit)
                         else:
+                            print 'enemy unit found'
                             enemyStrength = enemyStrength + self.unitStrengthHeuristic(node.unit)
         return (ownStrength - enemyStrength)
     def getGroup(self,unit,group=None,nodes=None):
@@ -174,9 +176,14 @@ class AIPlayer(gameLogic.Player):
                     group = group | self.getGroup(node.unit,group,nodes)
         return group
     def isNodeDangerous(self,node,group):
-        return True
-#        getGroupConfidence(group,GROUP_RANGE+)
-        
+        extraRange = 0
+        if(node.isWater):
+            extraRange = 1
+        confidence = getGroupConfidence(group,HOSTILITY_RANGE+extraRange)
+        if(confidence < 1.0):#1.0 should be equivalent to 1 lvl 1 swordsman
+            return True
+        else:
+            return False
     def takeTurn(self):
         nextUnit = gameState.getGameMode().nextUnit
         if(nextUnit.aiData == None):
@@ -252,7 +259,9 @@ class AIPlayer(gameLogic.Player):
             theGroup = self.getGroup(nextUnit)
 #            print theGroup
 #            nextNode = self.findNextNodeTowardNode(self.nearestEnemyStartingNode)
-            if(self.getGroupConfidence(theGroup,GROUP_RANGE) >= 0.0):
+            confidence = self.getGroupConfidence(theGroup,HOSTILITY_RANGE)
+            print "conf: " + str(confidence)
+            if(confidence > 0.0):
                 print 'attack!'
                 attackableUnit = None
                 for node in nextUnit.node.getNeighbors(nextUnit.unitType.range):
@@ -270,18 +279,48 @@ class AIPlayer(gameLogic.Player):
                                 elif(attackableUnit.health > node.unit):
                                     attackableUnit = node.unit
                 if(attackableUnit == None):
-                    
+                    print "no attackable unit found, moving forward"
                     self.moveNextUnitTowardNode(self.nearestEnemyStartingNode)
                 else:
-                    print 'attacklable unit found'
+                    print 'attackable unit found'
                     if(nextUnit.node.findDistance(attackableUnit.node,gameState.getGameMode().map.polarity) <= nextUnit.unitType.range):
                         gameState.getClient().sendCommand("attackTo",str(attackableUnit.node.xPos) + " " + str(attackableUnit.node.yPos))
-                    else:
-                        self.moveNextUnitTowardNode(attackableUnit.node)
-                        
+                    else: 
+                        print "no unit in range"
+                        nextNode = self.findNextNodeTowardNode(node)
+                        if(isNodeDangerous(nextNode,group)):
+                            print "node is dangerous, skipping"
+                            gameState.getClient().sendCommand("skip")
+                        else:
+                            print "moving forward"
+                            self.moveNextUnitTowardNode(attackableUnit.node)
             else:
                 print "run away!"
-                self.moveNextUnitToRandomNode()
+                eligibleRunToNodes = []
+                for node in nextUnit.node.neighbors:
+                    nodeIsEligible = True
+                    if(node.unit != None):
+                         nodeIsEligible = False
+                    else:
+                        for neighb in node.neighbors:
+                            if neighb.unit != None and neighb.unit.team != self.team:
+                                nodeIsEligible = False
+                                break
+                    if(nodeIsEligible):
+                        eligibleRunToNodes.append(node)
+                if(len(eligibleRunToNodes) > 0):
+                    moveToNode = random.choice(eligibleRunToNodes)
+                    gameState.getClient().sendCommand("moveTo",str(moveToNode.xPos) + " " + str(moveToNode.yPos))
+                else:
+                    #no where to run to, hit something
+                    for node in nextUnit.node.getNeighbors(nextUnit.unitType.range):
+                        if(node.unit != None and node.unit.team != self.team):
+                            if(attackableUnit == None):
+                                attackableUnit = node.unit
+                            elif(attackableUnit.health > node.unit):
+                                attackableUnit = node.unit
+                    gameState.getClient().sendCommand("attackTo",str(attackableUnit.node.xPos) + " " + str(attackableUnit.node.yPos))                    
+#                self.moveNextUnitToRandomNode()
         gameState.getClient().sendCommand("chooseNextUnit")
         print 'turn done'
 #def analyzeMap():
@@ -305,4 +344,4 @@ class addAIButton(uiElements.clickableElement):
 		uiElements.clickableElement.__init__(self,xPos,yPos,textureIndex=texIndex("ADD_AI_BUTTON"),width=texWidth("ADD_AI_BUTTON"),height=texHeight("ADD_AI_BUTTON"))
 	def onClick(self):
 		addAIPlayer()
-		gameState.getGameMode().soundIndeces.append(cDefines.defines["FINGER_CYMBALS_HIT_INDEX"])
+                gameState.rendererUpdateQueue.put(rendererUpdates.playSound(cDefines.defines["FINGER_CYMBALS_HIT_INDEX"]))
