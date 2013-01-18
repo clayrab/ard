@@ -974,8 +974,8 @@ class scrollableTextFieldsElement(uiElement):
 #		self.textFields = []
 		self.textFieldElements = []
 	def destroy(self):
-		for textFieldElement in self.textFieldElements:
-			textFieldElement.destroy()
+#		for textFieldElement in self.textFieldElements:
+#			textFieldElement.destroy()
 		uiElement.destroy(self)
 class summonerUnitsDisplay(scrollableTextFieldsElement):
 	def __init__(self,xPos,yPos,unitTypes,summoner,unitElemClass):

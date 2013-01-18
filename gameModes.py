@@ -1023,7 +1023,7 @@ class createGameMode(tiledGameMode):
 	def __init__(self,args):
 		tiledGameMode.__init__(self)
 		gameState.rendererUpdateQueue.put(rendererUpdates.setViewportMode(cDefines.defines["JOIN_GAME_ROOM_MODE"]))
-#		self.createGameMode = True
+		self.createGameMode = True
 #		self.teamSize = 1
 #		self.mapSelector = None
 		self.backgroundImageIndex = texIndex("CREATE_GAME_BACKGROUND")
